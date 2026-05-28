@@ -4,6 +4,8 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,10 +18,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SendOtpDto, VerifyOtpDto } from './dto/send-otp.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Response, Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -39,22 +41,42 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with phone and password — returns access + refresh tokens' })
+  @ApiOperation({ summary: 'Login with phone and password — returns access token, sets refresh cookie' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const tokens = await this.authService.login(dto);
+    
+    // Set refresh token in httpOnly cookie
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    return { accessToken: tokens.accessToken };
   }
 
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt-refresh'))
-  @ApiOperation({ summary: 'Exchange a valid refresh token for a new token pair' })
+  @ApiOperation({ summary: 'Exchange a valid refresh token cookie for a new token pair' })
   @ApiResponse({ status: 200, description: 'Tokens refreshed' })
   @ApiResponse({ status: 401, description: 'Refresh token invalid or expired' })
-  refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshTokens(dto);
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    const tokens = await this.authService.refreshTokens({ refreshToken });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { accessToken: tokens.accessToken };
   }
 
   @Post('logout')
@@ -62,8 +84,9 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Revoke refresh token and log out' })
   @ApiResponse({ status: 204, description: 'Logged out successfully' })
-  logout(@CurrentUser('sub') userId: string) {
-    return this.authService.logout(userId);
+  async logout(@CurrentUser('sub') userId: string, @Res({ passthrough: true }) res: Response) {
+    await this.authService.logout(userId);
+    res.clearCookie('refreshToken');
   }
 
   @Public()

@@ -34,7 +34,7 @@ export class TraceabilityController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.admin)
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.ADMIN)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Create a traceability record for a product batch' })
   @ApiResponse({ status: 201, description: 'Traceability record created' })

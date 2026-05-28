@@ -1,65 +1,212 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SendOtpDto, VerifyOtpDto } from './dto/send-otp.dto';
+import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThan } from 'typeorm';
+import { RefreshToken } from '../../database/entities/refresh-token.entity';
+import { OtpVerification } from '../../database/entities/otp-verification.entity';
+import * as crypto from 'crypto';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
 }
 
-/**
- * AuthService — handles all authentication flows.
- * TODO: implement each method.
- */
 @Injectable()
 export class AuthService {
-  /**
-   * Register a new user.
-   * 1. Validate phone uniqueness
-   * 2. Hash password with bcrypt
-   * 3. Create user record
-   * 4. Send OTP for phone verification
-   * 5. Return the created user (without password)
-   */
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(OtpVerification)
+    private readonly otpRepo: Repository<OtpVerification>,
+    private readonly httpService: HttpService,
+  ) {}
+
   async register(dto: RegisterDto): Promise<any> {
-    throw new Error('TODO: implement AuthService.register()');
+    const existing = await this.usersService.findByPhone(dto.phone);
+    if (existing) {
+      throw new ConflictException('Phone number already exists');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(dto.password, salt);
+
+    const user = await this.usersService.create({
+      phone: dto.phone,
+      email: dto.email,
+      passwordHash,
+      role: dto.role,
+      fullName: dto.fullName,
+    });
+
+    const { passwordHash: _, ...safeUser } = user;
+    return safeUser;
   }
 
-  /**
-   * Authenticate user with phone + password.
-   * Returns access + refresh token pair.
-   */
   async login(dto: LoginDto): Promise<TokenPair> {
-    throw new Error('TODO: implement AuthService.login()');
+    const user = await this.usersService.findByPhone(dto.phone);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    await this.usersService.updateInternal(user.id, { lastLoginAt: new Date() });
+
+    return this.generateTokens(user.id);
   }
 
-  /**
-   * Issue a new access token using a valid refresh token.
-   */
   async refreshTokens(dto: RefreshTokenDto): Promise<TokenPair> {
-    throw new Error('TODO: implement AuthService.refreshTokens()');
+    let payload: any;
+    try {
+      const secret = this.configService.get<string>('JWT_REFRESH_SECRET', 'fallback_refresh_secret_change_me');
+      payload = this.jwtService.verify(dto.refreshToken, { secret });
+    } catch (e) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const tokenHash = await this.hashToken(dto.refreshToken);
+    const storedToken = await this.refreshTokenRepo.findOne({
+      where: { tokenHash, userId: payload.sub },
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    if (storedToken.revokedAt || storedToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Refresh token revoked or expired');
+    }
+
+    await this.refreshTokenRepo.update(storedToken.id, { revokedAt: new Date() });
+    return this.generateTokens(payload.sub);
   }
 
-  /**
-   * Revoke the refresh token (logout).
-   */
   async logout(userId: string): Promise<void> {
-    throw new Error('TODO: implement AuthService.logout()');
+    await this.refreshTokenRepo.update(
+      { userId, revokedAt: null },
+      { revokedAt: new Date() }
+    );
   }
 
-  /**
-   * Send an OTP code via SMS or email.
-   */
   async sendOtp(dto: SendOtpDto): Promise<void> {
-    throw new Error('TODO: implement AuthService.sendOtp()');
+    // Rate limit: max 3 requests per 10 mins
+    const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const recentRequests = await this.otpRepo.count({
+      where: {
+        phone: dto.target,
+        createdAt: MoreThan(tenMinsAgo),
+      }
+    });
+
+    if (recentRequests >= 3) {
+      throw new BadRequestException('Too many OTP requests. Try again later.');
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+
+    await this.otpRepo.save({
+      phone: dto.target,
+      otpCode,
+      type: dto.type,
+      purpose: dto.purpose,
+      expiresAt,
+    });
+
+    if (dto.type === 'sms') {
+      const apiKey = this.configService.get<string>('ESMS_API_KEY');
+      const secretKey = this.configService.get<string>('ESMS_SECRET_KEY');
+      const brandname = this.configService.get<string>('ESMS_BRANDNAME', 'Baokim');
+      
+      // Clean phone number (eSMS prefers no + sign, e.g. 84901234567 or 0901234567)
+      const cleanPhone = dto.target.replace('+', '');
+      const content = encodeURIComponent(`Ma xac thuc AgriLink cua ban la: ${otpCode}`);
+      
+      const url = `http://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_get?Phone=${cleanPhone}&Content=${content}&ApiKey=${apiKey}&SecretKey=${secretKey}&SmsType=2&Brandname=${brandname}`;
+
+      try {
+        const response = await firstValueFrom(this.httpService.get(url));
+        console.log(`[eSMS] Sent OTP ${otpCode} to ${dto.target} - Response:`, response.data);
+      } catch (error) {
+        console.error(`[eSMS Error] Failed to send SMS to ${dto.target}:`, error.message);
+        // Do not throw error here to avoid blocking user if SMS gateway is down during dev,
+        // but in prod you might want to throw a 503 Service Unavailable.
+      }
+    } else {
+      console.log(`[Mock Email] Sent OTP ${otpCode} to ${dto.target}`);
+    }
   }
 
-  /**
-   * Verify an OTP code and mark the user's phone/email as verified.
-   */
   async verifyOtp(dto: VerifyOtpDto): Promise<void> {
-    throw new Error('TODO: implement AuthService.verifyOtp()');
+    const otp = await this.otpRepo.findOne({
+      where: { phone: dto.target, otpCode: dto.code, purpose: dto.purpose, isUsed: false },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!otp) {
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    if (otp.expiresAt < new Date()) {
+      throw new BadRequestException('OTP expired');
+    }
+
+    otp.isUsed = true;
+    await this.otpRepo.save(otp);
+
+    if (dto.purpose === 'register') {
+      const user = await this.usersService.findByPhone(dto.target);
+      if (user) {
+        await this.usersService.updateInternal(user.id, { isPhoneVerified: true });
+      }
+    }
+  }
+
+  private async generateTokens(userId: string): Promise<TokenPair> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const payload = { sub: userId, phone: user.phone, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
+    
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'fallback_refresh_secret_change_me');
+    const refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
+    
+    const refreshToken = this.jwtService.sign(
+      payload,
+      { secret: refreshSecret, expiresIn: refreshExpiresIn }
+    );
+
+    const tokenHash = await this.hashToken(refreshToken);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await this.refreshTokenRepo.save({
+      userId,
+      tokenHash,
+      expiresAt,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  private async hashToken(token: string): Promise<string> {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 }

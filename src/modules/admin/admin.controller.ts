@@ -10,7 +10,7 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
 @UseGuards(RolesGuard)
-@Roles(UserRole.admin)
+@Roles(UserRole.ADMIN)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}

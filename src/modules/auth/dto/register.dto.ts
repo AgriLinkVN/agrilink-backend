@@ -25,7 +25,7 @@ export class RegisterDto {
   @MinLength(8)
   password: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.farmer })
+  @ApiProperty({ enum: UserRole, example: UserRole.FARMER })
   @IsEnum(UserRole)
   role: UserRole;
 
