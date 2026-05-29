@@ -1,3 +1,4 @@
+import { FarmingType, ProductUnit } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -8,7 +9,6 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
-import { FarmingType, ProductUnit } from '../../../common/enums';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Xoai cat Hoa Loc' })
