@@ -59,6 +59,25 @@ export class AuthController {
   }
 
   @Public()
+  @Post('login-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with phone and OTP — returns access token, sets refresh cookie' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 400, description: 'Invalid OTP' })
+  async loginOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
+    const tokens = await this.authService.loginWithOtp(dto);
+    
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    return { accessToken: tokens.accessToken };
+  }
+
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt-refresh'))

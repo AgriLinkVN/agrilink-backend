@@ -10,9 +10,10 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASS || 'postgres',
   database: process.env.DB_NAME || 'agrilink_db',
-  entities: ['src/**/*.entity.ts'],
+  entities: ['src/database/entities/**/*.entity.ts'],
   migrations: ['src/database/migrations/*.ts'],
-  synchronize: false,
+  synchronize: process.env.DB_SYNCHRONIZE === 'true',
+  logging: true,
 };
 
 const dataSource = new DataSource(dataSourceOptions);
