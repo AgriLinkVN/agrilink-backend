@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { AdCampaign } from './ad-campaign.entity';
 
 export enum AdEventType {
   impression = 'impression',
@@ -10,7 +18,6 @@ export class AdEvent {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** FK → ad_campaigns.id */
   @Column({ name: 'campaign_id' })
   campaignId: string;
 
@@ -26,6 +33,10 @@ export class AdEvent {
 
   @Column({ name: 'user_agent', nullable: true, type: 'text' })
   userAgent: string;
+
+  @ManyToOne(() => AdCampaign, (c) => c.events, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'campaign_id' })
+  campaign: AdCampaign;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

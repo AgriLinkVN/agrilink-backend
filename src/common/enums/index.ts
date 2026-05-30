@@ -86,6 +86,11 @@ export enum NotifType {
   price_alert = 'price_alert',
   member_request = 'member_request',
   new_message = 'new_message',
+  new_review = 'new_review',
+  review_reply = 'review_reply',
+  ad_approved = 'ad_approved',
+  ad_rejected = 'ad_rejected',
+  user_locked = 'user_locked',
 }
 
 export enum AdType {

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
@@ -15,6 +16,14 @@ async function bootstrap() {
     .get<string>('CORS_ORIGINS', 'http://localhost:3000')
     .split(',')
     .map((o) => o.trim());
+
+  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  if (!corsOrigins.includes(frontendUrl)) {
+    corsOrigins.push(frontendUrl);
+  }
+
+  // WebSocket adapter — must be set before any other config
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // Global prefix
   app.setGlobalPrefix('api/v1');

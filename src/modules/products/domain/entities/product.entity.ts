@@ -67,6 +67,12 @@ export class Product {
   @Column({ name: 'view_count', default: 0 })
   viewCount: number;
 
+  @Column({ name: 'avg_rating', type: 'decimal', precision: 3, scale: 1, default: 0 })
+  avgRating: number;
+
+  @Column({ name: 'sold_count', default: 0 })
+  soldCount: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

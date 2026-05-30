@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { databaseConfig } from './config/database.config';
@@ -25,6 +26,9 @@ import { AdminModule } from './modules/admin/admin.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // Cron / scheduled tasks
+    ScheduleModule.forRoot(),
 
     // Database
     TypeOrmModule.forRootAsync({
