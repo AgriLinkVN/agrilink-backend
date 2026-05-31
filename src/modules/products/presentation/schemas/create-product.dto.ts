@@ -72,7 +72,8 @@ export class CreateProductDto {
 
 
   // seller Type
-  @ApiProperty({ enum: SellerType, example: SellerType.farmer })
+  @ApiPropertyOptional({ enum: SellerType, example: SellerType.farmer })
+  @IsOptional()
   @IsEnum(SellerType)
-  sellerType: SellerType;
+  sellerType?: SellerType;
 }
