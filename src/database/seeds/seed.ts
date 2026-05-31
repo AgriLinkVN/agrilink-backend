@@ -7,9 +7,11 @@ import { ProductCategory } from '../../modules/products/domain/entities/product-
 import { Product } from '../../modules/products/domain/entities/product.entity';
 import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
 import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { AdPackage } from '../../modules/ads/entities/ad-package.entity';
 
 // Seeds
 import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+import { seedAdPackages } from '../../modules/ads/seeds/ad-package.seed';
 
 dotenv.config();
 
@@ -22,9 +24,10 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASS ?? '',
   entities: [
     ProductCategory,
-    Product,           // ← thêm để sync bảng products
-    ProductImage,      // ← thêm để sync bảng product_images
-    ProductCertification, // ← thêm để sync bảng product_certifications
+    Product,
+    ProductImage,
+    ProductCertification,
+    AdPackage,         // ← P5: cần để seed gói quảng cáo
   ],
   synchronize: true,
   logging: false,
@@ -39,7 +42,10 @@ async function runSeed() {
 
   // Step 2: Seed provinces/districts  — TODO (P4 làm)
   // Step 3: Seed admin account        — TODO (P1 làm)
-  // Step 4: Seed ad packages          — TODO (P5 làm)
+
+  // Step 4: Seed ad packages — P5
+  await seedAdPackages(AppDataSource);
+
   // Step 5: Seed system_configs       — TODO (P1 làm)
 
   await AppDataSource.destroy();

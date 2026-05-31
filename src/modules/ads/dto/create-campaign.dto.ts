@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  IsUUID,
   MaxLength,
   Min,
   MinLength,
@@ -18,9 +17,10 @@ export class CreateCampaignDto {
   @MaxLength(255)
   title: string;
 
-  @ApiProperty({ description: 'ID của gói quảng cáo (UUID)' })
-  @IsUUID()
-  packageId: string;
+  @ApiProperty({ description: 'ID của gói quảng cáo (INTEGER per SQL schema)', example: 1 })
+  @IsInt()
+  @Min(1)
+  packageId: number;
 
   @ApiProperty({
     description: 'URL banner đã upload lên Cloudinary',

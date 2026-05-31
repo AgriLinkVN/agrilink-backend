@@ -12,32 +12,56 @@ import { AdStatus } from '../../../common/enums';
 import { AdPackage } from './ad-package.entity';
 import { AdEvent } from './ad-event.entity';
 
+/**
+ * Matches SQL schema: ad_campaigns
+ *   id                 UUID PK
+ *   supplier_id        UUID FK → users.id   (NOT advertiser_id)
+ *   package_id         INT  FK → ad_packages.id
+ *   title              VARCHAR(255)
+ *   image_url          TEXT                 (NOT banner_url)
+ *   link_url           TEXT                 (NOT target_url)
+ *   target_provinces   JSONB                (kept JSONB from migration, SQL doc said text)
+ *   status             ad_status
+ *   approved_by        UUID
+ *   approved_at        TIMESTAMPTZ
+ *   rejection_reason   TEXT
+ *   start_date         DATE                 (NOT starts_at TIMESTAMPTZ)
+ *   end_date           DATE                 (NOT ends_at)
+ *   total_impressions  INTEGER              (NOT impression_count)
+ *   total_clicks       INTEGER              (NOT click_count)
+ *   created_at         TIMESTAMPTZ
+ */
 @Entity('ad_campaigns')
 export class AdCampaign {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /** FK → users.id (the supplier who owns this campaign) */
-  @Column({ name: 'advertiser_id' })
-  advertiserId: string;
+  @Column({ name: 'supplier_id' })
+  supplierId: string;
 
-  /** FK → ad_packages.id */
-  @Column({ name: 'package_id' })
-  packageId: string;
+  /** FK → ad_packages.id (INT) */
+  @Column({ name: 'package_id', type: 'int' })
+  packageId: number;
 
-  @Column()
+  @Column({ length: 255 })
   title: string;
 
   /** Cloudinary image URL for the banner */
-  @Column({ name: 'banner_url', nullable: true, type: 'text' })
-  bannerUrl: string;
+  @Column({ name: 'image_url', nullable: true, type: 'text' })
+  imageUrl: string;
 
   /** Destination URL when the banner is clicked */
-  @Column({ name: 'target_url', nullable: true, type: 'text' })
-  targetUrl: string;
+  @Column({ name: 'link_url', nullable: true, type: 'text' })
+  linkUrl: string;
 
-  /** Array of province IDs targeted by this campaign. Empty/null = nationwide. */
-  @Column({ name: 'target_provinces', nullable: true, type: 'jsonb', default: () => "'[]'::jsonb" })
+  /** Array of province IDs targeted by this campaign. Empty = nationwide. */
+  @Column({
+    name: 'target_provinces',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'[]'::jsonb",
+  })
   targetProvinces: number[];
 
   @Column({ type: 'enum', enum: AdStatus, default: AdStatus.pending_approval })
@@ -53,17 +77,18 @@ export class AdCampaign {
   @Column({ name: 'rejection_reason', nullable: true, type: 'text' })
   rejectionReason: string;
 
-  @Column({ name: 'starts_at', nullable: true, type: 'timestamptz' })
-  startsAt: Date;
+  /** Date the campaign starts running (date-only per SQL doc) */
+  @Column({ name: 'start_date', nullable: true, type: 'date' })
+  startDate: Date | string;
 
-  @Column({ name: 'ends_at', nullable: true, type: 'timestamptz' })
-  endsAt: Date;
+  @Column({ name: 'end_date', nullable: true, type: 'date' })
+  endDate: Date | string;
 
-  @Column({ name: 'impression_count', default: 0 })
-  impressionCount: number;
+  @Column({ name: 'total_impressions', default: 0 })
+  totalImpressions: number;
 
-  @Column({ name: 'click_count', default: 0 })
-  clickCount: number;
+  @Column({ name: 'total_clicks', default: 0 })
+  totalClicks: number;
 
   // ── Relations ─────────────────────────────────────────────────────────────
 

@@ -71,7 +71,7 @@ export class AdsService {
   }
 
   async updatePackage(
-    id: string,
+    id: number,
     dto: Partial<CreatePackageDto> & { isActive?: boolean },
   ): Promise<AdPackage> {
     const pkg = await this.packageRepo.findOne({ where: { id } });
@@ -80,7 +80,7 @@ export class AdsService {
     return this.packageRepo.save(pkg);
   }
 
-  async deactivatePackage(id: string): Promise<AdPackage> {
+  async deactivatePackage(id: number): Promise<AdPackage> {
     const pkg = await this.packageRepo.findOne({ where: { id } });
     if (!pkg) throw new NotFoundException(`Gói "${id}" không tồn tại`);
     pkg.isActive = false;
@@ -97,15 +97,17 @@ export class AdsService {
       where: { id: dto.packageId, isActive: true },
     });
     if (!pkg) {
-      throw new NotFoundException(`Gói quảng cáo "${dto.packageId}" không tồn tại hoặc đã bị vô hiệu hóa`);
+      throw new NotFoundException(
+        `Gói quảng cáo "${dto.packageId}" không tồn tại hoặc đã bị vô hiệu hóa`,
+      );
     }
 
     const campaign = this.campaignRepo.create({
-      advertiserId: supplierId,
+      supplierId,
       packageId: dto.packageId,
       title: dto.title,
-      bannerUrl: dto.imageUrl,
-      targetUrl: dto.linkUrl,
+      imageUrl: dto.imageUrl,
+      linkUrl: dto.linkUrl,
       targetProvinces: dto.targetProvinces ?? [],
       status: AdStatus.pending_approval,
     });
@@ -125,7 +127,7 @@ export class AdsService {
     const safePage = Number(page) > 0 ? Number(page) : 1;
     const safeLimit = Number(limit) > 0 ? Math.min(Number(limit), 50) : 20;
     const [data, total] = await this.campaignRepo.findAndCount({
-      where: { advertiserId: supplierId },
+      where: { supplierId },
       relations: ['package'],
       order: { createdAt: 'DESC' },
       skip: (safePage - 1) * safeLimit,
@@ -134,12 +136,9 @@ export class AdsService {
     return { data, total, page: safePage, limit: safeLimit };
   }
 
-  async getCampaignDetail(
-    id: string,
-    supplierId: string,
-  ): Promise<AdCampaign> {
+  async getCampaignDetail(id: string, supplierId: string): Promise<AdCampaign> {
     const campaign = await this.campaignRepo.findOne({
-      where: { id, advertiserId: supplierId },
+      where: { id, supplierId },
       relations: ['package'],
     });
     if (!campaign) {
@@ -150,7 +149,7 @@ export class AdsService {
 
   async pauseCampaign(id: string, supplierId: string): Promise<AdCampaign> {
     const campaign = await this.campaignRepo.findOne({
-      where: { id, advertiserId: supplierId },
+      where: { id, supplierId },
     });
     if (!campaign) {
       throw new NotFoundException(`Chiến dịch "${id}" không tồn tại`);
@@ -166,7 +165,7 @@ export class AdsService {
 
   async resumeCampaign(id: string, supplierId: string): Promise<AdCampaign> {
     const campaign = await this.campaignRepo.findOne({
-      where: { id, advertiserId: supplierId },
+      where: { id, supplierId },
     });
     if (!campaign) {
       throw new NotFoundException(`Chiến dịch "${id}" không tồn tại`);
@@ -230,22 +229,22 @@ export class AdsService {
       );
     }
 
-    const now = new Date();
-    const endDate = addDays(now, campaign.package.durationDays);
+    const today = new Date();
+    const endDate = addDays(today, campaign.package.durationDays);
     const endDateStr = format(endDate, 'dd/MM/yyyy');
 
+    // start_date / end_date are DATE columns → store ISO date strings
     campaign.status = AdStatus.active;
     campaign.approvedById = adminId;
-    campaign.approvedAt = now;
-    campaign.startsAt = now;
-    campaign.endsAt = endDate;
+    campaign.approvedAt = today;
+    campaign.startDate = format(today, 'yyyy-MM-dd');
+    campaign.endDate = format(endDate, 'yyyy-MM-dd');
 
     const saved = await this.campaignRepo.save(campaign);
 
-    // Realtime notification + audit log — sequential awaits so failures are surfaced
     try {
       await this.notificationsService.createAndEmit({
-        userId: campaign.advertiserId,
+        userId: campaign.supplierId,
         type: NotifType.ad_approved,
         title: 'Quảng cáo đã được duyệt!',
         body: `Chiến dịch "${campaign.title}" đang chạy đến ${endDateStr}`,
@@ -296,7 +295,7 @@ export class AdsService {
 
     try {
       await this.notificationsService.createAndEmit({
-        userId: campaign.advertiserId,
+        userId: campaign.supplierId,
         type: NotifType.ad_rejected,
         title: 'Quảng cáo bị từ chối',
         body: reason,
@@ -325,31 +324,23 @@ export class AdsService {
 
   // ── Event Tracking (Redis rate-limited) ───────────────────────────────────
 
-  /**
-   * Track an ad impression or click.
-   * NOTE: `userId` is no longer accepted from the client (anti-spoofing).
-   * Callers that need the authenticated user must pass it from `request.user`.
-   */
   async trackEvent(dto: {
     campaignId: string;
     eventType: 'impression' | 'click';
-    userId?: string | null; // server-set only
+    userId?: string | null;
     ipAddress: string;
     userAgent: string;
   }): Promise<void> {
     const { campaignId, eventType, userId, ipAddress, userAgent } = dto;
 
-    // Verify campaign exists and is active — silently skip otherwise
     const campaign = await this.campaignRepo.findOne({ where: { id: campaignId } });
     if (!campaign || campaign.status !== AdStatus.active) return;
 
-    // Redis rate-limit: 1 impression per (campaign, IP) per hour
     if (eventType === 'impression') {
       const key = `ad_imp:${campaignId}:${ipAddress}`;
       try {
-        // SET NX EX = atomic "set if not exists with TTL"
         const setResult = await this.redis.set(key, '1', 'EX', 3600, 'NX');
-        if (setResult === null) return; // key existed → duplicate
+        if (setResult === null) return; // duplicate within the hour
       } catch {
         this.logger.warn(`Redis down; skipping rate-limit check for ${key}`);
       }
@@ -366,30 +357,29 @@ export class AdsService {
     );
 
     if (eventType === 'impression') {
-      await this.campaignRepo.increment({ id: campaignId }, 'impressionCount', 1);
+      await this.campaignRepo.increment({ id: campaignId }, 'totalImpressions', 1);
     } else {
-      await this.campaignRepo.increment({ id: campaignId }, 'clickCount', 1);
+      await this.campaignRepo.increment({ id: campaignId }, 'totalClicks', 1);
     }
   }
 
   // ── Public: Active Banners (province-aware + max_impressions check) ────────
 
   async getActiveBanners(provinceId?: number): Promise<AdCampaign[]> {
+    // start_date / end_date are DATE; CURRENT_DATE for clarity
     const qb = this.campaignRepo
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.package', 'pkg')
       .where('c.status = :status', { status: AdStatus.active })
-      .andWhere('c.starts_at <= NOW()')
-      .andWhere('c.ends_at >= NOW()')
-      // max_impressions guard: null means unlimited
+      .andWhere('c.start_date <= CURRENT_DATE')
+      .andWhere('c.end_date >= CURRENT_DATE')
       .andWhere(
-        '(pkg.max_impressions IS NULL OR c.impression_count < pkg.max_impressions)',
+        '(pkg.max_impressions IS NULL OR c.total_impressions < pkg.max_impressions)',
       )
       .orderBy('RANDOM()')
       .take(3);
 
     if (provinceId != null) {
-      // Match nationwide ([] / null) OR campaigns that include this province
       qb.andWhere(
         `(
           c.target_provinces IS NULL
@@ -415,7 +405,7 @@ export class AdsService {
     daysLeft: number;
   }> {
     const campaign = await this.campaignRepo.findOne({
-      where: { id: campaignId, advertiserId: supplierId },
+      where: { id: campaignId, supplierId },
       relations: ['package'],
     });
     if (!campaign) {
@@ -439,12 +429,17 @@ export class AdsService {
     }));
 
     const ctr =
-      campaign.impressionCount > 0
-        ? Math.round((campaign.clickCount / campaign.impressionCount) * 10000) / 100
+      campaign.totalImpressions > 0
+        ? Math.round((campaign.totalClicks / campaign.totalImpressions) * 10000) / 100
         : 0;
 
-    const daysLeft = campaign.endsAt
-      ? Math.max(0, Math.ceil((new Date(campaign.endsAt).getTime() - Date.now()) / 86400000))
+    const daysLeft = campaign.endDate
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(campaign.endDate).getTime() - Date.now()) / 86400000,
+          ),
+        )
       : 0;
 
     return { campaign, daily, ctr, daysLeft };
@@ -459,7 +454,7 @@ export class AdsService {
       .update(AdCampaign)
       .set({ status: AdStatus.expired })
       .where('status = :active', { active: AdStatus.active })
-      .andWhere('ends_at < NOW()')
+      .andWhere('end_date < CURRENT_DATE')
       .execute();
 
     this.logger.log(`Expired ${result.affected ?? 0} campaign(s)`);

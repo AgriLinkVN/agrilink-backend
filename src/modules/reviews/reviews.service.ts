@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Not, QueryFailedError, Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { Product } from '../products/entities/product.entity';
+import { Product } from '../products/domain/entities/product.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotifType } from '../../common/enums';
 

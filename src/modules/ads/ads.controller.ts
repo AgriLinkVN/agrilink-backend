@@ -4,8 +4,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Optional,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -231,14 +231,14 @@ export class AdsController {
   @Put('admin/packages/:id')
   @Roles(UserRole.admin)
   @ApiOperation({ summary: '[Admin] Cập nhật gói quảng cáo' })
-  updatePackage(@Param('id', ParseUuidPipe) id: string, @Body() dto: UpdatePackageDto) {
+  updatePackage(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePackageDto) {
     return this.adsService.updatePackage(id, dto);
   }
 
   @Patch('admin/packages/:id/deactivate')
   @Roles(UserRole.admin)
   @ApiOperation({ summary: '[Admin] Vô hiệu hóa gói quảng cáo' })
-  deactivatePackage(@Param('id', ParseUuidPipe) id: string) {
+  deactivatePackage(@Param('id', ParseIntPipe) id: number) {
     return this.adsService.deactivatePackage(id);
   }
 }

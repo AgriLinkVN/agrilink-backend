@@ -10,7 +10,7 @@ import {
   Unique,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Product } from '../../products/entities/product.entity';
+import { Product } from '../../products/domain/entities/product.entity';
 
 @Entity('reviews')
 @Unique('uq_reviewer_product', ['reviewerId', 'productId'])
