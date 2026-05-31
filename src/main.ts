@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ProductsService } from '@modules/products/application/products.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -84,6 +85,15 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   });
+
+  // Auto-seed mock products on startup (no-op if DB already has data)
+  if (process.env.NODE_ENV !== 'production') {
+    const productsService = app.get(ProductsService);
+    const result = await productsService.seedMockData();
+    if (result.seeded > 0) {
+      console.log(`[Seed] Inserted ${result.seeded} mock products`);
+    }
+  }
 
   await app.listen(port);
   console.log(`AgriLink API running on: http://localhost:${port}/api/v1`);

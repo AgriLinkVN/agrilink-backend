@@ -82,6 +82,19 @@ export class ProductsController {
     return this.productsService.remove(id, sellerId);
   }
 
+  // ─── Dev seed ─────────────────────────────────────────────────
+
+  @Public()
+  @Post('seed')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '[DEV] Seed mock products (only when DB empty)' })
+  seed() {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Seed disabled in production' };
+    }
+    return this.productsService.seedMockData();
+  }
+
   // ─── Images ───────────────────────────────────────────────────
 
   @Post(':id/images')
