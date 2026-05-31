@@ -71,10 +71,13 @@ export class CreateProductDto {
   expiryDate?: string;
 
 
+  // seller Type
+  // @ApiProperty({ enum: SellerType, example: SellerType.farmer })
   // TODO(P1): sellerType được lấy từ JWT payload bởi controller (@CurrentUser('sellerType')).
   // Để optional ở đây để tránh validation lỗi khi client không gửi trường này trong body.
   @ApiPropertyOptional({ enum: SellerType, example: SellerType.farmer })
   @IsOptional()
   @IsEnum(SellerType)
+  // sellerType: SellerType;
   sellerType?: SellerType;
 }
