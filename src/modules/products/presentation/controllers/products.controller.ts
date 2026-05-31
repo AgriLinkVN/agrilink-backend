@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
+  UseGuards, // TODO(P1): xóa khi JwtAuthGuard được đăng ký global trong AppModule
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -26,6 +26,7 @@ import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
 import { UpdateProductDto } from '../schemas/update-product.dto';
 import { SellerType, UserRole } from '@common/enums';
+// TODO(P1): Xóa 3 dòng import dưới đây khi P1 đăng ký JwtAuthGuard + RolesGuard làm Global Guard
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -33,6 +34,7 @@ import { Roles } from '@common/decorators/roles.decorator';
 
 @ApiTags('Products')
 @ApiBearerAuth('access-token')
+// TODO(P1): Xóa @UseGuards bên dưới khi guard đã được đăng ký toàn cục
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('products')
 export class ProductsController {
@@ -42,7 +44,7 @@ export class ProductsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Tạo sản phẩm mới (seller)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
@@ -72,7 +74,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Cập nhật sản phẩm (chủ sở hữu)' })
   update(
@@ -85,7 +87,7 @@ export class ProductsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa sản phẩm (chủ sở hữu)' })
   remove(
@@ -98,7 +100,7 @@ export class ProductsController {
   // ─── Images ───────────────────────────────────────────────────
 
   @Post(':id/images')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm ảnh cho sản phẩm' })
   addImage(
@@ -111,7 +113,7 @@ export class ProductsController {
 
   @Delete(':id/images/:imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa ảnh sản phẩm' })
   removeImage(
@@ -124,7 +126,7 @@ export class ProductsController {
   // ─── Certifications ───────────────────────────────────────────
 
   @Post(':id/certifications')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm chứng nhận cho sản phẩm' })
   addCertification(
@@ -136,7 +138,7 @@ export class ProductsController {
 
   @Delete(':id/certifications/:certId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier)
+  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa chứng nhận sản phẩm' })
   removeCertification(
