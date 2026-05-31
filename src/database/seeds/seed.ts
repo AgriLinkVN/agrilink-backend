@@ -2,42 +2,64 @@
  * Database seed script.
  * Run with: npm run seed
  *
- * Seeds provinces (34 tỉnh/thành sau sáp nhập 2025).
- * Uses upsert-by-code so the script is idempotent (safe to re-run).
+ * Seed dữ liệu khởi tạo:
+ *   - Provinces 34 tỉnh/thành sau sáp nhập 2025 (P4)
+ *
+ * Khi merge về develop, bổ sung thêm:
+ *   - seedProductCategories (P2)
+ *   - seedUsers (P1)
+ *
+ * Uses upsert logic — chạy lại an toàn.
  */
 
 import 'reflect-metadata';
+import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
+
+// Entities
 import { Province } from '../../modules/geography/entities/province.entity';
 import { District } from '../../modules/geography/entities/district.entity';
+
+// Seeds
 import { provinceSeedData } from './provinces.seed';
 
-async function createDataSource(): Promise<DataSource> {
-  // Load .env manually for standalone script
-  const dotenv = await import('dotenv');
-  dotenv.config();
+// ⚠️ Khi merge về develop, bỏ comment các dòng dưới:
+// import { ProductCategory } from '../../modules/products/domain/entities/product-category.entity';
+// import { Product } from '../../modules/products/domain/entities/product.entity';
+// import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
+// import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+// import { User } from '../../modules/users/entities/user.entity';
+// import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+// import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
 
-  const ds = new DataSource({
-    type: 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    database: process.env.DB_NAME || 'agrilink_db',
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASS || '',
-    entities: [Province, District],
-    logging: process.env.DB_LOGGING === 'true',
-  });
+dotenv.config();
 
-  return ds.initialize();
-}
+const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST ?? 'localhost',
+  port: parseInt(process.env.DB_PORT ?? '5432', 10),
+  database: process.env.DB_NAME ?? 'agrilink_db',
+  username: process.env.DB_USER ?? 'postgres',
+  password: process.env.DB_PASS ?? '',
+  entities: [
+    Province,
+    District,
+    // ⚠️ Khi merge về develop, thêm: ProductCategory, Product, ProductImage, ProductCertification, User
+  ],
+  synchronize: true,
+  logging: false,
+});
 
+/**
+ * Seed 34 tỉnh/thành phố (P4 — ITE1).
+ * Upsert by code — nếu đã tồn tại thì update, chưa thì insert.
+ */
 async function seedProvinces(ds: DataSource): Promise<void> {
   const repo = ds.getRepository(Province);
 
-  console.log(`Seeding ${provinceSeedData.length} provinces...`);
+  console.log(`🌱 Seeding ${provinceSeedData.length} tỉnh/thành...`);
 
   for (const data of provinceSeedData) {
-    // Upsert: if code already exists → update, else → insert
     const existing = await repo.findOne({ where: { code: data.code } });
 
     if (existing) {
@@ -49,7 +71,7 @@ async function seedProvinces(ds: DataSource): Promise<void> {
         lat: data.lat,
         lng: data.lng,
       });
-      console.log(`  ✓ Updated: [${data.code}] ${data.name}`);
+      console.log(`  ✓ Cập nhật: [${data.code}] ${data.name}`);
     } else {
       const province = repo.create({
         name: data.name,
@@ -61,35 +83,35 @@ async function seedProvinces(ds: DataSource): Promise<void> {
         lng: data.lng,
       });
       await repo.save(province);
-      console.log(`  + Inserted: [${data.code}] ${data.name}`);
+      console.log(`  + Thêm mới: [${data.code}] ${data.name}`);
     }
   }
 
   const count = await repo.count();
-  console.log(`\nTotal provinces in DB: ${count}`);
+  console.log(`  Tổng tỉnh/thành trong DB: ${count}`);
 }
 
 async function runSeed() {
-  const ds = await createDataSource();
+  console.log('🌱 Khởi tạo kết nối DB...');
+  await AppDataSource.initialize();
+  console.log('✅ Kết nối DB thành công\n');
 
-  try {
-    // Step 1: Seed provinces
-    await seedProvinces(ds);
+  // ⚠️ Khi merge về develop, bỏ comment 2 dòng dưới:
+  // await seedProductCategories(AppDataSource);
+  // await seedUsers(AppDataSource);
 
-    // TODO Step 2: Seed a default admin account
-    // TODO Step 3: Seed ad packages
-    // TODO Step 4: Seed system_configs defaults
-  } finally {
-    await ds.destroy();
-  }
+  // Seed provinces (P4)
+  await seedProvinces(AppDataSource);
+
+  await AppDataSource.destroy();
 }
 
 runSeed()
   .then(() => {
-    console.log('\n✅ Seed completed successfully');
+    console.log('\n🎉 Seed hoàn tất thành công');
     process.exit(0);
   })
   .catch((err) => {
-    console.error('\n❌ Seed failed:', err);
+    console.error('\n❌ Seed thất bại:', err);
     process.exit(1);
   });
