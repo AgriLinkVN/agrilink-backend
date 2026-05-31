@@ -66,6 +66,13 @@ export class ProductsController {
   }
 
   @Public()
+  @Get('categories')
+  @ApiOperation({ summary: 'Danh mục sản phẩm (public)' })
+  findCategories() {
+    return this.productsService.findCategories();
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Chi tiết sản phẩm (public)' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy' })
@@ -95,6 +102,30 @@ export class ProductsController {
     @CurrentUser('sub') sellerId: string,
   ) {
     return this.productsService.remove(id, sellerId);
+  }
+
+  // ─── Dev seed ─────────────────────────────────────────────────
+
+  @Public()
+  @Post('seed')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '[DEV] Seed mock products (only when DB empty)' })
+  seed() {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Seed disabled in production' };
+    }
+    return this.productsService.seedMockData();
+  }
+
+  @Public()
+  @Post('seed/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '[DEV] Clear all products and re-seed 50 mock products' })
+  seedReset() {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Seed disabled in production' };
+    }
+    return this.productsService.resetAndSeed();
   }
 
   // ─── Images ───────────────────────────────────────────────────
