@@ -7,9 +7,11 @@ import { ProductCategory } from '../../modules/products/domain/entities/product-
 import { Product } from '../../modules/products/domain/entities/product.entity';
 import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
 import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { User } from '../../modules/users/entities/user.entity';
 
 // Seeds
 import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
 
 dotenv.config();
 
@@ -25,6 +27,7 @@ const AppDataSource = new DataSource({
     Product,           // ← thêm để sync bảng products
     ProductImage,      // ← thêm để sync bảng product_images
     ProductCertification, // ← thêm để sync bảng product_certifications
+    User,
   ],
   synchronize: true,
   logging: false,
@@ -36,6 +39,9 @@ async function runSeed() {
   console.log('✅ Kết nối DB thành công');
 
   await seedProductCategories(AppDataSource);
+  
+  console.log('🌱 Bắt đầu seed người dùng...');
+  await seedUsers(AppDataSource);
 
   // Step 2: Seed provinces/districts  — TODO (P4 làm)
   // Step 3: Seed admin account        — TODO (P1 làm)
