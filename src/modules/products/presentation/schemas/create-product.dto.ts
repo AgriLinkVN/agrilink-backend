@@ -1,4 +1,4 @@
-import { FarmingType, ProductUnit } from '../../../../common/enums';
+import { FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -69,4 +69,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsDateString()
   expiryDate?: string;
+
+
+  // seller Type
+  @ApiProperty({ enum: SellerType, example: SellerType.farmer })
+  @IsEnum(SellerType)
+  sellerType: SellerType;
 }

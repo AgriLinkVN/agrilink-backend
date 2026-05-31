@@ -24,6 +24,7 @@ import { ProductsService } from '@modules/products/application/products.service'
 import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
 import { UpdateProductDto } from '../schemas/update-product.dto';
+import { SellerType } from '@common/enums';
 
 
 @ApiTags('Products')
@@ -36,19 +37,22 @@ export class ProductsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Tạo sản phẩm mới' })
+  @ApiOperation({ summary: 'Tạo sản phẩm mới (seller)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
   create(
-    @CurrentUser('sub') sellerId: string,
-    @Body() dto: CreateProductDto,
-  ) {
-    return this.productsService.create(sellerId, dto);
-  }
+  @CurrentUser('sub') sellerId: string,
+  @CurrentUser('sellerType') sellerType: SellerType, // ← lấy từ JWT
+  @Body() dto: CreateProductDto,
+) {
+  return this.productsService.create(sellerId, sellerType, dto);
+}
 
   @Public()
   @Get()
   @ApiOperation({ summary: 'Danh sách sản phẩm + filter (public)' })
-  findAll(@Query() filter: ProductFilterDto) {
+  findAll( @Query() filter: ProductFilterDto,
+    @CurrentUser('sub') currentUserId?: string, // optional — guest không có
+  ) {
     return this.productsService.findAll(filter);
   }
 
