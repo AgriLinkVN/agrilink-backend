@@ -1,18 +1,24 @@
+import { FarmingType, ProductStatus, ProductUnit, SellerType } from '@common/enums';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { FarmingType, ProductStatus, ProductUnit, SellerType } from '../../../common/enums';
+import { ProductImage } from './product-image.entity';
+import { ProductCertification } from './product-certification.entity';
+import { ProductCategory } from './product-category.entity';
+
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** FK → users.id (the seller) */
   @Column({ name: 'seller_id' })
   sellerId: string;
 
@@ -46,11 +52,9 @@ export class Product {
   @Column({ name: 'farming_type', type: 'enum', enum: FarmingType, nullable: true })
   farmingType: FarmingType;
 
-  /** FK → provinces.id */
   @Column({ name: 'province_id', nullable: true })
   provinceId: string;
 
-  /** FK → districts.id */
   @Column({ name: 'district_id', nullable: true })
   districtId: string;
 
@@ -68,4 +72,15 @@ export class Product {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  // ─── Relations ────────────────────────────────────────────────
+  @ManyToOne(() => ProductCategory, { nullable: true })
+  @JoinColumn({ name: 'category_id' })
+  category: ProductCategory;
+
+  @OneToMany(() => ProductImage, (img) => img.product, { cascade: true })
+  images: ProductImage[];
+
+  @OneToMany(() => ProductCertification, (cert) => cert.product, { cascade: true })
+  certifications: ProductCertification[];
 }

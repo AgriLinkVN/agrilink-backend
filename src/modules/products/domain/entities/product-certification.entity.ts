@@ -1,12 +1,12 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { CertType } from '../../../common/enums';
+import { CertType } from '@common/enums';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from './product.entity';
 
 @Entity('product_certifications')
 export class ProductCertification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** FK → products.id */
   @Column({ name: 'product_id' })
   productId: string;
 
@@ -30,4 +30,9 @@ export class ProductCertification {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
+
+  // ─── Relations ────────────────────────────────────────────────
+  @ManyToOne(() => Product, (product) => product.certifications, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 }

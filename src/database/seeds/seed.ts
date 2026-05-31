@@ -1,15 +1,6 @@
 /**
  * Database seed script.
  * Run with: npm run seed
- *
- * Seed dữ liệu khởi tạo:
- *   - Provinces 34 tỉnh/thành sau sáp nhập 2025 (P4)
- *
- * Khi merge về develop, bổ sung thêm:
- *   - seedProductCategories (P2)
- *   - seedUsers (P1)
- *
- * Uses upsert logic — chạy lại an toàn.
  */
 
 import 'reflect-metadata';
@@ -19,18 +10,16 @@ import { DataSource } from 'typeorm';
 // Entities
 import { Province } from '../../modules/geography/entities/province.entity';
 import { District } from '../../modules/geography/entities/district.entity';
+import { ProductCategory } from '../../modules/products/domain/entities/product-category.entity';
+import { Product } from '../../modules/products/domain/entities/product.entity';
+import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
+import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { User } from '../../modules/users/entities/user.entity';
 
 // Seeds
 import { provinceSeedData } from './provinces.seed';
-
-// ⚠️ Khi merge về develop, bỏ comment các dòng dưới:
-// import { ProductCategory } from '../../modules/products/domain/entities/product-category.entity';
-// import { Product } from '../../modules/products/domain/entities/product.entity';
-// import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
-// import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
-// import { User } from '../../modules/users/entities/user.entity';
-// import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
-// import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
+import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
 
 dotenv.config();
 
@@ -44,16 +33,16 @@ const AppDataSource = new DataSource({
   entities: [
     Province,
     District,
-    // ⚠️ Khi merge về develop, thêm: ProductCategory, Product, ProductImage, ProductCertification, User
+    ProductCategory,
+    Product,
+    ProductImage,
+    ProductCertification,
+    User,
   ],
   synchronize: true,
   logging: false,
 });
 
-/**
- * Seed 34 tỉnh/thành phố (P4 — ITE1).
- * Upsert by code — nếu đã tồn tại thì update, chưa thì insert.
- */
 async function seedProvinces(ds: DataSource): Promise<void> {
   const repo = ds.getRepository(Province);
 
@@ -96,11 +85,11 @@ async function runSeed() {
   await AppDataSource.initialize();
   console.log('✅ Kết nối DB thành công\n');
 
-  // ⚠️ Khi merge về develop, bỏ comment 2 dòng dưới:
-  // await seedProductCategories(AppDataSource);
-  // await seedUsers(AppDataSource);
+  await seedProductCategories(AppDataSource);
 
-  // Seed provinces (P4)
+  console.log('🌱 Bắt đầu seed người dùng...');
+  await seedUsers(AppDataSource);
+
   await seedProvinces(AppDataSource);
 
   await AppDataSource.destroy();
