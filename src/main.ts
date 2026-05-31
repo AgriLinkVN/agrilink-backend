@@ -86,12 +86,13 @@ async function bootstrap() {
     },
   });
 
-  // Auto-seed mock products on startup (no-op if DB already has data)
+  // Auto-seed mock products on startup
   if (process.env.NODE_ENV !== 'production') {
     const productsService = app.get(ProductsService);
-    const result = await productsService.seedMockData();
+    await productsService.seedCategories();
+    const result = await productsService.resetAndSeed();
     if (result.seeded > 0) {
-      console.log(`[Seed] Inserted ${result.seeded} mock products`);
+      console.log(`[Seed] Reset ${result.deleted} old → inserted ${result.seeded} mock products`);
     }
   }
 
