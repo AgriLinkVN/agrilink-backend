@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Product } from '../domain/entities/product.entity';
 import { ProductImage } from '../domain/entities/product-image.entity';
@@ -12,7 +12,7 @@ import { ProductCertification } from '../domain/entities/product-certification.e
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
-import { ProductStatus } from '@common/enums';
+import { ProductStatus, SellerType } from '@common/enums';
 
 @Injectable()
 export class ProductsService {
@@ -29,18 +29,26 @@ export class ProductsService {
 
   // ─── Create ──────────────────────────────────────────────────
 
-  async create(sellerId: string, dto: CreateProductDto): Promise<Product> {
-    const product = this.productRepo.create({
-      ...dto,
-      sellerId,
-      status: ProductStatus.draft,
-    });
-    return this.productRepo.save(product);
+  async create(
+  sellerId: string,
+  sellerType: SellerType,  // ← từ JWT
+  dto: CreateProductDto,
+): Promise<Product> {
+  const product = this.productRepo.create({
+    ...dto,
+    sellerId,
+    sellerType,  // ← không từ dto nữa
+    status: ProductStatus.draft,
+  });
+  return this.productRepo.save(product);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────
 
-  async findAll(filter: ProductFilterDto): Promise<{ data: Product[]; total: number }> {
+  async findAll(
+    filter: ProductFilterDto,
+    currentUserId?: string,  // ← thêm vào
+  ): Promise<{ data: Product[]; total: number }> {
     const { page = 1, limit = 20, search, categoryId, provinceId,
       farmingType, status, minPrice, maxPrice, sellerId } = filter;
 
@@ -64,15 +72,17 @@ export class ProductsService {
     if (categoryId) qb.andWhere('p.categoryId = :categoryId', { categoryId });
     if (provinceId) qb.andWhere('p.provinceId = :provinceId', { provinceId });
     if (farmingType) qb.andWhere('p.farmingType = :farmingType', { farmingType });
-    if (sellerId) qb.andWhere('p.sellerId = :sellerId', { sellerId });
-
-    if (status) {
-      qb.andWhere('p.status = :status', { status });
+      // Seller xem được tất cả SP của mình kể cả draft
+    // Guest/buyer chỉ xem active
+    if (sellerId && sellerId === currentUserId) {
+      qb.andWhere('p.sellerId = :sellerId', { sellerId });
+      if (status) qb.andWhere('p.status = :status', { status });
+    } else if (sellerId) {
+      qb.andWhere('p.sellerId = :sellerId', { sellerId });
+      qb.andWhere('p.status = :status', { status: ProductStatus.active });
     } else {
-      // Mặc định chỉ hiện active — guest/public
       qb.andWhere('p.status = :status', { status: ProductStatus.active });
     }
-
     if (minPrice !== undefined) {
       qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
     }
@@ -100,7 +110,7 @@ export class ProductsService {
     return product;
   }
 
-  // ─── Update ───────────────────────────────────────────────────
+  // ─── Update ─────────────────────────────────────────────────── 
 
   async update(id: string, sellerId: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(id);
