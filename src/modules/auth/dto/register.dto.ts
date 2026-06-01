@@ -20,9 +20,9 @@ export class RegisterDto {
   @IsEmail()
   email?: string;
 
-  @ApiProperty({ example: 'Str0ngP@ss!', minLength: 8 })
+  @ApiProperty({ example: 'Str0ngP@ss!', minLength: 6 })
   @IsString()
-  @MinLength(8)
+  @MinLength(6)
   password: string;
 
   @ApiProperty({ enum: UserRole, example: UserRole.FARMER })
