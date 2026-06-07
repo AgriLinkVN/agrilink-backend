@@ -66,6 +66,13 @@ export class ProductsController {
   }
 
   @Public()
+  @Get('categories/tree')
+  @ApiOperation({ summary: 'Cây danh mục sản phẩm 2 cấp (public)' })
+  getCategoryTree() {
+    return this.productsService.getCategoryTree();
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Chi tiết sản phẩm (public)' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy' })

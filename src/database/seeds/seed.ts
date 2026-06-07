@@ -7,9 +7,15 @@ import { ProductCategory } from '../../modules/products/domain/entities/product-
 import { Product } from '../../modules/products/domain/entities/product.entity';
 import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
 import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { Province } from '../../modules/geography/entities/province.entity';
+import { District } from '../../modules/geography/entities/district.entity';
+import { User } from '../../modules/users/entities/user.entity';
 
 // Seeds
 import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+import { seedProvinces } from '../../modules/geography/seeds/province.seed';
+import { seedSellers } from '../../modules/users/seeds/seller.seed';
+import { seedProducts } from '../../modules/products/infrastructure/database/seeds/product.seed';
 
 dotenv.config();
 
@@ -22,9 +28,12 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASS ?? '',
   entities: [
     ProductCategory,
-    Product,           // ← thêm để sync bảng products
-    ProductImage,      // ← thêm để sync bảng product_images
-    ProductCertification, // ← thêm để sync bảng product_certifications
+    Product,
+    ProductImage,
+    ProductCertification,
+    Province,
+    District,
+    User,
   ],
   synchronize: true,
   logging: false,
@@ -36,11 +45,11 @@ async function runSeed() {
   console.log('✅ Kết nối DB thành công');
 
   await seedProductCategories(AppDataSource);
+  await seedProvinces(AppDataSource);
+  const sellers = await seedSellers(AppDataSource);
+  await seedProducts(AppDataSource, sellers);
 
-  // Step 2: Seed provinces/districts  — TODO (P4 làm)
-  // Step 3: Seed admin account        — TODO (P1 làm)
-  // Step 4: Seed ad packages          — TODO (P5 làm)
-  // Step 5: Seed system_configs       — TODO (P1 làm)
+  // TODO: admin account (P1), ad packages (P5), system_configs (P1)
 
   await AppDataSource.destroy();
 }

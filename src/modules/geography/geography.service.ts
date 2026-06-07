@@ -14,10 +14,13 @@ export class GeographyService {
   ) {}
 
   async findAllProvinces(): Promise<Province[]> {
-    throw new Error('TODO: implement GeographyService.findAllProvinces()');
+    return this.provinceRepo.find({ order: { name: 'ASC' } });
   }
 
   async findDistrictsByProvince(provinceId: string): Promise<District[]> {
-    throw new Error('TODO: implement GeographyService.findDistrictsByProvince()');
+    return this.districtRepo.find({
+      where: { provinceId },
+      order: { name: 'ASC' },
+    });
   }
 }

@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../domain/entities/product.entity';
 import { ProductImage } from '../domain/entities/product-image.entity';
 import { ProductCertification } from '../domain/entities/product-certification.entity';
+import { ProductCategory } from '../domain/entities/product-category.entity';
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
@@ -25,7 +26,33 @@ export class ProductsService {
 
     @InjectRepository(ProductCertification)
     private readonly certRepo: Repository<ProductCertification>,
+
+    @InjectRepository(ProductCategory)
+    private readonly categoryRepo: Repository<ProductCategory>,
   ) { }
+
+  // ─── Categories ───────────────────────────────────────────────
+
+  async getCategoryTree(): Promise<ProductCategory[]> {
+    const all = await this.categoryRepo.find({
+      where: { isActive: true },
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+
+    const byParent = new Map<string | null, ProductCategory[]>();
+    for (const c of all) {
+      const key = c.parentId ?? null;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(c);
+    }
+
+    const roots = byParent.get(null) ?? [];
+    for (const r of roots) {
+      (r as ProductCategory & { children: ProductCategory[] }).children =
+        byParent.get(r.id) ?? [];
+    }
+    return roots;
+  }
 
   // ─── Create ──────────────────────────────────────────────────
 
@@ -50,13 +77,20 @@ export class ProductsService {
     currentUserId?: string,  // ← thêm vào
   ): Promise<{ data: Product[]; total: number }> {
     const { page = 1, limit = 20, search, categoryId, provinceId,
-      farmingType, status, minPrice, maxPrice, sellerId } = filter;
+      farmingType, status, minPrice, maxPrice, sellerId,
+      sortBy = 'createdAt', order = 'DESC' } = filter;
+
+    const SORT_COLUMN_MAP: Record<string, string> = {
+      createdAt: 'p.createdAt',
+      pricePerUnit: 'p.pricePerUnit',
+      name: 'p.name',
+    };
 
     const qb = this.productRepo
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.category', 'category')
       .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
-      .orderBy('p.createdAt', 'DESC')
+      .orderBy(SORT_COLUMN_MAP[sortBy], order)
       .skip((page - 1) * limit)
       .take(limit);
 
