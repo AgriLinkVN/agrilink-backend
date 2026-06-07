@@ -20,6 +20,11 @@ export class ExtendNotifTypeEnum1748563200000 implements MigrationInterface {
       'ad_approved',
       'ad_rejected',
       'user_locked',
+      'member_approved',
+      'member_rejected',
+      'member_suspended',
+      'member_reactivated',
+      'harvest_reminder',
     ];
 
     for (const v of values) {

@@ -91,6 +91,11 @@ export enum NotifType {
   ad_approved = 'ad_approved',
   ad_rejected = 'ad_rejected',
   user_locked = 'user_locked',
+  member_approved = 'member_approved',
+  member_rejected = 'member_rejected',
+  member_suspended = 'member_suspended',
+  member_reactivated = 'member_reactivated',
+  harvest_reminder = 'harvest_reminder',
 }
 
 export enum AdType {

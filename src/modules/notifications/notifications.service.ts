@@ -100,6 +100,66 @@ export class NotificationsService {
     });
   }
 
+  /** Called by P3 when HTX approves a pending member request. */
+  notifyMemberApproved(
+    farmerId: string,
+    cooperativeName: string,
+  ): Promise<Notification> {
+    return this.createAndEmit({
+      userId: farmerId,
+      type: NotifType.member_approved,
+      title: 'Yêu cầu gia nhập HTX được duyệt',
+      body: `Bạn đã chính thức là thành viên của "${cooperativeName}".`,
+      data: { link: `/dashboard/farmer/cooperatives` },
+    });
+  }
+
+  /** Called by P3 when HTX rejects a pending member request. */
+  notifyMemberRejected(
+    farmerId: string,
+    cooperativeName: string,
+    reason: string,
+  ): Promise<Notification> {
+    return this.createAndEmit({
+      userId: farmerId,
+      type: NotifType.member_rejected,
+      title: 'Yêu cầu gia nhập HTX bị từ chối',
+      body: `"${cooperativeName}" đã từ chối yêu cầu: ${reason}`,
+      data: { link: `/dashboard/farmer/cooperatives`, reason },
+    });
+  }
+
+  /** Called by P3 when HTX suspends an active member. */
+  notifyMemberSuspended(
+    farmerId: string,
+    cooperativeName: string,
+    reason?: string,
+  ): Promise<Notification> {
+    return this.createAndEmit({
+      userId: farmerId,
+      type: NotifType.member_suspended,
+      title: 'Tài khoản thành viên HTX bị tạm dừng',
+      body: reason
+        ? `"${cooperativeName}" đã tạm dừng tư cách thành viên: ${reason}`
+        : `"${cooperativeName}" đã tạm dừng tư cách thành viên của bạn.`,
+      data: { link: `/dashboard/farmer/cooperatives` },
+    });
+  }
+
+  /** Called by P3 when HTX reactivates a suspended member. */
+  notifyMemberReactivated(
+    farmerId: string,
+    cooperativeName: string,
+  ): Promise<Notification> {
+    return this.createAndEmit({
+      userId: farmerId,
+      type: NotifType.member_reactivated,
+      title: 'Tư cách thành viên HTX đã được kích hoạt lại',
+      body: `Bạn đã được "${cooperativeName}" kích hoạt lại làm thành viên.`,
+      data: { link: `/dashboard/farmer/cooperatives` },
+    });
+  }
+
   /** Called by P4 (market-prices) when price crosses a watched threshold. */
   notifyPriceAlert(
     userId: string,

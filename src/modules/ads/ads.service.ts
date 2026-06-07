@@ -333,10 +333,32 @@ export class AdsService {
   }): Promise<void> {
     const { campaignId, eventType, userId, ipAddress, userAgent } = dto;
 
-    const campaign = await this.campaignRepo.findOne({ where: { id: campaignId } });
+    const campaign = await this.campaignRepo.findOne({
+      where: { id: campaignId },
+      relations: ['package'],
+    });
     if (!campaign || campaign.status !== AdStatus.active) return;
 
+    // Inline expire check — don't wait for the nightly cron (BA addendum v2.1 §2.2).
+    // Click events bypass the impression-cap check (clicks aren't limited).
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const endDateStr =
+      campaign.endDate instanceof Date
+        ? format(campaign.endDate, 'yyyy-MM-dd')
+        : String(campaign.endDate);
+    if (endDateStr < today) {
+      await this.campaignRepo.update({ id: campaignId }, { status: AdStatus.expired });
+      this.logger.log(`Campaign ${campaignId} auto-expired on event (end_date passed)`);
+      return;
+    }
     if (eventType === 'impression') {
+      const cap = campaign.package?.maxImpressions ?? null;
+      if (cap != null && campaign.totalImpressions >= cap) {
+        await this.campaignRepo.update({ id: campaignId }, { status: AdStatus.expired });
+        this.logger.log(`Campaign ${campaignId} auto-expired on event (max_impressions)`);
+        return;
+      }
+
       const key = `ad_imp:${campaignId}:${ipAddress}`;
       try {
         const setResult = await this.redis.set(key, '1', 'EX', 3600, 'NX');
