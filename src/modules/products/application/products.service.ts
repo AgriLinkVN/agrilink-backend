@@ -13,7 +13,14 @@ import { ProductCategory } from '../domain/entities/product-category.entity';
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
-import { ProductStatus, SellerType } from '@common/enums';
+import {
+  FarmingType,
+  ProductStatus,
+  ProductUnit,
+  SellerType,
+} from '@common/enums';
+import { User } from '../../users/entities/user.entity';
+import { Province } from '../../geography/entities/province.entity';
 
 @Injectable()
 export class ProductsService {
@@ -29,9 +36,22 @@ export class ProductsService {
 
     @InjectRepository(ProductCategory)
     private readonly categoryRepo: Repository<ProductCategory>,
+
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+
+    @InjectRepository(Province)
+    private readonly provinceRepo: Repository<Province>,
   ) { }
 
   // ─── Categories ───────────────────────────────────────────────
+
+  async findCategories(): Promise<ProductCategory[]> {
+    return this.categoryRepo.find({
+      where: { isActive: true },
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+  }
 
   async getCategoryTree(): Promise<ProductCategory[]> {
     const all = await this.categoryRepo.find({
@@ -226,5 +246,93 @@ export class ProductsService {
     if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
 
     await this.certRepo.remove(cert);
+  }
+
+  // ─── Dev seed ─────────────────────────────────────────────────
+
+  /** Seed 50 mock products, chỉ chạy khi products table trống. Idempotent. */
+  async seedMockData(): Promise<{ created: number; skipped?: string }> {
+    const existing = await this.productRepo.count();
+    if (existing > 0) {
+      return { created: 0, skipped: `Products table không trống (${existing} rows). Dùng /products/seed/reset để xoá và reseed.` };
+    }
+    return this.generateMockProducts(50);
+  }
+
+  /** Xoá sạch products + images rồi reseed 50 mock products. */
+  async resetAndSeed(): Promise<{ created: number; skipped?: string }> {
+    await this.imageRepo.createQueryBuilder().delete().execute();
+    await this.certRepo.createQueryBuilder().delete().execute();
+    await this.productRepo.createQueryBuilder().delete().execute();
+    return this.generateMockProducts(50);
+  }
+
+  private async generateMockProducts(target: number): Promise<{ created: number; skipped?: string }> {
+    const sellers = await this.userRepo.find({
+      where: [
+        { phone: '0900000001' },
+        { phone: '0900000002' },
+        { phone: '0900000003' },
+      ],
+    });
+    if (sellers.length === 0) {
+      return { created: 0, skipped: 'Chưa có demo sellers. Chạy `npm run seed` trước để tạo sellers + provinces + categories.' };
+    }
+
+    const provinces = await this.provinceRepo.find();
+    const categories = await this.categoryRepo.find({ where: { isActive: true } });
+    if (!provinces.length || !categories.length) {
+      return { created: 0, skipped: 'Thiếu provinces hoặc categories. Chạy `npm run seed` trước.' };
+    }
+
+    const SELLER_TYPE: Record<string, SellerType> = {
+      farmer: SellerType.farmer,
+      cooperative: SellerType.cooperative,
+      supplier: SellerType.supplier,
+    };
+    const FARMING_TYPES = [
+      FarmingType.organic,
+      FarmingType.vietgap,
+      FarmingType.globalgap,
+      FarmingType.traditional,
+    ];
+    const UNITS = [ProductUnit.kg, ProductUnit.box, ProductUnit.bunch];
+    const NAMES = [
+      'Xoài cát', 'Bưởi da xanh', 'Sầu riêng Ri6', 'Thanh long ruột đỏ',
+      'Rau muống', 'Cà rốt', 'Nấm bào ngư', 'Gạo ST25', 'Gạo Jasmine',
+      'Cà phê Arabica', 'Cà phê Robusta', 'Tiêu đen', 'Hạt điều', 'Đậu phộng',
+    ];
+
+    let created = 0;
+    for (let i = 0; i < target; i++) {
+      const seller = sellers[i % sellers.length];
+      const province = provinces[i % provinces.length];
+      const category = categories[i % categories.length];
+
+      const product = await this.productRepo.save({
+        sellerId: seller.id,
+        sellerType: SELLER_TYPE[seller.role] ?? SellerType.farmer,
+        name: `${NAMES[i % NAMES.length]} #${i + 1}`,
+        description: `Mock product ${i + 1} — ${province.name}`,
+        categoryId: category.id,
+        pricePerUnit: 10000 + (i % 20) * 5000,
+        unit: UNITS[i % UNITS.length],
+        availableQuantity: 100 + i * 10,
+        status: ProductStatus.active,
+        farmingType: FARMING_TYPES[i % FARMING_TYPES.length],
+        provinceId: province.id,
+      });
+
+      await this.imageRepo.save({
+        productId: product.id,
+        imageUrl: `https://picsum.photos/seed/product-${i}/600/450`,
+        isPrimary: true,
+        sortOrder: 0,
+      });
+
+      created++;
+    }
+
+    return { created };
   }
 }
