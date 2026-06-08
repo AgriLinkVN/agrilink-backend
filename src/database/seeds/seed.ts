@@ -1,107 +1,105 @@
+/**
+ * Database seed script.
+ * Run with: npm run seed
+ */
+
 import 'reflect-metadata';
-import dataSource from '../data-source';
-import { User } from '../entities/user.entity';
-import { UserRole, UserStatus } from '../../common/enums';
-import * as bcrypt from 'bcryptjs';
+import * as dotenv from 'dotenv';
+import { DataSource } from 'typeorm';
 
-async function runSeed() {
-  console.log('Initializing database connection...');
-  await dataSource.initialize();
-  console.log('Database connection initialized.');
+// Entities
+import { Province } from '../../modules/geography/entities/province.entity';
+import { District } from '../../modules/geography/entities/district.entity';
+import { ProductCategory } from '../../modules/products/domain/entities/product-category.entity';
+import { Product } from '../../modules/products/domain/entities/product.entity';
+import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
+import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { User } from '../../modules/users/entities/user.entity';
 
-  const userRepository = dataSource.getRepository(User);
+// Seeds
+import { provinceSeedData } from './provinces.seed';
+import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
+import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
 
-  const passwordHash = await bcrypt.hash('password123', 10);
+dotenv.config();
 
-  const demoUsers = [
-    {
-      phone: '0901111001',
-      fullName: 'Nguyễn Văn Hùng',
-      role: UserRole.FARMER,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111002',
-      fullName: 'HTX Rau Sạch Lâm Đồng',
-      role: UserRole.COOPERATIVE,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111003',
-      fullName: 'Trần Thị Mai',
-      role: UserRole.BUYER,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111004',
-      fullName: 'Công ty CP Thực Phẩm Việt',
-      role: UserRole.ENTERPRISE,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111005',
-      fullName: 'Nhà cung cấp Nông Cụ Miền Nam',
-      role: UserRole.SUPPLIER,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111006',
-      fullName: 'Sở NN&PTNT Đà Nẵng',
-      role: UserRole.STATE_AGENCY,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111007',
-      fullName: 'GHN Express Đà Nẵng',
-      role: UserRole.LOGISTICS,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-    {
-      phone: '0901111099',
-      fullName: 'Admin AgriLink',
-      role: UserRole.ADMIN,
-      status: UserStatus.ACTIVE,
-      isPhoneVerified: true,
-      passwordHash,
-    },
-  ];
+const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST ?? 'localhost',
+  port: parseInt(process.env.DB_PORT ?? '5432', 10),
+  database: process.env.DB_NAME ?? 'agrilink_db',
+  username: process.env.DB_USER ?? 'postgres',
+  password: process.env.DB_PASS ?? '',
+  entities: [
+    Province,
+    District,
+    ProductCategory,
+    Product,
+    ProductImage,
+    ProductCertification,
+    User,
+  ],
+  synchronize: true,
+  logging: false,
+});
 
-  console.log('Seeding demo users...');
-  for (const userData of demoUsers) {
-    const existingUser = await userRepository.findOneBy({ phone: userData.phone });
-    if (!existingUser) {
-      const user = userRepository.create(userData);
-      await userRepository.save(user);
-      console.log(`Created user: ${userData.fullName} (${userData.phone})`);
+async function seedProvinces(ds: DataSource): Promise<void> {
+  const repo = ds.getRepository(Province);
+  console.log(`🌱 Seeding ${provinceSeedData.length} tỉnh/thành...`);
+
+  for (const data of provinceSeedData) {
+    const existing = await repo.findOne({ where: { code: data.code } });
+    if (existing) {
+      await repo.update(existing.id, {
+        name: data.name,
+        nameEn: data.nameEn,
+        slug: data.slug,
+        region: data.region,
+        lat: data.lat,
+        lng: data.lng,
+      });
+      console.log(`  ✓ Cập nhật: [${data.code}] ${data.name}`);
     } else {
-      console.log(`User already exists: ${userData.fullName} (${userData.phone})`);
+      const province = repo.create({
+        name: data.name,
+        nameEn: data.nameEn,
+        code: data.code,
+        slug: data.slug,
+        region: data.region,
+        lat: data.lat,
+        lng: data.lng,
+      });
+      await repo.save(province);
+      console.log(`  + Thêm mới: [${data.code}] ${data.name}`);
     }
   }
 
-  await dataSource.destroy();
-  console.log('Database connection closed.');
+  const count = await repo.count();
+  console.log(`  Tổng tỉnh/thành trong DB: ${count}`);
+}
+
+async function runSeed() {
+  console.log('🌱 Khởi tạo kết nối DB...');
+  await AppDataSource.initialize();
+  console.log('✅ Kết nối DB thành công\n');
+
+  await seedProductCategories(AppDataSource);
+  await seedProvinces(AppDataSource);
+
+  console.log('🌱 Bắt đầu seed người dùng...');
+  await seedUsers(AppDataSource);
+
+  // Products được seed riêng qua endpoint POST /products/seed (50 mock products)
+
+  await AppDataSource.destroy();
 }
 
 runSeed()
   .then(() => {
-    console.log('Seed completed successfully');
+    console.log('\n🎉 Seed hoàn tất thành công');
     process.exit(0);
   })
   .catch((err) => {
-    console.error('Seed failed:', err);
+    console.error('\n❌ Seed thất bại:', err);
     process.exit(1);
   });

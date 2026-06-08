@@ -1,3 +1,4 @@
+import { FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -8,7 +9,6 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
-import { FarmingType, ProductUnit } from '../../../common/enums';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Xoai cat Hoa Loc' })
@@ -69,4 +69,15 @@ export class CreateProductDto {
   @IsOptional()
   @IsDateString()
   expiryDate?: string;
+
+
+  // seller Type
+  // @ApiProperty({ enum: SellerType, example: SellerType.farmer })
+  // TODO(P1): sellerType được lấy từ JWT payload bởi controller (@CurrentUser('sellerType')).
+  // Để optional ở đây để tránh validation lỗi khi client không gửi trường này trong body.
+  @ApiPropertyOptional({ enum: SellerType, example: SellerType.farmer })
+  @IsOptional()
+  @IsEnum(SellerType)
+  // sellerType: SellerType;
+  sellerType?: SellerType;
 }

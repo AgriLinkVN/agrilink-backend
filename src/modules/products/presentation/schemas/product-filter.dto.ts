@@ -1,8 +1,8 @@
+import { PaginationDto } from '../../../../common/dto/pagination.dto';
+import { FarmingType, ProductStatus } from '../../../../common/enums';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsEnum, IsIn, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaginationDto } from '../../../common/dto/pagination.dto';
-import { FarmingType, ProductStatus } from '../../../common/enums';
 
 export class ProductFilterDto extends PaginationDto {
   @ApiPropertyOptional({ example: 'xoai' })
@@ -48,4 +48,14 @@ export class ProductFilterDto extends PaginationDto {
   @IsOptional()
   @IsUUID()
   sellerId?: string;
+
+  @ApiPropertyOptional({ enum: ['createdAt', 'pricePerUnit', 'name'] })
+  @IsOptional()
+  @IsIn(['createdAt', 'pricePerUnit', 'name'])
+  sortBy?: 'createdAt' | 'pricePerUnit' | 'name';
+
+  @ApiPropertyOptional({ enum: ['ASC', 'DESC'] })
+  @IsOptional()
+  @IsIn(['ASC', 'DESC'])
+  order?: 'ASC' | 'DESC';
 }
