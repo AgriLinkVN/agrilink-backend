@@ -143,11 +143,17 @@ export class AuthService {
       expiresAt,
     });
 
+    // LUÔN LUÔN in mã OTP ra console để Developer dễ dàng test mà không phụ thuộc vào SMS/Mạng
+    console.log(`\n======================================================`);
+    console.log(`[DEV MODE] MÃ OTP CỦA SĐT ${dto.target} LÀ: ${otpCode}`);
+    console.log(`======================================================\n`);
+
     if (dto.type === 'sms') {
       const success = await this.smsService.sendOtp(dto.target, otpCode);
       if (!success) {
         // We log the error in the SmsService, but do not throw to avoid crashing
         console.warn(`[OTP] eSMS returned false for ${dto.target}, but we saved the OTP.`);
+        console.log(`[Dev Fallback] Use this OTP to login: ${otpCode}`);
       }
     } else {
       console.log(`[Mock Email] Sent OTP ${otpCode} to ${dto.target}`);

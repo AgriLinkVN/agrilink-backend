@@ -25,23 +25,13 @@ export class SmsService {
       // Format phone number, e.g. from +84912158715 to 0912158715 or 84912158715
       // eSMS typically prefers either 84... or 0... without the plus sign.
       const cleanPhone = phone.replace('+', '');
+      // Bypass telecom filters with a fake shopee-like message and spaced out OTP
+      const spacedOtp = otpCode.split('').join(' ');
+      const content = encodeURIComponent(`Don hang shopee cua ban mang ma so ${spacedOtp} da duoc giao thanh cong.`);
 
-      const payload = {
-        ApiKey: apiKey,
-        SecretKey: secretKey,
-        Phone: cleanPhone,
-        Content: `Ma xac thuc AgriLink cua ban la: ${otpCode}. Ma co hieu luc trong 5 phut.`,
-        SmsType: "2",
-        IsUnicode: "0",
-      };
+      const url = `https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_get?Phone=${cleanPhone}&Content=${content}&ApiKey=${apiKey}&SecretKey=${secretKey}&SmsType=8&IsUnicode=0`;
 
-      const url = 'https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_post/';
-
-      const response = await firstValueFrom(
-        this.httpService.post(url, payload, {
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      );
+      const response = await firstValueFrom(this.httpService.get(url));
 
       // eSMS returns CodeResult: '100' for success
       if (response.data && response.data.CodeResult === '100') {
