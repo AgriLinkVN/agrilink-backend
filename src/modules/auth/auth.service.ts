@@ -117,6 +117,18 @@ export class AuthService {
       throw new BadRequestException('Too many OTP requests. Try again later.');
     }
 
+    if (dto.purpose === 'login') {
+      const user = await this.usersService.findByPhone(dto.target);
+      if (!user) {
+        throw new BadRequestException('Tài khoản không tồn tại. Vui lòng đăng ký tài khoản trước.');
+      }
+    } else if (dto.purpose === 'register') {
+      const user = await this.usersService.findByPhone(dto.target);
+      if (user) {
+        throw new ConflictException('Số điện thoại này đã được đăng ký. Vui lòng đăng nhập.');
+      }
+    }
+
     const isDemo = dto.target.startsWith('0901111');
     const otpCode = isDemo ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins

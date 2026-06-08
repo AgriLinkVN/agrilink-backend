@@ -34,6 +34,15 @@ export class CooperativeProfile {
   @Column({ name: 'representative_cccd', length: 12 })
   representativeCccd: string;
 
+  @Column({ name: 'representative_cccd_front_url', type: 'text', nullable: true })
+  representativeCccdFrontUrl: string;
+
+  @Column({ name: 'representative_cccd_back_url', type: 'text', nullable: true })
+  representativeCccdBackUrl: string;
+
+  @Column({ name: 'members_list_url', type: 'text', nullable: true })
+  membersListUrl: string;
+
   @Column({ type: 'text' })
   address: string;
 

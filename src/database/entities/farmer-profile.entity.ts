@@ -17,10 +17,22 @@ export class FarmerProfile {
   cccdFrontUrl: string | null;
 
   @Column({ name: 'cccd_back_url', type: 'text', nullable: true })
-  cccdBackUrl: string | null;
+  cccdBackUrl: string;
 
-  @Column({ name: 'residence_address', type: 'text' })
+  @Column({ name: 'residence_address', type: 'text', nullable: true })
   residenceAddress: string;
+
+  @Column({ name: 'ward', nullable: true })
+  ward: string;
+
+  @Column({ name: 'is_kyc_verified', default: false })
+  isKycVerified: boolean;
+
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedBy: string;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
 
   @Column({ name: 'province_id', type: 'int', nullable: true })
   provinceId: number | null;
@@ -28,8 +40,6 @@ export class FarmerProfile {
   @Column({ name: 'district_id', type: 'int', nullable: true })
   districtId: number | null;
 
-  @Column({ nullable: true, length: 255 })
-  ward: string | null;
 
   @Column({ type: 'text', nullable: true })
   bio: string | null;
@@ -40,8 +50,7 @@ export class FarmerProfile {
   @Column({ name: 'total_sales', type: 'int', default: 0 })
   totalSales: number;
 
-  @Column({ name: 'is_kyc_verified', default: false })
-  isKycVerified: boolean;
+
 
   @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
   verifiedAt: Date | null;

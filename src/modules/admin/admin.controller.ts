@@ -6,16 +6,38 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../common/enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { VerifyProfileDto } from './dto/verify-profile.dto';
 
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('pending-profiles')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: '(Admin) List all pending profiles for KYC verification' })
+  @ApiResponse({ status: 200, description: 'List of pending profiles' })
+  getPendingProfiles() {
+    return this.adminService.getPendingProfiles();
+  }
+
+  @Patch('profiles/:type/:profileId/verify')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: '(Admin) Verify or reject a profile' })
+  @ApiResponse({ status: 200, description: 'Profile verification updated' })
+  verifyProfile(
+    @Param('type') type: string,
+    @Param('profileId') profileId: string,
+    @Body() dto: VerifyProfileDto,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.verifyProfile(type, profileId, dto, adminId);
+  }
+
   @Get('system-configs')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: '(Admin) List all system configuration keys and values' })
   @ApiResponse({ status: 200, description: 'Array of system configs' })
   getSystemConfigs() {
@@ -23,6 +45,7 @@ export class AdminController {
   }
 
   @Patch('system-configs/:key')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: '(Admin) Update a system configuration value' })
   @ApiResponse({ status: 200, description: 'Config updated' })
   updateSystemConfig(
@@ -34,6 +57,7 @@ export class AdminController {
   }
 
   @Get('audit-logs')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: '(Admin) Get paginated audit logs' })
   @ApiResponse({ status: 200, description: 'Paginated audit log entries' })
   getAuditLogs(@Query() pagination: PaginationDto) {

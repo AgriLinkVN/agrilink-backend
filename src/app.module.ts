@@ -7,7 +7,7 @@ import { AppService } from "./app.service";
 import { databaseConfig } from "./config/database.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UsersModule } from "./modules/users/users.module";
-import { ProfilesModule } from "./modules/profiles/profiles.module";
+import { ProfilesRoute } from "./modules/profiles/profiles.route";
 import { GeographyModule } from "./modules/geography/geography.module";
 import { ProductsModule } from "./modules/products/products.module";
 import { WishlistModule } from "./modules/wishlist/wishlist.module";
@@ -17,7 +17,7 @@ import { TraceabilityModule } from "./modules/traceability/traceability.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { AdsModule } from "./modules/ads/ads.module";
-import { AdminModule } from "./modules/admin/admin.module";
+import { AdminRoute } from "./modules/admin/admin.route";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 
@@ -38,7 +38,7 @@ import { RolesGuard } from "./common/guards/roles.guard";
     // Feature modules
     AuthModule,
     UsersModule,
-    ProfilesModule,
+    ProfilesRoute,
     GeographyModule,
     ProductsModule,
     WishlistModule,
@@ -48,7 +48,7 @@ import { RolesGuard } from "./common/guards/roles.guard";
     ReviewsModule,
     NotificationsModule,
     AdsModule,
-    AdminModule,
+    AdminRoute,
   ],
   controllers: [AppController],
   providers: [

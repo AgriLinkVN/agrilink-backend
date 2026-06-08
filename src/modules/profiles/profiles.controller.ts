@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Put, BadRequestException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from './profiles.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UpdateFarmerProfileDto } from './dto/update-farmer-profile.dto';
-import { UpdateCooperativeProfileDto } from './dto/update-cooperative-profile.dto';
-import { UpdateEnterpriseProfileDto } from './dto/update-enterprise-profile.dto';
-import { UpdateSupplierProfileDto } from './dto/update-supplier-profile.dto';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../common/enums';
+import { UpsertFarmerProfileDto } from './dto/upsert-farmer-profile.dto';
+import { UpsertB2bProfileDto } from './dto/upsert-b2b-profile.dto';
 
 @ApiTags('Profiles')
 @ApiBearerAuth('access-token')
@@ -13,73 +13,25 @@ import { UpdateSupplierProfileDto } from './dto/update-supplier-profile.dto';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  // ── Farmer ──────────────────────────────────────────────────────────────────
-
-  @Get('farmer')
-  @ApiOperation({ summary: 'Get the authenticated farmer\'s profile' })
-  @ApiResponse({ status: 200, description: 'Farmer profile' })
-  getFarmerProfile(@CurrentUser('sub') userId: string) {
-    return this.profilesService.getFarmerProfile(userId);
-  }
-
-  @Patch('farmer')
+  @Put('farmer')
+  @Roles(UserRole.FARMER)
   @ApiOperation({ summary: 'Create or update the authenticated farmer\'s profile' })
   @ApiResponse({ status: 200, description: 'Farmer profile saved' })
-  upsertFarmerProfile(
+  async upsertFarmerProfile(
     @CurrentUser('sub') userId: string,
-    @Body() dto: UpdateFarmerProfileDto,
+    @Body() dto: UpsertFarmerProfileDto,
   ) {
     return this.profilesService.upsertFarmerProfile(userId, dto);
   }
 
-  // ── Cooperative ──────────────────────────────────────────────────────────────
-
-  @Get('cooperative')
-  @ApiOperation({ summary: 'Get the authenticated cooperative\'s profile' })
-  getCooperativeProfile(@CurrentUser('sub') userId: string) {
-    return this.profilesService.getCooperativeProfile(userId);
-  }
-
-  @Patch('cooperative')
-  @ApiOperation({ summary: 'Create or update the authenticated cooperative\'s profile' })
-  upsertCooperativeProfile(
+  @Put('b2b')
+  @Roles(UserRole.COOPERATIVE, UserRole.ENTERPRISE, UserRole.SUPPLIER)
+  @ApiOperation({ summary: 'Create or update the authenticated B2B (Coop/Enterprise/Supplier) profile' })
+  async upsertB2bProfile(
     @CurrentUser('sub') userId: string,
-    @Body() dto: UpdateCooperativeProfileDto,
+    @CurrentUser('role') role: UserRole,
+    @Body() dto: UpsertB2bProfileDto,
   ) {
-    return this.profilesService.upsertCooperativeProfile(userId, dto);
-  }
-
-  // ── Enterprise ───────────────────────────────────────────────────────────────
-
-  @Get('enterprise')
-  @ApiOperation({ summary: 'Get the authenticated enterprise\'s profile' })
-  getEnterpriseProfile(@CurrentUser('sub') userId: string) {
-    return this.profilesService.getEnterpriseProfile(userId);
-  }
-
-  @Patch('enterprise')
-  @ApiOperation({ summary: 'Create or update the authenticated enterprise\'s profile' })
-  upsertEnterpriseProfile(
-    @CurrentUser('sub') userId: string,
-    @Body() dto: UpdateEnterpriseProfileDto,
-  ) {
-    return this.profilesService.upsertEnterpriseProfile(userId, dto);
-  }
-
-  // ── Supplier ─────────────────────────────────────────────────────────────────
-
-  @Get('supplier')
-  @ApiOperation({ summary: 'Get the authenticated supplier\'s profile' })
-  getSupplierProfile(@CurrentUser('sub') userId: string) {
-    return this.profilesService.getSupplierProfile(userId);
-  }
-
-  @Patch('supplier')
-  @ApiOperation({ summary: 'Create or update the authenticated supplier\'s profile' })
-  upsertSupplierProfile(
-    @CurrentUser('sub') userId: string,
-    @Body() dto: UpdateSupplierProfileDto,
-  ) {
-    return this.profilesService.upsertSupplierProfile(userId, dto);
+    return this.profilesService.upsertB2bProfile(userId, role, dto);
   }
 }

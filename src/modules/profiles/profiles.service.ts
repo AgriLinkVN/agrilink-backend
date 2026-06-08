@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FarmerProfile } from './entities/farmer-profile.entity';
-import { CooperativeProfile } from './entities/cooperative-profile.entity';
-import { EnterpriseProfile } from './entities/enterprise-profile.entity';
-import { SupplierProfile } from './entities/supplier-profile.entity';
-import { UpdateFarmerProfileDto } from './dto/update-farmer-profile.dto';
-import { UpdateCooperativeProfileDto } from './dto/update-cooperative-profile.dto';
-import { UpdateEnterpriseProfileDto } from './dto/update-enterprise-profile.dto';
-import { UpdateSupplierProfileDto } from './dto/update-supplier-profile.dto';
+import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
+import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
+import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
+import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
+import { UpsertFarmerProfileDto } from './dto/upsert-farmer-profile.dto';
+import { UpsertB2bProfileDto } from './dto/upsert-b2b-profile.dto';
+import { FptVisionService } from '../../shared/fpt-vision/fpt-vision.service';
+import { UserRole } from '../../common/enums';
 
 @Injectable()
 export class ProfilesService {
@@ -21,37 +21,61 @@ export class ProfilesService {
     private readonly enterpriseRepo: Repository<EnterpriseProfile>,
     @InjectRepository(SupplierProfile)
     private readonly supplierRepo: Repository<SupplierProfile>,
+    private readonly fptVisionService: FptVisionService,
   ) {}
 
-  async getFarmerProfile(userId: string): Promise<FarmerProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getFarmerProfile()');
+  async upsertFarmerProfile(userId: string, dto: UpsertFarmerProfileDto): Promise<FarmerProfile> {
+    // 1. Verify CCCD Front image using FPT Vision Mock
+    const isVisionValid = await this.fptVisionService.verifyCccdImage(dto.cccdFrontUrl);
+    if (!isVisionValid) {
+      throw new BadRequestException('CCCD image verification failed.');
+    }
+
+    // 2. Check if profile exists
+    let profile = await this.farmerRepo.findOne({ where: { user: { id: userId } } });
+
+    if (!profile) {
+      profile = this.farmerRepo.create({ user: { id: userId } });
+    }
+
+    // 3. Update fields
+    Object.assign(profile, dto);
+    
+    // 4. Force KYC to false on modification
+    profile.isKycVerified = false;
+
+    // 5. Save
+    return this.farmerRepo.save(profile);
   }
 
-  async upsertFarmerProfile(userId: string, dto: UpdateFarmerProfileDto): Promise<FarmerProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertFarmerProfile()');
-  }
+  async upsertB2bProfile(userId: string, role: UserRole, dto: UpsertB2bProfileDto) {
+    if (role === UserRole.COOPERATIVE) {
+      let profile = await this.cooperativeRepo.findOne({ where: { user: { id: userId } } });
+      if (!profile) profile = this.cooperativeRepo.create({ user: { id: userId } });
+      
+      Object.assign(profile, dto);
+      profile.isVerified = false;
+      return this.cooperativeRepo.save(profile);
+    } 
+    
+    if (role === UserRole.ENTERPRISE) {
+      let profile = await this.enterpriseRepo.findOne({ where: { user: { id: userId } } });
+      if (!profile) profile = this.enterpriseRepo.create({ user: { id: userId } });
+      
+      Object.assign(profile, dto);
+      profile.isVerified = false;
+      return this.enterpriseRepo.save(profile);
+    }
+    
+    if (role === UserRole.SUPPLIER) {
+      let profile = await this.supplierRepo.findOne({ where: { userId } });
+      if (!profile) profile = this.supplierRepo.create({ userId });
+      
+      Object.assign(profile, dto);
+      profile.isVerified = false;
+      return this.supplierRepo.save(profile);
+    }
 
-  async getCooperativeProfile(userId: string): Promise<CooperativeProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getCooperativeProfile()');
-  }
-
-  async upsertCooperativeProfile(userId: string, dto: UpdateCooperativeProfileDto): Promise<CooperativeProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertCooperativeProfile()');
-  }
-
-  async getEnterpriseProfile(userId: string): Promise<EnterpriseProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getEnterpriseProfile()');
-  }
-
-  async upsertEnterpriseProfile(userId: string, dto: UpdateEnterpriseProfileDto): Promise<EnterpriseProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertEnterpriseProfile()');
-  }
-
-  async getSupplierProfile(userId: string): Promise<SupplierProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getSupplierProfile()');
-  }
-
-  async upsertSupplierProfile(userId: string, dto: UpdateSupplierProfileDto): Promise<SupplierProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertSupplierProfile()');
+    throw new BadRequestException('Invalid B2B role');
   }
 }
