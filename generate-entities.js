@@ -1,0 +1,1670 @@
+const fs = require('fs');
+const path = require('path');
+
+const entitiesDir = path.join(__dirname, 'src', 'database', 'entities');
+
+if (!fs.existsSync(entitiesDir)) {
+  fs.mkdirSync(entitiesDir, { recursive: true });
+}
+
+const entities = {
+  'user.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, OneToMany } from 'typeorm';
+import { UserRole, UserStatus } from '../../common/enums';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true, length: 15 })
+  phone: string;
+
+  @Column({ unique: true, nullable: true, length: 255 })
+  email: string | null;
+
+  @Column({ name: 'password_hash', type: 'text' })
+  passwordHash: string;
+
+  @Column({ type: 'enum', enum: UserRole })
+  role: UserRole;
+
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.PENDING_VERIFICATION })
+  status: UserStatus;
+
+  @Column({ name: 'avatar_url', type: 'text', nullable: true })
+  avatarUrl: string | null;
+
+  @Column({ name: 'full_name', length: 255, nullable: true })
+  fullName: string | null;
+
+  @Column({ name: 'is_phone_verified', default: false })
+  isPhoneVerified: boolean;
+
+  @Column({ name: 'is_email_verified', default: false })
+  isEmailVerified: boolean;
+
+  @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
+  lastLoginAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'otp-verification.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { OtpType, OtpPurpose } from '../../common/enums';
+import { User } from './user.entity';
+
+@Entity('otp_verifications')
+export class OtpVerification {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
+  userId: string | null;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ nullable: true, length: 15 })
+  phone: string | null;
+
+  @Column({ nullable: true, length: 255 })
+  email: string | null;
+
+  @Column({ name: 'otp_code', length: 6 })
+  otpCode: string;
+
+  @Column({ type: 'enum', enum: OtpType })
+  type: OtpType;
+
+  @Column({ type: 'enum', enum: OtpPurpose })
+  purpose: OtpPurpose;
+
+  @Column({ name: 'is_used', default: false })
+  isUsed: boolean;
+
+  @Column({ name: 'expires_at', type: 'timestamptz' })
+  expiresAt: Date;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'refresh-token.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('refresh_tokens')
+export class RefreshToken {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ name: 'token_hash', type: 'text', unique: true })
+  tokenHash: string;
+
+  @Column({ name: 'device_info', type: 'text', nullable: true })
+  deviceInfo: string | null;
+
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
+  ipAddress: string | null;
+
+  @Column({ name: 'expires_at', type: 'timestamptz' })
+  expiresAt: Date;
+
+  @Column({ name: 'revoked_at', type: 'timestamptz', nullable: true })
+  revokedAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'farmer-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('farmer_profiles')
+export class FarmerProfile {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', unique: true })
+  userId: string;
+
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ name: 'cccd_number', length: 12, unique: true })
+  cccdNumber: string;
+
+  @Column({ name: 'cccd_front_url', type: 'text', nullable: true })
+  cccdFrontUrl: string | null;
+
+  @Column({ name: 'cccd_back_url', type: 'text', nullable: true })
+  cccdBackUrl: string | null;
+
+  @Column({ name: 'residence_address', type: 'text' })
+  residenceAddress: string;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'district_id', type: 'int', nullable: true })
+  districtId: number | null;
+
+  @Column({ nullable: true, length: 255 })
+  ward: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  bio: string | null;
+
+  @Column({ name: 'trust_score', type: 'decimal', precision: 3, scale: 2, default: 0 })
+  trustScore: number;
+
+  @Column({ name: 'total_sales', type: 'int', default: 0 })
+  totalSales: number;
+
+  @Column({ name: 'is_kyc_verified', default: false })
+  isKycVerified: boolean;
+
+  @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
+  verifiedAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'cooperative-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('cooperative_profiles')
+export class CooperativeProfile {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', unique: true })
+  userId: string;
+
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ name: 'cooperative_name', length: 255 })
+  cooperativeName: string;
+
+  @Column({ name: 'business_license_number', length: 50, unique: true })
+  businessLicenseNumber: string;
+
+  @Column({ name: 'tax_code', length: 20, unique: true })
+  taxCode: string;
+
+  @Column({ name: 'cooperative_cert_url', type: 'text', nullable: true })
+  cooperativeCertUrl: string | null;
+
+  @Column({ name: 'business_license_url', type: 'text', nullable: true })
+  businessLicenseUrl: string | null;
+
+  @Column({ name: 'representative_name', length: 255 })
+  representativeName: string;
+
+  @Column({ name: 'representative_phone', length: 15 })
+  representativePhone: string;
+
+  @Column({ name: 'representative_cccd', length: 12 })
+  representativeCccd: string;
+
+  @Column({ type: 'text' })
+  address: string;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'total_members', type: 'int', default: 0 })
+  totalMembers: number;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedBy: string | null;
+
+  @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
+  verifiedAt: Date | null;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'enterprise-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('enterprise_profiles')
+export class EnterpriseProfile {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', unique: true })
+  userId: string;
+
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ name: 'company_name', length: 255 })
+  companyName: string;
+
+  @Column({ name: 'tax_code', length: 20, unique: true })
+  taxCode: string;
+
+  @Column({ name: 'business_license_url', type: 'text', nullable: true })
+  businessLicenseUrl: string | null;
+
+  @Column({ name: 'representative_name', length: 255 })
+  representativeName: string;
+
+  @Column({ name: 'representative_phone', length: 15 })
+  representativePhone: string;
+
+  @Column({ type: 'text' })
+  address: string;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ length: 255, nullable: true })
+  industry: string | null;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedBy: string | null;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'supplier-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { SupplierType } from '../../common/enums';
+
+@Entity('supplier_profiles')
+export class SupplierProfile {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', unique: true })
+  userId: string;
+
+  @Column({ name: 'company_name', length: 255 })
+  companyName: string;
+
+  @Column({ name: 'tax_code', length: 20, nullable: true })
+  taxCode: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  address: string | null;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'supplier_type', type: 'enum', enum: SupplierType })
+  supplierType: SupplierType;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'logistics-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+
+@Entity('logistics_profiles')
+export class LogisticsProfile {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', unique: true })
+  userId: string;
+
+  @Column({ name: 'company_name', length: 255 })
+  companyName: string;
+
+  @Column({ name: 'vehicle_types', type: 'text', array: true, default: [] })
+  vehicleTypes: string[];
+
+  @Column({ name: 'operating_provinces', type: 'int', array: true, default: [] })
+  operatingProvinces: number[];
+
+  @Column({ name: 'external_api_provider', length: 100, nullable: true })
+  externalApiProvider: string | null;
+
+  @Column({ name: 'external_api_key', type: 'text', nullable: true })
+  externalApiKey: string | null;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'user-address.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('user_addresses')
+export class UserAddress {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ length: 100, nullable: true })
+  label: string | null;
+
+  @Column({ name: 'full_name', length: 255 })
+  fullName: string;
+
+  @Column({ length: 15 })
+  phone: string;
+
+  @Column({ name: 'address_line', type: 'text' })
+  addressLine: string;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'district_id', type: 'int', nullable: true })
+  districtId: number | null;
+
+  @Column({ length: 255, nullable: true })
+  ward: string | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number | null;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number | null;
+
+  @Column({ name: 'is_default', default: false })
+  isDefault: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'province.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Region } from '../../common/enums';
+
+@Entity('provinces')
+export class Province {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ length: 10, unique: true })
+  code: string;
+
+  @Column({ type: 'enum', enum: Region })
+  region: Region;
+
+  @Column({ name: 'is_key_agri', default: false })
+  isKeyAgri: boolean;
+}
+`,
+  'district.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Province } from './province.entity';
+
+@Entity('districts')
+export class District {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ name: 'province_id', type: 'int' })
+  provinceId: number;
+
+  @ManyToOne(() => Province)
+  @JoinColumn({ name: 'province_id' })
+  province: Province;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ length: 10, unique: true })
+  code: string;
+}
+`,
+  'product-category.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+
+@Entity('product_categories')
+export class ProductCategory {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ length: 100, unique: true })
+  slug: string;
+
+  @Column({ name: 'parent_id', type: 'int', nullable: true })
+  parentId: number | null;
+
+  @ManyToOne(() => ProductCategory, { nullable: true })
+  @JoinColumn({ name: 'parent_id' })
+  parent: ProductCategory | null;
+
+  @Column({ name: 'icon_url', type: 'text', nullable: true })
+  iconUrl: string | null;
+
+  @Column({ name: 'sort_order', type: 'int', default: 0 })
+  sortOrder: number;
+
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+}
+`,
+  'product.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { SellerType, FarmingType, ProductUnit, ProductStatus } from '../../common/enums';
+import { User } from './user.entity';
+
+@Entity('products')
+export class Product {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'seller_id', type: 'uuid' })
+  sellerId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'seller_id' })
+  seller: User;
+
+  @Column({ name: 'seller_type', type: 'enum', enum: SellerType })
+  sellerType: SellerType;
+
+  @Column({ name: 'category_id', type: 'int', nullable: true })
+  categoryId: number | null;
+
+  @Column({ length: 50, unique: true, nullable: true })
+  sku: string | null;
+
+  @Column({ length: 255 })
+  name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ length: 100, nullable: true })
+  variety: string | null;
+
+  @Column({ name: 'farming_type', type: 'enum', enum: FarmingType })
+  farmingType: FarmingType;
+
+  @Column({ type: 'enum', enum: ProductUnit })
+  unit: ProductUnit;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  price: number;
+
+  @Column({ name: 'min_order_quantity', type: 'decimal', precision: 10, scale: 2, default: 1 })
+  minOrderQuantity: number;
+
+  @Column({ name: 'stock_quantity', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  stockQuantity: number;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'district_id', type: 'int', nullable: true })
+  districtId: number | null;
+
+  @Column({ name: 'farm_latitude', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  farmLatitude: number | null;
+
+  @Column({ name: 'farm_longitude', type: 'decimal', precision: 11, scale: 8, nullable: true })
+  farmLongitude: number | null;
+
+  @Column({ name: 'harvest_date', type: 'date', nullable: true })
+  harvestDate: string | null;
+
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
+  status: ProductStatus;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
+
+  @Column({ name: 'is_featured', default: false })
+  isFeatured: boolean;
+
+  @Column({ name: 'view_count', type: 'int', default: 0 })
+  viewCount: number;
+
+  @Column({ name: 'sold_count', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  soldCount: number;
+
+  @Column({ name: 'avg_rating', type: 'decimal', precision: 3, scale: 2, default: 0 })
+  avgRating: number;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'product-image.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Product } from './product.entity';
+
+@Entity('product_images')
+export class ProductImage {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'product_id', type: 'uuid' })
+  productId: string;
+
+  @ManyToOne(() => Product, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
+
+  @Column({ type: 'text' })
+  url: string;
+
+  @Column({ name: 'alt_text', length: 255, nullable: true })
+  altText: string | null;
+
+  @Column({ name: 'sort_order', type: 'int', default: 0 })
+  sortOrder: number;
+
+  @Column({ name: 'is_primary', default: false })
+  isPrimary: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'product-certification.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { CertType } from '../../common/enums';
+
+@Entity('product_certifications')
+export class ProductCertification {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'product_id', type: 'uuid' })
+  productId: string;
+
+  @Column({ name: 'cert_type', type: 'enum', enum: CertType })
+  certType: CertType;
+
+  @Column({ name: 'cert_number', length: 100, nullable: true })
+  certNumber: string | null;
+
+  @Column({ name: 'issued_by', length: 255, nullable: true })
+  issuedBy: string | null;
+
+  @Column({ name: 'issued_date', type: 'date', nullable: true })
+  issuedDate: string | null;
+
+  @Column({ name: 'expires_date', type: 'date', nullable: true })
+  expiresDate: string | null;
+
+  @Column({ name: 'document_url', type: 'text', nullable: true })
+  documentUrl: string | null;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedBy: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'product-wishlist.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('product_wishlist')
+export class ProductWishlist {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @Column({ name: 'product_id', type: 'uuid' })
+  productId: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'order.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { OrderStatus, PaymentMethod, PaymentStatus } from '../../common/enums';
+
+@Entity('orders')
+export class Order {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_code', length: 30, unique: true })
+  orderCode: string;
+
+  @Column({ name: 'buyer_id', type: 'uuid' })
+  buyerId: string;
+
+  @Column({ name: 'seller_id', type: 'uuid' })
+  sellerId: string;
+
+  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
+  status: OrderStatus;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  subtotal: number;
+
+  @Column({ name: 'shipping_fee', type: 'decimal', precision: 15, scale: 2, default: 0 })
+  shippingFee: number;
+
+  @Column({ name: 'platform_fee', type: 'decimal', precision: 15, scale: 2, default: 0 })
+  platformFee: number;
+
+  @Column({ name: 'total_amount', type: 'decimal', precision: 15, scale: 2 })
+  totalAmount: number;
+
+  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod, nullable: true })
+  paymentMethod: PaymentMethod | null;
+
+  @Column({ name: 'payment_status', type: 'enum', enum: PaymentStatus, default: PaymentStatus.UNPAID })
+  paymentStatus: PaymentStatus;
+
+  @Column({ name: 'shipping_address_id', type: 'uuid', nullable: true })
+  shippingAddressId: string | null;
+
+  @Column({ name: 'shipping_address_snapshot', type: 'jsonb', nullable: true })
+  shippingAddressSnapshot: Record<string, any> | null;
+
+  @Column({ name: 'logistics_id', type: 'uuid', nullable: true })
+  logisticsId: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  note: string | null;
+
+  @Column({ name: 'cancelled_reason', type: 'text', nullable: true })
+  cancelledReason: string | null;
+
+  @Column({ name: 'confirmed_at', type: 'timestamptz', nullable: true })
+  confirmedAt: Date | null;
+
+  @Column({ name: 'shipped_at', type: 'timestamptz', nullable: true })
+  shippedAt: Date | null;
+
+  @Column({ name: 'delivered_at', type: 'timestamptz', nullable: true })
+  deliveredAt: Date | null;
+
+  @Column({ name: 'cancelled_at', type: 'timestamptz', nullable: true })
+  cancelledAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'order-item.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Order } from './order.entity';
+
+@Entity('order_items')
+export class OrderItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid' })
+  orderId: string;
+
+  @ManyToOne(() => Order, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'order_id' })
+  order: Order;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
+
+  @Column({ name: 'product_snapshot', type: 'jsonb' })
+  productSnapshot: Record<string, any>;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  quantity: number;
+
+  @Column({ name: 'unit_price', type: 'decimal', precision: 15, scale: 2 })
+  unitPrice: number;
+
+  @Column({ name: 'total_price', type: 'decimal', precision: 15, scale: 2 })
+  totalPrice: number;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'order-status-history.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { OrderStatus } from '../../common/enums';
+
+@Entity('order_status_history')
+export class OrderStatusHistory {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid' })
+  orderId: string;
+
+  @Column({ type: 'enum', enum: OrderStatus })
+  status: OrderStatus;
+
+  @Column({ type: 'text', nullable: true })
+  note: string | null;
+
+  @Column({ name: 'changed_by', type: 'uuid', nullable: true })
+  changedBy: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'payment.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { PaymentMethod, PaymentStatus } from '../../common/enums';
+
+@Entity('payments')
+export class Payment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid' })
+  orderId: string;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  amount: number;
+
+  @Column({ type: 'enum', enum: PaymentMethod })
+  method: PaymentMethod;
+
+  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.UNPAID })
+  status: PaymentStatus;
+
+  @Column({ name: 'external_txn_id', length: 255, nullable: true })
+  externalTxnId: string | null;
+
+  @Column({ name: 'payment_gateway', length: 50, nullable: true })
+  paymentGateway: string | null;
+
+  @Column({ name: 'gateway_response', type: 'jsonb', nullable: true })
+  gatewayResponse: Record<string, any> | null;
+
+  @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
+  paidAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'shipment.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ShipmentStatus } from '../../common/enums';
+
+@Entity('shipments')
+export class Shipment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid', unique: true })
+  orderId: string;
+
+  @Column({ name: 'logistics_user_id', type: 'uuid', nullable: true })
+  logisticsUserId: string | null;
+
+  @Column({ name: 'tracking_code', length: 100, unique: true, nullable: true })
+  trackingCode: string | null;
+
+  @Column({ name: 'external_tracking_code', length: 100, nullable: true })
+  externalTrackingCode: string | null;
+
+  @Column({ type: 'enum', enum: ShipmentStatus, default: ShipmentStatus.WAITING_PICKUP })
+  status: ShipmentStatus;
+
+  @Column({ name: 'pickup_address', type: 'text', nullable: true })
+  pickupAddress: string | null;
+
+  @Column({ name: 'pickup_latitude', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  pickupLatitude: number | null;
+
+  @Column({ name: 'pickup_longitude', type: 'decimal', precision: 11, scale: 8, nullable: true })
+  pickupLongitude: number | null;
+
+  @Column({ name: 'delivery_address', type: 'text', nullable: true })
+  deliveryAddress: string | null;
+
+  @Column({ name: 'weight_kg', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  weightKg: number | null;
+
+  @Column({ name: 'pickup_confirmed_at', type: 'timestamptz', nullable: true })
+  pickupConfirmedAt: Date | null;
+
+  @Column({ name: 'delivered_at', type: 'timestamptz', nullable: true })
+  deliveredAt: Date | null;
+
+  @Column({ name: 'failed_at', type: 'timestamptz', nullable: true })
+  failedAt: Date | null;
+
+  @Column({ name: 'fail_reason', type: 'text', nullable: true })
+  failReason: string | null;
+
+  @Column({ name: 'proof_image_url', type: 'text', nullable: true })
+  proofImageUrl: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'shipment-tracking-event.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { ShipmentStatus } from '../../common/enums';
+
+@Entity('shipment_tracking_events')
+export class ShipmentTrackingEvent {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'shipment_id', type: 'uuid' })
+  shipmentId: string;
+
+  @Column({ type: 'enum', enum: ShipmentStatus })
+  status: ShipmentStatus;
+
+  @Column({ name: 'location_text', length: 255, nullable: true })
+  locationText: string | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number | null;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  note: string | null;
+
+  @Column({ name: 'recorded_by', type: 'uuid', nullable: true })
+  recordedBy: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'incident-report.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { IncidentType } from '../../common/enums';
+
+@Entity('incident_reports')
+export class IncidentReport {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'shipment_id', type: 'uuid' })
+  shipmentId: string;
+
+  @Column({ name: 'reported_by', type: 'uuid' })
+  reportedBy: string;
+
+  @Column({ name: 'incident_type', type: 'enum', enum: IncidentType })
+  incidentType: IncidentType;
+
+  @Column({ type: 'text' })
+  description: string;
+
+  @Column({ name: 'evidence_urls', type: 'text', array: true, default: [] })
+  evidenceUrls: string[];
+
+  @Column({ length: 50, default: 'open' })
+  status: string;
+
+  @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true })
+  resolvedAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'cooperative-member.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { MemberStatus } from '../../common/enums';
+
+@Entity('cooperative_members')
+export class CooperativeMember {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'cooperative_id', type: 'uuid' })
+  cooperativeId: string;
+
+  @Column({ name: 'farmer_id', type: 'uuid' })
+  farmerId: string;
+
+  @Column({ type: 'enum', enum: MemberStatus, default: MemberStatus.PENDING })
+  status: MemberStatus;
+
+  @Column({ name: 'join_request_note', type: 'text', nullable: true })
+  joinRequestNote: string | null;
+
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
+  approvedBy: string | null;
+
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
+  approvedAt: Date | null;
+
+  @Column({ name: 'rejected_reason', type: 'text', nullable: true })
+  rejectedReason: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'bulk-listing.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ProductUnit, FarmingType, ProductStatus } from '../../common/enums';
+
+@Entity('bulk_listings')
+export class BulkListing {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'cooperative_id', type: 'uuid' })
+  cooperativeId: string;
+
+  @Column({ name: 'category_id', type: 'int', nullable: true })
+  categoryId: number | null;
+
+  @Column({ length: 255 })
+  title: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ name: 'total_quantity', type: 'decimal', precision: 15, scale: 2 })
+  totalQuantity: number;
+
+  @Column({ type: 'enum', enum: ProductUnit })
+  unit: ProductUnit;
+
+  @Column({ name: 'price_per_unit', type: 'decimal', precision: 15, scale: 2 })
+  pricePerUnit: number;
+
+  @Column({ name: 'farming_type', type: 'enum', enum: FarmingType, nullable: true })
+  farmingType: FarmingType | null;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ name: 'harvest_date_from', type: 'date', nullable: true })
+  harvestDateFrom: string | null;
+
+  @Column({ name: 'harvest_date_to', type: 'date', nullable: true })
+  harvestDateTo: string | null;
+
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
+  status: ProductStatus;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'harvest-schedule.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ProductUnit } from '../../common/enums';
+
+@Entity('harvest_schedules')
+export class HarvestSchedule {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'cooperative_id', type: 'uuid' })
+  cooperativeId: string;
+
+  @Column({ name: 'farmer_id', type: 'uuid' })
+  farmerId: string;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
+
+  @Column({ name: 'expected_date', type: 'date' })
+  expectedDate: string;
+
+  @Column({ name: 'estimated_qty', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  estimatedQty: number | null;
+
+  @Column({ type: 'enum', enum: ProductUnit, nullable: true })
+  unit: ProductUnit | null;
+
+  @Column({ name: 'actual_date', type: 'date', nullable: true })
+  actualDate: string | null;
+
+  @Column({ name: 'actual_qty', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  actualQty: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  note: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'contract.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ProductUnit, ContractStatus } from '../../common/enums';
+
+@Entity('contracts')
+export class Contract {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'contract_code', length: 50, unique: true })
+  contractCode: string;
+
+  @Column({ name: 'buyer_id', type: 'uuid' })
+  buyerId: string;
+
+  @Column({ name: 'seller_id', type: 'uuid' })
+  sellerId: string;
+
+  @Column({ name: 'bulk_listing_id', type: 'uuid', nullable: true })
+  bulkListingId: string | null;
+
+  @Column({ name: 'product_category_id', type: 'int', nullable: true })
+  productCategoryId: number | null;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  quantity: number;
+
+  @Column({ type: 'enum', enum: ProductUnit })
+  unit: ProductUnit;
+
+  @Column({ name: 'unit_price', type: 'decimal', precision: 15, scale: 2 })
+  unitPrice: number;
+
+  @Column({ name: 'total_value', type: 'decimal', precision: 15, scale: 2 })
+  totalValue: number;
+
+  @Column({ name: 'quality_standards', type: 'text', nullable: true })
+  qualityStandards: string | null;
+
+  @Column({ name: 'delivery_deadline', type: 'date', nullable: true })
+  deliveryDeadline: string | null;
+
+  @Column({ name: 'payment_terms', type: 'text', nullable: true })
+  paymentTerms: string | null;
+
+  @Column({ type: 'enum', enum: ContractStatus, default: ContractStatus.DRAFT })
+  status: ContractStatus;
+
+  @Column({ name: 'buyer_signed_at', type: 'timestamptz', nullable: true })
+  buyerSignedAt: Date | null;
+
+  @Column({ name: 'seller_signed_at', type: 'timestamptz', nullable: true })
+  sellerSignedAt: Date | null;
+
+  @Column({ name: 'content_url', type: 'text', nullable: true })
+  contentUrl: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'purchase-request.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { ProductUnit, FarmingType } from '../../common/enums';
+
+@Entity('purchase_requests')
+export class PurchaseRequest {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'enterprise_id', type: 'uuid' })
+  enterpriseId: string;
+
+  @Column({ name: 'category_id', type: 'int', nullable: true })
+  categoryId: number | null;
+
+  @Column({ name: 'quantity_needed', type: 'decimal', precision: 15, scale: 2 })
+  quantityNeeded: number;
+
+  @Column({ type: 'enum', enum: ProductUnit })
+  unit: ProductUnit;
+
+  @Column({ name: 'quality_standard', type: 'text', nullable: true })
+  qualityStandard: string | null;
+
+  @Column({ name: 'farming_type', type: 'enum', enum: FarmingType, nullable: true })
+  farmingType: FarmingType | null;
+
+  @Column({ name: 'province_id', type: 'int', nullable: true })
+  provinceId: number | null;
+
+  @Column({ type: 'date', nullable: true })
+  deadline: string | null;
+
+  @Column({ length: 50, default: 'open' })
+  status: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'market-price.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { ProductUnit } from '../../common/enums';
+
+@Entity('market_prices')
+export class MarketPrice {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'category_id', type: 'int' })
+  categoryId: number;
+
+  @Column({ name: 'province_id', type: 'int' })
+  provinceId: number;
+
+  @Column({ name: 'price_date', type: 'date' })
+  priceDate: string;
+
+  @Column({ name: 'min_price', type: 'decimal', precision: 15, scale: 2, nullable: true })
+  minPrice: number | null;
+
+  @Column({ name: 'max_price', type: 'decimal', precision: 15, scale: 2, nullable: true })
+  maxPrice: number | null;
+
+  @Column({ name: 'avg_price', type: 'decimal', precision: 15, scale: 2 })
+  avgPrice: number;
+
+  @Column({ type: 'enum', enum: ProductUnit })
+  unit: ProductUnit;
+
+  @Column({ length: 100, nullable: true })
+  source: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'traceability-record.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('traceability_records')
+export class TraceabilityRecord {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
+
+  @Column({ name: 'order_item_id', type: 'uuid', nullable: true })
+  orderItemId: string | null;
+
+  @Column({ name: 'qr_code', length: 100, unique: true })
+  qrCode: string;
+
+  @Column({ name: 'batch_code', length: 100, nullable: true })
+  batchCode: string | null;
+
+  @Column({ name: 'planting_date', type: 'date', nullable: true })
+  plantingDate: string | null;
+
+  @Column({ name: 'harvest_date', type: 'date', nullable: true })
+  harvestDate: string | null;
+
+  @Column({ name: 'seed_variety', length: 100, nullable: true })
+  seedVariety: string | null;
+
+  @Column({ name: 'fertilizers_used', type: 'text', nullable: true })
+  fertilizersUsed: string | null;
+
+  @Column({ name: 'pesticides_used', type: 'text', nullable: true })
+  pesticidesUsed: string | null;
+
+  @Column({ name: 'storage_conditions', type: 'text', nullable: true })
+  storageConditions: string | null;
+
+  @Column({ name: 'processing_method', type: 'text', nullable: true })
+  processingMethod: string | null;
+
+  @Column({ name: 'quality_test_result', type: 'text', nullable: true })
+  qualityTestResult: string | null;
+
+  @Column({ name: 'quality_test_lab', length: 255, nullable: true })
+  qualityTestLab: string | null;
+
+  @Column({ name: 'quality_test_url', type: 'text', nullable: true })
+  qualityTestUrl: string | null;
+
+  @Column({ name: 'issued_at', type: 'timestamptz', default: () => 'now()' })
+  issuedAt: Date;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'review.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('reviews')
+export class Review {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid', nullable: true })
+  orderId: string | null;
+
+  @Column({ name: 'reviewer_id', type: 'uuid' })
+  reviewerId: string;
+
+  @Column({ name: 'reviewee_id', type: 'uuid' })
+  revieweeId: string;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
+
+  @Column({ type: 'smallint' })
+  rating: number;
+
+  @Column({ type: 'text', nullable: true })
+  comment: string | null;
+
+  @Column({ type: 'text', array: true, default: [] })
+  images: string[];
+
+  @Column({ name: 'is_verified_purchase', default: true })
+  isVerifiedPurchase: boolean;
+
+  @Column({ name: 'seller_reply', type: 'text', nullable: true })
+  sellerReply: string | null;
+
+  @Column({ name: 'seller_reply_at', type: 'timestamptz', nullable: true })
+  sellerReplyAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'conversation.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('conversations')
+export class Conversation {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid', nullable: true })
+  orderId: string | null;
+
+  @Column({ name: 'participant_1', type: 'uuid' })
+  participant1: string;
+
+  @Column({ name: 'participant_2', type: 'uuid' })
+  participant2: string;
+
+  @Column({ name: 'last_message_at', type: 'timestamptz', nullable: true })
+  lastMessageAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'message.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { MessageType } from '../../common/enums';
+
+@Entity('messages')
+export class Message {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'conversation_id', type: 'uuid' })
+  conversationId: string;
+
+  @Column({ name: 'sender_id', type: 'uuid' })
+  senderId: string;
+
+  @Column({ type: 'text' })
+  content: string;
+
+  @Column({ name: 'message_type', type: 'enum', enum: MessageType, default: MessageType.TEXT })
+  messageType: MessageType;
+
+  @Column({ name: 'attachment_url', type: 'text', nullable: true })
+  attachmentUrl: string | null;
+
+  @Column({ name: 'is_read', default: false })
+  isRead: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'notification.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { NotifType } from '../../common/enums';
+
+@Entity('notifications')
+export class Notification {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @Column({ type: 'enum', enum: NotifType })
+  type: NotifType;
+
+  @Column({ length: 255 })
+  title: string;
+
+  @Column({ type: 'text', nullable: true })
+  body: string | null;
+
+  @Column({ type: 'jsonb', nullable: true })
+  data: Record<string, any> | null;
+
+  @Column({ name: 'is_read', default: false })
+  isRead: boolean;
+
+  @Column({ name: 'read_at', type: 'timestamptz', nullable: true })
+  readAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'ad-package.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { AdType } from '../../common/enums';
+
+@Entity('ad_packages')
+export class AdPackage {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ type: 'enum', enum: AdType })
+  type: AdType;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
+  price: number;
+
+  @Column({ name: 'duration_days', type: 'int' })
+  durationDays: number;
+
+  @Column({ name: 'max_impressions', type: 'int', nullable: true })
+  maxImpressions: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+}
+`,
+  'ad-campaign.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { AdStatus } from '../../common/enums';
+
+@Entity('ad_campaigns')
+export class AdCampaign {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'supplier_id', type: 'uuid' })
+  supplierId: string;
+
+  @Column({ name: 'package_id', type: 'int' })
+  packageId: number;
+
+  @Column({ length: 255 })
+  title: string;
+
+  @Column({ name: 'image_url', type: 'text' })
+  imageUrl: string;
+
+  @Column({ name: 'link_url', type: 'text', nullable: true })
+  linkUrl: string | null;
+
+  @Column({ name: 'target_provinces', type: 'int', array: true, default: [] })
+  targetProvinces: number[];
+
+  @Column({ type: 'enum', enum: AdStatus, default: AdStatus.PENDING_APPROVAL })
+  status: AdStatus;
+
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
+  approvedBy: string | null;
+
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
+  approvedAt: Date | null;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
+
+  @Column({ name: 'start_date', type: 'date', nullable: true })
+  startDate: string | null;
+
+  @Column({ name: 'end_date', type: 'date', nullable: true })
+  endDate: string | null;
+
+  @Column({ name: 'total_impressions', type: 'int', default: 0 })
+  totalImpressions: number;
+
+  @Column({ name: 'total_clicks', type: 'int', default: 0 })
+  totalClicks: number;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'ad-event.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('ad_events')
+export class AdEvent {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'campaign_id', type: 'uuid' })
+  campaignId: string;
+
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
+  userId: string | null;
+
+  @Column({ name: 'event_type', length: 10 })
+  eventType: string;
+
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
+  ipAddress: string | null;
+
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
+  userAgent: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'quality-certificate.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { CertType } from '../../common/enums';
+
+@Entity('quality_certificates')
+export class QualityCertificate {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'issued_to', type: 'uuid' })
+  issuedTo: string;
+
+  @Column({ name: 'cert_type', type: 'enum', enum: CertType })
+  certType: CertType;
+
+  @Column({ name: 'cert_number', length: 100, unique: true })
+  certNumber: string;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
+
+  @Column({ name: 'issued_by', type: 'uuid' })
+  issuedBy: string;
+
+  @Column({ name: 'issue_date', type: 'date' })
+  issueDate: string;
+
+  @Column({ name: 'expiry_date', type: 'date', nullable: true })
+  expiryDate: string | null;
+
+  @Column({ name: 'document_url', type: 'text', nullable: true })
+  documentUrl: string | null;
+
+  @Column({ length: 50, default: 'active' })
+  status: string;
+
+  @Column({ name: 'revoked_reason', type: 'text', nullable: true })
+  revokedReason: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'dispute.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { DisputeStatus } from '../../common/enums';
+
+@Entity('disputes')
+export class Dispute {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'order_id', type: 'uuid', nullable: true })
+  orderId: string | null;
+
+  @Column({ name: 'raised_by', type: 'uuid' })
+  raisedBy: string;
+
+  @Column({ name: 'against_user', type: 'uuid' })
+  againstUser: string;
+
+  @Column({ type: 'text' })
+  reason: string;
+
+  @Column({ name: 'evidence_urls', type: 'text', array: true, default: [] })
+  evidenceUrls: string[];
+
+  @Column({ type: 'enum', enum: DisputeStatus, default: DisputeStatus.OPEN })
+  status: DisputeStatus;
+
+  @Column({ name: 'handled_by', type: 'uuid', nullable: true })
+  handledBy: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  resolution: string | null;
+
+  @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true })
+  resolvedAt: Date | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+  'system-config.entity.ts': `import { Entity, PrimaryColumn, Column, UpdateDateColumn } from 'typeorm';
+
+@Entity('system_configs')
+export class SystemConfig {
+  @PrimaryColumn({ length: 100 })
+  key: string;
+
+  @Column({ type: 'jsonb' })
+  value: Record<string, any>;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
+  updatedBy: string | null;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
+`,
+  'audit-log.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('audit_logs')
+export class AuditLog {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
+  userId: string | null;
+
+  @Column({ length: 100 })
+  action: string;
+
+  @Column({ name: 'entity_type', length: 100, nullable: true })
+  entityType: string | null;
+
+  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
+  entityId: string | null;
+
+  @Column({ name: 'old_data', type: 'jsonb', nullable: true })
+  oldData: Record<string, any> | null;
+
+  @Column({ name: 'new_data', type: 'jsonb', nullable: true })
+  newData: Record<string, any> | null;
+
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
+  ipAddress: string | null;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+`,
+};
+
+for (const [filename, content] of Object.entries(entities)) {
+  fs.writeFileSync(path.join(entitiesDir, filename), content, 'utf8');
+}
+console.log('Successfully generated ' + Object.keys(entities).length + ' entities.');

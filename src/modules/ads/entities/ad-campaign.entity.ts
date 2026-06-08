@@ -27,7 +27,7 @@ export class AdCampaign {
   @Column({ name: 'target_url', nullable: true })
   targetUrl: string;
 
-  @Column({ type: 'enum', enum: AdStatus, default: AdStatus.pending_approval })
+  @Column({ type: 'enum', enum: AdStatus, default: AdStatus.PENDING_APPROVAL })
   status: AdStatus;
 
   @Column({ name: 'starts_at', nullable: true, type: 'timestamptz' })
