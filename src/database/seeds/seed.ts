@@ -45,12 +45,10 @@ const AppDataSource = new DataSource({
 
 async function seedProvinces(ds: DataSource): Promise<void> {
   const repo = ds.getRepository(Province);
-
   console.log(`🌱 Seeding ${provinceSeedData.length} tỉnh/thành...`);
 
   for (const data of provinceSeedData) {
     const existing = await repo.findOne({ where: { code: data.code } });
-
     if (existing) {
       await repo.update(existing.id, {
         name: data.name,
@@ -86,11 +84,12 @@ async function runSeed() {
   console.log('✅ Kết nối DB thành công\n');
 
   await seedProductCategories(AppDataSource);
+  await seedProvinces(AppDataSource);
 
   console.log('🌱 Bắt đầu seed người dùng...');
   await seedUsers(AppDataSource);
 
-  await seedProvinces(AppDataSource);
+  // Products được seed riêng qua endpoint POST /products/seed (50 mock products)
 
   await AppDataSource.destroy();
 }
