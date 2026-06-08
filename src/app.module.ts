@@ -20,6 +20,7 @@ import { AdsModule } from "./modules/ads/ads.module";
 import { AdminRoute } from "./modules/admin/admin.route";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
+import { SmsRoute } from "./shared/sms/sms.route";
 
 @Module({
   imports: [

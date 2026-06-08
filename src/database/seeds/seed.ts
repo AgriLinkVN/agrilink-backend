@@ -14,7 +14,7 @@ import { ProductCategory } from '../../modules/products/domain/entities/product-
 import { Product } from '../../modules/products/domain/entities/product.entity';
 import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
 import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
-import { User } from '../../modules/users/entities/user.entity';
+import { User } from '../entities/user.entity';
 
 // Seeds
 import { provinceSeedData } from './provinces.seed';

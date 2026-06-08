@@ -92,7 +92,7 @@ export class ProductsService {
       ...dto,
       sellerId,
       sellerType,
-      status: ProductStatus.draft,
+      status: ProductStatus.DRAFT,
     });
     return this.productRepo.save(product);
   }
@@ -137,9 +137,9 @@ export class ProductsService {
       if (status) qb.andWhere('p.status = :status', { status });
     } else if (sellerId) {
       qb.andWhere('p.sellerId = :sellerId', { sellerId });
-      qb.andWhere('p.status = :status', { status: ProductStatus.active });
+      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     } else {
-      qb.andWhere('p.status = :status', { status: ProductStatus.active });
+      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     }
 
     if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
@@ -181,7 +181,7 @@ export class ProductsService {
     if (product.sellerId !== sellerId) {
       throw new ForbiddenException('Bạn không có quyền xóa sản phẩm này');
     }
-    product.status = ProductStatus.draft;
+    product.status = ProductStatus.DRAFT;
     await this.productRepo.save(product);
   }
 

@@ -14,6 +14,7 @@ import { OtpVerification } from '../../database/entities/otp-verification.entity
 import * as crypto from 'crypto';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { SmsService } from '../../shared/sms/sms.service';
 
 export interface TokenPair {
   accessToken: string;
@@ -31,6 +32,7 @@ export class AuthService {
     @InjectRepository(OtpVerification)
     private readonly otpRepo: Repository<OtpVerification>,
     private readonly httpService: HttpService,
+    private readonly smsService: SmsService,
   ) {}
 
   async register(dto: RegisterDto): Promise<any> {
@@ -142,23 +144,10 @@ export class AuthService {
     });
 
     if (dto.type === 'sms') {
-      const apiKey = this.configService.get<string>('ESMS_API_KEY');
-      const secretKey = this.configService.get<string>('ESMS_SECRET_KEY');
-      const brandname = this.configService.get<string>('ESMS_BRANDNAME', 'Baokim');
-      
-      // Clean phone number (eSMS prefers no + sign, e.g. 84901234567 or 0901234567)
-      const cleanPhone = dto.target.replace('+', '');
-      const content = encodeURIComponent(`Ma xac thuc AgriLink cua ban la: ${otpCode}`);
-      
-      const url = `http://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_get?Phone=${cleanPhone}&Content=${content}&ApiKey=${apiKey}&SecretKey=${secretKey}&SmsType=2&Brandname=${brandname}`;
-
-      try {
-        const response = await firstValueFrom(this.httpService.get(url));
-        console.log(`[eSMS] Sent OTP ${otpCode} to ${dto.target} - Response:`, response.data);
-      } catch (error) {
-        console.error(`[eSMS Error] Failed to send SMS to ${dto.target}:`, error.message);
-        // Do not throw error here to avoid blocking user if SMS gateway is down during dev,
-        // but in prod you might want to throw a 503 Service Unavailable.
+      const success = await this.smsService.sendOtp(dto.target, otpCode);
+      if (!success) {
+        // We log the error in the SmsService, but do not throw to avoid crashing
+        console.warn(`[OTP] eSMS returned false for ${dto.target}, but we saved the OTP.`);
       }
     } else {
       console.log(`[Mock Email] Sent OTP ${otpCode} to ${dto.target}`);
