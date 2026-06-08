@@ -30,7 +30,7 @@ export class CreateProductDto {
   @Min(0)
   pricePerUnit: number;
 
-  @ApiProperty({ enum: ProductUnit, example: ProductUnit.kg })
+  @ApiProperty({ enum: ProductUnit, example: ProductUnit.KG })
   @IsEnum(ProductUnit)
   unit: ProductUnit;
 

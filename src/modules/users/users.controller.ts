@@ -45,7 +45,7 @@ export class UsersController {
 
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.admin)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: '(Admin) Get any user by ID' })
   @ApiResponse({ status: 200, description: 'User found' })
   @ApiResponse({ status: 404, description: 'User not found' })

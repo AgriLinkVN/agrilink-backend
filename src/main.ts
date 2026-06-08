@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import * as cookieParser from 'cookie-parser';
 import { ProductsService } from '@modules/products/application/products.service';
 
 async function bootstrap() {
@@ -19,6 +20,9 @@ async function bootstrap() {
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
+
+  // Cookie parser
+  app.use(cookieParser());
 
   // CORS
   app.enableCors({

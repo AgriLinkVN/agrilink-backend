@@ -46,7 +46,7 @@ export class Product {
   @Column({ name: 'min_order_quantity', type: 'decimal', precision: 12, scale: 2, nullable: true })
   minOrderQuantity: number;
 
-  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.draft })
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
   status: ProductStatus;
 
   @Column({ name: 'farming_type', type: 'enum', enum: FarmingType, nullable: true })
