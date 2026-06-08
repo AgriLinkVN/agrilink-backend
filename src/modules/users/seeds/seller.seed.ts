@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
-import { User } from '../entities/user.entity';
 import { UserRole, UserStatus } from '../../../common/enums';
+import { User } from '@database/entities/user.entity';
 
 export interface SeededSellers {
   farmer: User;
@@ -37,8 +37,8 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
       phone: '0900000001',
       email: 'farmer.demo@agrilink.vn',
       passwordHash,
-      role: UserRole.farmer,
-      status: UserStatus.active,
+      role: UserRole.FARMER,
+      status: UserStatus.ACTIVE,
       fullName: 'Nông dân Demo (Lâm Đồng)',
       isPhoneVerified: true,
       isEmailVerified: true,
@@ -47,8 +47,8 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
       phone: '0900000002',
       email: 'coop.demo@agrilink.vn',
       passwordHash,
-      role: UserRole.cooperative,
-      status: UserStatus.active,
+      role: UserRole.COOPERATIVE,
+      status: UserStatus.ACTIVE,
       fullName: 'HTX Demo (Tiền Giang)',
       isPhoneVerified: true,
       isEmailVerified: true,
@@ -57,8 +57,8 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
       phone: '0900000003',
       email: 'supplier.demo@agrilink.vn',
       passwordHash,
-      role: UserRole.supplier,
-      status: UserStatus.active,
+      role: UserRole.SUPPLIER,
+      status: UserStatus.ACTIVE,
       fullName: 'Nhà cung cấp Demo (Đắk Lắk)',
       isPhoneVerified: true,
       isEmailVerified: true,
