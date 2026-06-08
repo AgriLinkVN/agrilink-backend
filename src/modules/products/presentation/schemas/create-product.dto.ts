@@ -72,10 +72,10 @@ export class CreateProductDto {
 
 
   // seller Type
-  // @ApiProperty({ enum: SellerType, example: SellerType.farmer })
+  // @ApiProperty({ enum: SellerType, example: SellerType.FARMER })
   // TODO(P1): sellerType được lấy từ JWT payload bởi controller (@CurrentUser('sellerType')).
   // Để optional ở đây để tránh validation lỗi khi client không gửi trường này trong body.
-  @ApiPropertyOptional({ enum: SellerType, example: SellerType.farmer })
+  @ApiPropertyOptional({ enum: SellerType, example: SellerType.FARMER })
   @IsOptional()
   @IsEnum(SellerType)
   // sellerType: SellerType;

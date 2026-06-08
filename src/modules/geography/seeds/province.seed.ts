@@ -12,16 +12,16 @@ export async function seedProvinces(dataSource: DataSource): Promise<void> {
   }
 
   await repo.save([
-    { name: 'Lâm Đồng',    code: 'LD', region: Region.highlands },
-    { name: 'Đắk Lắk',     code: 'DL', region: Region.highlands },
-    { name: 'Tiền Giang',  code: 'TG', region: Region.south },
-    { name: 'Bến Tre',     code: 'BT', region: Region.south },
-    { name: 'Sóc Trăng',   code: 'ST', region: Region.south },
-    { name: 'Bình Thuận',  code: 'BTN', region: Region.south },
-    { name: 'Long An',     code: 'LA', region: Region.south },
-    { name: 'Cần Thơ',     code: 'CT', region: Region.south },
-    { name: 'Hà Nội',      code: 'HN', region: Region.north },
-    { name: 'Đà Nẵng',     code: 'DN', region: Region.central },
+    { name: 'Lâm Đồng',    code: 'LD', region: Region.HIGHLANDS },
+    { name: 'Đắk Lắk',     code: 'DL', region: Region.HIGHLANDS },
+    { name: 'Tiền Giang',  code: 'TG', region: Region.SOUTH },
+    { name: 'Bến Tre',     code: 'BT', region: Region.SOUTH },
+    { name: 'Sóc Trăng',   code: 'ST', region: Region.SOUTH },
+    { name: 'Bình Thuận',  code: 'BTN', region: Region.SOUTH },
+    { name: 'Long An',     code: 'LA', region: Region.SOUTH },
+    { name: 'Cần Thơ',     code: 'CT', region: Region.SOUTH },
+    { name: 'Hà Nội',      code: 'HN', region: Region.NORTH },
+    { name: 'Đà Nẵng',     code: 'DN', region: Region.CENTRAL },
   ]);
 
   console.log('✅ Seed 10 tỉnh thành thành công');
