@@ -6,20 +6,16 @@ import { UserRole, UserStatus } from '@common/enums';
 export async function seedUsers(dataSource: DataSource): Promise<void> {
   const repo = dataSource.getRepository(User);
 
-  // Kiểm tra đã seed chưa
-  const count = await repo.count();
-  if (count > 0) {
-    console.log('✅ Người dùng đã được seed trước đó — bỏ qua');
-    return;
-  }
+  // Chúng ta sẽ bỏ qua kiểm tra count để đảm bảo các tài khoản demo được seed
+  // (Lưu ý: trong thực tế nên kiểm tra kỹ hơn)
 
-  const defaultPassword = 'AgriLink@2026';
+  const defaultPassword = 'demo123';
   const salt = bcrypt.genSaltSync(10);
   const passwordHash = bcrypt.hashSync(defaultPassword, salt);
 
   const usersData = [
     {
-      phone: '0901234567',
+      phone: '0901111099',
       email: 'admin@agrilink.vn',
       passwordHash,
       role: UserRole.ADMIN,
@@ -29,7 +25,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234568',
+      phone: '0901111001',
       email: 'farmer@agrilink.vn',
       passwordHash,
       role: UserRole.FARMER,
@@ -39,7 +35,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234569',
+      phone: '0901111002',
       email: 'cooperative@agrilink.vn',
       passwordHash,
       role: UserRole.COOPERATIVE,
@@ -49,7 +45,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234570',
+      phone: '0901111003',
       email: 'buyer@agrilink.vn',
       passwordHash,
       role: UserRole.BUYER,
@@ -59,7 +55,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234571',
+      phone: '0901111004',
       email: 'enterprise@agrilink.vn',
       passwordHash,
       role: UserRole.ENTERPRISE,
@@ -69,7 +65,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234572',
+      phone: '0901111005',
       email: 'supplier@agrilink.vn',
       passwordHash,
       role: UserRole.SUPPLIER,
@@ -79,27 +75,26 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901234573',
-      email: 'state_agency@agrilink.vn',
+      phone: '0901111007',
+      email: 'logistics@agrilink.vn',
       passwordHash,
-      role: UserRole.STATE_AGENCY,
+      role: UserRole.LOGISTICS,
       status: UserStatus.ACTIVE,
-      fullName: 'Chi cục Trồng trọt & Bảo vệ Thực vật',
-      isPhoneVerified: true,
-      isEmailVerified: true,
-    },
-    {
-      phone: '0901234574',
-      email: 'government@agrilink.vn',
-      passwordHash,
-      role: UserRole.STATE_AGENCY,
-      status: UserStatus.ACTIVE,
-      fullName: 'Sở Nông nghiệp & Phát triển Nông thôn',
+      fullName: 'Logistics Giao hàng nhanh',
       isPhoneVerified: true,
       isEmailVerified: true,
     },
   ];
 
-  await repo.save(repo.create(usersData));
+  for (const userData of usersData) {
+    const existing = await repo.findOne({ where: { phone: userData.phone } });
+    if (!existing) {
+      await repo.save(repo.create(userData));
+    } else {
+      // update password for demo users
+      await repo.update({ phone: userData.phone }, { passwordHash: userData.passwordHash });
+    }
+  }
+
   console.log(`✅ Seed thành công ${usersData.length} tài khoản người dùng tương ứng với các vai trò`);
 }

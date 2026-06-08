@@ -59,12 +59,12 @@ export class AuthService {
   async login(dto: LoginDto): Promise<TokenPair> {
     const user = await this.usersService.findByPhone(dto.phone);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Số điện thoại chưa được đăng ký');
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Mật khẩu không chính xác');
     }
 
     await this.usersService.updateInternal(user.id, { lastLoginAt: new Date() });

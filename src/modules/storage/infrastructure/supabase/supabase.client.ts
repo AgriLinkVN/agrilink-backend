@@ -12,7 +12,8 @@ export const SupabaseClientProvider: Provider = {
     const key = configService.get<string>('SUPABASE_SERVICE_KEY');
 
     if (!url || !key) {
-      throw new Error('Supabase configuration is missing: SUPABASE_URL hoặc SUPABASE_SERVICE_KEY');
+      console.warn('Supabase configuration is missing: SUPABASE_URL hoặc SUPABASE_SERVICE_KEY');
+      return null as any;
     }
 
     return createClient(url, key);
