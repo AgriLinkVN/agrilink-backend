@@ -67,7 +67,7 @@ export class ProductsController {
 
   @Public()
   @Get('categories')
-  @ApiOperation({ summary: 'Danh mục sản phẩm — flat list (public)' })
+  @ApiOperation({ summary: 'Danh mục sản phẩm — root categories (public)' })
   findCategories() {
     return this.productsService.findCategories();
   }

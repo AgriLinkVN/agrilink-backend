@@ -7,8 +7,6 @@ import { ProductCertification } from './domain/entities/product-certification.en
 import { ProductCategory } from './domain/entities/product-category.entity';
 import { ProductsService } from './application/products.service';
 import { ProductsController } from './presentation/controllers/products.controller';
-import { User } from '../users/entities/user.entity';
-import { Province } from '../geography/entities/province.entity';
 
 @Module({
   imports: [
@@ -17,8 +15,6 @@ import { Province } from '../geography/entities/province.entity';
       ProductImage,
       ProductCertification,
       ProductCategory,
-      User,
-      Province,
     ]),
   ],
   controllers: [ProductsController],
