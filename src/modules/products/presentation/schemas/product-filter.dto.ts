@@ -1,8 +1,8 @@
 import { PaginationDto } from '../../../../common/dto/pagination.dto';
 import { FarmingType, ProductStatus } from '../../../../common/enums';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsIn, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class ProductFilterDto extends PaginationDto {
   @ApiPropertyOptional({ example: 'xoai' })
@@ -49,10 +49,16 @@ export class ProductFilterDto extends PaginationDto {
   @IsUUID()
   sellerId?: string;
 
-  @ApiPropertyOptional({ enum: ['createdAt', 'pricePerUnit', 'name'] })
+  @ApiPropertyOptional({ example: true, description: 'Chi lay san pham noi bat' })
   @IsOptional()
-  @IsIn(['createdAt', 'pricePerUnit', 'name'])
-  sortBy?: 'createdAt' | 'pricePerUnit' | 'name';
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @ApiPropertyOptional({ enum: ['createdAt', 'pricePerUnit', 'name', 'soldCount', 'avgRating'] })
+  @IsOptional()
+  @IsIn(['createdAt', 'pricePerUnit', 'name', 'soldCount', 'avgRating'])
+  sortBy?: 'createdAt' | 'pricePerUnit' | 'name' | 'soldCount' | 'avgRating';
 
   @ApiPropertyOptional({ enum: ['ASC', 'DESC'] })
   @IsOptional()

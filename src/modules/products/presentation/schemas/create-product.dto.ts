@@ -1,12 +1,16 @@
 import { FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
+  IsLatitude,
+  IsLongitude,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  MaxLength,
   Min,
 } from 'class-validator';
 
@@ -24,6 +28,18 @@ export class CreateProductDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @ApiPropertyOptional({ example: 'XCHL-001', description: 'Mã SKU duy nhất' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  sku?: string;
+
+  @ApiPropertyOptional({ example: 'Hoa Loc', description: 'Giong cay/con' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  variety?: string;
 
   @ApiProperty({ example: 25000 })
   @IsNumber()
@@ -59,6 +75,21 @@ export class CreateProductDto {
   @IsOptional()
   @IsUUID()
   districtId?: string;
+
+  @ApiPropertyOptional({ example: 12.6667, description: 'Vi do nong trai' })
+  @IsOptional()
+  @IsLatitude()
+  farmLatitude?: number;
+
+  @ApiPropertyOptional({ example: 108.0500, description: 'Kinh do nong trai' })
+  @IsOptional()
+  @IsLongitude()
+  farmLongitude?: number;
+
+  @ApiPropertyOptional({ example: false, description: 'San pham noi bat (admin set)' })
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
 
   @ApiPropertyOptional({ example: '2026-06-01' })
   @IsOptional()

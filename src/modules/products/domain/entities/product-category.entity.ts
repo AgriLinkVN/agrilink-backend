@@ -26,6 +26,9 @@ export class ProductCategory {
     @Column({ name: 'parent_id', nullable: true })
     parentId: string;
 
+    @Column({ name: 'icon_url', type: 'text', nullable: true })
+    iconUrl: string;
+
     @Column({ name: 'sort_order', default: 0 })
     sortOrder: number;
 

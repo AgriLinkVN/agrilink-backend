@@ -28,6 +28,12 @@ export class ProductCertification {
   @Column({ name: 'document_url', nullable: true })
   documentUrl: string;
 
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedBy: string;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
