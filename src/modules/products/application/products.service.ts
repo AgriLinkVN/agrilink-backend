@@ -30,17 +30,17 @@ export class ProductsService {
   // ─── Create ──────────────────────────────────────────────────
 
   async create(
-  sellerId: string,
-  sellerType: SellerType,  // ← từ JWT
-  dto: CreateProductDto,
-): Promise<Product> {
-  const product = this.productRepo.create({
-    ...dto,
-    sellerId,
-    sellerType,  // ← không từ dto nữa
-    status: ProductStatus.draft,
-  });
-  return this.productRepo.save(product);
+    sellerId: string,
+    sellerType: SellerType,
+    dto: CreateProductDto,
+  ): Promise<Product> {
+    const product = this.productRepo.create({
+      ...dto,
+      sellerId,
+      sellerType,
+      status: ProductStatus.draft, // mặc định tạo ra ở trạng thái draft
+    });
+    return this.productRepo.save(product);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────
@@ -79,9 +79,9 @@ export class ProductsService {
       if (status) qb.andWhere('p.status = :status', { status });
     } else if (sellerId) {
       qb.andWhere('p.sellerId = :sellerId', { sellerId });
-      qb.andWhere('p.status = :status', { status: ProductStatus.active });
+      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     } else {
-      qb.andWhere('p.status = :status', { status: ProductStatus.active });
+      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     }
     if (minPrice !== undefined) {
       qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
@@ -131,9 +131,7 @@ export class ProductsService {
     if (product.sellerId !== sellerId) {
       throw new ForbiddenException('Bạn không có quyền xóa sản phẩm này');
     }
-
-    // Soft delete — đổi status thay vì xóa hẳn
-    product.status = ProductStatus.draft;
+    product.status = ProductStatus.DRAFT;
     await this.productRepo.save(product);
   }
 
