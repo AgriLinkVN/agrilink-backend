@@ -9,7 +9,7 @@ import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import * as jwt from 'jsonwebtoken';
 import { DataSource } from 'typeorm';
-import { User } from '../src/modules/users/entities/user.entity';
+import { User } from '../src/database/entities/user.entity';
 
 dotenv.config();
 
