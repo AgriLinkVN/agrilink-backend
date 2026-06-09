@@ -141,6 +141,12 @@ export class ProductsService {
     } else {
       qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     }
+    if (minPrice !== undefined) {
+      qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
+    }
+    if (maxPrice !== undefined) {
+      qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
+    }
 
     if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
     if (maxPrice !== undefined) qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
