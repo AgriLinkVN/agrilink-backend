@@ -161,7 +161,10 @@ docker compose ps
 # 5. Cài dependencies
 npm install
 
-# 6. Start dev server
+# 6. Chạy Migration để tạo bảng trong DB (Rất quan trọng!)
+npm run migration:run
+
+# 7. Start dev server
 npm run start:dev
 ```
 

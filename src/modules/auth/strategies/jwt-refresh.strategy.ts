@@ -17,7 +17,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
 ) {
   constructor(private readonly configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
+      jwtFromRequest: (req: Request) => {
+        return req.cookies?.refreshToken || null;
+      },
       ignoreExpiration: false,
       secretOrKey: configService.get<string>(
         'JWT_REFRESH_SECRET',
@@ -28,7 +30,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(req: Request, payload: JwtPayload): Promise<JwtPayload & { refreshToken: string }> {
-    const refreshToken = req.body?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');
     }

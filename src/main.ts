@@ -5,7 +5,12 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import * as cookieParser from 'cookie-parser';
+import * as dns from 'dns';
 import { ProductsService } from '@modules/products/application/products.service';
+
+// Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
+dns.setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +24,9 @@ async function bootstrap() {
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
+
+  // Cookie parser
+  app.use(cookieParser());
 
   // CORS
   app.enableCors({

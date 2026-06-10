@@ -14,7 +14,7 @@ export class CooperativeMember {
   @Column({ name: 'farmer_id' })
   farmerId: string;
 
-  @Column({ type: 'enum', enum: MemberStatus, default: MemberStatus.pending })
+  @Column({ type: 'enum', enum: MemberStatus, default: MemberStatus.PENDING })
   status: MemberStatus;
 
   @Column({ nullable: true, type: 'text' })

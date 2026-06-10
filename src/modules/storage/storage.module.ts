@@ -15,7 +15,7 @@ import { SupabaseStorageService } from './infrastructure/supabase/supabase-stora
   providers: [
     // Supabase client
     SupabaseClientProvider,
-
+ 
     // Services
     CloudinaryService,
     SupabaseStorageService,

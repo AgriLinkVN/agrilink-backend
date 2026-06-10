@@ -44,7 +44,7 @@ export class ProductsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Tạo sản phẩm mới (seller)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
@@ -67,9 +67,16 @@ export class ProductsController {
 
   @Public()
   @Get('categories')
-  @ApiOperation({ summary: 'Danh mục sản phẩm (public)' })
+  @ApiOperation({ summary: 'Danh mục sản phẩm — root categories (public)' })
   findCategories() {
     return this.productsService.findCategories();
+  }
+
+  @Public()
+  @Get('categories/tree')
+  @ApiOperation({ summary: 'Cây danh mục sản phẩm 2 cấp (public)' })
+  getCategoryTree() {
+    return this.productsService.getCategoryTree();
   }
 
   @Public()
@@ -81,7 +88,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Cập nhật sản phẩm (chủ sở hữu)' })
   update(
@@ -94,7 +101,7 @@ export class ProductsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa sản phẩm (chủ sở hữu)' })
   remove(
@@ -131,7 +138,7 @@ export class ProductsController {
   // ─── Images ───────────────────────────────────────────────────
 
   @Post(':id/images')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm ảnh cho sản phẩm' })
   addImage(
@@ -144,7 +151,7 @@ export class ProductsController {
 
   @Delete(':id/images/:imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa ảnh sản phẩm' })
   removeImage(
@@ -157,7 +164,7 @@ export class ProductsController {
   // ─── Certifications ───────────────────────────────────────────
 
   @Post(':id/certifications')
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm chứng nhận cho sản phẩm' })
   addCertification(
@@ -169,7 +176,7 @@ export class ProductsController {
 
   @Delete(':id/certifications/:certId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.farmer, UserRole.cooperative, UserRole.supplier) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa chứng nhận sản phẩm' })
   removeCertification(
