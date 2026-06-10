@@ -45,6 +45,24 @@ export class FarmerProfile {
   @Column({ name: 'experience_years', nullable: true })
   experienceYears: number;
 
+  @Column({ name: 'phone_number', nullable: true })
+  phoneNumber: string;
+
+  @Column({ name: 'avatar_url', nullable: true })
+  avatarUrl: string;
+
+  @Column({ name: 'cover_image_url', nullable: true })
+  coverImageUrl: string;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
+  verifiedAt: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  certifications: string[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
