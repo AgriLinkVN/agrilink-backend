@@ -8,6 +8,9 @@ import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
+import { User } from '../../database/entities/user.entity';
+import { Product } from '../../database/entities/product.entity';
+import { IncidentReport } from '../../database/entities/incident-report.entity';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { SupplierProfile } from '../../database/entities/supplier-profile.entity
       CooperativeProfile,
       EnterpriseProfile,
       SupplierProfile,
+      User,
+      Product,
+      IncidentReport,
     ]),
   ],
   controllers: [AdminController],
