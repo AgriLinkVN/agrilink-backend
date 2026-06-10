@@ -24,34 +24,58 @@ export class ProfilesService {
   ) {}
 
   async getFarmerProfile(userId: string): Promise<FarmerProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getFarmerProfile()');
+    return this.farmerRepo.findOne({ where: { userId } });
   }
 
   async upsertFarmerProfile(userId: string, dto: UpdateFarmerProfileDto): Promise<FarmerProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertFarmerProfile()');
+    let profile = await this.farmerRepo.findOne({ where: { userId } });
+    if (profile) {
+      Object.assign(profile, dto);
+    } else {
+      profile = this.farmerRepo.create({ userId, ...dto });
+    }
+    return this.farmerRepo.save(profile);
   }
 
   async getCooperativeProfile(userId: string): Promise<CooperativeProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getCooperativeProfile()');
+    return this.cooperativeRepo.findOne({ where: { userId } });
   }
 
   async upsertCooperativeProfile(userId: string, dto: UpdateCooperativeProfileDto): Promise<CooperativeProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertCooperativeProfile()');
+    let profile = await this.cooperativeRepo.findOne({ where: { userId } });
+    if (profile) {
+      Object.assign(profile, dto);
+    } else {
+      profile = this.cooperativeRepo.create({ userId, ...dto });
+    }
+    return this.cooperativeRepo.save(profile);
   }
 
   async getEnterpriseProfile(userId: string): Promise<EnterpriseProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getEnterpriseProfile()');
+    return this.enterpriseRepo.findOne({ where: { userId } });
   }
 
   async upsertEnterpriseProfile(userId: string, dto: UpdateEnterpriseProfileDto): Promise<EnterpriseProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertEnterpriseProfile()');
+    let profile = await this.enterpriseRepo.findOne({ where: { userId } });
+    if (profile) {
+      Object.assign(profile, dto);
+    } else {
+      profile = this.enterpriseRepo.create({ userId, ...dto });
+    }
+    return this.enterpriseRepo.save(profile);
   }
 
   async getSupplierProfile(userId: string): Promise<SupplierProfile | null> {
-    throw new Error('TODO: implement ProfilesService.getSupplierProfile()');
+    return this.supplierRepo.findOne({ where: { userId } });
   }
 
   async upsertSupplierProfile(userId: string, dto: UpdateSupplierProfileDto): Promise<SupplierProfile> {
-    throw new Error('TODO: implement ProfilesService.upsertSupplierProfile()');
+    let profile = await this.supplierRepo.findOne({ where: { userId } });
+    if (profile) {
+      Object.assign(profile, dto);
+    } else {
+      profile = this.supplierRepo.create({ userId, ...dto });
+    }
+    return this.supplierRepo.save(profile);
   }
 }

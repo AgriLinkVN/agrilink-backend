@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfilesController } from './profiles.controller';
+import { FarmPublicController } from './farm-public.controller';
 import { ProfilesService } from './profiles.service';
 import { FarmerProfile } from './entities/farmer-profile.entity';
 import { CooperativeProfile } from './entities/cooperative-profile.entity';
@@ -16,7 +17,7 @@ import { SupplierProfile } from './entities/supplier-profile.entity';
       SupplierProfile,
     ]),
   ],
-  controllers: [ProfilesController],
+  controllers: [ProfilesController, FarmPublicController],
   providers: [ProfilesService],
   exports: [ProfilesService],
 })
