@@ -31,7 +31,7 @@ export class SmsService {
 
       const url = `https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_get?Phone=${cleanPhone}&Content=${content}&ApiKey=${apiKey}&SecretKey=${secretKey}&SmsType=8&IsUnicode=0`;
 
-      const response = await firstValueFrom(this.httpService.get(url));
+      const response = await firstValueFrom(this.httpService.get<{ CodeResult: string; ErrorMessage?: string }>(url));
 
       // eSMS returns CodeResult: '100' for success
       if (response.data && response.data.CodeResult === '100') {
