@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { UserRole, UserStatus } from '../../../common/enums';
-import { User } from '@database/entities/user.entity';
+import { User } from '../../../database/entities/user.entity';
 
 export interface SeededSellers {
   farmer: User;

@@ -12,6 +12,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { OtpVerification } from '../../database/entities/otp-verification.entity';
 import { HttpModule } from '@nestjs/axios';
+import { SmsRoute } from '../../shared/sms/sms.route';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { HttpModule } from '@nestjs/axios';
     UsersModule,
     TypeOrmModule.forFeature([RefreshToken, OtpVerification]),
     HttpModule,
+    SmsRoute,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],

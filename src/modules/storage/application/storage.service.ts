@@ -58,6 +58,18 @@ export class StorageService {
     );
   }
 
+  async uploadDocument(stream: Readable, filename: string): Promise<string> {
+    return this.imageStorage.uploadImageFromStream(
+      stream,
+      filename,
+      CLOUDINARY_FOLDERS.DOCUMENTS,
+    );
+  }
+
+  async uploadCustomFolder(stream: Readable, filename: string, folder: string): Promise<string> {
+    return this.imageStorage.uploadImageFromStream(stream, filename, folder);
+  }
+
   async deleteImage(imageUrl: string): Promise<void> {
     return this.imageStorage.deleteImage(imageUrl);
   }

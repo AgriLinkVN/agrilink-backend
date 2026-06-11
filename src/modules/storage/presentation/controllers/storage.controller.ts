@@ -25,6 +25,11 @@ export class StorageController {
     return this.storageService.createFileUploadUrl(dto);
   }
 
+  @Post('test-error')
+  testError() {
+    throw new Error('This is a test error');
+  }
+
   // ─── Upload ảnh — Cloudinary ──────────────────────────────────
   // @Public()
   @Post('images/upload')
@@ -35,18 +40,36 @@ export class StorageController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
+        type: { type: 'string', description: 'Loại ảnh: avatar | cccd | document | certification | product', example: 'avatar' }
       },
     },
   })
   @UploadFile('file')
-  async uploadImage(@UploadedImage() file: Express.Multer.File) {
+  async uploadImage(
+    @UploadedImage() file: Express.Multer.File,
+    @Body('type') type?: string,
+  ) {
     // Convert Buffer to Readable stream
     const stream = Readable.from(file.buffer);
 
-    const secureUrl = await this.storageService.uploadImage(
-      stream,
-      file.originalname, // use originalname from multer instead of filename
-    );
+    let secureUrl = '';
+
+    let targetFolder = 'agrilink/products'; // default
+
+    if (type) {
+      if (type.startsWith('avatar')) {
+         const role = type.split('_')[1];
+         targetFolder = role ? `agrilink/avatars/${role}` : 'agrilink/avatars';
+      } else if (type === 'cccd') {
+         targetFolder = 'agrilink/documents/cccd';
+      } else if (type === 'document' || type === 'business_license') {
+         targetFolder = 'agrilink/documents';
+      } else if (type === 'certification') {
+         targetFolder = 'agrilink/certifications';
+      }
+    }
+
+    secureUrl = await this.storageService.uploadCustomFolder(stream, file.originalname, targetFolder);
 
     return { secure_url: secureUrl };
   }

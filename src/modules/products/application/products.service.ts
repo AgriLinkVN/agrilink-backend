@@ -92,7 +92,7 @@ export class ProductsService {
       ...dto,
       sellerId,
       sellerType,
-      status: ProductStatus.DRAFT, // mặc định tạo ra ở trạng thái draft
+      status: ProductStatus.DRAFT,
     });
     return this.productRepo.save(product);
   }
@@ -140,6 +140,12 @@ export class ProductsService {
       qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     } else {
       qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
+    }
+    if (minPrice !== undefined) {
+      qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
+    }
+    if (maxPrice !== undefined) {
+      qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
     }
 
     if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });

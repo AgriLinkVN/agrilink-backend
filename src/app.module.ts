@@ -18,9 +18,10 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { AdsModule } from "./modules/ads/ads.module";
 import { AdminRoute } from "./modules/admin/admin.route";
+import { StorageModule } from "./modules/storage/storage.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
-import { StorageModule } from "@modules/storage/storage.module";
+import { SmsRoute } from "./shared/sms/sms.route";
 
 @Module({
   imports: [
