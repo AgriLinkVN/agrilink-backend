@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { Product } from '../domain/entities/product.entity';
 import { ProductCategory } from '../domain/entities/product-category.entity';
@@ -13,6 +13,12 @@ import { ProductCertification } from '../domain/entities/product-certification.e
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
+import {
+  ProductDetailCategory,
+  ProductDetailLocation,
+  ProductDetailResponse,
+  ProductDetailSeller,
+} from '../presentation/schemas/product-detail.response';
 import { ProductStatus, SellerType } from '@common/enums';
 
 @Injectable()
@@ -29,6 +35,8 @@ export class ProductsService {
 
     @InjectRepository(ProductCategory)
     private readonly categoryRepo: Repository<ProductCategory>,
+
+    private readonly dataSource: DataSource,
   ) { }
 
   // ─── Categories ───────────────────────────────────────────────
@@ -104,13 +112,15 @@ export class ProductsService {
     currentUserId?: string,
   ): Promise<{ data: Product[]; total: number }> {
     const { page = 1, limit = 20, search, categoryId, provinceId,
-      farmingType, status, minPrice, maxPrice, sellerId,
+      farmingType, status, minPrice, maxPrice, sellerId, isFeatured,
       sortBy = 'createdAt', order = 'DESC' } = filter;
 
     const SORT_COLUMN_MAP: Record<string, string> = {
       createdAt: 'p.createdAt',
       pricePerUnit: 'p.pricePerUnit',
       name: 'p.name',
+      soldCount: 'p.soldCount',
+      avgRating: 'p.avgRating',
     };
 
     const qb = this.productRepo
@@ -131,6 +141,7 @@ export class ProductsService {
     if (categoryId) qb.andWhere('p.categoryId = :categoryId', { categoryId });
     if (provinceId) qb.andWhere('p.provinceId = :provinceId', { provinceId });
     if (farmingType) qb.andWhere('p.farmingType = :farmingType', { farmingType });
+    if (isFeatured !== undefined) qb.andWhere('p.isFeatured = :isFeatured', { isFeatured });
 
     if (sellerId && sellerId === currentUserId) {
       qb.andWhere('p.sellerId = :sellerId', { sellerId });
@@ -141,13 +152,6 @@ export class ProductsService {
     } else {
       qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
     }
-    if (minPrice !== undefined) {
-      qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
-    }
-    if (maxPrice !== undefined) {
-      qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
-    }
-
     if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
     if (maxPrice !== undefined) qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
 
@@ -157,22 +161,215 @@ export class ProductsService {
 
   // ─── Find One ─────────────────────────────────────────────────
 
-  async findOne(id: string): Promise<Product> {
+  /** Internal lookup — entity only, used by update/remove/etc. */
+  private async findEntityOrFail(id: string): Promise<Product> {
     const product = await this.productRepo.findOne({
       where: { id },
-      relations: ['category', 'images', 'certifications'],
+      relations: ['category', 'category.parent', 'images', 'certifications'],
     });
-
-    if (!product) throw new NotFoundException(`Không tìm thấy sản phẩm`);
-
-    await this.productRepo.increment({ id }, 'viewCount', 1);
+    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
     return product;
+  }
+
+  /**
+   * GET /products/:id — full detail with seller info populated via raw queries
+   * (avoids cross-module entity coupling with P1's auth/profiles).
+   */
+  async findOne(id: string): Promise<ProductDetailResponse> {
+    const product = await this.findEntityOrFail(id);
+
+    // Fire-and-forget view counter (don't block response)
+    void this.productRepo.increment({ id }, 'viewCount', 1).catch(() => undefined);
+
+    const [seller, province, district] = await Promise.all([
+      this.populateSeller(product.sellerId, product.sellerType),
+      this.findLocation('provinces', product.provinceId),
+      this.findLocation('districts', product.districtId),
+    ]);
+
+    return this.toDetailResponse(product, seller, province, district);
+  }
+
+  // ─── Populate helpers ─────────────────────────────────────────
+
+  private async populateSeller(
+    sellerId: string,
+    sellerType: SellerType,
+  ): Promise<ProductDetailSeller | null> {
+    const userRows = await this.dataSource.query(
+      `SELECT id, full_name AS "fullName", phone, avatar_url AS "avatarUrl"
+       FROM users WHERE id = $1 LIMIT 1`,
+      [sellerId],
+    );
+    const user = userRows[0];
+    if (!user) return null;
+
+    const seller: ProductDetailSeller = {
+      id: user.id,
+      fullName: user.fullName,
+      phone: user.phone,
+      avatarUrl: user.avatarUrl,
+      sellerType,
+    };
+
+    let profileProvinceId: string | null = null;
+
+    if (sellerType === SellerType.FARMER) {
+      const rows = await this.dataSource.query(
+        `SELECT bio, farm_name AS "farmName", experience_years AS "experienceYears",
+                province_id AS "provinceId"
+         FROM farmer_profiles WHERE user_id = $1 LIMIT 1`,
+        [sellerId],
+      );
+      if (rows[0]) {
+        seller.bio = rows[0].bio ?? null;
+        seller.farmName = rows[0].farmName ?? null;
+        seller.experienceYears = rows[0].experienceYears ?? null;
+        profileProvinceId = rows[0].provinceId ?? null;
+      }
+    } else if (sellerType === SellerType.COOPERATIVE) {
+      const rows = await this.dataSource.query(
+        `SELECT cooperative_name AS "cooperativeName", member_count AS "memberCount",
+                province_id AS "provinceId"
+         FROM cooperative_profiles WHERE user_id = $1 LIMIT 1`,
+        [sellerId],
+      );
+      if (rows[0]) {
+        seller.cooperativeName = rows[0].cooperativeName;
+        seller.memberCount = rows[0].memberCount ?? 0;
+        profileProvinceId = rows[0].provinceId ?? null;
+      }
+    } else if (sellerType === SellerType.SUPPLIER) {
+      const rows = await this.dataSource.query(
+        `SELECT company_name AS "companyName", supplier_type AS "supplierType",
+                province_id AS "provinceId"
+         FROM supplier_profiles WHERE user_id = $1 LIMIT 1`,
+        [sellerId],
+      );
+      if (rows[0]) {
+        seller.companyName = rows[0].companyName;
+        seller.supplierType = rows[0].supplierType ?? null;
+        profileProvinceId = rows[0].provinceId ?? null;
+      }
+    }
+
+    if (profileProvinceId) {
+      seller.province = await this.findLocation('provinces', profileProvinceId);
+    }
+
+    return seller;
+  }
+
+  private async findLocation(
+    table: 'provinces' | 'districts',
+    id: string | null | undefined,
+  ): Promise<ProductDetailLocation | null> {
+    if (!id) return null;
+    const cols =
+      table === 'provinces'
+        ? 'id, name, code, region'
+        : 'id, name, code';
+    const rows = await this.dataSource.query(
+      `SELECT ${cols} FROM ${table} WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      code: row.code ?? null,
+      region: row.region ?? null,
+    };
+  }
+
+  private toDetailResponse(
+    p: Product,
+    seller: ProductDetailSeller | null,
+    province: ProductDetailLocation | null,
+    district: ProductDetailLocation | null,
+  ): ProductDetailResponse {
+    const toIsoDate = (d: Date | string | null | undefined): string | null => {
+      if (!d) return null;
+      return typeof d === 'string' ? d : d.toISOString();
+    };
+
+    const category: ProductDetailCategory | null = p.category
+      ? {
+          id: p.category.id,
+          name: p.category.name,
+          slug: p.category.slug,
+          iconUrl: p.category.iconUrl ?? null,
+          description: p.category.description ?? null,
+          parent: p.category.parent
+            ? {
+                id: p.category.parent.id,
+                name: p.category.parent.name,
+                slug: p.category.parent.slug,
+              }
+            : null,
+        }
+      : null;
+
+    const images = (p.images ?? [])
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((img) => ({
+        id: img.id,
+        imageUrl: img.imageUrl,
+        altText: img.altText ?? null,
+        sortOrder: img.sortOrder,
+        isPrimary: img.isPrimary,
+      }));
+
+    const certifications = (p.certifications ?? []).map((c) => ({
+      id: c.id,
+      certType: c.certType,
+      certNumber: c.certNumber ?? null,
+      issuedBy: c.issuedBy ?? null,
+      issuedDate: toIsoDate(c.issuedDate),
+      expiryDate: toIsoDate(c.expiryDate),
+      documentUrl: c.documentUrl ?? null,
+      isVerified: c.isVerified,
+    }));
+
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description ?? null,
+      sku: p.sku ?? null,
+      variety: p.variety ?? null,
+      pricePerUnit: Number(p.pricePerUnit),
+      unit: p.unit,
+      availableQuantity: Number(p.availableQuantity),
+      minOrderQuantity: p.minOrderQuantity != null ? Number(p.minOrderQuantity) : null,
+      farmingType: p.farmingType ?? null,
+      status: p.status,
+      harvestDate: toIsoDate(p.harvestDate),
+      expiryDate: toIsoDate(p.expiryDate),
+      rejectionReason: p.rejectionReason ?? null,
+      isFeatured: p.isFeatured,
+      viewCount: p.viewCount,
+      soldCount: Number(p.soldCount ?? 0),
+      avgRating: Number(p.avgRating ?? 0),
+      farmLatitude: p.farmLatitude ?? null,
+      farmLongitude: p.farmLongitude ?? null,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+
+      province,
+      district,
+      category,
+      images,
+      certifications,
+      seller,
+    };
   }
 
   // ─── Update ───────────────────────────────────────────────────
 
   async update(id: string, sellerId: string, dto: UpdateProductDto): Promise<Product> {
-    const product = await this.findOne(id);
+    const product = await this.findEntityOrFail(id);
     if (product.sellerId !== sellerId) {
       throw new ForbiddenException('Bạn không có quyền chỉnh sửa sản phẩm này');
     }
@@ -183,7 +380,7 @@ export class ProductsService {
   // ─── Remove ───────────────────────────────────────────────────
 
   async remove(id: string, sellerId: string): Promise<void> {
-    const product = await this.findOne(id);
+    const product = await this.findEntityOrFail(id);
     if (product.sellerId !== sellerId) {
       throw new ForbiddenException('Bạn không có quyền xóa sản phẩm này');
     }
@@ -225,7 +422,7 @@ export class ProductsService {
     productId: string,
     data: Partial<ProductCertification>,
   ): Promise<ProductCertification> {
-    await this.findOne(productId);
+    await this.findEntityOrFail(productId);
     const cert = this.certRepo.create({ ...data, productId });
     return this.certRepo.save(cert);
   }

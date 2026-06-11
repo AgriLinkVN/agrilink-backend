@@ -12,6 +12,9 @@ export class ProductImage {
   @Column({ name: 'image_url' })
   imageUrl: string;
 
+  @Column({ name: 'alt_text', length: 255, nullable: true })
+  altText: string;
+
   @Column({ name: 'sort_order', default: 0 })
   sortOrder: number;
 

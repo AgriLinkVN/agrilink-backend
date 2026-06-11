@@ -34,6 +34,12 @@ export class Product {
   @Column({ name: 'category_id', nullable: true })
   categoryId: string;
 
+  @Column({ length: 50, unique: true, nullable: true })
+  sku: string;
+
+  @Column({ length: 100, nullable: true })
+  variety: string;
+
   @Column({ name: 'price_per_unit', type: 'decimal', precision: 12, scale: 2 })
   pricePerUnit: number;
 
@@ -58,14 +64,32 @@ export class Product {
   @Column({ name: 'district_id', nullable: true })
   districtId: string;
 
+  @Column({ name: 'farm_latitude', type: 'float', nullable: true })
+  farmLatitude: number;
+
+  @Column({ name: 'farm_longitude', type: 'float', nullable: true })
+  farmLongitude: number;
+
   @Column({ name: 'harvest_date', nullable: true, type: 'date' })
   harvestDate: Date;
 
   @Column({ name: 'expiry_date', nullable: true, type: 'date' })
   expiryDate: Date;
 
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string;
+
+  @Column({ name: 'is_featured', default: false })
+  isFeatured: boolean;
+
   @Column({ name: 'view_count', default: 0 })
   viewCount: number;
+
+  @Column({ name: 'sold_count', type: 'float', default: 0 })
+  soldCount: number;
+
+  @Column({ name: 'avg_rating', type: 'float', default: 0 })
+  avgRating: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
