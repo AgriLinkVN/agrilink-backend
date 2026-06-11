@@ -22,7 +22,7 @@ export class CreateBulkListingDto {
   @Min(0)
   totalQuantity: number;
 
-  @ApiProperty({ enum: ProductUnit, example: ProductUnit.kg })
+  @ApiProperty({ enum: ProductUnit, example: ProductUnit.KG })
   @IsEnum(ProductUnit)
   unit: ProductUnit;
 

@@ -7,11 +7,11 @@ export class SendOtpDto {
   @IsString()
   target: string;
 
-  @ApiProperty({ enum: OtpType, example: OtpType.sms })
+  @ApiProperty({ enum: OtpType, example: OtpType.SMS })
   @IsEnum(OtpType)
   type: OtpType;
 
-  @ApiProperty({ enum: OtpPurpose, example: OtpPurpose.register })
+  @ApiProperty({ enum: OtpPurpose, example: OtpPurpose.REGISTER })
   @IsEnum(OtpPurpose)
   purpose: OtpPurpose;
 }
@@ -25,7 +25,7 @@ export class VerifyOtpDto {
   @IsString()
   code: string;
 
-  @ApiProperty({ enum: OtpPurpose, example: OtpPurpose.register })
+  @ApiProperty({ enum: OtpPurpose, example: OtpPurpose.REGISTER })
   @IsEnum(OtpPurpose)
   purpose: OtpPurpose;
 }

@@ -4,128 +4,186 @@
  */
 
 export enum UserRole {
-  farmer = 'farmer',
-  cooperative = 'cooperative',
-  buyer = 'buyer',
-  enterprise = 'enterprise',
-  supplier = 'supplier',
-  state_agency = 'state_agency',
-  government = 'government',
-  admin = 'admin',
+  FARMER = 'farmer',
+  COOPERATIVE = 'cooperative',
+  BUYER = 'buyer',
+  ENTERPRISE = 'enterprise',
+  SUPPLIER = 'supplier',
+  LOGISTICS = 'logistics',
+  STATE_AGENCY = 'state_agency',
+  ADMIN = 'admin',
 }
 
 export enum UserStatus {
-  pending_verification = 'pending_verification',
-  active = 'active',
-  locked = 'locked',
-  rejected = 'rejected',
+  PENDING_VERIFICATION = 'pending_verification',
+  ACTIVE = 'active',
+  LOCKED = 'locked',
+  REJECTED = 'rejected',
 }
 
 export enum OtpType {
-  sms = 'sms',
-  email = 'email',
+  SMS = 'sms',
+  EMAIL = 'email',
 }
 
 export enum OtpPurpose {
-  register = 'register',
-  login = 'login',
-  reset_password = 'reset_password',
+  REGISTER = 'register',
+  LOGIN = 'login',
+  RESET_PASSWORD = 'reset_password',
 }
 
 export enum FarmingType {
-  organic = 'organic',
-  traditional = 'traditional',
-  vietgap = 'vietgap',
-  globalgap = 'globalgap',
+  ORGANIC = 'organic',
+  TRADITIONAL = 'traditional',
+  VIETGAP = 'vietgap',
+  GLOBALGAP = 'globalgap',
 }
 
 export enum ProductUnit {
-  kg = 'kg',
-  ton = 'ton',
-  box = 'box',
-  bunch = 'bunch',
-  liter = 'liter',
-  piece = 'piece',
+  KG = 'kg',
+  TON = 'ton',
+  BOX = 'box',
+  BUNCH = 'bunch',
+  LITER = 'liter',
+  PIECE = 'piece',
 }
 
 export enum ProductStatus {
-  draft = 'draft',
-  pending_approval = 'pending_approval',
-  active = 'active',
-  out_of_stock = 'out_of_stock',
-  rejected = 'rejected',
-  archived = 'archived',
-  suspended = 'suspended',
+  DRAFT = 'draft',
+  PENDING_APPROVAL = 'pending_approval',
+  ACTIVE = 'active',
+  OUT_OF_STOCK = 'out_of_stock',
+  REJECTED = 'rejected',
+  ARCHIVED = 'archived',
+  SUSPENDED = 'suspended',
 }
 
 export enum SellerType {
-  farmer = 'farmer',
-  cooperative = 'cooperative',
-  supplier = 'supplier',
+  FARMER = 'farmer',
+  COOPERATIVE = 'cooperative',
+  SUPPLIER = 'supplier',
+}
+
+export enum OrderStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  PREPARING = 'preparing',
+  HANDED_TO_LOGISTICS = 'handed_to_logistics',
+  SHIPPING = 'shipping',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled',
+  DISPUTED = 'disputed',
+}
+
+export enum PaymentMethod {
+  COD = 'cod',
+  BANK_TRANSFER = 'bank_transfer',
+  PAYOS = 'payos',
+  MOMO = 'momo',
+  ESCROW = 'escrow',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'unpaid',
+  PAID = 'paid',
+  REFUNDED = 'refunded',
+  PARTIALLY_REFUNDED = 'partially_refunded',
+}
+
+export enum ShipmentStatus {
+  WAITING_PICKUP = 'waiting_pickup',
+  PICKED_UP = 'picked_up',
+  IN_TRANSIT = 'in_transit',
+  OUT_FOR_DELIVERY = 'out_for_delivery',
+  DELIVERED = 'delivered',
+  FAILED = 'failed',
+  RETURNED = 'returned',
 }
 
 export enum MemberStatus {
-  pending = 'pending',
-  active = 'active',
-  suspended = 'suspended',
-  left = 'left',
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+  LEFT = 'left',
+}
+
+export enum ContractStatus {
+  DRAFT = 'draft',
+  NEGOTIATING = 'negotiating',
+  PENDING_SIGNATURE = 'pending_signature',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  DISPUTED = 'disputed',
 }
 
 export enum CertType {
-  vietgap = 'vietgap',
-  organic = 'organic',
-  globalgap = 'globalgap',
-  ocop = 'ocop',
-  other = 'other',
+  VIETGAP = 'vietgap',
+  ORGANIC = 'organic',
+  GLOBALGAP = 'globalgap',
+  OCOP = 'ocop',
+  OTHER = 'other',
 }
 
 export enum NotifType {
-  new_order = 'new_order',
-  product_approved = 'product_approved',
-  product_rejected = 'product_rejected',
-  price_alert = 'price_alert',
-  member_request = 'member_request',
-  new_message = 'new_message',
+  NEW_ORDER = 'new_order',
+  ORDER_CONFIRMED = 'order_confirmed',
+  ORDER_SHIPPED = 'order_shipped',
+  ORDER_DELIVERED = 'order_delivered',
+  NEW_MESSAGE = 'new_message',
+  PRODUCT_APPROVED = 'product_approved',
+  PRODUCT_REJECTED = 'product_rejected',
+  PRICE_ALERT = 'price_alert',
+  MEMBER_REQUEST = 'member_request',
+  CONTRACT_SIGNED = 'contract_signed',
+  DISPUTE_OPENED = 'dispute_opened',
 }
 
 export enum AdType {
-  banner = 'banner',
-  featured = 'featured',
-  spotlight = 'spotlight',
+  BANNER = 'banner',
+  FEATURED = 'featured',
+  SPOTLIGHT = 'spotlight',
 }
 
 export enum AdStatus {
-  pending_approval = 'pending_approval',
-  active = 'active',
-  paused = 'paused',
-  rejected = 'rejected',
-  expired = 'expired',
+  PENDING_APPROVAL = 'pending_approval',
+  ACTIVE = 'active',
+  PAUSED = 'paused',
+  REJECTED = 'rejected',
+  EXPIRED = 'expired',
 }
 
 export enum DisputeStatus {
-  open = 'open',
-  under_review = 'under_review',
-  resolved_buyer = 'resolved_buyer',
-  resolved_seller = 'resolved_seller',
-  closed = 'closed',
+  OPEN = 'open',
+  UNDER_REVIEW = 'under_review',
+  RESOLVED_BUYER = 'resolved_buyer',
+  RESOLVED_SELLER = 'resolved_seller',
+  CLOSED = 'closed',
 }
 
 export enum Region {
-  north = 'north',
-  central = 'central',
-  south = 'south',
-  highlands = 'highlands',
+  NORTH = 'north',
+  CENTRAL = 'central',
+  SOUTH = 'south',
+  HIGHLANDS = 'highlands',
 }
 
 export enum SupplierType {
-  fertilizer = 'fertilizer',
-  pesticide = 'pesticide',
-  equipment = 'equipment',
-  mixed = 'mixed',
+  FERTILIZER = 'fertilizer',
+  PESTICIDE = 'pesticide',
+  EQUIPMENT = 'equipment',
+  MIXED = 'mixed',
+}
+
+export enum IncidentType {
+  DAMAGED = 'damaged',
+  LOST = 'lost',
+  UNREACHABLE = 'unreachable',
+  OTHER = 'other',
 }
 
 export enum MessageType {
-  text = 'text',
-  image = 'image',
-  file = 'file',
+  TEXT = 'text',
+  IMAGE = 'image',
+  FILE = 'file',
 }

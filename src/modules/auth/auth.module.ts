@@ -8,6 +8,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { jwtConfig } from '../../config/jwt.config';
 import { UsersModule } from '../users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshToken } from '../../database/entities/refresh-token.entity';
+import { OtpVerification } from '../../database/entities/otp-verification.entity';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -18,6 +22,8 @@ import { UsersModule } from '../users/users.module';
       useFactory: jwtConfig,
     }),
     UsersModule,
+    TypeOrmModule.forFeature([RefreshToken, OtpVerification]),
+    HttpModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],

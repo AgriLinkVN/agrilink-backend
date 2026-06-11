@@ -27,7 +27,7 @@ import { StorageModule } from "@modules/storage/storage.module";
     // Configuration — must be first
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
 
     // Database
@@ -39,7 +39,7 @@ import { StorageModule } from "@modules/storage/storage.module";
     // Feature modules
     AuthModule,
     UsersModule,
-    ProfilesModule,
+    ProfilesRoute,
     GeographyModule,
     ProductsModule,
     WishlistModule,
