@@ -10,7 +10,6 @@ import { UsersModule } from "./modules/users/users.module";
 import { ProfilesRoute } from "./modules/profiles/profiles.route";
 import { GeographyModule } from "./modules/geography/geography.module";
 import { ProductsModule } from "./modules/products/products.module";
-import { WishlistModule } from "./modules/wishlist/wishlist.module";
 import { CooperativesModule } from "./modules/cooperatives/cooperatives.module";
 import { MarketPricesModule } from "./modules/market-prices/market-prices.module";
 import { TraceabilityModule } from "./modules/traceability/traceability.module";
@@ -43,7 +42,6 @@ import { SmsRoute } from "./shared/sms/sms.route";
     ProfilesRoute,
     GeographyModule,
     ProductsModule,
-    WishlistModule,
     CooperativesModule,
     MarketPricesModule,
     TraceabilityModule,

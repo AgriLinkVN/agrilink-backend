@@ -1,0 +1,70 @@
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ProductsService } from '../../application/products.service';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
+import { WishlistQueryDto } from '../schemas/wishlist-query.dto';
+import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
+
+@ApiTags('wishlist')
+@ApiBearerAuth('access-token')
+// TODO(P1): replace with @CurrentUser once JwtAuthGuard is global
+// TODO(P1): Xóa @UseGuards bên dưới khi guard đã được đăng ký toàn cục
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('wishlist')
+export class WishlistController {
+  constructor(private readonly productsService: ProductsService) {}
+
+  @Post(':productId')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Thêm sản phẩm vào danh sách yêu thích' })
+  @ApiParam({ name: 'productId', description: 'ID của sản phẩm', type: 'string' })
+  @ApiResponse({ status: 201, description: 'Đã thêm thành công' })
+  @ApiResponse({ status: 404, description: 'Sản phẩm không tồn tại hoặc không hoạt động' })
+  addToWishlist(
+    @CurrentUser('sub') userId: string,
+    @Param('productId', ParseUuidPipe) productId: string,
+  ) {
+    return this.productsService.addToWishlist(userId, productId);
+  }
+
+  @Delete(':productId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Xóa sản phẩm khỏi danh sách yêu thích' })
+  @ApiParam({ name: 'productId', description: 'ID của sản phẩm', type: 'string' })
+  @ApiResponse({ status: 204, description: 'Đã xóa thành công (idempotent)' })
+  removeFromWishlist(
+    @CurrentUser('sub') userId: string,
+    @Param('productId', ParseUuidPipe) productId: string,
+  ) {
+    return this.productsService.removeFromWishlist(userId, productId);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Lấy danh sách yêu thích đã phân trang của người dùng hiện tại' })
+  @ApiResponse({ status: 200, description: 'Trả về danh sách sản phẩm yêu thích kèm thông tin phân trang' })
+  getWishlist(
+    @CurrentUser('sub') userId: string,
+    @Query() query: WishlistQueryDto,
+  ) {
+    return this.productsService.getWishlist(userId, query);
+  }
+
+  @Get('ids')
+  @ApiOperation({ summary: 'Lấy danh sách IDs của các sản phẩm đã yêu thích' })
+  @ApiResponse({ status: 200, description: 'Mảng string chứa IDs của các sản phẩm' })
+  getWishlistedIds(@CurrentUser('sub') userId: string) {
+    return this.productsService.getWishlistedIds(userId);
+  }
+}
