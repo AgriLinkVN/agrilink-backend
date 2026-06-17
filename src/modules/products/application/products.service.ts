@@ -13,6 +13,8 @@ import { ProductCertification } from '../domain/entities/product-certification.e
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
+import { WishlistQueryDto } from '../presentation/schemas/wishlist-query.dto';
+import { Wishlist } from '../domain/entities/wishlist.entity';
 import {
   ProductDetailCategory,
   ProductDetailLocation,
@@ -35,6 +37,9 @@ export class ProductsService {
 
     @InjectRepository(ProductCategory)
     private readonly categoryRepo: Repository<ProductCategory>,
+
+    @InjectRepository(Wishlist)
+    private readonly wishlistRepo: Repository<Wishlist>,
 
     private readonly dataSource: DataSource,
   ) { }
@@ -433,6 +438,68 @@ export class ProductsService {
     });
     if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
     await this.certRepo.remove(cert);
+  }
+
+  // ─── Wishlist ─────────────────────────────────────────────────
+
+  async addToWishlist(userId: string, productId: string): Promise<Wishlist> {
+    const product = await this.productRepo.findOne({
+      where: { id: productId, status: ProductStatus.ACTIVE },
+    });
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm hoạt động');
+    }
+
+    const existing = await this.wishlistRepo.findOne({
+      where: { userId, productId },
+    });
+    if (existing) {
+      return existing;
+    }
+
+    const entry = this.wishlistRepo.create({ userId, productId });
+    return this.wishlistRepo.save(entry);
+  }
+
+  async removeFromWishlist(userId: string, productId: string): Promise<void> {
+    await this.wishlistRepo.delete({ userId, productId });
+  }
+
+  async getWishlist(
+    userId: string,
+    query: WishlistQueryDto,
+  ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 20;
+
+    const qb = this.wishlistRepo
+      .createQueryBuilder('w')
+      .innerJoinAndSelect('w.product', 'p')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .where('w.userId = :userId', { userId })
+      .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
+      .orderBy('w.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+    const data = items.map((item) => item.product);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async getWishlistedIds(userId: string): Promise<string[]> {
+    const items = await this.wishlistRepo.find({
+      where: { userId },
+      select: ['productId'],
+    });
+    return items.map((item) => item.productId);
   }
 
   // ─── Dev seed ─────────────────────────────────────────────────
