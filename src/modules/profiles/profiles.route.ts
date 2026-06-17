@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfilesController } from './profiles.controller';
+import { FarmPublicController } from './farm-public.controller';
 import { ProfilesService } from './profiles.service';
 import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
@@ -18,7 +19,7 @@ import { FptVisionRoute } from '../../shared/fpt-vision/fpt-vision.route';
     ]),
     FptVisionRoute,
   ],
-  controllers: [ProfilesController],
+  controllers: [ProfilesController, FarmPublicController],
   providers: [ProfilesService],
   exports: [ProfilesService],
 })

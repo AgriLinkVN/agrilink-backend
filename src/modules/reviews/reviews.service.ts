@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
@@ -13,14 +13,27 @@ export class ReviewsService {
   ) {}
 
   async findByProduct(productId: string, pagination: PaginationDto): Promise<{ data: Review[]; total: number }> {
-    throw new Error('TODO: implement ReviewsService.findByProduct()');
+    const [data, total] = await this.reviewRepo.findAndCount({
+      where: { productId },
+      order: { createdAt: 'DESC' },
+      take: pagination.limit,
+      skip: pagination.skip,
+    });
+    return { data, total };
   }
 
   async create(reviewerId: string, dto: CreateReviewDto): Promise<Review> {
-    throw new Error('TODO: implement ReviewsService.create()');
+    const review = this.reviewRepo.create({ ...dto, reviewerId });
+    return this.reviewRepo.save(review);
   }
 
   async reply(reviewId: string, sellerId: string, dto: ReplyReviewDto): Promise<Review> {
-    throw new Error('TODO: implement ReviewsService.reply()');
+    const review = await this.reviewRepo.findOne({ where: { id: reviewId } });
+    if (!review) {
+      throw new NotFoundException(`Review ${reviewId} not found`);
+    }
+    review.reply = dto.reply;
+    review.repliedAt = new Date();
+    return this.reviewRepo.save(review);
   }
 }

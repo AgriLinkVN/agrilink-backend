@@ -24,6 +24,10 @@ export class ProfilesService {
     private readonly fptVisionService: FptVisionService,
   ) {}
 
+  async getFarmerProfile(userId: string): Promise<FarmerProfile | null> {
+    return this.farmerRepo.findOne({ where: { user: { id: userId } } });
+  }
+
   async upsertFarmerProfile(userId: string, dto: UpsertFarmerProfileDto): Promise<FarmerProfile> {
     // 1. Verify CCCD Front image using FPT Vision Mock
     const isVisionValid = await this.fptVisionService.verifyCccdImage(dto.cccdFrontUrl);
@@ -40,7 +44,7 @@ export class ProfilesService {
 
     // 3. Update fields
     Object.assign(profile, dto);
-    
+
     // 4. Force KYC to false on modification
     profile.isKycVerified = false;
 
@@ -52,25 +56,25 @@ export class ProfilesService {
     if (role === UserRole.COOPERATIVE) {
       let profile = await this.cooperativeRepo.findOne({ where: { user: { id: userId } } });
       if (!profile) profile = this.cooperativeRepo.create({ user: { id: userId } });
-      
+
       Object.assign(profile, dto);
       profile.isVerified = false;
       return this.cooperativeRepo.save(profile);
-    } 
-    
+    }
+
     if (role === UserRole.ENTERPRISE) {
       let profile = await this.enterpriseRepo.findOne({ where: { user: { id: userId } } });
       if (!profile) profile = this.enterpriseRepo.create({ user: { id: userId } });
-      
+
       Object.assign(profile, dto);
       profile.isVerified = false;
       return this.enterpriseRepo.save(profile);
     }
-    
+
     if (role === UserRole.SUPPLIER) {
       let profile = await this.supplierRepo.findOne({ where: { userId } });
       if (!profile) profile = this.supplierRepo.create({ userId });
-      
+
       Object.assign(profile, dto);
       profile.isVerified = false;
       return this.supplierRepo.save(profile);
