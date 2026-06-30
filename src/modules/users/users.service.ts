@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../database/entities/user.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User } from "../../database/entities/user.entity";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { UserRole } from "../../common/enums";
 
 @Injectable()
 export class UsersService {
@@ -21,10 +26,15 @@ export class UsersService {
     return this.usersRepository.findOneBy({ phone });
   }
 
+  /** Find a user by Firebase UID */
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ firebaseUid });
+  }
+
   /** Return the authenticated user's own profile (strips sensitive fields) */
   async getMe(userId: string): Promise<Partial<User>> {
     const user = await this.findById(userId);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
     const { passwordHash, ...safeUser } = user;
     return safeUser;
   }
@@ -32,6 +42,18 @@ export class UsersService {
   /** Update the authenticated user's own profile */
   async updateMe(userId: string, dto: UpdateUserDto): Promise<Partial<User>> {
     await this.usersRepository.update(userId, dto);
+    return this.getMe(userId);
+  }
+
+  /** Mobile onboarding role selection. Never allows privileged roles. */
+  async updateMyRole(userId: string, role: UserRole): Promise<Partial<User>> {
+    if (![UserRole.FARMER, UserRole.SUPPLIER, UserRole.BUYER].includes(role)) {
+      throw new BadRequestException(
+        "Role is not allowed for mobile onboarding",
+      );
+    }
+
+    await this.usersRepository.update(userId, { role });
     return this.getMe(userId);
   }
 
