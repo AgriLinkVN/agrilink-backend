@@ -1,22 +1,24 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import { jwtConfig } from '../../config/jwt.config';
-import { UsersModule } from '../users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from '../../database/entities/refresh-token.entity';
-import { OtpVerification } from '../../database/entities/otp-verification.entity';
-import { HttpModule } from '@nestjs/axios';
-import { SmsRoute } from '../../shared/sms/sms.route';
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
+import { JwtStrategy } from "./strategies/jwt.strategy";
+import { JwtRefreshStrategy } from "./strategies/jwt-refresh.strategy";
+import { jwtConfig } from "../../config/jwt.config";
+import { UsersModule } from "../users/users.module";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { RefreshToken } from "../../database/entities/refresh-token.entity";
+import { OtpVerification } from "../../database/entities/otp-verification.entity";
+import { HttpModule } from "@nestjs/axios";
+import { SmsRoute } from "../../shared/sms/sms.route";
+import { FirebaseModule } from "../../shared/firebase/firebase.module";
+import { FirebaseAuthGuard } from "../../common/guards/firebase-auth.guard";
 
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,9 +28,10 @@ import { SmsRoute } from '../../shared/sms/sms.route';
     TypeOrmModule.forFeature([RefreshToken, OtpVerification]),
     HttpModule,
     SmsRoute,
+    FirebaseModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, FirebaseAuthGuard],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
