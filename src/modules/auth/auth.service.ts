@@ -1,20 +1,28 @@
-import { Injectable, BadRequestException, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { SendOtpDto, VerifyOtpDto } from './dto/send-otp.dto';
-import { UsersService } from '../users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, IsNull } from 'typeorm';
-import { RefreshToken } from '../../database/entities/refresh-token.entity';
-import { OtpVerification } from '../../database/entities/otp-verification.entity';
-import * as crypto from 'crypto';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { SmsService } from '../../shared/sms/sms.service';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  ConflictException,
+} from "@nestjs/common";
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
+import { SendOtpDto, VerifyOtpDto } from "./dto/send-otp.dto";
+import { UsersService } from "../users/users.service";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcryptjs";
+import { ConfigService } from "@nestjs/config";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, MoreThan, IsNull } from "typeorm";
+import { RefreshToken } from "../../database/entities/refresh-token.entity";
+import { OtpVerification } from "../../database/entities/otp-verification.entity";
+import * as crypto from "crypto";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
+import { SmsService } from "../../shared/sms/sms.service";
+import { DecodedIdToken } from "firebase-admin/auth";
+import { UserRole, UserStatus } from "../../common/enums";
+import { FirebaseSyncDto } from "./dto/firebase-sync.dto";
 
 export interface TokenPair {
   accessToken: string;
@@ -38,7 +46,7 @@ export class AuthService {
   async register(dto: RegisterDto): Promise<any> {
     const existing = await this.usersService.findByPhone(dto.phone);
     if (existing) {
-      throw new ConflictException('Phone number already exists');
+      throw new ConflictException("Phone number already exists");
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -59,15 +67,17 @@ export class AuthService {
   async login(dto: LoginDto): Promise<TokenPair> {
     const user = await this.usersService.findByPhone(dto.phone);
     if (!user) {
-      throw new UnauthorizedException('Số điện thoại chưa được đăng ký');
+      throw new UnauthorizedException("Số điện thoại chưa được đăng ký");
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isMatch) {
-      throw new UnauthorizedException('Mật khẩu không chính xác');
+      throw new UnauthorizedException("Mật khẩu không chính xác");
     }
 
-    await this.usersService.updateInternal(user.id, { lastLoginAt: new Date() });
+    await this.usersService.updateInternal(user.id, {
+      lastLoginAt: new Date(),
+    });
 
     return this.generateTokens(user.id);
   }
@@ -75,10 +85,13 @@ export class AuthService {
   async refreshTokens(dto: RefreshTokenDto): Promise<TokenPair> {
     let payload: any;
     try {
-      const secret = this.configService.get<string>('JWT_REFRESH_SECRET', 'fallback_refresh_secret_change_me');
+      const secret = this.configService.get<string>(
+        "JWT_REFRESH_SECRET",
+        "fallback_refresh_secret_change_me",
+      );
       payload = this.jwtService.verify(dto.refreshToken, { secret });
     } catch (e) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const tokenHash = await this.hashToken(dto.refreshToken);
@@ -87,21 +100,23 @@ export class AuthService {
     });
 
     if (!storedToken) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException("Refresh token not found");
     }
 
     if (storedToken.revokedAt || storedToken.expiresAt < new Date()) {
-      throw new UnauthorizedException('Refresh token revoked or expired');
+      throw new UnauthorizedException("Refresh token revoked or expired");
     }
 
-    await this.refreshTokenRepo.update(storedToken.id, { revokedAt: new Date() });
+    await this.refreshTokenRepo.update(storedToken.id, {
+      revokedAt: new Date(),
+    });
     return this.generateTokens(payload.sub);
   }
 
   async logout(userId: string): Promise<void> {
     await this.refreshTokenRepo.update(
       { user: { id: userId }, revokedAt: IsNull() },
-      { revokedAt: new Date() }
+      { revokedAt: new Date() },
     );
   }
 
@@ -112,27 +127,33 @@ export class AuthService {
       where: {
         phone: dto.target,
         createdAt: MoreThan(tenMinsAgo),
-      }
+      },
     });
 
     if (recentRequests >= 3) {
-      throw new BadRequestException('Too many OTP requests. Try again later.');
+      throw new BadRequestException("Too many OTP requests. Try again later.");
     }
 
-    if (dto.purpose === 'login') {
+    if (dto.purpose === "login") {
       const user = await this.usersService.findByPhone(dto.target);
       if (!user) {
-        throw new BadRequestException('Tài khoản không tồn tại. Vui lòng đăng ký tài khoản trước.');
+        throw new BadRequestException(
+          "Tài khoản không tồn tại. Vui lòng đăng ký tài khoản trước.",
+        );
       }
-    } else if (dto.purpose === 'register') {
+    } else if (dto.purpose === "register") {
       const user = await this.usersService.findByPhone(dto.target);
       if (user) {
-        throw new ConflictException('Số điện thoại này đã được đăng ký. Vui lòng đăng nhập.');
+        throw new ConflictException(
+          "Số điện thoại này đã được đăng ký. Vui lòng đăng nhập.",
+        );
       }
     }
 
-    const isDemo = dto.target.startsWith('0901111');
-    const otpCode = isDemo ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    const isDemo = dto.target.startsWith("0901111");
+    const otpCode = isDemo
+      ? "123456"
+      : Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
     await this.otpRepo.save({
@@ -148,11 +169,13 @@ export class AuthService {
     console.log(`[DEV MODE] MÃ OTP CỦA SĐT ${dto.target} LÀ: ${otpCode}`);
     console.log(`======================================================\n`);
 
-    if (dto.type === 'sms') {
+    if (dto.type === "sms") {
       const success = await this.smsService.sendOtp(dto.target, otpCode);
       if (!success) {
         // We log the error in the SmsService, but do not throw to avoid crashing
-        console.warn(`[OTP] eSMS returned false for ${dto.target}, but we saved the OTP.`);
+        console.warn(
+          `[OTP] eSMS returned false for ${dto.target}, but we saved the OTP.`,
+        );
         console.log(`[Dev Fallback] Use this OTP to login: ${otpCode}`);
       }
     } else {
@@ -162,58 +185,133 @@ export class AuthService {
 
   async verifyOtp(dto: VerifyOtpDto): Promise<void> {
     const otp = await this.otpRepo.findOne({
-      where: { phone: dto.target, otpCode: dto.code, purpose: dto.purpose, isUsed: false },
-      order: { createdAt: 'DESC' },
+      where: {
+        phone: dto.target,
+        otpCode: dto.code,
+        purpose: dto.purpose,
+        isUsed: false,
+      },
+      order: { createdAt: "DESC" },
     });
 
     if (!otp) {
-      throw new BadRequestException('Invalid OTP');
+      throw new BadRequestException("Invalid OTP");
     }
 
     if (otp.expiresAt < new Date()) {
-      throw new BadRequestException('OTP expired');
+      throw new BadRequestException("OTP expired");
     }
 
     otp.isUsed = true;
     await this.otpRepo.save(otp);
 
-    if (dto.purpose === 'register') {
+    if (dto.purpose === "register") {
       const user = await this.usersService.findByPhone(dto.target);
       if (user) {
-        await this.usersService.updateInternal(user.id, { isPhoneVerified: true });
+        await this.usersService.updateInternal(user.id, {
+          isPhoneVerified: true,
+        });
       }
     }
   }
 
   async loginWithOtp(dto: VerifyOtpDto): Promise<TokenPair> {
     await this.verifyOtp(dto);
-    
+
     const user = await this.usersService.findByPhone(dto.target);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
 
-    await this.usersService.updateInternal(user.id, { lastLoginAt: new Date() });
-    
+    await this.usersService.updateInternal(user.id, {
+      lastLoginAt: new Date(),
+    });
+
     return this.generateTokens(user.id);
+  }
+
+  async syncFirebaseUser(
+    firebaseUser: DecodedIdToken,
+    dto: FirebaseSyncDto = {},
+  ): Promise<TokenPair> {
+    const firebaseUid = firebaseUser.uid;
+    const phone = firebaseUser.phone_number;
+
+    if (!firebaseUid) {
+      throw new UnauthorizedException("Firebase token does not contain uid");
+    }
+
+    if (!phone) {
+      throw new BadRequestException(
+        "Firebase token does not contain a verified phone number",
+      );
+    }
+
+    const email = firebaseUser.email ?? dto.email ?? null;
+    const fullName = dto.fullName ?? firebaseUser.name ?? null;
+
+    let user =
+      (await this.usersService.findByFirebaseUid(firebaseUid)) ??
+      (await this.usersService.findByPhone(phone));
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+
+      user = await this.usersService.create({
+        firebaseUid,
+        phone,
+        email,
+        passwordHash,
+        role: this.toMobileRole(dto.role) ?? UserRole.BUYER,
+        status: UserStatus.ACTIVE,
+        fullName,
+        isPhoneVerified: true,
+        lastLoginAt: new Date(),
+      });
+    } else {
+      await this.usersService.updateInternal(user.id, {
+        firebaseUid,
+        isPhoneVerified: true,
+        lastLoginAt: new Date(),
+        email: user.email ?? email,
+        fullName: user.fullName ?? fullName,
+      });
+    }
+
+    return this.generateTokens(user.id);
+  }
+
+  private toMobileRole(role?: UserRole): UserRole | null {
+    if ([UserRole.FARMER, UserRole.SUPPLIER, UserRole.BUYER].includes(role)) {
+      return role;
+    }
+
+    return null;
   }
 
   private async generateTokens(userId: string): Promise<TokenPair> {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
 
     const payload = { sub: userId, phone: user.phone, role: user.role };
     const accessToken = this.jwtService.sign(payload);
-    
-    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'fallback_refresh_secret_change_me');
-    const refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
-    
-    const refreshToken = this.jwtService.sign(
-      payload,
-      { secret: refreshSecret, expiresIn: refreshExpiresIn }
+
+    const refreshSecret = this.configService.get<string>(
+      "JWT_REFRESH_SECRET",
+      "fallback_refresh_secret_change_me",
     );
+    const refreshExpiresIn = this.configService.get<string>(
+      "JWT_REFRESH_EXPIRES_IN",
+      "7d",
+    );
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: refreshSecret,
+      expiresIn: refreshExpiresIn,
+    });
 
     const tokenHash = await this.hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -228,6 +326,6 @@ export class AuthService {
   }
 
   private async hashToken(token: string): Promise<string> {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 }
