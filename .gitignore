@@ -13,6 +13,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 
+# Firebase service account keys
+*firebase-adminsdk*.json
+
 # IDE
 .vscode/
 .idea/
