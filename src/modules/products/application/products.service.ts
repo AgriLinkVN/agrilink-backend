@@ -189,6 +189,12 @@ export class ProductsService {
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.category', 'category')
       .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .leftJoinAndSelect(
+        'p.certifications',
+        'certifications',
+        'certifications.status = :verifiedCertificationStatus',
+        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
+      )
       .orderBy(SORT_COLUMN_MAP[sortBy], order)
       .skip((page - 1) * limit)
       .take(limit);
@@ -716,6 +722,12 @@ export class ProductsService {
       .innerJoinAndSelect('w.product', 'p')
       .leftJoinAndSelect('p.category', 'category')
       .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .leftJoinAndSelect(
+        'p.certifications',
+        'certifications',
+        'certifications.status = :verifiedCertificationStatus',
+        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
+      )
       .where('w.userId = :userId', { userId })
       .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
       .orderBy('w.createdAt', 'DESC')
