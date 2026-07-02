@@ -26,6 +26,10 @@ import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
 import { UpdateProductDto } from '../schemas/update-product.dto';
 import { UpdateProductStatusDto } from '../schemas/update-product-status.dto';
+import {
+  CreateProductCertificationDto,
+  VerifyProductCertificationDto,
+} from '../schemas/product-certification.dto';
 import { SellerType, UserRole } from '@common/enums';
 // TODO(P1): Xóa 3 dòng import dưới đây khi P1 đăng ký JwtAuthGuard + RolesGuard làm Global Guard
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
@@ -78,6 +82,26 @@ export class ProductsController {
   @ApiOperation({ summary: 'Cây danh mục sản phẩm 2 cấp (public)' })
   getCategoryTree() {
     return this.productsService.getCategoryTree();
+  }
+
+  @Get('certifications/pending')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Danh sách chứng nhận sản phẩm đang chờ duyệt' })
+  findPendingCertifications() {
+    return this.productsService.findPendingCertifications();
+  }
+
+  @Patch('certifications/:certId/verify')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Duyệt hoặc từ chối chứng nhận sản phẩm' })
+  verifyCertification(
+    @Param('certId', ParseUuidPipe) certId: string,
+    @CurrentUser('sub') adminId: string,
+    @Body() dto: VerifyProductCertificationDto,
+  ) {
+    return this.productsService.verifyCertification(certId, adminId, dto);
   }
 
   @Public()
@@ -189,9 +213,10 @@ export class ProductsController {
   @ApiOperation({ summary: 'Thêm chứng nhận cho sản phẩm' })
   addCertification(
     @Param('id', ParseUuidPipe) productId: string,
-    @Body() data: any,
+    @CurrentUser('sub') sellerId: string,
+    @Body() data: CreateProductCertificationDto,
   ) {
-    return this.productsService.addCertification(productId, data);
+    return this.productsService.addCertification(productId, sellerId, data);
   }
 
   @Delete(':id/certifications/:certId')
@@ -202,7 +227,8 @@ export class ProductsController {
   removeCertification(
     @Param('id', ParseUuidPipe) productId: string,
     @Param('certId', ParseUuidPipe) certId: string,
+    @CurrentUser('sub') sellerId: string,
   ) {
-    return this.productsService.removeCertification(productId, certId);
+    return this.productsService.removeCertification(productId, certId, sellerId);
   }
 }
