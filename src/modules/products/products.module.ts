@@ -9,9 +9,11 @@ import { Wishlist } from './domain/entities/wishlist.entity';
 import { ProductsService } from './application/products.service';
 import { ProductsController } from './presentation/controllers/products.controller';
 import { WishlistController } from './presentation/controllers/wishlist.controller';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
+    NotificationsModule,
     TypeOrmModule.forFeature([
       Product,
       ProductImage,

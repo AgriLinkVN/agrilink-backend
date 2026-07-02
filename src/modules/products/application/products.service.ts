@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -15,13 +16,14 @@ import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
 import { WishlistQueryDto } from '../presentation/schemas/wishlist-query.dto';
 import { Wishlist } from '../domain/entities/wishlist.entity';
+import { NotificationsService } from '@modules/notifications/notifications.service';
 import {
   ProductDetailCategory,
   ProductDetailLocation,
   ProductDetailResponse,
   ProductDetailSeller,
 } from '../presentation/schemas/product-detail.response';
-import { ProductStatus, SellerType } from '@common/enums';
+import { NotifType, ProductStatus, SellerType, UserRole } from '@common/enums';
 
 @Injectable()
 export class ProductsService {
@@ -40,6 +42,8 @@ export class ProductsService {
 
     @InjectRepository(Wishlist)
     private readonly wishlistRepo: Repository<Wishlist>,
+
+    private readonly notificationsService: NotificationsService,
 
     private readonly dataSource: DataSource,
   ) { }
@@ -380,6 +384,122 @@ export class ProductsService {
     }
     Object.assign(product, dto);
     return this.productRepo.save(product);
+  }
+
+  async updateStatus(
+    id: string,
+    actorId: string,
+    actorRole: UserRole,
+    nextStatus: ProductStatus,
+  ): Promise<Product> {
+    const product = await this.findEntityOrFail(id);
+    const previousStatus = product.status;
+    const isOwner = product.sellerId === actorId;
+    const isReviewer = [UserRole.ADMIN, UserRole.STATE_AGENCY].includes(actorRole);
+
+    if (!isOwner && !isReviewer) {
+      throw new ForbiddenException('Bạn không có quyền đổi trạng thái sản phẩm này');
+    }
+
+    if (previousStatus === nextStatus) {
+      return product;
+    }
+
+    if (!this.getAllowedStatusTargets(previousStatus).includes(nextStatus)) {
+      throw new BadRequestException(
+        `Không thể chuyển trạng thái sản phẩm từ ${previousStatus} sang ${nextStatus}`,
+      );
+    }
+
+    this.assertStatusPermission(previousStatus, nextStatus, isOwner, isReviewer);
+
+    if (nextStatus === ProductStatus.ACTIVE && Number(product.availableQuantity) <= 0) {
+      throw new BadRequestException('Sản phẩm phải có số lượng tồn kho lớn hơn 0 để kích hoạt');
+    }
+
+    product.status = nextStatus;
+    product.rejectionReason = null;
+
+    const saved = await this.productRepo.save(product);
+    await this.notifySellerStatusChanged(saved, previousStatus);
+
+    return saved;
+  }
+
+  private getAllowedStatusTargets(currentStatus: ProductStatus): ProductStatus[] {
+    const flow: Partial<Record<ProductStatus, ProductStatus[]>> = {
+      [ProductStatus.DRAFT]: [ProductStatus.PENDING_APPROVAL],
+      [ProductStatus.REJECTED]: [ProductStatus.PENDING_APPROVAL],
+      [ProductStatus.PENDING_APPROVAL]: [ProductStatus.ACTIVE],
+      [ProductStatus.ACTIVE]: [ProductStatus.OUT_OF_STOCK],
+      [ProductStatus.OUT_OF_STOCK]: [ProductStatus.ACTIVE],
+    };
+
+    return flow[currentStatus] ?? [];
+  }
+
+  private assertStatusPermission(
+    currentStatus: ProductStatus,
+    nextStatus: ProductStatus,
+    isOwner: boolean,
+    isReviewer: boolean,
+  ) {
+    if (nextStatus === ProductStatus.PENDING_APPROVAL && !isOwner) {
+      throw new ForbiddenException('Chỉ người bán mới được gửi sản phẩm chờ duyệt');
+    }
+
+    if (
+      currentStatus === ProductStatus.PENDING_APPROVAL &&
+      nextStatus === ProductStatus.ACTIVE &&
+      !isReviewer
+    ) {
+      throw new ForbiddenException('Chỉ admin hoặc cơ quan quản lý mới được duyệt sản phẩm');
+    }
+
+    if (
+      currentStatus === ProductStatus.OUT_OF_STOCK &&
+      nextStatus === ProductStatus.ACTIVE &&
+      !isOwner &&
+      !isReviewer
+    ) {
+      throw new ForbiddenException('Bạn không có quyền mở bán lại sản phẩm này');
+    }
+
+    if (nextStatus === ProductStatus.OUT_OF_STOCK && !isOwner && !isReviewer) {
+      throw new ForbiddenException('Bạn không có quyền đánh dấu hết hàng');
+    }
+  }
+
+  private async notifySellerStatusChanged(
+    product: Product,
+    previousStatus: ProductStatus,
+  ): Promise<void> {
+    const titleByStatus: Record<ProductStatus, string> = {
+      [ProductStatus.DRAFT]: 'Sản phẩm đã lưu nháp',
+      [ProductStatus.PENDING_APPROVAL]: 'Sản phẩm đang chờ duyệt',
+      [ProductStatus.ACTIVE]: 'Sản phẩm đã được duyệt',
+      [ProductStatus.OUT_OF_STOCK]: 'Sản phẩm đã hết hàng',
+      [ProductStatus.REJECTED]: 'Sản phẩm bị từ chối',
+      [ProductStatus.ARCHIVED]: 'Sản phẩm đã lưu trữ',
+      [ProductStatus.SUSPENDED]: 'Sản phẩm đã bị tạm khóa',
+    };
+
+    const type =
+      product.status === ProductStatus.ACTIVE
+        ? NotifType.PRODUCT_APPROVED
+        : NotifType.PRODUCT_STATUS_CHANGED;
+
+    await this.notificationsService.create({
+      userId: product.sellerId,
+      type,
+      title: titleByStatus[product.status],
+      body: `Sản phẩm "${product.name}" đã chuyển từ ${previousStatus} sang ${product.status}.`,
+      data: {
+        productId: product.id,
+        previousStatus,
+        status: product.status,
+      },
+    });
   }
 
   // ─── Remove ───────────────────────────────────────────────────

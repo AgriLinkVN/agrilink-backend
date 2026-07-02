@@ -25,6 +25,7 @@ import { ProductsService } from '@modules/products/application/products.service'
 import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
 import { UpdateProductDto } from '../schemas/update-product.dto';
+import { UpdateProductStatusDto } from '../schemas/update-product-status.dto';
 import { SellerType, UserRole } from '@common/enums';
 // TODO(P1): Xóa 3 dòng import dưới đây khi P1 đăng ký JwtAuthGuard + RolesGuard làm Global Guard
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
@@ -62,7 +63,7 @@ export class ProductsController {
   findAll( @Query() filter: ProductFilterDto,
     @CurrentUser('sub') currentUserId?: string, // optional — guest không có
   ) {
-    return this.productsService.findAll(filter);
+    return this.productsService.findAll(filter, currentUserId);
   }
 
   @Public()
@@ -97,6 +98,25 @@ export class ProductsController {
     @Body() dto: UpdateProductDto,
   ) {
     return this.productsService.update(id, sellerId, dto);
+  }
+
+  @Patch(':id/status')
+  @Roles(
+    UserRole.FARMER,
+    UserRole.COOPERATIVE,
+    UserRole.SUPPLIER,
+    UserRole.ADMIN,
+    UserRole.STATE_AGENCY,
+  )
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock' })
+  updateStatus(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('sub') actorId: string,
+    @CurrentUser('role') actorRole: UserRole,
+    @Body() dto: UpdateProductStatusDto,
+  ) {
+    return this.productsService.updateStatus(id, actorId, actorRole, dto.status);
   }
 
   @Delete(':id')
