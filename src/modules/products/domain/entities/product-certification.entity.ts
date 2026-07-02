@@ -1,4 +1,4 @@
-import { CertType } from '@common/enums';
+import { CertificationStatus, CertType } from '@common/enums';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from './product.entity';
 
@@ -10,7 +10,7 @@ export class ProductCertification {
   @Column({ name: 'product_id' })
   productId: string;
 
-  @Column({ type: 'enum', enum: CertType })
+  @Column({ name: 'cert_type', type: 'enum', enum: CertType })
   certType: CertType;
 
   @Column({ name: 'cert_number', nullable: true })
@@ -31,8 +31,21 @@ export class ProductCertification {
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 
+  @Column({
+    type: 'enum',
+    enum: CertificationStatus,
+    default: CertificationStatus.PENDING,
+  })
+  status: CertificationStatus;
+
   @Column({ name: 'verified_by', type: 'uuid', nullable: true })
   verifiedBy: string;
+
+  @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
+  verifiedAt: Date;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

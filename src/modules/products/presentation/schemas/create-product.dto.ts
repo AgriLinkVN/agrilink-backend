@@ -1,9 +1,11 @@
-import { FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
+import { CertType, FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsInt,
   IsLatitude,
   IsLongitude,
   IsNumber,
@@ -12,7 +14,59 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateProductImageDto {
+  @ApiProperty({ example: 'https://res.cloudinary.com/.../xoai.jpg' })
+  @IsString()
+  imageUrl: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  isPrimary?: boolean;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class CreateProductCertificationInputDto {
+  @ApiProperty({ enum: CertType, example: CertType.VIETGAP })
+  @IsEnum(CertType)
+  certType: CertType;
+
+  @ApiPropertyOptional({ example: 'VG-2026-001234' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  certNumber?: string;
+
+  @ApiPropertyOptional({ example: 'Chi cục Quản lý chất lượng nông sản' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  issuedBy?: string;
+
+  @ApiPropertyOptional({ example: '2026-06-01' })
+  @IsOptional()
+  @IsDateString()
+  issuedDate?: string;
+
+  @ApiPropertyOptional({ example: '2027-06-01' })
+  @IsOptional()
+  @IsDateString()
+  expiryDate?: string;
+
+  @ApiPropertyOptional({ example: 'https://res.cloudinary.com/.../cert.pdf' })
+  @IsOptional()
+  @IsString()
+  documentUrl?: string;
+}
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Xoai cat Hoa Loc' })
@@ -111,4 +165,18 @@ export class CreateProductDto {
   @IsEnum(SellerType)
   // sellerType: SellerType;
   sellerType?: SellerType;
+
+  @ApiPropertyOptional({ type: [CreateProductImageDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductImageDto)
+  images?: CreateProductImageDto[];
+
+  @ApiPropertyOptional({ type: [CreateProductCertificationInputDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductCertificationInputDto)
+  certifications?: CreateProductCertificationInputDto[];
 }
