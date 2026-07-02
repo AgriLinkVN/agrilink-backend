@@ -133,6 +133,7 @@ export enum NotifType {
   NEW_MESSAGE = 'new_message',
   PRODUCT_APPROVED = 'product_approved',
   PRODUCT_REJECTED = 'product_rejected',
+  PRODUCT_STATUS_CHANGED = 'product_status_changed',
   PRICE_ALERT = 'price_alert',
   MEMBER_REQUEST = 'member_request',
   CONTRACT_SIGNED = 'contract_signed',
