@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -45,6 +46,19 @@ import { Roles } from '@common/decorators/roles.decorator';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
 
+  private resolveSellerType(role: UserRole): SellerType {
+    switch (role) {
+      case UserRole.FARMER:
+        return SellerType.FARMER;
+      case UserRole.COOPERATIVE:
+        return SellerType.COOPERATIVE;
+      case UserRole.SUPPLIER:
+        return SellerType.SUPPLIER;
+      default:
+        throw new BadRequestException('Vai trò hiện tại không phải người bán');
+    }
+  }
+
   // ─── CRUD ─────────────────────────────────────────────────────
 
   @Post()
@@ -55,10 +69,15 @@ export class ProductsController {
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
   create(
   @CurrentUser('sub') sellerId: string,
-  @CurrentUser('sellerType') sellerType: SellerType, // ← lấy từ JWT
+  @CurrentUser('sellerType') sellerType: SellerType | undefined,
+  @CurrentUser('role') role: UserRole,
   @Body() dto: CreateProductDto,
 ) {
-  return this.productsService.create(sellerId, sellerType, dto);
+  return this.productsService.create(
+    sellerId,
+    sellerType ?? this.resolveSellerType(role),
+    dto,
+  );
 }
 
   @Public()
