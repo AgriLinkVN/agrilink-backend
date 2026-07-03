@@ -1,4 +1,5 @@
 import {
+  CertificationStatus,
   CertType,
   FarmingType,
   ProductStatus,
@@ -45,6 +46,10 @@ export interface ProductDetailCertification {
   expiryDate: string | null;
   documentUrl: string | null;
   isVerified: boolean;
+  status: CertificationStatus;
+  verifiedBy: string | null;
+  verifiedAt: string | null;
+  rejectionReason: string | null;
 }
 
 export interface ProductDetailSeller {

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { CertType } from '../../common/enums';
+import { CertificationStatus, CertType } from '../../common/enums';
 
 @Entity('product_certifications')
 export class ProductCertification {
@@ -30,8 +30,21 @@ export class ProductCertification {
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 
+  @Column({
+    type: 'enum',
+    enum: CertificationStatus,
+    default: CertificationStatus.PENDING,
+  })
+  status: CertificationStatus;
+
   @Column({ name: 'verified_by', type: 'uuid', nullable: true })
   verifiedBy: string | null;
+
+  @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
+  verifiedAt: Date | null;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

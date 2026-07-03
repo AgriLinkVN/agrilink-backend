@@ -125,6 +125,12 @@ export enum CertType {
   OTHER = 'other',
 }
 
+export enum CertificationStatus {
+  PENDING = 'pending',
+  VERIFIED = 'verified',
+  REJECTED = 'rejected',
+}
+
 export enum NotifType {
   NEW_ORDER = 'new_order',
   ORDER_CONFIRMED = 'order_confirmed',

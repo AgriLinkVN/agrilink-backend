@@ -13,6 +13,10 @@ import { ProductImage } from '../domain/entities/product-image.entity';
 import { ProductCertification } from '../domain/entities/product-certification.entity';
 import { CreateProductDto } from '../presentation/schemas/create-product.dto';
 import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
+import {
+  CreateProductCertificationDto,
+  VerifyProductCertificationDto,
+} from '../presentation/schemas/product-certification.dto';
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
 import { WishlistQueryDto } from '../presentation/schemas/wishlist-query.dto';
 import { Wishlist } from '../domain/entities/wishlist.entity';
@@ -23,7 +27,13 @@ import {
   ProductDetailResponse,
   ProductDetailSeller,
 } from '../presentation/schemas/product-detail.response';
-import { NotifType, ProductStatus, SellerType, UserRole } from '@common/enums';
+import {
+  CertificationStatus,
+  NotifType,
+  ProductStatus,
+  SellerType,
+  UserRole,
+} from '@common/enums';
 
 @Injectable()
 export class ProductsService {
@@ -105,13 +115,56 @@ export class ProductsService {
     sellerType: SellerType,
     dto: CreateProductDto,
   ): Promise<Product> {
-    const product = this.productRepo.create({
-      ...dto,
-      sellerId,
-      sellerType,
-      status: ProductStatus.DRAFT,
+    const { images = [], certifications = [], sellerType: _sellerType, ...productData } = dto;
+
+    return this.dataSource.transaction(async (manager) => {
+      const product = manager.create(Product, {
+        ...productData,
+        sellerId,
+        sellerType,
+        status: ProductStatus.DRAFT,
+      });
+      const savedProduct = await manager.save(Product, product);
+
+      if (images.length > 0) {
+        const hasPrimary = images.some((img) => img.isPrimary);
+        await manager.save(
+          ProductImage,
+          images.map((img, index) =>
+            manager.create(ProductImage, {
+              productId: savedProduct.id,
+              imageUrl: img.imageUrl,
+              isPrimary: hasPrimary ? !!img.isPrimary : index === 0,
+              sortOrder: img.sortOrder ?? index,
+            }),
+          ),
+        );
+      }
+
+      if (certifications.length > 0) {
+        await manager.save(
+          ProductCertification,
+          certifications.map((cert) =>
+            manager.create(ProductCertification, {
+              productId: savedProduct.id,
+              certType: cert.certType,
+              certNumber: cert.certNumber ?? null,
+              issuedBy: cert.issuedBy ?? null,
+              issuedDate: cert.issuedDate as any,
+              expiryDate: cert.expiryDate as any,
+              documentUrl: cert.documentUrl ?? null,
+              isVerified: false,
+              status: CertificationStatus.PENDING,
+            }),
+          ),
+        );
+      }
+
+      return manager.findOneOrFail(Product, {
+        where: { id: savedProduct.id },
+        relations: ['category', 'category.parent', 'images', 'certifications'],
+      });
     });
-    return this.productRepo.save(product);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────
@@ -136,6 +189,12 @@ export class ProductsService {
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.category', 'category')
       .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .leftJoinAndSelect(
+        'p.certifications',
+        'certifications',
+        'certifications.status = :verifiedCertificationStatus',
+        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
+      )
       .orderBy(SORT_COLUMN_MAP[sortBy], order)
       .skip((page - 1) * limit)
       .take(limit);
@@ -340,6 +399,10 @@ export class ProductsService {
       expiryDate: toIsoDate(c.expiryDate),
       documentUrl: c.documentUrl ?? null,
       isVerified: c.isVerified,
+      status: c.status,
+      verifiedBy: c.verifiedBy ?? null,
+      verifiedAt: toIsoDate(c.verifiedAt),
+      rejectionReason: c.rejectionReason ?? null,
     }));
 
     return {
@@ -545,14 +608,76 @@ export class ProductsService {
 
   async addCertification(
     productId: string,
-    data: Partial<ProductCertification>,
+    sellerId: string,
+    dto: CreateProductCertificationDto,
   ): Promise<ProductCertification> {
-    await this.findEntityOrFail(productId);
-    const cert = this.certRepo.create({ ...data, productId });
+    const product = await this.findEntityOrFail(productId);
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenException('Bạn không có quyền thêm chứng nhận cho sản phẩm này');
+    }
+
+    const cert = this.certRepo.create({
+      ...dto,
+      productId,
+      issuedDate: dto.issuedDate as any,
+      expiryDate: dto.expiryDate as any,
+      isVerified: false,
+      status: CertificationStatus.PENDING,
+      verifiedBy: null,
+      verifiedAt: null,
+      rejectionReason: null,
+    });
     return this.certRepo.save(cert);
   }
 
-  async removeCertification(productId: string, certId: string): Promise<void> {
+  async findPendingCertifications(): Promise<ProductCertification[]> {
+    return this.certRepo.find({
+      where: { status: CertificationStatus.PENDING },
+      relations: ['product'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async verifyCertification(
+    certId: string,
+    adminId: string,
+    dto: VerifyProductCertificationDto,
+  ): Promise<ProductCertification> {
+    const cert = await this.certRepo.findOne({
+      where: { id: certId },
+      relations: ['product'],
+    });
+    if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
+
+    if (dto.status === CertificationStatus.PENDING) {
+      throw new BadRequestException('Trạng thái duyệt phải là verified hoặc rejected');
+    }
+
+    if (
+      dto.status === CertificationStatus.REJECTED &&
+      !dto.rejectionReason?.trim()
+    ) {
+      throw new BadRequestException('Vui lòng nhập lý do từ chối chứng nhận');
+    }
+
+    cert.status = dto.status;
+    cert.isVerified = dto.status === CertificationStatus.VERIFIED;
+    cert.verifiedBy = adminId;
+    cert.verifiedAt = new Date();
+    cert.rejectionReason =
+      dto.status === CertificationStatus.REJECTED
+        ? dto.rejectionReason.trim()
+        : null;
+
+    return this.certRepo.save(cert);
+  }
+
+  async removeCertification(productId: string, certId: string, sellerId: string): Promise<void> {
+    const product = await this.findEntityOrFail(productId);
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenException('Bạn không có quyền xóa chứng nhận của sản phẩm này');
+    }
+
     const cert = await this.certRepo.findOne({
       where: { id: certId, productId },
     });
@@ -597,6 +722,12 @@ export class ProductsService {
       .innerJoinAndSelect('w.product', 'p')
       .leftJoinAndSelect('p.category', 'category')
       .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .leftJoinAndSelect(
+        'p.certifications',
+        'certifications',
+        'certifications.status = :verifiedCertificationStatus',
+        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
+      )
       .where('w.userId = :userId', { userId })
       .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
       .orderBy('w.createdAt', 'DESC')
