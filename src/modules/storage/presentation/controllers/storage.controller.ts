@@ -13,6 +13,8 @@ import { PresignDto } from '../schemas/presign.dto';
 import { UploadFile } from '../decorators/uploaded-interceptor.decorator';
 import { UploadedImage } from '../decorators/uploaded-image.decorator';
 import { UploadedDocument } from '../decorators/uploaded-document.decorator';
+import { ImageTransformOptions } from '../../domain/interfaces/image-storage.service.interface';
+import { CLOUDINARY_FOLDERS } from '../../infrastructure/cloudinary/cloudinary.config';
 
 @ApiTags('Storage')
 @Controller('storage')
@@ -34,7 +36,12 @@ export class StorageController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
-        type: { type: 'string', description: 'Loại ảnh: avatar | product', example: 'avatar' },
+        type: {
+          type: 'string',
+          description:
+            'Loại ảnh: product | ads | reviews | profile | cccd | business_license | document | avatar | avatar_farmer',
+          example: 'product',
+        },
       },
     },
   })
@@ -44,17 +51,13 @@ export class StorageController {
     @Body('type') type?: string,
   ) {
     const stream = Readable.from(file.buffer);
-    let targetFolder = 'agrilink/products';
-
-    if (type?.startsWith('avatar')) {
-      const role = type.split('_')[1];
-      targetFolder = role ? `agrilink/avatars/${role}` : 'agrilink/avatars';
-    }
+    const { folder, options } = this.getImageTarget(type);
 
     const secureUrl = await this.storageService.uploadCustomFolder(
       stream,
       file.originalname,
-      targetFolder,
+      folder,
+      options,
     );
 
     return { secure_url: secureUrl };
@@ -94,5 +97,46 @@ export class StorageController {
   @ApiOperation({ summary: 'Tạo signed URL để xem hoặc tải tài liệu Supabase' })
   getDownloadUrl(@Query() dto: PresignDto) {
     return this.storageService.getDocumentDownloadUrl(dto.path);
+  }
+
+  private getImageTarget(type?: string): {
+    folder: string;
+    options?: ImageTransformOptions;
+  } {
+    const normalizedType = type?.trim().toLowerCase();
+
+    if (normalizedType?.startsWith('avatar')) {
+      const role = normalizedType.split('_')[1]?.replace(/[^a-z0-9-]/g, '');
+      return {
+        folder: role
+          ? `${CLOUDINARY_FOLDERS.AVATARS}/${role}`
+          : CLOUDINARY_FOLDERS.AVATARS,
+        options: {
+          width: 400,
+          height: 400,
+          crop: 'fill',
+          quality: 'auto',
+        },
+      };
+    }
+
+    switch (normalizedType) {
+      case 'ads':
+      case 'ad':
+        return { folder: CLOUDINARY_FOLDERS.ADS };
+      case 'reviews':
+      case 'review':
+        return { folder: CLOUDINARY_FOLDERS.REVIEWS };
+      case 'profile':
+      case 'profiles':
+      case 'cccd':
+      case 'business_license':
+      case 'document':
+        return { folder: CLOUDINARY_FOLDERS.PROFILES };
+      case 'product':
+      case 'products':
+      default:
+        return { folder: CLOUDINARY_FOLDERS.PRODUCTS };
+    }
   }
 }

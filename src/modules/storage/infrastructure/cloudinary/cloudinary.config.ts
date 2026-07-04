@@ -5,9 +5,10 @@ import { ConfigService } from '@nestjs/config';
 // Dùng constant — refactor 1 chỗ là xong toàn bộ
 export const CLOUDINARY_FOLDERS = {
   PRODUCTS: 'agrilink/products',
-  CERTIFICATIONS: 'agrilink/certifications',
+  ADS: 'agrilink/ads',
+  REVIEWS: 'agrilink/reviews',
+  PROFILES: 'agrilink/profiles',
   AVATARS: 'agrilink/avatars',
-  DOCUMENTS: 'agrilink/documents',   // CCCD, giấy phép HTX/DN
 } as const;
 
 // Định nghĩa transform mặc định cho từng loại
