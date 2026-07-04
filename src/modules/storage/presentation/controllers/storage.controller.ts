@@ -10,6 +10,7 @@ import { StorageService } from '../../application/storage.service';
 import { PresignDto } from '../schemas/presign.dto';
 import { UploadFile } from '../decorators/uploaded-interceptor.decorator';
 import { UploadedImage } from '../decorators/uploaded-image.decorator';
+import { UploadedDocument } from '../decorators/uploaded-document.decorator';
 // import { Public } from '../../../auth/presentation/decorators/public.decorator';
 
 @ApiTags('Storage')
@@ -40,7 +41,7 @@ export class StorageController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
-        type: { type: 'string', description: 'Loại ảnh: avatar | cccd | document | certification | product', example: 'avatar' }
+        type: { type: 'string', description: 'Loại ảnh: avatar | product', example: 'avatar' }
       },
     },
   })
@@ -73,4 +74,47 @@ export class StorageController {
 
     return { secure_url: secureUrl };
   }
-}
+
+  // ─── Upload tài liệu — Cloudinary ─────────────────────────────
+  @Post('documents/upload')
+  @ApiOperation({ summary: 'Upload tài liệu lên Cloudinary' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        type: {
+          type: 'string',
+          description: 'Loại tài liệu: cccd | document | business_license | certification',
+          example: 'certification',
+        },
+      },
+    },
+  })
+  @UploadFile('file')
+  async uploadDocument(
+    @UploadedDocument() file: Express.Multer.File,
+    @Body('type') type?: string,
+  ) {
+    const stream = Readable.from(file.buffer);
+    let targetFolder = 'agrilink/documents';
+
+    if (type === 'cccd') {
+      targetFolder = 'agrilink/documents/cccd';
+    } else if (type === 'business_license') {
+      targetFolder = 'agrilink/documents/business-licenses';
+    } else if (type === 'certification') {
+      targetFolder = 'agrilink/certifications';
+    }
+
+    const secureUrl = await this.storageService.uploadCustomFolder(
+      stream,
+      file.originalname,
+      targetFolder,
+      { resourceType: 'auto', applyDefaultTransform: false },
+    );
+
+    return { secure_url: secureUrl };
+  }
+}
