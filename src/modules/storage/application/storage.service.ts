@@ -16,7 +16,6 @@ import {
 import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
 import { PresignDto } from '../presentation/schemas/presign.dto';
 
-
 @Injectable()
 export class StorageService {
   constructor(
@@ -52,24 +51,6 @@ export class StorageService {
     );
   }
 
-  async uploadCertification(stream: Readable, filename: string): Promise<string> {
-    return this.imageStorage.uploadImageFromStream(
-      stream,
-      filename,
-      CLOUDINARY_FOLDERS.CERTIFICATIONS,
-      { resourceType: 'auto', applyDefaultTransform: false },
-    );
-  }
-
-  async uploadDocument(stream: Readable, filename: string): Promise<string> {
-    return this.imageStorage.uploadImageFromStream(
-      stream,
-      filename,
-      CLOUDINARY_FOLDERS.DOCUMENTS,
-      { resourceType: 'auto', applyDefaultTransform: false },
-    );
-  }
-
   async uploadCustomFolder(
     stream: Readable,
     filename: string,
@@ -83,7 +64,7 @@ export class StorageService {
     return this.imageStorage.deleteImage(imageUrl);
   }
 
-  // ─── File/Document (Supabase) — chưa dùng ở IT1 ─────────────
+  // ─── File/Document (Supabase) ────────────────────────────────
 
   async createFileUploadUrl(dto: PresignDto): Promise<UploadUrlResult> {
     return this.fileStorage.createUploadUrl(dto.path);
