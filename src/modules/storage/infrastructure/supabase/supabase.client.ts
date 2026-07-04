@@ -1,4 +1,4 @@
-import { Provider } from '@nestjs/common';
+import { InternalServerErrorException, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
@@ -12,8 +12,9 @@ export const SupabaseClientProvider: Provider = {
     const key = configService.get<string>('SUPABASE_SERVICE_KEY');
 
     if (!url || !key) {
-      console.warn('Supabase configuration is missing: SUPABASE_URL hoặc SUPABASE_SERVICE_KEY');
-      return null as any;
+      throw new InternalServerErrorException(
+        'Supabase configuration is missing: SUPABASE_URL hoặc SUPABASE_SERVICE_KEY',
+      );
     }
 
     return createClient(url, key);

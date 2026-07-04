@@ -7,8 +7,20 @@ export interface UploadUrlResult {  // ← đảm bảo có export này
   signedUrl: string;
 }
 
+export interface StoredFileResult {
+  path: string;
+  fullPath: string;
+}
+
+export interface DownloadUrlResult {
+  path: string;
+  signedUrl: string;
+  expiresIn: number;
+}
+
 export interface IFileStorageService {
   createUploadUrl(path: string): Promise<UploadUrlResult>;
-  createDownloadUrl(path: string): Promise<string>;
+  upload(path: string, file: Buffer, contentType: string): Promise<StoredFileResult>;
+  createDownloadUrl(path: string): Promise<DownloadUrlResult>;
   delete(path: string): Promise<void>;
 }

@@ -1,9 +1,16 @@
-import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
 
 import {
+  DownloadUrlResult,
   IFileStorageService,
+  StoredFileResult,
   UploadUrlResult,
 } from '../../domain/interfaces/file-storage.service.interface';
 import { SUPABASE_CLIENT } from './supabase.client';
@@ -21,34 +28,89 @@ export class SupabaseStorageService implements IFileStorageService {
   }
 
   async createUploadUrl(path: string): Promise<UploadUrlResult> {
-    const { data, error } = await this.supabase.storage
+    const safePath = this.validatePath(path);
+    const { data, error } = await this.getClient().storage
       .from(this.bucket)
-      .createSignedUploadUrl(path);
+      .createSignedUploadUrl(safePath);
 
     if (error) throw new BadRequestException(`Tạo upload URL thất bại: ${error.message}`);
 
     return {
-      path,
+      path: safePath,
       token: data.token,
       signedUrl: data.signedUrl,
     };
   }
 
-  async createDownloadUrl(path: string): Promise<string> {
-    const { data, error } = await this.supabase.storage
+  async upload(
+    path: string,
+    file: Buffer,
+    contentType: string,
+  ): Promise<StoredFileResult> {
+    const safePath = this.validatePath(path);
+    const { data, error } = await this.getClient().storage
       .from(this.bucket)
-      .createSignedUrl(path, 3600); // hết hạn sau 1 giờ
+      .upload(safePath, file, {
+        contentType,
+        upsert: false,
+      });
+
+    if (error) throw new BadRequestException(`Upload file thất bại: ${error.message}`);
+
+    return {
+      path: data.path,
+      fullPath: data.fullPath ?? `${this.bucket}/${data.path}`,
+    };
+  }
+
+  async createDownloadUrl(path: string): Promise<DownloadUrlResult> {
+    const safePath = this.validatePath(path);
+    const expiresIn = 3600;
+    const { data, error } = await this.getClient().storage
+      .from(this.bucket)
+      .createSignedUrl(safePath, expiresIn);
 
     if (error) throw new BadRequestException(`Tạo download URL thất bại: ${error.message}`);
 
-    return data.signedUrl;
+    return {
+      path: safePath,
+      signedUrl: data.signedUrl,
+      expiresIn,
+    };
   }
 
   async delete(path: string): Promise<void> {
-    const { error } = await this.supabase.storage
+    const safePath = this.validatePath(path);
+    const { error } = await this.getClient().storage
       .from(this.bucket)
-      .remove([path]);
+      .remove([safePath]);
 
     if (error) throw new BadRequestException(`Xóa file thất bại: ${error.message}`);
+  }
+
+  private getClient(): SupabaseClient {
+    if (!this.supabase) {
+      throw new InternalServerErrorException('Supabase storage chưa được cấu hình');
+    }
+
+    return this.supabase;
+  }
+
+  private validatePath(path: string): string {
+    const safePath = path?.trim();
+
+    if (!safePath) {
+      throw new BadRequestException('Đường dẫn file không được để trống');
+    }
+
+    if (
+      safePath.startsWith('/') ||
+      safePath.includes('..') ||
+      safePath.includes('\\')
+    ) {
+      throw new BadRequestException('Đường dẫn file không hợp lệ');
+    }
+
+    return safePath.replace(/\/+/g, '/');
   }
 }
