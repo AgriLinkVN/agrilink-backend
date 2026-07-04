@@ -38,7 +38,8 @@ export class StorageController {
         file: { type: 'string', format: 'binary' },
         type: {
           type: 'string',
-          description: 'Loại ảnh: product | ads | reviews | profile | avatar | avatar_farmer',
+          description:
+            'Loại ảnh: product | ads | reviews | profile | cccd | business_license | document | avatar | avatar_farmer',
           example: 'product',
         },
       },
@@ -128,6 +129,9 @@ export class StorageController {
         return { folder: CLOUDINARY_FOLDERS.REVIEWS };
       case 'profile':
       case 'profiles':
+      case 'cccd':
+      case 'business_license':
+      case 'document':
         return { folder: CLOUDINARY_FOLDERS.PROFILES };
       case 'product':
       case 'products':
