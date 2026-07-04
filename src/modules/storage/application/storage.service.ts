@@ -7,8 +7,10 @@ import {
   ImageTransformOptions,
 } from '../domain/interfaces/image-storage.service.interface';
 import {
+  DownloadUrlResult,
   IFileStorageService,
   FILE_STORAGE_SERVICE,
+  StoredFileResult,
   UploadUrlResult,
 } from '../domain/interfaces/file-storage.service.interface';
 import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
@@ -87,7 +89,15 @@ export class StorageService {
     return this.fileStorage.createUploadUrl(dto.path);
   }
 
-  async getDocumentDownloadUrl(path: string): Promise<string> {
+  async uploadDocumentFile(
+    path: string,
+    file: Buffer,
+    contentType: string,
+  ): Promise<StoredFileResult> {
+    return this.fileStorage.upload(path, file, contentType);
+  }
+
+  async getDocumentDownloadUrl(path: string): Promise<DownloadUrlResult> {
     return this.fileStorage.createDownloadUrl(path);
   }
 
