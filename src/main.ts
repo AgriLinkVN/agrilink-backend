@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
@@ -50,8 +51,11 @@ async function bootstrap() {
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Global response interceptor
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  // Global interceptors
+  app.useGlobalInterceptors(
+    new RequestLoggingInterceptor(),
+    new ResponseInterceptor(),
+  );
 
   // Swagger / OpenAPI
   const swaggerConfig = new DocumentBuilder()
