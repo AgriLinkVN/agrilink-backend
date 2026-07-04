@@ -13,15 +13,12 @@ import { PresignDto } from '../schemas/presign.dto';
 import { UploadFile } from '../decorators/uploaded-interceptor.decorator';
 import { UploadedImage } from '../decorators/uploaded-image.decorator';
 import { UploadedDocument } from '../decorators/uploaded-document.decorator';
-// import { Public } from '../../../auth/presentation/decorators/public.decorator';
 
 @ApiTags('Storage')
 @Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
-  // ─── Presign URL — Supabase document ─────────────────────────
-  // @Public()
   @Post('files/presign')
   @ApiOperation({ summary: 'Tạo presigned URL để upload file lên Supabase' })
   presign(@Body() dto: PresignDto) {
@@ -29,7 +26,6 @@ export class StorageController {
   }
 
   // ─── Upload ảnh — Cloudinary ──────────────────────────────────
-  // @Public()
   @Post('images/upload')
   @ApiOperation({ summary: 'Upload ảnh lên Cloudinary' })
   @ApiConsumes('multipart/form-data')
@@ -38,7 +34,7 @@ export class StorageController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
-        type: { type: 'string', description: 'Loại ảnh: avatar | product', example: 'avatar' }
+        type: { type: 'string', description: 'Loại ảnh: avatar | product', example: 'avatar' },
       },
     },
   })
@@ -48,7 +44,7 @@ export class StorageController {
     @Body('type') type?: string,
   ) {
     const stream = Readable.from(file.buffer);
-    let targetFolder = 'agrilink/products'; // default
+    let targetFolder = 'agrilink/products';
 
     if (type?.startsWith('avatar')) {
       const role = type.split('_')[1];
