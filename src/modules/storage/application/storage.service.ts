@@ -55,6 +55,7 @@ export class StorageService {
       stream,
       filename,
       CLOUDINARY_FOLDERS.CERTIFICATIONS,
+      { resourceType: 'auto', applyDefaultTransform: false },
     );
   }
 
@@ -63,11 +64,17 @@ export class StorageService {
       stream,
       filename,
       CLOUDINARY_FOLDERS.DOCUMENTS,
+      { resourceType: 'auto', applyDefaultTransform: false },
     );
   }
 
-  async uploadCustomFolder(stream: Readable, filename: string, folder: string): Promise<string> {
-    return this.imageStorage.uploadImageFromStream(stream, filename, folder);
+  async uploadCustomFolder(
+    stream: Readable,
+    filename: string,
+    folder: string,
+    options?: ImageTransformOptions,
+  ): Promise<string> {
+    return this.imageStorage.uploadImageFromStream(stream, filename, folder, options);
   }
 
   async deleteImage(imageUrl: string): Promise<void> {

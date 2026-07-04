@@ -8,6 +8,8 @@ export interface ImageTransformOptions {
   crop?: 'limit' | 'fill' | 'crop' | 'scale';
   quality?: 'auto' | number;
   folder?: string;
+  resourceType?: 'image' | 'raw' | 'auto';
+  applyDefaultTransform?: boolean;
 }
 
 export interface IImageStorageService {

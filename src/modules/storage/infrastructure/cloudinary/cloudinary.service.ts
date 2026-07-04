@@ -31,13 +31,21 @@ export class CloudinaryService implements IImageStorageService {
     folder: string = CLOUDINARY_FOLDERS.PRODUCTS,
     options?: ImageTransformOptions,
   ): Promise<string> {
-    const transformation = options
-      ? [
+    const hasCustomTransform = !!(
+      options?.width ||
+      options?.height ||
+      options?.crop ||
+      options?.quality
+    );
+    const transformation = options?.applyDefaultTransform === false
+      ? undefined
+      : hasCustomTransform
+        ? [
           { width: options.width, height: options.height, crop: options.crop ?? 'limit' },
           { quality: options.quality ?? 'auto' },
           { fetch_format: 'auto' },
         ]
-      : CLOUDINARY_TRANSFORMATIONS.PRODUCT_IMAGE;
+        : CLOUDINARY_TRANSFORMATIONS.PRODUCT_IMAGE;
 
     return new Promise((resolve, reject) => {
       let settled = false;
@@ -51,7 +59,8 @@ export class CloudinaryService implements IImageStorageService {
         {
           folder,
           public_id: filename.replace(/\.[^/.]+$/, ''),
-          transformation,
+          resource_type: options?.resourceType ?? 'auto',
+          ...(transformation ? { transformation } : {}),
         },
         (error: Error | undefined, result: UploadApiResponse | undefined) => {
           if (error) {
