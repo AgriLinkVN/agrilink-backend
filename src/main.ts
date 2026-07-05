@@ -4,14 +4,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { initSentry } from './config/sentry.config';
 import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
 import { ProductsService } from '@modules/products/application/products.service';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
+
+initSentry();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -49,7 +53,7 @@ async function bootstrap() {
   );
 
   // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(), new AllExceptionsFilter());
 
   // Global interceptors
   app.useGlobalInterceptors(
