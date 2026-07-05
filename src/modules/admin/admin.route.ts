@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
+import { AdminReportService } from './admin-report.service';
 import { SystemConfig } from './entities/system-config.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
@@ -27,7 +28,7 @@ import { IncidentReport } from '../../database/entities/incident-report.entity';
     ]),
   ],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, AdminReportService],
   exports: [AdminService],
 })
 export class AdminRoute {}
