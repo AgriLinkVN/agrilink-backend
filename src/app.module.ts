@@ -19,6 +19,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { AdsModule } from "./modules/ads/ads.module";
 import { AdminRoute } from "./modules/admin/admin.route";
 import { StorageModule } from "./modules/storage/storage.module";
+import { ForumModule } from "./modules/forum/forum.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { SmsRoute } from "./shared/sms/sms.route";
@@ -52,6 +53,7 @@ import { SmsRoute } from "./shared/sms/sms.route";
     AdsModule,
     AdminRoute,
     StorageModule,
+    ForumModule,
   ],
   controllers: [AppController],
   providers: [
