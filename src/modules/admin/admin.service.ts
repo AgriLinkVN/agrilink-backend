@@ -9,6 +9,10 @@ import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
+import { User } from '../../database/entities/user.entity';
+import { Product } from '../../database/entities/product.entity';
+import { IncidentReport } from '../../database/entities/incident-report.entity';
+import { UserStatus } from '../../common/enums';
 
 @Injectable()
 export class AdminService {
@@ -25,20 +29,72 @@ export class AdminService {
     private readonly enterpriseRepo: Repository<EnterpriseProfile>,
     @InjectRepository(SupplierProfile)
     private readonly supplierRepo: Repository<SupplierProfile>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
+    @InjectRepository(IncidentReport)
+    private readonly incidentRepo: Repository<IncidentReport>,
   ) {}
 
-  async getPendingProfiles() {
-    const farmers = await this.farmerRepo.find({ where: { isKycVerified: false } });
-    const cooperatives = await this.cooperativeRepo.find({ where: { isVerified: false } });
-    const enterprises = await this.enterpriseRepo.find({ where: { isVerified: false } });
-    const suppliers = await this.supplierRepo.find({ where: { isVerified: false } });
+  async getStats() {
+    const [
+      totalUsers,
+      activeUsers,
+      pendingFarmers,
+      pendingCooperatives,
+      pendingEnterprises,
+      pendingSuppliers,
+      totalProducts,
+      pendingProducts,
+      openDisputes,
+    ] = await Promise.all([
+      this.userRepo.count(),
+      this.userRepo.count({ where: { status: UserStatus.ACTIVE } }),
+      this.farmerRepo.count({ where: { isKycVerified: false } }),
+      this.cooperativeRepo.count({ where: { isVerified: false } }),
+      this.enterpriseRepo.count({ where: { isVerified: false } }),
+      this.supplierRepo.count({ where: { isVerified: false } }),
+      this.productRepo.count(),
+      this.productRepo.count({ where: { status: 'pending' as any } }),
+      this.incidentRepo.count({ where: { status: 'open' } }),
+    ]);
+
+    // Certifications issued this month — count verified profiles updated this month
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const certificationsThisMonth = await this.cooperativeRepo
+      .createQueryBuilder('cp')
+      .where('cp.is_verified = true')
+      .andWhere('cp.verified_at >= :monthStart', { monthStart })
+      .getCount();
 
     return {
-      farmer: farmers,
-      cooperative: cooperatives,
-      enterprise: enterprises,
-      supplier: suppliers,
+      totalUsers,
+      activeUsers,
+      pendingProfiles: {
+        farmer: pendingFarmers,
+        cooperative: pendingCooperatives,
+        enterprise: pendingEnterprises,
+        supplier: pendingSuppliers,
+        total: pendingFarmers + pendingCooperatives + pendingEnterprises + pendingSuppliers,
+      },
+      totalProducts,
+      pendingProducts,
+      openDisputes,
+      certificationsThisMonth,
     };
+  }
+
+  async getPendingProfiles() {
+    const [farmers, cooperatives, enterprises, suppliers] = await Promise.all([
+      this.farmerRepo.find({ where: { isKycVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.cooperativeRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.enterpriseRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.supplierRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
+    ]);
+
+    return { farmer: farmers, cooperative: cooperatives, enterprise: enterprises, supplier: suppliers };
   }
 
   async verifyProfile(type: string, profileId: string, dto: VerifyProfileDto, adminId: string) {
@@ -64,36 +120,94 @@ export class AdminService {
     }
 
     const profile = await repo.findOne({ where: { id: profileId } });
-    if (!profile) {
-      throw new NotFoundException('Profile not found');
-    }
+    if (!profile) throw new NotFoundException('Profile not found');
 
     profile[isVerifiedField] = dto.isApproved;
     profile.verifiedBy = adminId;
-    profile.rejectionReason = dto.isApproved ? null : dto.rejectionReason;
-
-    if (dto.isApproved) {
-      profile.verifiedAt = new Date();
-    }
+    profile.rejectionReason = dto.isApproved ? null : (dto.rejectionReason ?? null);
+    if (dto.isApproved) profile.verifiedAt = new Date();
 
     await repo.save(profile);
+
+    await this.createAuditLog({
+      userId: adminId,
+      action: dto.isApproved ? 'PROFILE_APPROVED' : 'PROFILE_REJECTED',
+      entityType: type,
+      entityId: profileId,
+      changes: { isApproved: dto.isApproved, rejectionReason: dto.rejectionReason },
+    });
+
     return { success: true, profile };
   }
 
   async getSystemConfigs(): Promise<SystemConfig[]> {
-    throw new Error('TODO: implement AdminService.getSystemConfigs()');
+    return this.configRepo.find({ order: { key: 'ASC' } });
   }
 
   async updateSystemConfig(key: string, value: string, updatedBy: string): Promise<SystemConfig> {
-    throw new Error('TODO: implement AdminService.updateSystemConfig()');
+    let config = await this.configRepo.findOne({ where: { key } });
+    if (!config) {
+      config = this.configRepo.create({ key, value, updatedBy });
+    } else {
+      config.value = value;
+      config.updatedBy = updatedBy;
+    }
+    const saved = await this.configRepo.save(config);
+    await this.createAuditLog({
+      userId: updatedBy,
+      action: 'SYSTEM_CONFIG_UPDATE',
+      entityType: 'SystemConfig',
+      entityId: saved.id,
+      changes: { key, value },
+    });
+    return saved;
   }
 
   async getAuditLogs(pagination: PaginationDto): Promise<{ data: AuditLog[]; total: number }> {
-    throw new Error('TODO: implement AdminService.getAuditLogs()');
+    const [data, total] = await this.auditRepo.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: pagination.skip,
+      take: pagination.limit ?? 20,
+    });
+    return { data, total };
   }
 
-  /** Called by AuditLogInterceptor to persist log entries */
+  async getDisputes(pagination: PaginationDto, status?: string): Promise<{ data: IncidentReport[]; total: number }> {
+    const qb = this.incidentRepo.createQueryBuilder('ir').orderBy('ir.created_at', 'DESC');
+    if (status) qb.where('ir.status = :status', { status });
+    qb.skip(pagination.skip).take(pagination.limit ?? 20);
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
+  }
+
+  async updateDisputeStatus(id: string, status: string, adminId: string): Promise<IncidentReport> {
+    const report = await this.incidentRepo.findOne({ where: { id } });
+    if (!report) throw new NotFoundException('Incident report not found');
+    report.status = status;
+    if (status === 'resolved') report.resolvedAt = new Date();
+    const saved = await this.incidentRepo.save(report);
+    await this.createAuditLog({
+      userId: adminId,
+      action: 'DISPUTE_STATUS_UPDATE',
+      entityType: 'IncidentReport',
+      entityId: id,
+      changes: { status },
+    });
+    return saved;
+  }
+
+  async getPendingProducts(pagination: PaginationDto) {
+    const [data, total] = await this.productRepo.findAndCount({
+      where: { status: 'pending' as any },
+      relations: ['seller'],
+      order: { createdAt: 'DESC' },
+      skip: pagination.skip,
+      take: pagination.limit ?? 20,
+    });
+    return { data, total };
+  }
+
   async createAuditLog(data: Partial<AuditLog>): Promise<AuditLog> {
-    throw new Error('TODO: implement AdminService.createAuditLog()');
+    return this.auditRepo.save(this.auditRepo.create(data));
   }
 }
