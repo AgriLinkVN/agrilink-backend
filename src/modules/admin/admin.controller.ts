@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AdminService } from './admin.service';
+import { AdminReportService } from './admin-report.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -13,7 +15,10 @@ import { VerifyProfileDto } from './dto/verify-profile.dto';
 @UseGuards(RolesGuard)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly adminReportService: AdminReportService,
+  ) {}
 
   @Get('stats')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
@@ -60,7 +65,7 @@ export class AdminController {
   }
 
   @Get('audit-logs')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   @ApiOperation({ summary: 'Paginated audit logs' })
   getAuditLogs(@Query() pagination: PaginationDto) {
     return this.adminService.getAuditLogs(pagination);
@@ -90,5 +95,32 @@ export class AdminController {
   @ApiOperation({ summary: 'List products awaiting approval' })
   getPendingProducts(@Query() pagination: PaginationDto) {
     return this.adminService.getPendingProducts(pagination);
+  }
+
+  @Get('products/violating')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List suspended/rejected products (policy violations)' })
+  getViolatingProducts(@Query() pagination: PaginationDto) {
+    return this.adminService.getViolatingProducts(pagination);
+  }
+
+  @Get('cooperatives-enterprises')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List all cooperatives and enterprises' })
+  getCooperativesAndEnterprises() {
+    return this.adminService.getCooperativesAndEnterprises();
+  }
+
+  @Get('reports/system.pdf')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Export a system-wide overview report as PDF' })
+  async exportSystemReport(@Res() res: Response) {
+    const pdf = await this.adminReportService.generateSystemReportPdf();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="agrilink-system-report-${Date.now()}.pdf"`,
+      'Content-Length': pdf.length,
+    });
+    res.end(pdf);
   }
 }

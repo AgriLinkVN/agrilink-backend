@@ -207,7 +207,40 @@ export class AdminService {
     return { data, total };
   }
 
+  /** Products suspended/rejected for policy violations — state agency oversight view */
+  async getViolatingProducts(pagination: PaginationDto) {
+    const [data, total] = await this.productRepo.findAndCount({
+      where: [{ status: 'suspended' as any }, { status: 'rejected' as any }],
+      relations: ['seller'],
+      order: { updatedAt: 'DESC' },
+      skip: pagination.skip,
+      take: pagination.limit ?? 20,
+    });
+    return { data, total };
+  }
+
+  /** All verified cooperatives and enterprises — state agency oversight list */
+  async getCooperativesAndEnterprises() {
+    const [cooperatives, enterprises] = await Promise.all([
+      this.cooperativeRepo.find({ relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.enterpriseRepo.find({ relations: ['user'], order: { createdAt: 'DESC' } }),
+    ]);
+    return { cooperatives, enterprises };
+  }
+
   async createAuditLog(data: Partial<AuditLog>): Promise<AuditLog> {
     return this.auditRepo.save(this.auditRepo.create(data));
+  }
+
+  /** Snapshot of system-wide data for the state-agency PDF report */
+  async getSystemReportData() {
+    const pagination = new PaginationDto();
+    pagination.limit = 20;
+    const [stats, cooperativesEnterprises, violatingProducts] = await Promise.all([
+      this.getStats(),
+      this.getCooperativesAndEnterprises(),
+      this.getViolatingProducts(pagination),
+    ]);
+    return { stats, cooperativesEnterprises, violatingProducts, generatedAt: new Date() };
   }
 }
