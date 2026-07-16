@@ -214,6 +214,60 @@ export class ProductsService {
     return { data, total };
   }
 
+  async findMine(
+    sellerId: string,
+    filter: ProductFilterDto,
+  ): Promise<{ data: Product[]; total: number }> {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      categoryId,
+      provinceId,
+      farmingType,
+      status,
+      minPrice,
+      maxPrice,
+      sortBy = 'createdAt',
+      order = 'DESC',
+    } = filter;
+
+    const SORT_COLUMN_MAP: Record<string, string> = {
+      createdAt: 'p.createdAt',
+      pricePerUnit: 'p.pricePerUnit',
+      name: 'p.name',
+      soldCount: 'p.soldCount',
+      avgRating: 'p.avgRating',
+    };
+
+    const qb = this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
+      .leftJoinAndSelect('p.certifications', 'certifications')
+      .where('p.sellerId = :sellerId', { sellerId })
+      .orderBy(SORT_COLUMN_MAP[sortBy], order)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (search) {
+      qb.andWhere(
+        'p.name ILIKE :search OR p.description ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (categoryId) qb.andWhere('p.categoryId = :categoryId', { categoryId });
+    if (provinceId) qb.andWhere('p.provinceId = :provinceId', { provinceId });
+    if (farmingType) qb.andWhere('p.farmingType = :farmingType', { farmingType });
+    if (status) qb.andWhere('p.status = :status', { status });
+    if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
+    if (maxPrice !== undefined) qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
+  }
+
   // ─── Find One ─────────────────────────────────────────────────
 
   /** Internal lookup — entity only, used by update/remove/etc. */

@@ -96,6 +96,17 @@ export class ProductsController {
     return this.productsService.getCategoryTree();
   }
 
+  @Get('me')
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Danh sách sản phẩm của seller đang đăng nhập' })
+  findMine(
+    @CurrentUser('sub') sellerId: string,
+    @Query() filter: ProductFilterDto,
+  ) {
+    return this.productsService.findMine(sellerId, filter);
+  }
+
   @Get('certifications/pending')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   @ApiBearerAuth('access-token')
