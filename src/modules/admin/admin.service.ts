@@ -12,7 +12,7 @@ import { SupplierProfile } from '../../database/entities/supplier-profile.entity
 import { User } from '../../database/entities/user.entity';
 import { Product } from '../../database/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
-import { UserStatus } from '../../common/enums';
+import { ProductStatus, UserStatus } from '../../common/enums';
 
 @Injectable()
 export class AdminService {
@@ -56,7 +56,7 @@ export class AdminService {
       this.enterpriseRepo.count({ where: { isVerified: false } }),
       this.supplierRepo.count({ where: { isVerified: false } }),
       this.productRepo.count(),
-      this.productRepo.count({ where: { status: 'pending' as any } }),
+      this.productRepo.count({ where: { status: ProductStatus.PENDING_APPROVAL } }),
       this.incidentRepo.count({ where: { status: 'open' } }),
     ]);
 
@@ -198,7 +198,7 @@ export class AdminService {
 
   async getPendingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
-      where: { status: 'pending' as any },
+      where: { status: ProductStatus.PENDING_APPROVAL },
       relations: ['seller'],
       order: { createdAt: 'DESC' },
       skip: pagination.skip,
