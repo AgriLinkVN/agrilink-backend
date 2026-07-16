@@ -7,21 +7,15 @@ import {
   Param,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from '../../application/products.service';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import { WishlistQueryDto } from '../schemas/wishlist-query.dto';
-import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
-import { RolesGuard } from '@common/guards/roles.guard';
 
 @ApiTags('wishlist')
 @ApiBearerAuth('access-token')
-// TODO(P1): replace with @CurrentUser once JwtAuthGuard is global
-// TODO(P1): Xóa @UseGuards bên dưới khi guard đã được đăng ký toàn cục
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('wishlist')
 export class WishlistController {
   constructor(private readonly productsService: ProductsService) {}

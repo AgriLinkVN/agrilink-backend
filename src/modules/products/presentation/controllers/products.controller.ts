@@ -10,7 +10,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards, // TODO(P1): xóa khi JwtAuthGuard được đăng ký global trong AppModule
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -32,16 +31,10 @@ import {
   VerifyProductCertificationDto,
 } from '../schemas/product-certification.dto';
 import { SellerType, UserRole } from '@common/enums';
-// TODO(P1): Xóa 3 dòng import dưới đây khi P1 đăng ký JwtAuthGuard + RolesGuard làm Global Guard
-import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
-import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
-
 
 @ApiTags('Products')
 @ApiBearerAuth('access-token')
-// TODO(P1): Xóa @UseGuards bên dưới khi guard đã được đăng ký toàn cục
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
@@ -63,22 +56,22 @@ export class ProductsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Tạo sản phẩm mới (seller)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công' })
   create(
-  @CurrentUser('sub') sellerId: string,
-  @CurrentUser('sellerType') sellerType: SellerType | undefined,
-  @CurrentUser('role') role: UserRole,
-  @Body() dto: CreateProductDto,
-) {
-  return this.productsService.create(
-    sellerId,
-    sellerType ?? this.resolveSellerType(role),
-    dto,
-  );
-}
+    @CurrentUser('sub') sellerId: string,
+    @CurrentUser('sellerType') sellerType: SellerType | undefined,
+    @CurrentUser('role') role: UserRole,
+    @Body() dto: CreateProductDto,
+  ) {
+    return this.productsService.create(
+      sellerId,
+      sellerType ?? this.resolveSellerType(role),
+      dto,
+    );
+  }
 
   @Public()
   @Get()
@@ -132,7 +125,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Cập nhật sản phẩm (chủ sở hữu)' })
   update(
@@ -164,7 +157,7 @@ export class ProductsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa sản phẩm (chủ sở hữu)' })
   remove(
@@ -201,33 +194,35 @@ export class ProductsController {
   // ─── Images ───────────────────────────────────────────────────
 
   @Post(':id/images')
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm ảnh cho sản phẩm' })
   addImage(
     @Param('id', ParseUuidPipe) productId: string,
+    @CurrentUser('sub') sellerId: string,
     @Body('imageUrl') imageUrl: string,
     @Body('isPrimary') isPrimary: boolean,
   ) {
-    return this.productsService.addImage(productId, imageUrl, isPrimary);
+    return this.productsService.addImage(productId, sellerId, imageUrl, isPrimary);
   }
 
   @Delete(':id/images/:imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa ảnh sản phẩm' })
   removeImage(
     @Param('id', ParseUuidPipe) productId: string,
     @Param('imageId', ParseUuidPipe) imageId: string,
+    @CurrentUser('sub') sellerId: string,
   ) {
-    return this.productsService.removeImage(productId, imageId);
+    return this.productsService.removeImage(productId, imageId, sellerId);
   }
 
   // ─── Certifications ───────────────────────────────────────────
 
   @Post(':id/certifications')
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Thêm chứng nhận cho sản phẩm' })
   addCertification(
@@ -240,7 +235,7 @@ export class ProductsController {
 
   @Delete(':id/certifications/:certId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER) // TODO(P1): giữ lại @Roles, chỉ xóa @UseGuards ở class
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.SUPPLIER)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Xóa chứng nhận sản phẩm' })
   removeCertification(

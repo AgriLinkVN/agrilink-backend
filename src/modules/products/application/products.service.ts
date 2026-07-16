@@ -34,6 +34,7 @@ import {
   SellerType,
   UserRole,
 } from '@common/enums';
+import { seedProductCategories } from '../infrastructure/database/seeds/product-category.seed';
 
 @Injectable()
 export class ProductsService {
@@ -91,21 +92,7 @@ export class ProductsService {
   }
 
   async seedCategories(): Promise<void> {
-    const count = await this.categoryRepo.count();
-    if (count > 0) return;
-    const roots = await this.categoryRepo.save([
-      this.categoryRepo.create({ name: 'Rau củ quả', slug: 'rau-cu-qua', sortOrder: 1 }),
-      this.categoryRepo.create({ name: 'Trái cây', slug: 'trai-cay', sortOrder: 2 }),
-      this.categoryRepo.create({ name: 'Lúa gạo & Ngũ cốc', slug: 'lua-gao-ngu-coc', sortOrder: 3 }),
-      this.categoryRepo.create({ name: 'Thủy sản', slug: 'thuy-san', sortOrder: 4 }),
-      this.categoryRepo.create({ name: 'Gia súc & Gia cầm', slug: 'gia-suc-gia-cam', sortOrder: 5 }),
-      this.categoryRepo.create({ name: 'Cà phê & Chè', slug: 'ca-phe-che', sortOrder: 6 }),
-      this.categoryRepo.create({ name: 'Gia vị & Thảo mộc', slug: 'gia-vi-thao-moc', sortOrder: 7 }),
-      this.categoryRepo.create({ name: 'Hạt & Đậu', slug: 'hat-dau', sortOrder: 8 }),
-      this.categoryRepo.create({ name: 'Mật ong & Đặc sản', slug: 'mat-ong-dac-san', sortOrder: 9 }),
-      this.categoryRepo.create({ name: 'Hoa & Cây cảnh', slug: 'hoa-cay-canh', sortOrder: 10 }),
-    ]);
-    console.log(`[Seed] Inserted ${roots.length} product categories`);
+    await seedProductCategories(this.dataSource);
   }
 
   // ─── Create ──────────────────────────────────────────────────
@@ -115,7 +102,7 @@ export class ProductsService {
     sellerType: SellerType,
     dto: CreateProductDto,
   ): Promise<Product> {
-    const { images = [], certifications = [], sellerType: _sellerType, ...productData } = dto;
+    const { images = [], certifications = [], ...productData } = dto;
 
     return this.dataSource.transaction(async (manager) => {
       const product = manager.create(Product, {
@@ -442,9 +429,7 @@ export class ProductsService {
 
   async update(id: string, sellerId: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findEntityOrFail(id);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenException('Bạn không có quyền chỉnh sửa sản phẩm này');
-    }
+    this.assertProductOwner(product, sellerId, 'chỉnh sửa');
     Object.assign(product, dto);
     return this.productRepo.save(product);
   }
@@ -569,9 +554,7 @@ export class ProductsService {
 
   async remove(id: string, sellerId: string): Promise<void> {
     const product = await this.findEntityOrFail(id);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenException('Bạn không có quyền xóa sản phẩm này');
-    }
+    this.assertProductOwner(product, sellerId, 'xóa');
     product.status = ProductStatus.DRAFT;
     await this.productRepo.save(product);
   }
@@ -580,9 +563,13 @@ export class ProductsService {
 
   async addImage(
     productId: string,
+    sellerId: string,
     imageUrl: string,
     isPrimary: boolean,
   ): Promise<ProductImage> {
+    const product = await this.findEntityOrFail(productId);
+    this.assertProductOwner(product, sellerId, 'thêm ảnh cho');
+
     if (isPrimary) {
       await this.imageRepo.update({ productId }, { isPrimary: false });
     }
@@ -596,7 +583,10 @@ export class ProductsService {
     return this.imageRepo.save(image);
   }
 
-  async removeImage(productId: string, imageId: string): Promise<void> {
+  async removeImage(productId: string, imageId: string, sellerId: string): Promise<void> {
+    const product = await this.findEntityOrFail(productId);
+    this.assertProductOwner(product, sellerId, 'xóa ảnh của');
+
     const image = await this.imageRepo.findOne({
       where: { id: imageId, productId },
     });
@@ -612,9 +602,7 @@ export class ProductsService {
     dto: CreateProductCertificationDto,
   ): Promise<ProductCertification> {
     const product = await this.findEntityOrFail(productId);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenException('Bạn không có quyền thêm chứng nhận cho sản phẩm này');
-    }
+    this.assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
 
     const cert = this.certRepo.create({
       ...dto,
@@ -674,15 +662,19 @@ export class ProductsService {
 
   async removeCertification(productId: string, certId: string, sellerId: string): Promise<void> {
     const product = await this.findEntityOrFail(productId);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenException('Bạn không có quyền xóa chứng nhận của sản phẩm này');
-    }
+    this.assertProductOwner(product, sellerId, 'xóa chứng nhận của');
 
     const cert = await this.certRepo.findOne({
       where: { id: certId, productId },
     });
     if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
     await this.certRepo.remove(cert);
+  }
+
+  private assertProductOwner(product: Product, sellerId: string, action: string): void {
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenException(`Bạn không có quyền ${action} sản phẩm này`);
+    }
   }
 
   // ─── Wishlist ─────────────────────────────────────────────────
