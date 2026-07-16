@@ -1,4 +1,4 @@
-import { CertType, FarmingType, ProductUnit, SellerType } from '../../../../common/enums';
+import { CertType, FarmingType, ProductUnit } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
@@ -140,11 +140,6 @@ export class CreateProductDto {
   @IsLongitude()
   farmLongitude?: number;
 
-  @ApiPropertyOptional({ example: false, description: 'San pham noi bat (admin set)' })
-  @IsOptional()
-  @IsBoolean()
-  isFeatured?: boolean;
-
   @ApiPropertyOptional({ example: '2026-06-01' })
   @IsOptional()
   @IsDateString()
@@ -154,17 +149,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsDateString()
   expiryDate?: string;
-
-
-  // seller Type
-  // @ApiProperty({ enum: SellerType, example: SellerType.FARMER })
-  // TODO(P1): sellerType được lấy từ JWT payload bởi controller (@CurrentUser('sellerType')).
-  // Để optional ở đây để tránh validation lỗi khi client không gửi trường này trong body.
-  @ApiPropertyOptional({ enum: SellerType, example: SellerType.FARMER })
-  @IsOptional()
-  @IsEnum(SellerType)
-  // sellerType: SellerType;
-  sellerType?: SellerType;
 
   @ApiPropertyOptional({ type: [CreateProductImageDto] })
   @IsOptional()
