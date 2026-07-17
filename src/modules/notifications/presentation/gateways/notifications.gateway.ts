@@ -5,8 +5,23 @@ import {
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
-import { Notification } from './entities/notification.entity';
-import { NotificationRealtimePublisherPort } from './domain/ports/notification-realtime-publisher.port';
+import { NotificationRealtimePublisherPort } from '../../domain/ports/notification-realtime-publisher.port';
+import {
+  AllNotificationsReadPayload,
+  NotificationMarkedReadPayload,
+  NotificationModel,
+} from '../../domain/notification.types';
+import {
+  NOTIFICATION_SOCKET_EVENTS,
+  NewNotificationEvent,
+  NotificationMarkedReadEvent,
+  AllNotificationsReadEvent,
+} from '../contracts/notification-socket.events';
+import {
+  toAllNotificationsReadEvent,
+  toNotificationMarkedReadEvent,
+  toNotificationResponse,
+} from '../mappers/notification-response.mapper';
 
 @WebSocketGateway({
   namespace: '/notifications',
@@ -44,19 +59,38 @@ export class NotificationsGateway
     }
   }
 
-  publishCreated(userId: string, notification: Notification): void {
-    this.emitToUser(userId, 'new_notification', notification);
+  publishCreated(userId: string, notification: NotificationModel): void {
+    this.emitToUser<NewNotificationEvent>(
+      userId,
+      NOTIFICATION_SOCKET_EVENTS.NEW,
+      toNotificationResponse(notification),
+    );
   }
 
-  publishRead(userId: string, notificationId: string): void {
-    this.emitToUser(userId, 'marked_read', { id: notificationId });
+  publishMarkedRead(
+    userId: string,
+    payload: NotificationMarkedReadPayload,
+  ): void {
+    this.emitToUser<NotificationMarkedReadEvent>(
+      userId,
+      NOTIFICATION_SOCKET_EVENTS.MARKED_READ,
+      toNotificationMarkedReadEvent(payload),
+    );
   }
 
-  publishAllRead(userId: string): void {
-    this.emitToUser(userId, 'all_notifications_read', {});
+  publishAllRead(userId: string, payload: AllNotificationsReadPayload): void {
+    this.emitToUser<AllNotificationsReadEvent>(
+      userId,
+      NOTIFICATION_SOCKET_EVENTS.ALL_READ,
+      toAllNotificationsReadEvent(payload),
+    );
   }
 
-  emitToUser(userId: string, event: string, payload: unknown): void {
+  private emitToUser<TPayload>(
+    userId: string,
+    event: string,
+    payload: TPayload,
+  ): void {
     if (!this.server) return;
     this.server.to(this.userRoom(userId)).emit(event, payload);
   }
