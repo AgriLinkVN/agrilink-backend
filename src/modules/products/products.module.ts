@@ -10,6 +10,17 @@ import { ProductsService } from './application/products.service';
 import { ProductsController } from './presentation/controllers/products.controller';
 import { WishlistController } from './presentation/controllers/wishlist.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
+import {
+  PRODUCT_CATALOG_QUERY,
+  PRODUCT_CATEGORY_QUERY,
+  PRODUCT_CERTIFICATION_REPOSITORY,
+  PRODUCT_DETAIL_QUERY,
+  PRODUCT_IMAGE_REPOSITORY,
+  PRODUCT_REPOSITORY,
+  PRODUCT_SEED_REPOSITORY,
+  PRODUCT_WISHLIST_REPOSITORY,
+} from './application/ports/outbound/product-repository.port';
+import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
 
 @Module({
   imports: [
@@ -23,7 +34,21 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ]),
   ],
   controllers: [ProductsController, WishlistController],
-  providers: [ProductsService],
+  providers: [
+    TypeOrmProductRepository,
+    ProductsService,
+    { provide: PRODUCT_REPOSITORY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_CATALOG_QUERY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_DETAIL_QUERY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_CATEGORY_QUERY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_IMAGE_REPOSITORY, useExisting: TypeOrmProductRepository },
+    {
+      provide: PRODUCT_CERTIFICATION_REPOSITORY,
+      useExisting: TypeOrmProductRepository,
+    },
+    { provide: PRODUCT_WISHLIST_REPOSITORY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
+  ],
   exports: [ProductsService],
 })
 export class ProductsModule { }

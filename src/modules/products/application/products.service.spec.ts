@@ -18,7 +18,6 @@ import { ProductsService } from './products.service';
 import { Product } from '../domain/entities/product.entity';
 import { ProductCertification } from '../domain/entities/product-certification.entity';
 import { ProductCategory } from '../domain/entities/product-category.entity';
-import { ProductImage } from '../domain/entities/product-image.entity';
 import { Wishlist } from '../domain/entities/wishlist.entity';
 
 const PRODUCT_ID = '11111111-1111-4111-8111-111111111111';
@@ -31,137 +30,104 @@ const CATEGORY_ID = '77777777-7777-4777-8777-777777777777';
 
 describe('ProductsService contract', () => {
   let service: ProductsService;
-  let productRepo: ReturnType<typeof createRepositoryMock>;
-  let imageRepo: ReturnType<typeof createRepositoryMock>;
-  let certRepo: ReturnType<typeof createRepositoryMock>;
-  let categoryRepo: ReturnType<typeof createRepositoryMock>;
-  let wishlistRepo: ReturnType<typeof createRepositoryMock>;
+  let productRepository: ReturnType<typeof createProductRepositoryMock>;
+  let productCatalogQuery: ReturnType<typeof createProductCatalogQueryMock>;
+  let productDetailQuery: ReturnType<typeof createProductDetailQueryMock>;
+  let productCategoryQuery: ReturnType<typeof createProductCategoryQueryMock>;
+  let productImageRepository: ReturnType<typeof createProductImageRepositoryMock>;
+  let productCertificationRepository: ReturnType<
+    typeof createProductCertificationRepositoryMock
+  >;
+  let productWishlistRepository: ReturnType<
+    typeof createProductWishlistRepositoryMock
+  >;
+  let productSeedRepository: ReturnType<typeof createProductSeedRepositoryMock>;
   let notificationPublisher: { publish: jest.Mock };
-  let dataSource: { transaction: jest.Mock; query: jest.Mock };
 
   beforeEach(() => {
-    productRepo = createRepositoryMock();
-    imageRepo = createRepositoryMock();
-    certRepo = createRepositoryMock();
-    categoryRepo = createRepositoryMock();
-    wishlistRepo = createRepositoryMock();
+    productRepository = createProductRepositoryMock();
+    productCatalogQuery = createProductCatalogQueryMock();
+    productDetailQuery = createProductDetailQueryMock();
+    productCategoryQuery = createProductCategoryQueryMock();
+    productImageRepository = createProductImageRepositoryMock();
+    productCertificationRepository = createProductCertificationRepositoryMock();
+    productWishlistRepository = createProductWishlistRepositoryMock();
+    productSeedRepository = createProductSeedRepositoryMock();
     notificationPublisher = { publish: jest.fn().mockResolvedValue(undefined) };
-    dataSource = {
-      transaction: jest.fn(),
-      query: jest.fn(),
-    };
 
     service = new ProductsService(
-      productRepo as never,
-      imageRepo as never,
-      certRepo as never,
-      categoryRepo as never,
-      wishlistRepo as never,
+      productRepository as never,
+      productCatalogQuery as never,
+      productDetailQuery as never,
+      productCategoryQuery as never,
+      productImageRepository as never,
+      productCertificationRepository as never,
+      productWishlistRepository as never,
+      productSeedRepository as never,
       notificationPublisher,
-      dataSource as never,
     );
   });
 
-  describe('public catalog query', () => {
-    it('keeps public listing active-only even when a status filter is provided', async () => {
-      const queryBuilder = createQueryBuilderMock<Product>([[], 0]);
-      productRepo.createQueryBuilder.mockReturnValue(queryBuilder);
-
-      await service.findAll({
-        page: 2,
-        limit: 10,
-        search: 'xoai',
-        sellerId: OTHER_SELLER_ID,
-        status: ProductStatus.DRAFT,
-        sortBy: 'pricePerUnit',
-        order: 'ASC',
-      });
-
-      expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.pricePerUnit', 'ASC');
-      expect(queryBuilder.skip).toHaveBeenCalledWith(10);
-      expect(queryBuilder.take).toHaveBeenCalledWith(10);
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-        'p.name ILIKE :search OR p.description ILIKE :search',
-        { search: '%xoai%' },
-      );
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-        'p.sellerId = :sellerId',
-        { sellerId: OTHER_SELLER_ID },
-      );
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('p.status = :status', {
-        status: ProductStatus.ACTIVE,
-      });
-      expect(queryBuilder.andWhere).not.toHaveBeenCalledWith(
-        'p.status = :status',
-        { status: ProductStatus.DRAFT },
-      );
-    });
-
-    it('allows the current seller to filter their own products by non-active status', async () => {
-      const queryBuilder = createQueryBuilderMock<Product>([[], 0]);
-      productRepo.createQueryBuilder.mockReturnValue(queryBuilder);
+  describe('queries', () => {
+    it('delegates public catalog query with current user context', async () => {
+      productCatalogQuery.findAll.mockResolvedValue({ data: [], total: 0 });
 
       await service.findAll(
         {
+          search: 'xoai',
           sellerId: SELLER_ID,
           status: ProductStatus.DRAFT,
+          sortBy: 'pricePerUnit',
+          order: 'ASC',
         },
         SELLER_ID,
       );
 
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-        'p.sellerId = :sellerId',
-        { sellerId: SELLER_ID },
+      expect(productCatalogQuery.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: 'xoai',
+          sellerId: SELLER_ID,
+          status: ProductStatus.DRAFT,
+          sortBy: 'pricePerUnit',
+          order: 'ASC',
+        }),
+        SELLER_ID,
       );
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('p.status = :status', {
-        status: ProductStatus.DRAFT,
-      });
     });
 
-    it('keeps wishlist listing active-only and paginated', async () => {
-      const activeProduct = makeProduct({ id: PRODUCT_ID });
-      const queryBuilder = createQueryBuilderMock<Wishlist>([
-        [{ product: activeProduct } as Wishlist],
-        1,
-      ]);
-      wishlistRepo.createQueryBuilder.mockReturnValue(queryBuilder);
+    it('delegates product detail lookup and maps missing product to NotFoundException', async () => {
+      productDetailQuery.findOne.mockResolvedValue(null);
 
-      const result = await service.getWishlist(USER_ID, {
-        page: 3,
-        limit: 5,
-      });
+      await expect(service.findOne(PRODUCT_ID)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
 
-      expect(queryBuilder.where).toHaveBeenCalledWith('w.userId = :userId', {
-        userId: USER_ID,
-      });
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('p.status = :status', {
-        status: ProductStatus.ACTIVE,
-      });
-      expect(queryBuilder.skip).toHaveBeenCalledWith(10);
-      expect(queryBuilder.take).toHaveBeenCalledWith(5);
-      expect(result).toEqual({
-        data: [activeProduct],
+    it('delegates wishlist listing to the wishlist port', async () => {
+      const result = {
+        data: [makeProduct()],
         total: 1,
         page: 3,
         limit: 5,
-      });
+      };
+      productWishlistRepository.getWishlist.mockResolvedValue(result);
+
+      await expect(
+        service.getWishlist(USER_ID, { page: 3, limit: 5 }),
+      ).resolves.toBe(result);
+      expect(productWishlistRepository.getWishlist).toHaveBeenCalledWith(
+        USER_ID,
+        { page: 3, limit: 5 },
+      );
     });
   });
 
   describe('seller product commands', () => {
-    it('creates a draft product and normalizes image/certification defaults', async () => {
+    it('creates a draft product through the repository port', async () => {
       const savedProduct = makeProduct({ status: ProductStatus.DRAFT });
-      const manager = {
-        create: jest.fn((_entity, value) => value),
-        save: jest.fn(async (entity, value) => {
-          if (entity === Product) return { ...value, id: PRODUCT_ID };
-          return value;
-        }),
-        findOneOrFail: jest.fn().mockResolvedValue(savedProduct),
-      };
-      dataSource.transaction.mockImplementation(async (work) => work(manager));
+      productRepository.create.mockResolvedValue(savedProduct);
 
-      const result = await service.create(SELLER_ID, SellerType.FARMER, {
+      const input = {
         name: 'Xoai cat Hoa Loc',
         pricePerUnit: 25000,
         unit: ProductUnit.KG,
@@ -175,44 +141,26 @@ describe('ProductsService contract', () => {
             expiryDate: '2027-06-01',
           },
         ],
-      });
+      };
+
+      const result = await service.create(
+        SELLER_ID,
+        SellerType.FARMER,
+        input,
+      );
 
       expect(result).toBe(savedProduct);
-      expect(manager.create).toHaveBeenCalledWith(
-        Product,
-        expect.objectContaining({
-          sellerId: SELLER_ID,
-          sellerType: SellerType.FARMER,
-          status: ProductStatus.DRAFT,
-        }),
-      );
-      expect(manager.save).toHaveBeenCalledWith(
-        ProductImage,
-        [
-          expect.objectContaining({
-            productId: PRODUCT_ID,
-            imageUrl: 'https://example.test/product.jpg',
-            isPrimary: true,
-            sortOrder: 0,
-          }),
-        ],
-      );
-      expect(manager.save).toHaveBeenCalledWith(
-        ProductCertification,
-        [
-          expect.objectContaining({
-            productId: PRODUCT_ID,
-            certType: CertType.VIETGAP,
-            certNumber: 'VG-001',
-            isVerified: false,
-            status: CertificationStatus.PENDING,
-          }),
-        ],
+      expect(productRepository.create).toHaveBeenCalledWith(
+        SELLER_ID,
+        SellerType.FARMER,
+        input,
       );
     });
 
     it('blocks non-owners from mutating seller-owned products', async () => {
-      productRepo.findOne.mockResolvedValue(makeProduct({ sellerId: SELLER_ID }));
+      productRepository.findByIdWithRelations.mockResolvedValue(
+        makeProduct({ sellerId: SELLER_ID }),
+      );
 
       await expect(
         service.update(PRODUCT_ID, OTHER_SELLER_ID, { name: 'Ten moi' }),
@@ -222,10 +170,10 @@ describe('ProductsService contract', () => {
 
   describe('status flow', () => {
     it('lets a seller submit a draft product for approval and publishes a status notification', async () => {
-      productRepo.findOne.mockResolvedValue(
+      productRepository.findByIdWithRelations.mockResolvedValue(
         makeProduct({ sellerId: SELLER_ID, status: ProductStatus.DRAFT }),
       );
-      productRepo.save.mockImplementation(async (product) => product);
+      productRepository.save.mockImplementation(async (product) => product);
 
       const result = await service.updateStatus(
         PRODUCT_ID,
@@ -235,7 +183,7 @@ describe('ProductsService contract', () => {
       );
 
       expect(result.status).toBe(ProductStatus.PENDING_APPROVAL);
-      expect(productRepo.save).toHaveBeenCalledWith(
+      expect(productRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           status: ProductStatus.PENDING_APPROVAL,
           rejectionReason: null,
@@ -255,14 +203,14 @@ describe('ProductsService contract', () => {
     });
 
     it('lets an admin approve a pending product with stock and publishes product approved notification', async () => {
-      productRepo.findOne.mockResolvedValue(
+      productRepository.findByIdWithRelations.mockResolvedValue(
         makeProduct({
           sellerId: SELLER_ID,
           status: ProductStatus.PENDING_APPROVAL,
           availableQuantity: 10,
         }),
       );
-      productRepo.save.mockImplementation(async (product) => product);
+      productRepository.save.mockImplementation(async (product) => product);
 
       const result = await service.updateStatus(
         PRODUCT_ID,
@@ -281,7 +229,7 @@ describe('ProductsService contract', () => {
     });
 
     it('rejects invalid status transitions', async () => {
-      productRepo.findOne.mockResolvedValue(
+      productRepository.findByIdWithRelations.mockResolvedValue(
         makeProduct({
           sellerId: SELLER_ID,
           status: ProductStatus.ACTIVE,
@@ -296,12 +244,12 @@ describe('ProductsService contract', () => {
           ProductStatus.PENDING_APPROVAL,
         ),
       ).rejects.toThrow(BadRequestException);
-      expect(productRepo.save).not.toHaveBeenCalled();
+      expect(productRepository.save).not.toHaveBeenCalled();
       expect(notificationPublisher.publish).not.toHaveBeenCalled();
     });
 
     it('requires positive stock before approving an active product', async () => {
-      productRepo.findOne.mockResolvedValue(
+      productRepository.findByIdWithRelations.mockResolvedValue(
         makeProduct({
           sellerId: SELLER_ID,
           status: ProductStatus.PENDING_APPROVAL,
@@ -323,8 +271,12 @@ describe('ProductsService contract', () => {
   describe('certification verification', () => {
     it('verifies a pending certification as admin/state-agency flow', async () => {
       const certification = makeCertification();
-      certRepo.findOne.mockResolvedValue(certification);
-      certRepo.save.mockImplementation(async (cert) => cert);
+      productCertificationRepository.findByIdWithProduct.mockResolvedValue(
+        certification,
+      );
+      productCertificationRepository.saveCertification.mockImplementation(
+        async (cert) => cert,
+      );
 
       const result = await service.verifyCertification(CERT_ID, ADMIN_ID, {
         status: CertificationStatus.VERIFIED,
@@ -341,7 +293,9 @@ describe('ProductsService contract', () => {
     });
 
     it('requires a rejection reason when rejecting certification', async () => {
-      certRepo.findOne.mockResolvedValue(makeCertification());
+      productCertificationRepository.findByIdWithProduct.mockResolvedValue(
+        makeCertification(),
+      );
 
       await expect(
         service.verifyCertification(CERT_ID, ADMIN_ID, {
@@ -354,68 +308,94 @@ describe('ProductsService contract', () => {
 
   describe('wishlist commands', () => {
     it('requires an active product before adding to wishlist', async () => {
-      productRepo.findOne.mockResolvedValue(null);
+      productRepository.findActiveById.mockResolvedValue(null);
 
       await expect(service.addToWishlist(USER_ID, PRODUCT_ID)).rejects.toThrow(
         NotFoundException,
       );
-      expect(wishlistRepo.save).not.toHaveBeenCalled();
+      expect(productWishlistRepository.addWishlist).not.toHaveBeenCalled();
     });
 
     it('keeps add-to-wishlist idempotent', async () => {
       const existing = makeWishlist();
-      productRepo.findOne.mockResolvedValue(
+      productRepository.findActiveById.mockResolvedValue(
         makeProduct({ status: ProductStatus.ACTIVE }),
       );
-      wishlistRepo.findOne.mockResolvedValue(existing);
+      productWishlistRepository.findByUserAndProduct.mockResolvedValue(existing);
 
       const result = await service.addToWishlist(USER_ID, PRODUCT_ID);
 
       expect(result).toBe(existing);
-      expect(wishlistRepo.create).not.toHaveBeenCalled();
-      expect(wishlistRepo.save).not.toHaveBeenCalled();
+      expect(productWishlistRepository.addWishlist).not.toHaveBeenCalled();
     });
   });
 });
 
-function createRepositoryMock() {
+function createProductRepositoryMock() {
   return {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn((value) => value),
-    save: jest.fn(async (value) => value),
-    update: jest.fn(),
-    count: jest.fn(),
-    remove: jest.fn(),
-    delete: jest.fn(),
-    clear: jest.fn(),
-    query: jest.fn(),
-    increment: jest.fn(),
-    createQueryBuilder: jest.fn(),
+    create: jest.fn(),
+    findByIdWithRelations: jest.fn(),
+    findActiveById: jest.fn(),
+    save: jest.fn(),
   };
 }
 
-function createQueryBuilderMock<TEntity>(
-  itemsAndTotal: [TEntity[], number] = [[], 0],
-) {
-  const queryBuilder = {
-    leftJoinAndSelect: jest.fn(),
-    innerJoinAndSelect: jest.fn(),
-    orderBy: jest.fn(),
-    skip: jest.fn(),
-    take: jest.fn(),
-    andWhere: jest.fn(),
-    where: jest.fn(),
-    getManyAndCount: jest.fn().mockResolvedValue(itemsAndTotal),
+function createProductCatalogQueryMock() {
+  return {
+    findAll: jest.fn(),
+    findMine: jest.fn(),
   };
+}
 
-  Object.values(queryBuilder).forEach((method) => {
-    if (jest.isMockFunction(method) && method !== queryBuilder.getManyAndCount) {
-      method.mockReturnValue(queryBuilder);
-    }
-  });
+function createProductDetailQueryMock() {
+  return {
+    findOne: jest.fn(),
+  };
+}
 
-  return queryBuilder;
+function createProductCategoryQueryMock() {
+  return {
+    findRootCategories: jest.fn(),
+    getCategoryTree: jest.fn(),
+    findAllCategories: jest.fn(),
+  };
+}
+
+function createProductImageRepositoryMock() {
+  return {
+    addImage: jest.fn(),
+    removeImageByProduct: jest.fn(),
+  };
+}
+
+function createProductCertificationRepositoryMock() {
+  return {
+    addCertification: jest.fn(),
+    findPending: jest.fn(),
+    findByIdWithProduct: jest.fn(),
+    saveCertification: jest.fn(),
+    removeCertificationByProduct: jest.fn(),
+  };
+}
+
+function createProductWishlistRepositoryMock() {
+  return {
+    findByUserAndProduct: jest.fn(),
+    addWishlist: jest.fn(),
+    remove: jest.fn(),
+    getWishlist: jest.fn(),
+    getWishlistedIds: jest.fn(),
+  };
+}
+
+function createProductSeedRepositoryMock() {
+  return {
+    seedCategories: jest.fn(),
+    countProducts: jest.fn(),
+    resetProducts: jest.fn(),
+    saveSeedProducts: jest.fn(),
+    savePrimaryImagesForProducts: jest.fn(),
+  };
 }
 
 function makeCategory(overrides: Partial<ProductCategory> = {}): ProductCategory {

@@ -5,8 +5,6 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
 
 import { Product } from '../domain/entities/product.entity';
 import { ProductCategory } from '../domain/entities/product-category.entity';
@@ -25,79 +23,80 @@ import {
   NOTIFICATION_PUBLISHER,
   NotificationPublisherPort,
 } from '@modules/notifications/application/ports/inbound/notification-publisher.port';
+import { ProductDetailResponse } from './models/product-detail.model';
 import {
-  ProductDetailCategory,
-  ProductDetailLocation,
-  ProductDetailResponse,
-  ProductDetailSeller,
-} from './models/product-detail.model';
+  PRODUCT_CATALOG_QUERY,
+  PRODUCT_CATEGORY_QUERY,
+  PRODUCT_CERTIFICATION_REPOSITORY,
+  PRODUCT_DETAIL_QUERY,
+  PRODUCT_IMAGE_REPOSITORY,
+  PRODUCT_REPOSITORY,
+  PRODUCT_SEED_REPOSITORY,
+  PRODUCT_WISHLIST_REPOSITORY,
+  ProductCatalogQueryPort,
+  ProductCategoryQueryPort,
+  ProductCertificationRepositoryPort,
+  ProductDetailQueryPort,
+  ProductImageRepositoryPort,
+  ProductRepositoryPort,
+  ProductSeedRepositoryPort,
+  ProductWishlistRepositoryPort,
+} from './ports/outbound/product-repository.port';
 import {
   CertificationStatus,
+  FarmingType,
   NotifType,
   ProductStatus,
+  ProductUnit,
   SellerType,
   UserRole,
 } from '@common/enums';
-import { seedProductCategories } from '../infrastructure/database/seeds/product-category.seed';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
+    @Inject(PRODUCT_REPOSITORY)
+    private readonly productRepository: ProductRepositoryPort,
 
-    @InjectRepository(ProductImage)
-    private readonly imageRepo: Repository<ProductImage>,
+    @Inject(PRODUCT_CATALOG_QUERY)
+    private readonly productCatalogQuery: ProductCatalogQueryPort,
 
-    @InjectRepository(ProductCertification)
-    private readonly certRepo: Repository<ProductCertification>,
+    @Inject(PRODUCT_DETAIL_QUERY)
+    private readonly productDetailQuery: ProductDetailQueryPort,
 
-    @InjectRepository(ProductCategory)
-    private readonly categoryRepo: Repository<ProductCategory>,
+    @Inject(PRODUCT_CATEGORY_QUERY)
+    private readonly productCategoryQuery: ProductCategoryQueryPort,
 
-    @InjectRepository(Wishlist)
-    private readonly wishlistRepo: Repository<Wishlist>,
+    @Inject(PRODUCT_IMAGE_REPOSITORY)
+    private readonly productImageRepository: ProductImageRepositoryPort,
+
+    @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
+    private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+
+    @Inject(PRODUCT_WISHLIST_REPOSITORY)
+    private readonly productWishlistRepository: ProductWishlistRepositoryPort,
+
+    @Inject(PRODUCT_SEED_REPOSITORY)
+    private readonly productSeedRepository: ProductSeedRepositoryPort,
 
     @Inject(NOTIFICATION_PUBLISHER)
     private readonly notificationPublisher: NotificationPublisherPort,
-
-    private readonly dataSource: DataSource,
   ) { }
 
   // ─── Categories ───────────────────────────────────────────────
 
   /** Root categories only (parentId null) — used by `GET /products/categories`. */
   async findCategories(): Promise<ProductCategory[]> {
-    return this.categoryRepo.find({
-      where: { parentId: null as unknown as string, isActive: true },
-      order: { sortOrder: 'ASC' },
-    });
+    return this.productCategoryQuery.findRootCategories();
   }
 
   /** Full 2-level tree (roots + nested children) — used by search filter. */
   async getCategoryTree(): Promise<ProductCategory[]> {
-    const all = await this.categoryRepo.find({
-      where: { isActive: true },
-      order: { sortOrder: 'ASC', name: 'ASC' },
-    });
-
-    const byParent = new Map<string | null, ProductCategory[]>();
-    for (const c of all) {
-      const key = c.parentId ?? null;
-      if (!byParent.has(key)) byParent.set(key, []);
-      byParent.get(key)!.push(c);
-    }
-
-    const roots = byParent.get(null) ?? [];
-    for (const r of roots) {
-      (r as ProductCategory & { children: ProductCategory[] }).children =
-        byParent.get(r.id) ?? [];
-    }
-    return roots;
+    return this.productCategoryQuery.getCategoryTree();
   }
 
   async seedCategories(): Promise<void> {
-    await seedProductCategories(this.dataSource);
+    await this.productSeedRepository.seedCategories();
   }
 
   // ─── Create ──────────────────────────────────────────────────
@@ -107,56 +106,7 @@ export class ProductsService {
     sellerType: SellerType,
     dto: CreateProductInput,
   ): Promise<Product> {
-    const { images = [], certifications = [], ...productData } = dto;
-
-    return this.dataSource.transaction(async (manager) => {
-      const product = manager.create(Product, {
-        ...productData,
-        sellerId,
-        sellerType,
-        status: ProductStatus.DRAFT,
-      });
-      const savedProduct = await manager.save(Product, product);
-
-      if (images.length > 0) {
-        const hasPrimary = images.some((img) => img.isPrimary);
-        await manager.save(
-          ProductImage,
-          images.map((img, index) =>
-            manager.create(ProductImage, {
-              productId: savedProduct.id,
-              imageUrl: img.imageUrl,
-              isPrimary: hasPrimary ? !!img.isPrimary : index === 0,
-              sortOrder: img.sortOrder ?? index,
-            }),
-          ),
-        );
-      }
-
-      if (certifications.length > 0) {
-        await manager.save(
-          ProductCertification,
-          certifications.map((cert) =>
-            manager.create(ProductCertification, {
-              productId: savedProduct.id,
-              certType: cert.certType,
-              certNumber: cert.certNumber ?? null,
-              issuedBy: cert.issuedBy ?? null,
-              issuedDate: cert.issuedDate as any,
-              expiryDate: cert.expiryDate as any,
-              documentUrl: cert.documentUrl ?? null,
-              isVerified: false,
-              status: CertificationStatus.PENDING,
-            }),
-          ),
-        );
-      }
-
-      return manager.findOneOrFail(Product, {
-        where: { id: savedProduct.id },
-        relations: ['category', 'category.parent', 'images', 'certifications'],
-      });
-    });
+    return this.productRepository.create(sellerId, sellerType, dto);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────
@@ -165,122 +115,21 @@ export class ProductsService {
     filter: ProductFilterInput,
     currentUserId?: string,
   ): Promise<{ data: Product[]; total: number }> {
-    const { page = 1, limit = 20, search, categoryId, provinceId,
-      farmingType, status, minPrice, maxPrice, sellerId, isFeatured,
-      sortBy = 'createdAt', order = 'DESC' } = filter;
-
-    const SORT_COLUMN_MAP: Record<string, string> = {
-      createdAt: 'p.createdAt',
-      pricePerUnit: 'p.pricePerUnit',
-      name: 'p.name',
-      soldCount: 'p.soldCount',
-      avgRating: 'p.avgRating',
-    };
-
-    const qb = this.productRepo
-      .createQueryBuilder('p')
-      .leftJoinAndSelect('p.category', 'category')
-      .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
-      .leftJoinAndSelect(
-        'p.certifications',
-        'certifications',
-        'certifications.status = :verifiedCertificationStatus',
-        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
-      )
-      .orderBy(SORT_COLUMN_MAP[sortBy], order)
-      .skip((page - 1) * limit)
-      .take(limit);
-
-    if (search) {
-      qb.andWhere(
-        'p.name ILIKE :search OR p.description ILIKE :search',
-        { search: `%${search}%` },
-      );
-    }
-
-    if (categoryId) qb.andWhere('p.categoryId = :categoryId', { categoryId });
-    if (provinceId) qb.andWhere('p.provinceId = :provinceId', { provinceId });
-    if (farmingType) qb.andWhere('p.farmingType = :farmingType', { farmingType });
-    if (isFeatured !== undefined) qb.andWhere('p.isFeatured = :isFeatured', { isFeatured });
-
-    if (sellerId && sellerId === currentUserId) {
-      qb.andWhere('p.sellerId = :sellerId', { sellerId });
-      if (status) qb.andWhere('p.status = :status', { status });
-    } else if (sellerId) {
-      qb.andWhere('p.sellerId = :sellerId', { sellerId });
-      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
-    } else {
-      qb.andWhere('p.status = :status', { status: ProductStatus.ACTIVE });
-    }
-    if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
-    if (maxPrice !== undefined) qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
-
-    const [data, total] = await qb.getManyAndCount();
-    return { data, total };
+    return this.productCatalogQuery.findAll(filter, currentUserId);
   }
 
   async findMine(
     sellerId: string,
     filter: ProductFilterInput,
   ): Promise<{ data: Product[]; total: number }> {
-    const {
-      page = 1,
-      limit = 20,
-      search,
-      categoryId,
-      provinceId,
-      farmingType,
-      status,
-      minPrice,
-      maxPrice,
-      sortBy = 'createdAt',
-      order = 'DESC',
-    } = filter;
-
-    const SORT_COLUMN_MAP: Record<string, string> = {
-      createdAt: 'p.createdAt',
-      pricePerUnit: 'p.pricePerUnit',
-      name: 'p.name',
-      soldCount: 'p.soldCount',
-      avgRating: 'p.avgRating',
-    };
-
-    const qb = this.productRepo
-      .createQueryBuilder('p')
-      .leftJoinAndSelect('p.category', 'category')
-      .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
-      .leftJoinAndSelect('p.certifications', 'certifications')
-      .where('p.sellerId = :sellerId', { sellerId })
-      .orderBy(SORT_COLUMN_MAP[sortBy], order)
-      .skip((page - 1) * limit)
-      .take(limit);
-
-    if (search) {
-      qb.andWhere(
-        'p.name ILIKE :search OR p.description ILIKE :search',
-        { search: `%${search}%` },
-      );
-    }
-
-    if (categoryId) qb.andWhere('p.categoryId = :categoryId', { categoryId });
-    if (provinceId) qb.andWhere('p.provinceId = :provinceId', { provinceId });
-    if (farmingType) qb.andWhere('p.farmingType = :farmingType', { farmingType });
-    if (status) qb.andWhere('p.status = :status', { status });
-    if (minPrice !== undefined) qb.andWhere('p.pricePerUnit >= :minPrice', { minPrice });
-    if (maxPrice !== undefined) qb.andWhere('p.pricePerUnit <= :maxPrice', { maxPrice });
-
-    const [data, total] = await qb.getManyAndCount();
-    return { data, total };
+    return this.productCatalogQuery.findMine(sellerId, filter);
   }
 
   // ─── Find One ─────────────────────────────────────────────────
 
   /** Internal lookup — entity only, used by update/remove/etc. */
   private async findEntityOrFail(id: string): Promise<Product> {
-    const product = await this.productRepo.findOne({
-      where: { id },
-      relations: ['category', 'category.parent', 'images', 'certifications'],
-    });
+    const product = await this.productRepository.findByIdWithRelations(id);
     if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
     return product;
   }
@@ -290,198 +139,9 @@ export class ProductsService {
    * (avoids cross-module entity coupling with P1's auth/profiles).
    */
   async findOne(id: string): Promise<ProductDetailResponse> {
-    const product = await this.findEntityOrFail(id);
-
-    // Fire-and-forget view counter (don't block response)
-    void this.productRepo.increment({ id }, 'viewCount', 1).catch(() => undefined);
-
-    const [seller, province, district] = await Promise.all([
-      this.populateSeller(product.sellerId, product.sellerType),
-      this.findLocation('provinces', product.provinceId),
-      this.findLocation('districts', product.districtId),
-    ]);
-
-    return this.toDetailResponse(product, seller, province, district);
-  }
-
-  // ─── Populate helpers ─────────────────────────────────────────
-
-  private async populateSeller(
-    sellerId: string,
-    sellerType: SellerType,
-  ): Promise<ProductDetailSeller | null> {
-    const userRows = await this.dataSource.query(
-      `SELECT id, full_name AS "fullName", phone, avatar_url AS "avatarUrl"
-       FROM users WHERE id = $1 LIMIT 1`,
-      [sellerId],
-    );
-    const user = userRows[0];
-    if (!user) return null;
-
-    const seller: ProductDetailSeller = {
-      id: user.id,
-      fullName: user.fullName,
-      phone: user.phone,
-      avatarUrl: user.avatarUrl,
-      sellerType,
-    };
-
-    let profileProvinceId: string | null = null;
-
-    if (sellerType === SellerType.FARMER) {
-      const rows = await this.dataSource.query(
-        `SELECT bio, farm_name AS "farmName", experience_years AS "experienceYears",
-                province_id AS "provinceId"
-         FROM farmer_profiles WHERE user_id = $1 LIMIT 1`,
-        [sellerId],
-      );
-      if (rows[0]) {
-        seller.bio = rows[0].bio ?? null;
-        seller.farmName = rows[0].farmName ?? null;
-        seller.experienceYears = rows[0].experienceYears ?? null;
-        profileProvinceId = rows[0].provinceId ?? null;
-      }
-    } else if (sellerType === SellerType.COOPERATIVE) {
-      const rows = await this.dataSource.query(
-        `SELECT cooperative_name AS "cooperativeName", member_count AS "memberCount",
-                province_id AS "provinceId"
-         FROM cooperative_profiles WHERE user_id = $1 LIMIT 1`,
-        [sellerId],
-      );
-      if (rows[0]) {
-        seller.cooperativeName = rows[0].cooperativeName;
-        seller.memberCount = rows[0].memberCount ?? 0;
-        profileProvinceId = rows[0].provinceId ?? null;
-      }
-    } else if (sellerType === SellerType.SUPPLIER) {
-      const rows = await this.dataSource.query(
-        `SELECT company_name AS "companyName", supplier_type AS "supplierType",
-                province_id AS "provinceId"
-         FROM supplier_profiles WHERE user_id = $1 LIMIT 1`,
-        [sellerId],
-      );
-      if (rows[0]) {
-        seller.companyName = rows[0].companyName;
-        seller.supplierType = rows[0].supplierType ?? null;
-        profileProvinceId = rows[0].provinceId ?? null;
-      }
-    }
-
-    if (profileProvinceId) {
-      seller.province = await this.findLocation('provinces', profileProvinceId);
-    }
-
-    return seller;
-  }
-
-  private async findLocation(
-    table: 'provinces' | 'districts',
-    id: string | null | undefined,
-  ): Promise<ProductDetailLocation | null> {
-    if (!id) return null;
-    const cols =
-      table === 'provinces'
-        ? 'id, name, code, region'
-        : 'id, name, code';
-    const rows = await this.dataSource.query(
-      `SELECT ${cols} FROM ${table} WHERE id = $1 LIMIT 1`,
-      [id],
-    );
-    const row = rows[0];
-    if (!row) return null;
-    return {
-      id: row.id,
-      name: row.name,
-      code: row.code ?? null,
-      region: row.region ?? null,
-    };
-  }
-
-  private toDetailResponse(
-    p: Product,
-    seller: ProductDetailSeller | null,
-    province: ProductDetailLocation | null,
-    district: ProductDetailLocation | null,
-  ): ProductDetailResponse {
-    const toIsoDate = (d: Date | string | null | undefined): string | null => {
-      if (!d) return null;
-      return typeof d === 'string' ? d : d.toISOString();
-    };
-
-    const category: ProductDetailCategory | null = p.category
-      ? {
-          id: p.category.id,
-          name: p.category.name,
-          slug: p.category.slug,
-          iconUrl: p.category.iconUrl ?? null,
-          description: p.category.description ?? null,
-          parent: p.category.parent
-            ? {
-                id: p.category.parent.id,
-                name: p.category.parent.name,
-                slug: p.category.parent.slug,
-              }
-            : null,
-        }
-      : null;
-
-    const images = (p.images ?? [])
-      .slice()
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map((img) => ({
-        id: img.id,
-        imageUrl: img.imageUrl,
-        altText: img.altText ?? null,
-        sortOrder: img.sortOrder,
-        isPrimary: img.isPrimary,
-      }));
-
-    const certifications = (p.certifications ?? []).map((c) => ({
-      id: c.id,
-      certType: c.certType,
-      certNumber: c.certNumber ?? null,
-      issuedBy: c.issuedBy ?? null,
-      issuedDate: toIsoDate(c.issuedDate),
-      expiryDate: toIsoDate(c.expiryDate),
-      documentUrl: c.documentUrl ?? null,
-      isVerified: c.isVerified,
-      status: c.status,
-      verifiedBy: c.verifiedBy ?? null,
-      verifiedAt: toIsoDate(c.verifiedAt),
-      rejectionReason: c.rejectionReason ?? null,
-    }));
-
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description ?? null,
-      sku: p.sku ?? null,
-      variety: p.variety ?? null,
-      pricePerUnit: Number(p.pricePerUnit),
-      unit: p.unit,
-      availableQuantity: Number(p.availableQuantity),
-      minOrderQuantity: p.minOrderQuantity != null ? Number(p.minOrderQuantity) : null,
-      farmingType: p.farmingType ?? null,
-      status: p.status,
-      harvestDate: toIsoDate(p.harvestDate),
-      expiryDate: toIsoDate(p.expiryDate),
-      rejectionReason: p.rejectionReason ?? null,
-      isFeatured: p.isFeatured,
-      viewCount: p.viewCount,
-      soldCount: Number(p.soldCount ?? 0),
-      avgRating: Number(p.avgRating ?? 0),
-      farmLatitude: p.farmLatitude ?? null,
-      farmLongitude: p.farmLongitude ?? null,
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-
-      province,
-      district,
-      category,
-      images,
-      certifications,
-      seller,
-    };
+    const product = await this.productDetailQuery.findOne(id);
+    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
+    return product;
   }
 
   // ─── Update ───────────────────────────────────────────────────
@@ -490,7 +150,7 @@ export class ProductsService {
     const product = await this.findEntityOrFail(id);
     this.assertProductOwner(product, sellerId, 'chỉnh sửa');
     Object.assign(product, dto);
-    return this.productRepo.save(product);
+    return this.productRepository.save(product);
   }
 
   async updateStatus(
@@ -527,7 +187,7 @@ export class ProductsService {
     product.status = nextStatus;
     product.rejectionReason = null;
 
-    const saved = await this.productRepo.save(product);
+    const saved = await this.productRepository.save(product);
     await this.notifySellerStatusChanged(saved, previousStatus);
 
     return saved;
@@ -615,7 +275,7 @@ export class ProductsService {
     const product = await this.findEntityOrFail(id);
     this.assertProductOwner(product, sellerId, 'xóa');
     product.status = ProductStatus.DRAFT;
-    await this.productRepo.save(product);
+    await this.productRepository.save(product);
   }
 
   // ─── Images ───────────────────────────────────────────────────
@@ -628,29 +288,18 @@ export class ProductsService {
   ): Promise<ProductImage> {
     const product = await this.findEntityOrFail(productId);
     this.assertProductOwner(product, sellerId, 'thêm ảnh cho');
-
-    if (isPrimary) {
-      await this.imageRepo.update({ productId }, { isPrimary: false });
-    }
-    const count = await this.imageRepo.count({ where: { productId } });
-    const image = this.imageRepo.create({
-      productId,
-      imageUrl,
-      isPrimary,
-      sortOrder: count,
-    });
-    return this.imageRepo.save(image);
+    return this.productImageRepository.addImage(productId, imageUrl, isPrimary);
   }
 
   async removeImage(productId: string, imageId: string, sellerId: string): Promise<void> {
     const product = await this.findEntityOrFail(productId);
     this.assertProductOwner(product, sellerId, 'xóa ảnh của');
 
-    const image = await this.imageRepo.findOne({
-      where: { id: imageId, productId },
-    });
-    if (!image) throw new NotFoundException('Không tìm thấy ảnh');
-    await this.imageRepo.remove(image);
+    const removed = await this.productImageRepository.removeImageByProduct(
+      productId,
+      imageId,
+    );
+    if (!removed) throw new NotFoundException('Không tìm thấy ảnh');
   }
 
   // ─── Certifications ───────────────────────────────────────────
@@ -662,27 +311,11 @@ export class ProductsService {
   ): Promise<ProductCertification> {
     const product = await this.findEntityOrFail(productId);
     this.assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
-
-    const cert = this.certRepo.create({
-      ...dto,
-      productId,
-      issuedDate: dto.issuedDate as any,
-      expiryDate: dto.expiryDate as any,
-      isVerified: false,
-      status: CertificationStatus.PENDING,
-      verifiedBy: null,
-      verifiedAt: null,
-      rejectionReason: null,
-    });
-    return this.certRepo.save(cert);
+    return this.productCertificationRepository.addCertification(productId, dto);
   }
 
   async findPendingCertifications(): Promise<ProductCertification[]> {
-    return this.certRepo.find({
-      where: { status: CertificationStatus.PENDING },
-      relations: ['product'],
-      order: { createdAt: 'DESC' },
-    });
+    return this.productCertificationRepository.findPending();
   }
 
   async verifyCertification(
@@ -690,10 +323,9 @@ export class ProductsService {
     adminId: string,
     dto: VerifyProductCertificationInput,
   ): Promise<ProductCertification> {
-    const cert = await this.certRepo.findOne({
-      where: { id: certId },
-      relations: ['product'],
-    });
+    const cert = await this.productCertificationRepository.findByIdWithProduct(
+      certId,
+    );
     if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
 
     if (dto.status === CertificationStatus.PENDING) {
@@ -716,18 +348,19 @@ export class ProductsService {
         ? dto.rejectionReason.trim()
         : null;
 
-    return this.certRepo.save(cert);
+    return this.productCertificationRepository.saveCertification(cert);
   }
 
   async removeCertification(productId: string, certId: string, sellerId: string): Promise<void> {
     const product = await this.findEntityOrFail(productId);
     this.assertProductOwner(product, sellerId, 'xóa chứng nhận của');
 
-    const cert = await this.certRepo.findOne({
-      where: { id: certId, productId },
-    });
-    if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
-    await this.certRepo.remove(cert);
+    const removed =
+      await this.productCertificationRepository.removeCertificationByProduct(
+        productId,
+        certId,
+      );
+    if (!removed) throw new NotFoundException('Không tìm thấy chứng nhận');
   }
 
   private assertProductOwner(product: Product, sellerId: string, action: string): void {
@@ -739,91 +372,54 @@ export class ProductsService {
   // ─── Wishlist ─────────────────────────────────────────────────
 
   async addToWishlist(userId: string, productId: string): Promise<Wishlist> {
-    const product = await this.productRepo.findOne({
-      where: { id: productId, status: ProductStatus.ACTIVE },
-    });
+    const product = await this.productRepository.findActiveById(productId);
     if (!product) {
       throw new NotFoundException('Không tìm thấy sản phẩm hoạt động');
     }
 
-    const existing = await this.wishlistRepo.findOne({
-      where: { userId, productId },
-    });
+    const existing = await this.productWishlistRepository.findByUserAndProduct(
+      userId,
+      productId,
+    );
     if (existing) {
       return existing;
     }
 
-    const entry = this.wishlistRepo.create({ userId, productId });
-    return this.wishlistRepo.save(entry);
+    return this.productWishlistRepository.addWishlist(userId, productId);
   }
 
   async removeFromWishlist(userId: string, productId: string): Promise<void> {
-    await this.wishlistRepo.delete({ userId, productId });
+    await this.productWishlistRepository.remove(userId, productId);
   }
 
   async getWishlist(
     userId: string,
     query: WishlistQueryInput,
   ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 20;
-
-    const qb = this.wishlistRepo
-      .createQueryBuilder('w')
-      .innerJoinAndSelect('w.product', 'p')
-      .leftJoinAndSelect('p.category', 'category')
-      .leftJoinAndSelect('p.images', 'images', 'images.isPrimary = true')
-      .leftJoinAndSelect(
-        'p.certifications',
-        'certifications',
-        'certifications.status = :verifiedCertificationStatus',
-        { verifiedCertificationStatus: CertificationStatus.VERIFIED },
-      )
-      .where('w.userId = :userId', { userId })
-      .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
-      .orderBy('w.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
-
-    const [items, total] = await qb.getManyAndCount();
-    const data = items.map((item) => item.product);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
+    return this.productWishlistRepository.getWishlist(userId, query);
   }
 
   async getWishlistedIds(userId: string): Promise<string[]> {
-    const items = await this.wishlistRepo.find({
-      where: { userId },
-      select: ['productId'],
-    });
-    return items.map((item) => item.productId);
+    return this.productWishlistRepository.getWishlistedIds(userId);
   }
 
   // ─── Dev seed ─────────────────────────────────────────────────
 
   async resetAndSeed(): Promise<{ deleted: number; seeded: number }> {
-    const deleted = await this.productRepo.count();
-    await this.certRepo.clear();
-    await this.imageRepo.clear();
-    await this.productRepo.query('TRUNCATE TABLE products CASCADE');
+    const deleted = await this.productSeedRepository.resetProducts();
     const result = await this.seedMockData();
     return { deleted, seeded: result.seeded };
   }
 
   async seedMockData(): Promise<{ seeded: number; skipped: number }> {
-    const existing = await this.productRepo.count();
+    const existing = await this.productSeedRepository.countProducts();
     if (existing > 0) return { seeded: 0, skipped: existing };
 
     const F = '00000000-0000-0000-0000-000000000001'; // farmer
     const C = '00000000-0000-0000-0000-000000000002'; // cooperative
     const S = '00000000-0000-0000-0000-000000000003'; // supplier
 
-    const cats = await this.categoryRepo.find();
+    const cats = await this.productCategoryQuery.findAllCategories();
     const catId = (slug: string): string | undefined =>
       cats.find((c) => c.slug === slug)?.id;
 
@@ -838,103 +434,92 @@ export class ProductsService {
     const MO  = catId('mat-ong-dac-san');
     const HOA = catId('hoa-cay-canh');
 
-    type P = Parameters<typeof this.productRepo.create>[0];
+    type P = Partial<Product>;
 
     const mockProducts: P[] = [
       // ── Trái cây ──────────────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Xoài cát Hòa Lộc loại 1', description: 'Xoài cát Hòa Lộc chính gốc Tiền Giang, trái to đều, vỏ vàng óng, thịt dày ngọt thơm, ít xơ. Canh tác theo tiêu chuẩn VietGAP, không sử dụng chất kích thích tăng trưởng.', pricePerUnit: 45000, unit: 'kg' as any, availableQuantity: 500, minOrderQuantity: 10, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 1284, harvestDate: '2026-06-15' as any, expiryDate: '2026-06-22' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TC, name: 'Thanh long ruột đỏ xuất khẩu', description: 'Thanh long ruột đỏ Bình Thuận đạt chuẩn GlobalGAP, đủ điều kiện xuất khẩu sang EU và Nhật Bản. Trái đều, màu đỏ đậm, vị ngọt thanh.', pricePerUnit: 35000, unit: 'kg' as any, availableQuantity: 1000, minOrderQuantity: 50, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 2105, harvestDate: '2026-06-20' as any, expiryDate: '2026-06-27' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TC, name: 'Sầu riêng Ri6 Cai Lậy', description: 'Sầu riêng Ri6 vùng Cai Lậy – Tiền Giang, cơm vàng hạt lép, mùi thơm nồng đặc trưng. Thu hoạch đúng độ chín, không dùng chất thúc chín.', pricePerUnit: 85000, unit: 'kg' as any, availableQuantity: 600, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 3250, harvestDate: '2026-07-15' as any, expiryDate: '2026-07-22' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TC, name: 'Bưởi da xanh Bến Tre', description: 'Bưởi da xanh đặc sản Bến Tre, vỏ xanh bóng, múi to, tép mọng nước, vị ngọt ít đắng. Đạt VietGAP, trái đồng đều từ 1.2–1.8kg/trái.', pricePerUnit: 32000, unit: 'kg' as any, availableQuantity: 800, minOrderQuantity: 10, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 1120, harvestDate: '2026-07-01' as any, expiryDate: '2026-07-20' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Dưa hấu không hạt Long An', description: 'Dưa hấu không hạt trồng tại Long An, vỏ mỏng, ruột đỏ tươi, ngọt sắc. Trọng lượng 3–6kg/quả. Thích hợp dùng ngay hoặc làm nước ép.', pricePerUnit: 18000, unit: 'kg' as any, availableQuantity: 3000, minOrderQuantity: 30, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 987, harvestDate: '2026-06-10' as any, expiryDate: '2026-06-20' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Nhãn lồng Hưng Yên', description: 'Nhãn lồng chính gốc Hưng Yên, cùi dày, hạt nhỏ, vị ngọt đậm thơm. Mùa vụ tháng 7–8, thu hái khi trái chín đều. Không ướp hóa chất bảo quản.', pricePerUnit: 55000, unit: 'kg' as any, availableQuantity: 400, minOrderQuantity: 5, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1890, harvestDate: '2026-07-20' as any, expiryDate: '2026-07-30' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: TC, name: 'Vải thiều Lục Ngạn Bắc Giang', description: 'Vải thiều Lục Ngạn được cấp chỉ dẫn địa lý, xuất khẩu sang 30 quốc gia. Vỏ đỏ tươi, hạt nhỏ, cùi giòn ngọt. Đạt GlobalGAP và OCOP 4 sao.', pricePerUnit: 42000, unit: 'kg' as any, availableQuantity: 1500, minOrderQuantity: 20, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 4120, harvestDate: '2026-06-05' as any, expiryDate: '2026-06-15' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Cam sành Hà Giang', description: 'Cam sành vùng cao Hà Giang, vỏ sần xù đặc trưng, ruột vàng cam đẹp, vị chua ngọt hài hòa, nhiều vitamin C. Không dùng thuốc kích màu.', pricePerUnit: 38000, unit: 'kg' as any, availableQuantity: 700, minOrderQuantity: 10, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 654, harvestDate: '2026-01-15' as any, expiryDate: '2026-02-28' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TC, name: 'Dứa MD2 Ninh Bình', description: 'Dứa MD2 (dứa vàng) nhập giống từ Hawaii, trồng tại Ninh Bình. Ruột vàng, ít xơ, độ Brix 15–17, ngọt hơn dứa Queen thông thường 30%.', pricePerUnit: 28000, unit: 'kg' as any, availableQuantity: 900, minOrderQuantity: 15, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 776, harvestDate: '2026-05-10' as any, expiryDate: '2026-05-25' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Ổi lê Đài Loan không hạt', description: 'Ổi lê không hạt trồng theo quy trình VietGAP tại Bình Dương. Trái to tròn, vỏ xanh mướt, ruột trắng giòn ngọt nhẹ. Thích hợp làm quà biếu.', pricePerUnit: 35000, unit: 'kg' as any, availableQuantity: 300, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 512, harvestDate: '2026-05-20' as any, expiryDate: '2026-05-30' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Xoài cát Hòa Lộc loại 1', description: 'Xoài cát Hòa Lộc chính gốc Tiền Giang, trái to đều, vỏ vàng óng, thịt dày ngọt thơm, ít xơ. Canh tác theo tiêu chuẩn VietGAP, không sử dụng chất kích thích tăng trưởng.', pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 10, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1284, harvestDate: new Date('2026-06-15'), expiryDate: new Date('2026-06-22') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Thanh long ruột đỏ xuất khẩu', description: 'Thanh long ruột đỏ Bình Thuận đạt chuẩn GlobalGAP, đủ điều kiện xuất khẩu sang EU và Nhật Bản. Trái đều, màu đỏ đậm, vị ngọt thanh.', pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 1000, minOrderQuantity: 50, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 2105, harvestDate: new Date('2026-06-20'), expiryDate: new Date('2026-06-27') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Sầu riêng Ri6 Cai Lậy', description: 'Sầu riêng Ri6 vùng Cai Lậy – Tiền Giang, cơm vàng hạt lép, mùi thơm nồng đặc trưng. Thu hoạch đúng độ chín, không dùng chất thúc chín.', pricePerUnit: 85000, unit: ProductUnit.KG, availableQuantity: 600, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 3250, harvestDate: new Date('2026-07-15'), expiryDate: new Date('2026-07-22') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Bưởi da xanh Bến Tre', description: 'Bưởi da xanh đặc sản Bến Tre, vỏ xanh bóng, múi to, tép mọng nước, vị ngọt ít đắng. Đạt VietGAP, trái đồng đều từ 1.2–1.8kg/trái.', pricePerUnit: 32000, unit: ProductUnit.KG, availableQuantity: 800, minOrderQuantity: 10, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1120, harvestDate: new Date('2026-07-01'), expiryDate: new Date('2026-07-20') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Dưa hấu không hạt Long An', description: 'Dưa hấu không hạt trồng tại Long An, vỏ mỏng, ruột đỏ tươi, ngọt sắc. Trọng lượng 3–6kg/quả. Thích hợp dùng ngay hoặc làm nước ép.', pricePerUnit: 18000, unit: ProductUnit.KG, availableQuantity: 3000, minOrderQuantity: 30, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 987, harvestDate: new Date('2026-06-10'), expiryDate: new Date('2026-06-20') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Nhãn lồng Hưng Yên', description: 'Nhãn lồng chính gốc Hưng Yên, cùi dày, hạt nhỏ, vị ngọt đậm thơm. Mùa vụ tháng 7–8, thu hái khi trái chín đều. Không ướp hóa chất bảo quản.', pricePerUnit: 55000, unit: ProductUnit.KG, availableQuantity: 400, minOrderQuantity: 5, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1890, harvestDate: new Date('2026-07-20'), expiryDate: new Date('2026-07-30') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: TC, name: 'Vải thiều Lục Ngạn Bắc Giang', description: 'Vải thiều Lục Ngạn được cấp chỉ dẫn địa lý, xuất khẩu sang 30 quốc gia. Vỏ đỏ tươi, hạt nhỏ, cùi giòn ngọt. Đạt GlobalGAP và OCOP 4 sao.', pricePerUnit: 42000, unit: ProductUnit.KG, availableQuantity: 1500, minOrderQuantity: 20, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 4120, harvestDate: new Date('2026-06-05'), expiryDate: new Date('2026-06-15') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Cam sành Hà Giang', description: 'Cam sành vùng cao Hà Giang, vỏ sần xù đặc trưng, ruột vàng cam đẹp, vị chua ngọt hài hòa, nhiều vitamin C. Không dùng thuốc kích màu.', pricePerUnit: 38000, unit: ProductUnit.KG, availableQuantity: 700, minOrderQuantity: 10, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 654, harvestDate: new Date('2026-01-15'), expiryDate: new Date('2026-02-28') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Dứa MD2 Ninh Bình', description: 'Dứa MD2 (dứa vàng) nhập giống từ Hawaii, trồng tại Ninh Bình. Ruột vàng, ít xơ, độ Brix 15–17, ngọt hơn dứa Queen thông thường 30%.', pricePerUnit: 28000, unit: ProductUnit.KG, availableQuantity: 900, minOrderQuantity: 15, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 776, harvestDate: new Date('2026-05-10'), expiryDate: new Date('2026-05-25') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Ổi lê Đài Loan không hạt', description: 'Ổi lê không hạt trồng theo quy trình VietGAP tại Bình Dương. Trái to tròn, vỏ xanh mướt, ruột trắng giòn ngọt nhẹ. Thích hợp làm quà biếu.', pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 300, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 512, harvestDate: new Date('2026-05-20'), expiryDate: new Date('2026-05-30') },
 
       // ── Rau củ ────────────────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Rau muống hữu cơ Đà Lạt', description: 'Rau muống trồng theo hướng hữu cơ tại Đà Lạt, không thuốc trừ sâu, tươi ngon mỗi ngày. Phù hợp bếp ăn gia đình và nhà hàng.', pricePerUnit: 25000, unit: 'kg' as any, availableQuantity: 200, minOrderQuantity: 5, farmingType: 'organic' as any, status: 'active' as any, viewCount: 892, harvestDate: '2026-06-01' as any, expiryDate: '2026-06-05' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: RAU, name: 'Rau cải bắp VietGAP Lâm Đồng', description: 'Bắp cải trắng trồng tại cao nguyên Lâm Đồng 900m, khí hậu mát mẻ giúp cải giòn chắc, lá xanh đậm. Đạt chứng nhận VietGAP, cung cấp siêu thị.', pricePerUnit: 12000, unit: 'kg' as any, availableQuantity: 2000, minOrderQuantity: 50, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 445, harvestDate: '2026-05-28' as any, expiryDate: '2026-06-05' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Cà chua bi hữu cơ Đà Lạt', description: 'Cà chua bi hữu cơ 100% Đà Lạt, trồng trong nhà kính. Trái nhỏ đỏ đều, vị chua ngọt đậm, giàu lycopene. Không thuốc trừ sâu, phân hóa học.', pricePerUnit: 48000, unit: 'kg' as any, availableQuantity: 150, minOrderQuantity: 3, farmingType: 'organic' as any, status: 'active' as any, viewCount: 1230, harvestDate: '2026-06-03' as any, expiryDate: '2026-06-10' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: RAU, name: 'Khoai lang tím Nhật Vĩnh Long', description: 'Khoai lang tím giống Nhật trồng tại Vĩnh Long, củ đều đẹp, ruột tím đậm, hàm lượng anthocyanin cao. Xuất khẩu sang Nhật và Hàn Quốc.', pricePerUnit: 22000, unit: 'kg' as any, availableQuantity: 3000, minOrderQuantity: 100, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 2340, harvestDate: '2026-05-15' as any, expiryDate: '2026-08-15' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Bí đỏ Hokaido Gia Lai', description: 'Bí đỏ Hokaido (bí hồ lô Nhật) trồng tại Gia Lai, trọng lượng 1–2kg/quả, ruột vàng đặc, vị ngọt bùi. Tốt cho bé ăn dặm và người ăn kiêng.', pricePerUnit: 30000, unit: 'kg' as any, availableQuantity: 500, minOrderQuantity: 10, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 388, harvestDate: '2026-06-12' as any, expiryDate: '2026-09-12' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: RAU, name: 'Hành tím Vĩnh Châu Sóc Trăng', description: 'Hành tím Vĩnh Châu nổi tiếng cả nước, củ nhỏ chắc, màu tím đặc trưng, mùi hăng nồng. Phơi khô tự nhiên, bảo quản được 6 tháng. Đạt OCOP 3 sao.', pricePerUnit: 28000, unit: 'kg' as any, availableQuantity: 5000, minOrderQuantity: 50, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1540, harvestDate: '2026-04-10' as any, expiryDate: '2026-10-10' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Măng tây xanh Ninh Thuận', description: 'Măng tây xanh trồng tại Ninh Thuận, đất pha cát thổ nhưỡng đặc biệt. Chồi non mập mạp, giòn ngọt, giàu axit folic và vitamin K. Hái tươi hàng ngày.', pricePerUnit: 65000, unit: 'kg' as any, availableQuantity: 120, minOrderQuantity: 2, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 921, harvestDate: '2026-06-02' as any, expiryDate: '2026-06-05' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Rau muống hữu cơ Đà Lạt', description: 'Rau muống trồng theo hướng hữu cơ tại Đà Lạt, không thuốc trừ sâu, tươi ngon mỗi ngày. Phù hợp bếp ăn gia đình và nhà hàng.', pricePerUnit: 25000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 892, harvestDate: new Date('2026-06-01'), expiryDate: new Date('2026-06-05') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: RAU, name: 'Rau cải bắp VietGAP Lâm Đồng', description: 'Bắp cải trắng trồng tại cao nguyên Lâm Đồng 900m, khí hậu mát mẻ giúp cải giòn chắc, lá xanh đậm. Đạt chứng nhận VietGAP, cung cấp siêu thị.', pricePerUnit: 12000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 50, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 445, harvestDate: new Date('2026-05-28'), expiryDate: new Date('2026-06-05') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Cà chua bi hữu cơ Đà Lạt', description: 'Cà chua bi hữu cơ 100% Đà Lạt, trồng trong nhà kính. Trái nhỏ đỏ đều, vị chua ngọt đậm, giàu lycopene. Không thuốc trừ sâu, phân hóa học.', pricePerUnit: 48000, unit: ProductUnit.KG, availableQuantity: 150, minOrderQuantity: 3, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 1230, harvestDate: new Date('2026-06-03'), expiryDate: new Date('2026-06-10') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: RAU, name: 'Khoai lang tím Nhật Vĩnh Long', description: 'Khoai lang tím giống Nhật trồng tại Vĩnh Long, củ đều đẹp, ruột tím đậm, hàm lượng anthocyanin cao. Xuất khẩu sang Nhật và Hàn Quốc.', pricePerUnit: 22000, unit: ProductUnit.KG, availableQuantity: 3000, minOrderQuantity: 100, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 2340, harvestDate: new Date('2026-05-15'), expiryDate: new Date('2026-08-15') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Bí đỏ Hokaido Gia Lai', description: 'Bí đỏ Hokaido (bí hồ lô Nhật) trồng tại Gia Lai, trọng lượng 1–2kg/quả, ruột vàng đặc, vị ngọt bùi. Tốt cho bé ăn dặm và người ăn kiêng.', pricePerUnit: 30000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 10, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 388, harvestDate: new Date('2026-06-12'), expiryDate: new Date('2026-09-12') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: RAU, name: 'Hành tím Vĩnh Châu Sóc Trăng', description: 'Hành tím Vĩnh Châu nổi tiếng cả nước, củ nhỏ chắc, màu tím đặc trưng, mùi hăng nồng. Phơi khô tự nhiên, bảo quản được 6 tháng. Đạt OCOP 3 sao.', pricePerUnit: 28000, unit: ProductUnit.KG, availableQuantity: 5000, minOrderQuantity: 50, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1540, harvestDate: new Date('2026-04-10'), expiryDate: new Date('2026-10-10') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Măng tây xanh Ninh Thuận', description: 'Măng tây xanh trồng tại Ninh Thuận, đất pha cát thổ nhưỡng đặc biệt. Chồi non mập mạp, giòn ngọt, giàu axit folic và vitamin K. Hái tươi hàng ngày.', pricePerUnit: 65000, unit: ProductUnit.KG, availableQuantity: 120, minOrderQuantity: 2, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 921, harvestDate: new Date('2026-06-02'), expiryDate: new Date('2026-06-05') },
 
       // ── Gạo ───────────────────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GAO, name: 'Gạo ST25 đặc sản Sóc Trăng', description: 'Gạo ST25 do ông Hồ Quang Cua lai tạo, từng đạt giải gạo ngon nhất thế giới. Hạt dài, cơm thơm dẻo, vị ngọt tự nhiên.', pricePerUnit: 28000, unit: 'kg' as any, availableQuantity: 2000, minOrderQuantity: 20, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 5432, harvestDate: '2026-05-30' as any, expiryDate: '2027-05-30' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: GAO, name: 'Gạo hữu cơ Séng Cù Mường Khương', description: 'Gạo Séng Cù hữu cơ vùng núi Mường Khương – Lào Cai 1200m. Hạt mập, cơm dẻo thơm mùi lá dứa tự nhiên. Được Nhật Bản cấp chứng nhận hữu cơ JAS.', pricePerUnit: 52000, unit: 'kg' as any, availableQuantity: 800, minOrderQuantity: 5, farmingType: 'organic' as any, status: 'active' as any, viewCount: 2180, harvestDate: '2025-11-20' as any, expiryDate: '2026-11-20' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: GAO, name: 'Nếp cái hoa vàng Hải Dương', description: 'Nếp cái hoa vàng đặc sản đồng bằng sông Hồng, hạt trắng trong, dẻo thơm đặc biệt. Dùng làm xôi, bánh chưng, rượu nếp truyền thống.', pricePerUnit: 35000, unit: 'kg' as any, availableQuantity: 1500, minOrderQuantity: 20, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 873, harvestDate: '2025-12-01' as any, expiryDate: '2026-12-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GAO, name: 'Gạo lứt đỏ hữu cơ An Giang', description: 'Gạo lứt đỏ hữu cơ An Giang, còn nguyên cám đỏ giàu chất xơ và vitamin B. Phù hợp người ăn kiêng, tiểu đường, muốn kiểm soát cân nặng.', pricePerUnit: 32000, unit: 'kg' as any, availableQuantity: 600, minOrderQuantity: 5, farmingType: 'organic' as any, status: 'active' as any, viewCount: 1450, harvestDate: '2026-04-15' as any, expiryDate: '2027-04-15' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GAO, name: 'Gạo ST25 đặc sản Sóc Trăng', description: 'Gạo ST25 do ông Hồ Quang Cua lai tạo, từng đạt giải gạo ngon nhất thế giới. Hạt dài, cơm thơm dẻo, vị ngọt tự nhiên.', pricePerUnit: 28000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 20, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 5432, harvestDate: new Date('2026-05-30'), expiryDate: new Date('2027-05-30') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: GAO, name: 'Gạo hữu cơ Séng Cù Mường Khương', description: 'Gạo Séng Cù hữu cơ vùng núi Mường Khương – Lào Cai 1200m. Hạt mập, cơm dẻo thơm mùi lá dứa tự nhiên. Được Nhật Bản cấp chứng nhận hữu cơ JAS.', pricePerUnit: 52000, unit: ProductUnit.KG, availableQuantity: 800, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2180, harvestDate: new Date('2025-11-20'), expiryDate: new Date('2026-11-20') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: GAO, name: 'Nếp cái hoa vàng Hải Dương', description: 'Nếp cái hoa vàng đặc sản đồng bằng sông Hồng, hạt trắng trong, dẻo thơm đặc biệt. Dùng làm xôi, bánh chưng, rượu nếp truyền thống.', pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 1500, minOrderQuantity: 20, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 873, harvestDate: new Date('2025-12-01'), expiryDate: new Date('2026-12-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GAO, name: 'Gạo lứt đỏ hữu cơ An Giang', description: 'Gạo lứt đỏ hữu cơ An Giang, còn nguyên cám đỏ giàu chất xơ và vitamin B. Phù hợp người ăn kiêng, tiểu đường, muốn kiểm soát cân nặng.', pricePerUnit: 32000, unit: ProductUnit.KG, availableQuantity: 600, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 1450, harvestDate: new Date('2026-04-15'), expiryDate: new Date('2027-04-15') },
 
       // ── Cà phê & chè ──────────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: CF, name: 'Cà phê Arabica Cầu Đất Đà Lạt', description: 'Cà phê Arabica trồng tại vùng Cầu Đất 1500m so mực nước biển. Hữu cơ 100%, rang mộc theo phương pháp truyền thống.', pricePerUnit: 120000, unit: 'kg' as any, availableQuantity: 150, minOrderQuantity: 2, farmingType: 'organic' as any, status: 'active' as any, viewCount: 764, harvestDate: '2025-12-01' as any, expiryDate: '2026-12-01' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: CF, name: 'Cà phê Robusta Buôn Ma Thuột', description: 'Cà phê Robusta nguyên bản từ Buôn Ma Thuột – thủ phủ cà phê Tây Nguyên. Hạt to đều, rang đậm, vị đắng mạnh, hậu vị ngọt lâu. Chứng nhận UTZ.', pricePerUnit: 75000, unit: 'kg' as any, availableQuantity: 500, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 2890, harvestDate: '2025-12-15' as any, expiryDate: '2026-12-15' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: CF, name: 'Chè Shan Tuyết Hà Giang', description: 'Chè Shan Tuyết cổ thụ trên đỉnh núi Hà Giang 1500m. Búp trắng phủ tuyết, vị ngọt hậu dài, thơm mát. Hữu cơ tự nhiên, không phân bón hóa học.', pricePerUnit: 280000, unit: 'kg' as any, availableQuantity: 80, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 3420, harvestDate: '2026-04-01' as any, expiryDate: '2027-04-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: CF, name: 'Chè xanh Thái Nguyên loại đặc', description: 'Chè xanh Tân Cương – Thái Nguyên, búp một tôm hai lá, hái thủ công. Nước xanh vàng trong, vị chát dịu, thơm mùi cốm. Hộp thiếc 500g.', pricePerUnit: 180000, unit: 'kg' as any, availableQuantity: 200, minOrderQuantity: 1, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1876, harvestDate: '2026-05-01' as any, expiryDate: '2027-05-01' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: CF, name: 'Cà phê Arabica Cầu Đất Đà Lạt', description: 'Cà phê Arabica trồng tại vùng Cầu Đất 1500m so mực nước biển. Hữu cơ 100%, rang mộc theo phương pháp truyền thống.', pricePerUnit: 120000, unit: ProductUnit.KG, availableQuantity: 150, minOrderQuantity: 2, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 764, harvestDate: new Date('2025-12-01'), expiryDate: new Date('2026-12-01') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: CF, name: 'Cà phê Robusta Buôn Ma Thuột', description: 'Cà phê Robusta nguyên bản từ Buôn Ma Thuột – thủ phủ cà phê Tây Nguyên. Hạt to đều, rang đậm, vị đắng mạnh, hậu vị ngọt lâu. Chứng nhận UTZ.', pricePerUnit: 75000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 2890, harvestDate: new Date('2025-12-15'), expiryDate: new Date('2026-12-15') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: CF, name: 'Chè Shan Tuyết Hà Giang', description: 'Chè Shan Tuyết cổ thụ trên đỉnh núi Hà Giang 1500m. Búp trắng phủ tuyết, vị ngọt hậu dài, thơm mát. Hữu cơ tự nhiên, không phân bón hóa học.', pricePerUnit: 280000, unit: ProductUnit.KG, availableQuantity: 80, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 3420, harvestDate: new Date('2026-04-01'), expiryDate: new Date('2027-04-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: CF, name: 'Chè xanh Thái Nguyên loại đặc', description: 'Chè xanh Tân Cương – Thái Nguyên, búp một tôm hai lá, hái thủ công. Nước xanh vàng trong, vị chát dịu, thơm mùi cốm. Hộp thiếc 500g.', pricePerUnit: 180000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 1, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1876, harvestDate: new Date('2026-05-01'), expiryDate: new Date('2027-05-01') },
 
       // ── Thủy hải sản ──────────────────────────────────────────
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: TS, name: 'Tôm sú sạch đông lạnh Cà Mau', description: 'Tôm sú nuôi sinh thái tại Cà Mau, thịt chắc ngọt, không kháng sinh. Đóng gói đông lạnh IQF 1kg/túi. Đạt ASC và tiêu chuẩn xuất khẩu EU.', pricePerUnit: 185000, unit: 'kg' as any, availableQuantity: 2000, minOrderQuantity: 5, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 4320, harvestDate: '2026-05-25' as any, expiryDate: '2026-11-25' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TS, name: 'Cá tra phi lê đông lạnh An Giang', description: 'Cá tra phi lê nuôi tại An Giang theo quy trình ASC. Thịt trắng mịn, không mùi bùn, đạt tiêu chuẩn xuất khẩu Mỹ và EU.', pricePerUnit: 65000, unit: 'kg' as any, availableQuantity: 3000, minOrderQuantity: 10, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 2105, harvestDate: '2026-05-20' as any, expiryDate: '2026-11-20' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TS, name: 'Mực khô Phú Quốc', description: 'Mực ống đánh bắt tự nhiên tại vùng biển Phú Quốc, phơi khô một nắng truyền thống. Mực to đều, màu hồng nhạt tự nhiên, không chất tẩy trắng.', pricePerUnit: 320000, unit: 'kg' as any, availableQuantity: 100, minOrderQuantity: 1, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1678, harvestDate: '2026-04-20' as any, expiryDate: '2027-04-20' as any },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: TS, name: 'Tôm sú sạch đông lạnh Cà Mau', description: 'Tôm sú nuôi sinh thái tại Cà Mau, thịt chắc ngọt, không kháng sinh. Đóng gói đông lạnh IQF 1kg/túi. Đạt ASC và tiêu chuẩn xuất khẩu EU.', pricePerUnit: 185000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 5, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 4320, harvestDate: new Date('2026-05-25'), expiryDate: new Date('2026-11-25') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TS, name: 'Cá tra phi lê đông lạnh An Giang', description: 'Cá tra phi lê nuôi tại An Giang theo quy trình ASC. Thịt trắng mịn, không mùi bùn, đạt tiêu chuẩn xuất khẩu Mỹ và EU.', pricePerUnit: 65000, unit: ProductUnit.KG, availableQuantity: 3000, minOrderQuantity: 10, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 2105, harvestDate: new Date('2026-05-20'), expiryDate: new Date('2026-11-20') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TS, name: 'Mực khô Phú Quốc', description: 'Mực ống đánh bắt tự nhiên tại vùng biển Phú Quốc, phơi khô một nắng truyền thống. Mực to đều, màu hồng nhạt tự nhiên, không chất tẩy trắng.', pricePerUnit: 320000, unit: ProductUnit.KG, availableQuantity: 100, minOrderQuantity: 1, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1678, harvestDate: new Date('2026-04-20'), expiryDate: new Date('2027-04-20') },
 
       // ── Gia vị ────────────────────────────────────────────────
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: GV, name: 'Tiêu đen Phú Quốc', description: 'Tiêu đen hạt to vùng Phú Quốc, được bảo hộ chỉ dẫn địa lý. Vị cay nồng đặc trưng, hương thơm mạnh. Hạt đều đẹp, không tạp chất. OCOP 5 sao.', pricePerUnit: 180000, unit: 'kg' as any, availableQuantity: 200, minOrderQuantity: 1, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 3210, harvestDate: '2026-03-01' as any, expiryDate: '2027-03-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GV, name: 'Nghệ vàng hữu cơ Bình Định', description: 'Nghệ vàng hữu cơ trồng tại Bình Định, hàm lượng curcumin cao trên 5%. Sấy khô, xay mịn không pha trộn.', pricePerUnit: 95000, unit: 'kg' as any, availableQuantity: 300, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 2140, harvestDate: '2026-02-15' as any, expiryDate: '2027-02-15' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: GV, name: 'Tỏi đen Lý Sơn lên men tự nhiên', description: 'Tỏi đen lên men từ tỏi Lý Sơn nguyên củ. Vị ngọt nhẹ, không cay, thơm mùi balsamic. Giàu S-allyl cysteine gấp 10 lần tỏi tươi. Hộp 200g.', pricePerUnit: 350000, unit: 'kg' as any, availableQuantity: 50, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 4890, harvestDate: '2026-05-01' as any, expiryDate: '2026-11-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GV, name: 'Gừng tươi hữu cơ Kỳ Sơn', description: 'Gừng tươi hữu cơ trồng trên núi Kỳ Sơn – Nghệ An 800m, củ già chắc, tinh dầu nhiều, vị cay nồng đậm đặc.', pricePerUnit: 45000, unit: 'kg' as any, availableQuantity: 400, minOrderQuantity: 5, farmingType: 'organic' as any, status: 'active' as any, viewCount: 1320, harvestDate: '2026-04-20' as any, expiryDate: '2026-07-20' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GV, name: 'Tinh bột nghệ sạch Bình Định', description: 'Tinh bột nghệ hữu cơ 100% chiết xuất từ nghệ vàng tươi Bình Định. Màu vàng tươi đẹp, mịn mượt, curcumin nguyên vẹn.', pricePerUnit: 250000, unit: 'kg' as any, availableQuantity: 100, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 2890, harvestDate: '2026-04-01' as any, expiryDate: '2027-04-01' as any },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: GV, name: 'Tiêu đen Phú Quốc', description: 'Tiêu đen hạt to vùng Phú Quốc, được bảo hộ chỉ dẫn địa lý. Vị cay nồng đặc trưng, hương thơm mạnh. Hạt đều đẹp, không tạp chất. OCOP 5 sao.', pricePerUnit: 180000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 1, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 3210, harvestDate: new Date('2026-03-01'), expiryDate: new Date('2027-03-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GV, name: 'Nghệ vàng hữu cơ Bình Định', description: 'Nghệ vàng hữu cơ trồng tại Bình Định, hàm lượng curcumin cao trên 5%. Sấy khô, xay mịn không pha trộn.', pricePerUnit: 95000, unit: ProductUnit.KG, availableQuantity: 300, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2140, harvestDate: new Date('2026-02-15'), expiryDate: new Date('2027-02-15') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: GV, name: 'Tỏi đen Lý Sơn lên men tự nhiên', description: 'Tỏi đen lên men từ tỏi Lý Sơn nguyên củ. Vị ngọt nhẹ, không cay, thơm mùi balsamic. Giàu S-allyl cysteine gấp 10 lần tỏi tươi. Hộp 200g.', pricePerUnit: 350000, unit: ProductUnit.KG, availableQuantity: 50, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 4890, harvestDate: new Date('2026-05-01'), expiryDate: new Date('2026-11-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GV, name: 'Gừng tươi hữu cơ Kỳ Sơn', description: 'Gừng tươi hữu cơ trồng trên núi Kỳ Sơn – Nghệ An 800m, củ già chắc, tinh dầu nhiều, vị cay nồng đậm đặc.', pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 400, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 1320, harvestDate: new Date('2026-04-20'), expiryDate: new Date('2026-07-20') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GV, name: 'Tinh bột nghệ sạch Bình Định', description: 'Tinh bột nghệ hữu cơ 100% chiết xuất từ nghệ vàng tươi Bình Định. Màu vàng tươi đẹp, mịn mượt, curcumin nguyên vẹn.', pricePerUnit: 250000, unit: ProductUnit.KG, availableQuantity: 100, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2890, harvestDate: new Date('2026-04-01'), expiryDate: new Date('2027-04-01') },
 
       // ── Mật ong & đặc sản ─────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: MO, name: 'Mật ong hoa nhãn nguyên chất', description: 'Mật ong hoa nhãn từ đàn ong nuôi tại vườn nhãn Hưng Yên. Màu vàng amber, sánh đặc, vị ngọt thơm hoa nhãn.', pricePerUnit: 180000, unit: 'liter' as any, availableQuantity: 200, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 2670, harvestDate: '2026-07-01' as any, expiryDate: '2027-07-01' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: MO, name: 'Mật ong rừng Tây Nguyên', description: 'Mật ong rừng nguyên khai thu từ tổ ong trên cây cổ thụ Tây Nguyên. Màu nâu đậm, vị đậm đà phức hợp nhiều loại hoa rừng.', pricePerUnit: 350000, unit: 'liter' as any, availableQuantity: 80, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 5120, harvestDate: '2026-03-15' as any, expiryDate: '2027-03-15' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: MO, name: 'Muối hầm Cần Giờ', description: 'Muối hầm thủ công tại cánh đồng muối Cần Giờ TP.HCM. Muối trắng to hạt, độ mặn cao, giàu khoáng chất tự nhiên.', pricePerUnit: 8000, unit: 'kg' as any, availableQuantity: 10000, minOrderQuantity: 50, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 543, harvestDate: '2026-04-01' as any, expiryDate: '2028-04-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: MO, name: 'Dừa xiêm xanh Bến Tre', description: 'Dừa xiêm xanh Bến Tre, trái non 6–8 tháng, nước nhiều ngọt lạnh, cơm mỏng mềm. Thu hoạch tươi, giao trong 24h.', pricePerUnit: 15000, unit: 'piece' as any, availableQuantity: 5000, minOrderQuantity: 50, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1234, harvestDate: '2026-06-01' as any, expiryDate: '2026-06-15' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: MO, name: 'Mắm nêm thùng Phan Thiết', description: 'Mắm nêm cá cơm ủ 12 tháng theo công thức truyền thống Phan Thiết. Màu nâu đỏ đẹp, mùi thơm đặc trưng.', pricePerUnit: 45000, unit: 'liter' as any, availableQuantity: 300, minOrderQuantity: 2, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1102, harvestDate: '2026-01-01' as any, expiryDate: '2026-07-01' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: MO, name: 'Nước mắm cốt nhĩ Phú Quốc 40 độ đạm', description: 'Nước mắm cốt nhĩ Phú Quốc chắt lọc đầu tiên, 40 độ đạm. Màu nâu cánh gián đẹp, mùi thơm dịu. Được bảo hộ GI EU.', pricePerUnit: 120000, unit: 'liter' as any, availableQuantity: 500, minOrderQuantity: 2, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 4230, harvestDate: '2026-01-01' as any, expiryDate: '2027-01-01' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: MO, name: 'Dầu dừa nguyên chất ép lạnh', description: 'Dầu dừa VCO (virgin coconut oil) ép lạnh từ dừa tươi Bến Tre. Mùi dừa nhẹ, trong suốt, điểm nóng 175°C.', pricePerUnit: 180000, unit: 'liter' as any, availableQuantity: 300, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 3870, harvestDate: '2026-05-01' as any, expiryDate: '2027-05-01' as any },
-      { sellerId: S, sellerType: 'supplier' as any, categoryId: MO, name: 'Cao sâm Ngọc Linh cô đặc', description: 'Cao sâm Ngọc Linh chiết xuất cô đặc, nguồn sâm trồng tại vùng Ngọc Linh Quảng Nam 1500m. Hàm lượng ginsenoside MR2 cao.', pricePerUnit: 8500000, unit: 'kg' as any, availableQuantity: 5, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 9876, harvestDate: '2026-02-01' as any, expiryDate: '2028-02-01' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: MO, name: 'Mật ong hoa nhãn nguyên chất', description: 'Mật ong hoa nhãn từ đàn ong nuôi tại vườn nhãn Hưng Yên. Màu vàng amber, sánh đặc, vị ngọt thơm hoa nhãn.', pricePerUnit: 180000, unit: ProductUnit.LITER, availableQuantity: 200, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2670, harvestDate: new Date('2026-07-01'), expiryDate: new Date('2027-07-01') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: MO, name: 'Mật ong rừng Tây Nguyên', description: 'Mật ong rừng nguyên khai thu từ tổ ong trên cây cổ thụ Tây Nguyên. Màu nâu đậm, vị đậm đà phức hợp nhiều loại hoa rừng.', pricePerUnit: 350000, unit: ProductUnit.LITER, availableQuantity: 80, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 5120, harvestDate: new Date('2026-03-15'), expiryDate: new Date('2027-03-15') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: MO, name: 'Muối hầm Cần Giờ', description: 'Muối hầm thủ công tại cánh đồng muối Cần Giờ TP.HCM. Muối trắng to hạt, độ mặn cao, giàu khoáng chất tự nhiên.', pricePerUnit: 8000, unit: ProductUnit.KG, availableQuantity: 10000, minOrderQuantity: 50, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 543, harvestDate: new Date('2026-04-01'), expiryDate: new Date('2028-04-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: MO, name: 'Dừa xiêm xanh Bến Tre', description: 'Dừa xiêm xanh Bến Tre, trái non 6–8 tháng, nước nhiều ngọt lạnh, cơm mỏng mềm. Thu hoạch tươi, giao trong 24h.', pricePerUnit: 15000, unit: ProductUnit.PIECE, availableQuantity: 5000, minOrderQuantity: 50, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1234, harvestDate: new Date('2026-06-01'), expiryDate: new Date('2026-06-15') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: MO, name: 'Mắm nêm thùng Phan Thiết', description: 'Mắm nêm cá cơm ủ 12 tháng theo công thức truyền thống Phan Thiết. Màu nâu đỏ đẹp, mùi thơm đặc trưng.', pricePerUnit: 45000, unit: ProductUnit.LITER, availableQuantity: 300, minOrderQuantity: 2, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1102, harvestDate: new Date('2026-01-01'), expiryDate: new Date('2026-07-01') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: MO, name: 'Nước mắm cốt nhĩ Phú Quốc 40 độ đạm', description: 'Nước mắm cốt nhĩ Phú Quốc chắt lọc đầu tiên, 40 độ đạm. Màu nâu cánh gián đẹp, mùi thơm dịu. Được bảo hộ GI EU.', pricePerUnit: 120000, unit: ProductUnit.LITER, availableQuantity: 500, minOrderQuantity: 2, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 4230, harvestDate: new Date('2026-01-01'), expiryDate: new Date('2027-01-01') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: MO, name: 'Dầu dừa nguyên chất ép lạnh', description: 'Dầu dừa VCO (virgin coconut oil) ép lạnh từ dừa tươi Bến Tre. Mùi dừa nhẹ, trong suốt, điểm nóng 175°C.', pricePerUnit: 180000, unit: ProductUnit.LITER, availableQuantity: 300, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 3870, harvestDate: new Date('2026-05-01'), expiryDate: new Date('2027-05-01') },
+      { sellerId: S, sellerType: SellerType.SUPPLIER, categoryId: MO, name: 'Cao sâm Ngọc Linh cô đặc', description: 'Cao sâm Ngọc Linh chiết xuất cô đặc, nguồn sâm trồng tại vùng Ngọc Linh Quảng Nam 1500m. Hàm lượng ginsenoside MR2 cao.', pricePerUnit: 8500000, unit: ProductUnit.KG, availableQuantity: 5, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 9876, harvestDate: new Date('2026-02-01'), expiryDate: new Date('2028-02-01') },
 
       // ── Hạt & đậu ─────────────────────────────────────────────
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: HD, name: 'Hạt điều rang muối W320', description: 'Hạt điều rang muối W320 từ vùng điều Bình Phước, hạt to đều, không vỡ mảnh. Rang giòn, vị mặn nhẹ, thơm bơ tự nhiên.', pricePerUnit: 180000, unit: 'kg' as any, availableQuantity: 500, minOrderQuantity: 2, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 3456, harvestDate: '2026-03-01' as any, expiryDate: '2026-09-01' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: HD, name: 'Đậu phộng đỏ Bình Định', description: 'Đậu phộng đỏ (lạc đỏ) trồng tại Bình Định, hạt to đều, vỏ đỏ bóng đặc trưng. Hàm lượng dầu cao 45%.', pricePerUnit: 35000, unit: 'kg' as any, availableQuantity: 1200, minOrderQuantity: 10, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 867, harvestDate: '2026-05-01' as any, expiryDate: '2026-11-01' as any },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: HD, name: 'Hạt điều rang muối W320', description: 'Hạt điều rang muối W320 từ vùng điều Bình Phước, hạt to đều, không vỡ mảnh. Rang giòn, vị mặn nhẹ, thơm bơ tự nhiên.', pricePerUnit: 180000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 2, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 3456, harvestDate: new Date('2026-03-01'), expiryDate: new Date('2026-09-01') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: HD, name: 'Đậu phộng đỏ Bình Định', description: 'Đậu phộng đỏ (lạc đỏ) trồng tại Bình Định, hạt to đều, vỏ đỏ bóng đặc trưng. Hàm lượng dầu cao 45%.', pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 1200, minOrderQuantity: 10, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 867, harvestDate: new Date('2026-05-01'), expiryDate: new Date('2026-11-01') },
 
       // ── Nấm & rau sạch cao cấp ────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Nấm linh chi đỏ hữu cơ', description: 'Nấm linh chi đỏ trồng trong nhà lưới tại Đà Lạt, bào tử nhiều. Thái lát sấy khô, hàm lượng polysaccharide cao.', pricePerUnit: 650000, unit: 'kg' as any, availableQuantity: 50, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 2234, harvestDate: '2026-05-15' as any, expiryDate: '2027-05-15' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: RAU, name: 'Nấm đông cô tươi Lâm Đồng', description: 'Nấm đông cô (shiitake) tươi trồng trên mùn cưa sồi tại Đà Lạt. Mũ nấm dày, nâu đậm, mùi thơm đặc trưng.', pricePerUnit: 80000, unit: 'kg' as any, availableQuantity: 200, minOrderQuantity: 2, farmingType: 'organic' as any, status: 'active' as any, viewCount: 1890, harvestDate: '2026-06-01' as any, expiryDate: '2026-06-08' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: RAU, name: 'Rau xà lách thủy canh Hà Nội', description: 'Xà lách romano thuỷ canh không đất tại Hà Nội. Lá xanh tươi giòn, không thuốc, không chì.', pricePerUnit: 42000, unit: 'kg' as any, availableQuantity: 100, minOrderQuantity: 1, farmingType: 'organic' as any, status: 'active' as any, viewCount: 678, harvestDate: '2026-06-03' as any, expiryDate: '2026-06-07' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Nấm linh chi đỏ hữu cơ', description: 'Nấm linh chi đỏ trồng trong nhà lưới tại Đà Lạt, bào tử nhiều. Thái lát sấy khô, hàm lượng polysaccharide cao.', pricePerUnit: 650000, unit: ProductUnit.KG, availableQuantity: 50, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2234, harvestDate: new Date('2026-05-15'), expiryDate: new Date('2027-05-15') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: RAU, name: 'Nấm đông cô tươi Lâm Đồng', description: 'Nấm đông cô (shiitake) tươi trồng trên mùn cưa sồi tại Đà Lạt. Mũ nấm dày, nâu đậm, mùi thơm đặc trưng.', pricePerUnit: 80000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 2, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 1890, harvestDate: new Date('2026-06-01'), expiryDate: new Date('2026-06-08') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Rau xà lách thủy canh Hà Nội', description: 'Xà lách romano thuỷ canh không đất tại Hà Nội. Lá xanh tươi giòn, không thuốc, không chì.', pricePerUnit: 42000, unit: ProductUnit.KG, availableQuantity: 100, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 678, harvestDate: new Date('2026-06-03'), expiryDate: new Date('2026-06-07') },
 
       // ── Trái cây phía Bắc ─────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Đào tiên Mộc Châu', description: 'Đào tiên Mộc Châu – Sơn La, trái to tròn, vỏ vàng ửng đỏ, thịt vàng ngọt thơm. Trồng ở độ cao 1000m.', pricePerUnit: 60000, unit: 'kg' as any, availableQuantity: 350, minOrderQuantity: 5, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 1432, harvestDate: '2026-07-10' as any, expiryDate: '2026-07-20' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: TC, name: 'Mận hậu Bắc Hà Lào Cai', description: 'Mận hậu Bắc Hà chín muộn tháng 6–7, quả to đồng đều, vỏ tím mỡ màng, ruột vàng giòn ngọt.', pricePerUnit: 38000, unit: 'kg' as any, availableQuantity: 600, minOrderQuantity: 5, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 2100, harvestDate: '2026-07-05' as any, expiryDate: '2026-07-15' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: TC, name: 'Lê VH6 Bắc Giang', description: 'Lê VH6 lai tạo tại Bắc Giang, quả to hình quả lê cổ điển, vỏ vàng xanh, cùi giòn nhiều nước.', pricePerUnit: 48000, unit: 'kg' as any, availableQuantity: 400, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 543, harvestDate: '2026-08-15' as any, expiryDate: '2026-09-05' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Đào tiên Mộc Châu', description: 'Đào tiên Mộc Châu – Sơn La, trái to tròn, vỏ vàng ửng đỏ, thịt vàng ngọt thơm. Trồng ở độ cao 1000m.', pricePerUnit: 60000, unit: ProductUnit.KG, availableQuantity: 350, minOrderQuantity: 5, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 1432, harvestDate: new Date('2026-07-10'), expiryDate: new Date('2026-07-20') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Mận hậu Bắc Hà Lào Cai', description: 'Mận hậu Bắc Hà chín muộn tháng 6–7, quả to đồng đều, vỏ tím mỡ màng, ruột vàng giòn ngọt.', pricePerUnit: 38000, unit: ProductUnit.KG, availableQuantity: 600, minOrderQuantity: 5, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 2100, harvestDate: new Date('2026-07-05'), expiryDate: new Date('2026-07-15') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: TC, name: 'Lê VH6 Bắc Giang', description: 'Lê VH6 lai tạo tại Bắc Giang, quả to hình quả lê cổ điển, vỏ vàng xanh, cùi giòn nhiều nước.', pricePerUnit: 48000, unit: ProductUnit.KG, availableQuantity: 400, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 543, harvestDate: new Date('2026-08-15'), expiryDate: new Date('2026-09-05') },
 
       // ── Hoa & cây cảnh ────────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: HOA, name: 'Hoa cúc vàng Đà Lạt', description: 'Hoa cúc vàng tươi cắt cành từ trang trại Đà Lạt, mỗi bó 20 cành. Hoa nở đẹp, cánh dày, màu vàng tươi.', pricePerUnit: 45000, unit: 'bunch' as any, availableQuantity: 500, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 1120, harvestDate: '2026-06-05' as any, expiryDate: '2026-06-12' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: HOA, name: 'Hoa hồng nhập khẩu Ecuador', description: 'Hoa hồng Ecuador thân dài 60–70cm, bông to đẹp 5–6cm, màu sắc đa dạng. Trồng trên cao nguyên 3000m.', pricePerUnit: 85000, unit: 'bunch' as any, availableQuantity: 200, minOrderQuantity: 2, farmingType: 'globalgap' as any, status: 'active' as any, viewCount: 2340, harvestDate: '2026-06-07' as any, expiryDate: '2026-06-21' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: HOA, name: 'Hoa cúc vàng Đà Lạt', description: 'Hoa cúc vàng tươi cắt cành từ trang trại Đà Lạt, mỗi bó 20 cành. Hoa nở đẹp, cánh dày, màu vàng tươi.', pricePerUnit: 45000, unit: ProductUnit.BUNCH, availableQuantity: 500, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1120, harvestDate: new Date('2026-06-05'), expiryDate: new Date('2026-06-12') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: HOA, name: 'Hoa hồng nhập khẩu Ecuador', description: 'Hoa hồng Ecuador thân dài 60–70cm, bông to đẹp 5–6cm, màu sắc đa dạng. Trồng trên cao nguyên 3000m.', pricePerUnit: 85000, unit: ProductUnit.BUNCH, availableQuantity: 200, minOrderQuantity: 2, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 2340, harvestDate: new Date('2026-06-07'), expiryDate: new Date('2026-06-21') },
 
       // ── Gia súc & gia cầm ─────────────────────────────────────
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GS, name: 'Trứng gà ta thả vườn Đồng Nai', description: 'Trứng gà ta thả vườn nuôi bằng thức ăn ngũ cốc tự nhiên tại Đồng Nai. Vỏ nâu sần, lòng đỏ đậm màu cam.', pricePerUnit: 65000, unit: 'box' as any, availableQuantity: 1000, minOrderQuantity: 5, farmingType: 'traditional' as any, status: 'active' as any, viewCount: 3456, harvestDate: '2026-06-04' as any, expiryDate: '2026-07-04' as any },
-      { sellerId: C, sellerType: 'cooperative' as any, categoryId: GS, name: 'Thịt bò Wagyu F1 Lâm Đồng', description: 'Thịt bò Wagyu F1 nuôi tại trang trại Lâm Đồng, vân mỡ đẹp (marbling score 4–6). Cỏ tươi kết hợp ngũ cốc.', pricePerUnit: 650000, unit: 'kg' as any, availableQuantity: 100, minOrderQuantity: 1, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 5670, harvestDate: '2026-06-01' as any, expiryDate: '2026-06-15' as any },
-      { sellerId: F, sellerType: 'farmer' as any, categoryId: GS, name: 'Sữa bò tươi nguyên liệu Mộc Châu', description: 'Sữa bò tươi nguyên liệu từ trang trại bò sữa Mộc Châu, độ béo 3.6%, protein 3.2%. Thanh trùng nhiệt độ thấp.', pricePerUnit: 22000, unit: 'liter' as any, availableQuantity: 500, minOrderQuantity: 5, farmingType: 'vietgap' as any, status: 'active' as any, viewCount: 1890, harvestDate: '2026-06-04' as any, expiryDate: '2026-06-11' as any },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GS, name: 'Trứng gà ta thả vườn Đồng Nai', description: 'Trứng gà ta thả vườn nuôi bằng thức ăn ngũ cốc tự nhiên tại Đồng Nai. Vỏ nâu sần, lòng đỏ đậm màu cam.', pricePerUnit: 65000, unit: ProductUnit.BOX, availableQuantity: 1000, minOrderQuantity: 5, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 3456, harvestDate: new Date('2026-06-04'), expiryDate: new Date('2026-07-04') },
+      { sellerId: C, sellerType: SellerType.COOPERATIVE, categoryId: GS, name: 'Thịt bò Wagyu F1 Lâm Đồng', description: 'Thịt bò Wagyu F1 nuôi tại trang trại Lâm Đồng, vân mỡ đẹp (marbling score 4–6). Cỏ tươi kết hợp ngũ cốc.', pricePerUnit: 650000, unit: ProductUnit.KG, availableQuantity: 100, minOrderQuantity: 1, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 5670, harvestDate: new Date('2026-06-01'), expiryDate: new Date('2026-06-15') },
+      { sellerId: F, sellerType: SellerType.FARMER, categoryId: GS, name: 'Sữa bò tươi nguyên liệu Mộc Châu', description: 'Sữa bò tươi nguyên liệu từ trang trại bò sữa Mộc Châu, độ béo 3.6%, protein 3.2%. Thanh trùng nhiệt độ thấp.', pricePerUnit: 22000, unit: ProductUnit.LITER, availableQuantity: 500, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1890, harvestDate: new Date('2026-06-04'), expiryDate: new Date('2026-06-11') },
     ];
 
-    const saved = await this.productRepo.save(
-      mockProducts.map((p) => this.productRepo.create(p)),
-    );
+    const saved = await this.productSeedRepository.saveSeedProducts(mockProducts);
 
     const FALLBACK = 'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=600&q=80';
-    await this.imageRepo.save(
-      saved.map((p) =>
-        this.imageRepo.create({
-          productId: p.id,
-          imageUrl: FALLBACK,
-          isPrimary: true,
-          sortOrder: 0,
-        }),
-      ),
-    );
+    await this.productSeedRepository.savePrimaryImagesForProducts(saved, FALLBACK);
 
     return { seeded: saved.length, skipped: 0 };
   }
