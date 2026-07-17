@@ -13,6 +13,7 @@ import { ProductsService } from '../../application/products.service';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import { WishlistQueryDto } from '../schemas/wishlist-query.dto';
+import { WishlistQueryInput } from '../../application/models/product-input.model';
 
 @ApiTags('wishlist')
 @ApiBearerAuth('access-token')
@@ -52,7 +53,8 @@ export class WishlistController {
     @CurrentUser('sub') userId: string,
     @Query() query: WishlistQueryDto,
   ) {
-    return this.productsService.getWishlist(userId, query);
+    const input: WishlistQueryInput = query;
+    return this.productsService.getWishlist(userId, input);
   }
 
   @Get('ids')
