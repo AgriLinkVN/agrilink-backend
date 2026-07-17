@@ -1,8 +1,8 @@
-import { Notification } from '../../entities/notification.entity';
 import {
-  CreateNotificationInput,
+  NotificationModel,
   NotificationListResult,
-  NotificationPagination,
+  NormalizedNotificationPagination,
+  PublishNotificationInput,
 } from '../notification.types';
 
 export const NOTIFICATION_REPOSITORY = Symbol('NOTIFICATION_REPOSITORY');
@@ -10,12 +10,19 @@ export const NOTIFICATION_REPOSITORY = Symbol('NOTIFICATION_REPOSITORY');
 export interface NotificationRepositoryPort {
   findAll(
     userId: string,
-    pagination: NotificationPagination,
-  ): Promise<NotificationListResult<Notification>>;
-  findUnread(userId: string, limit: number): Promise<Notification[]>;
+    pagination: NormalizedNotificationPagination,
+  ): Promise<NotificationListResult>;
+  findUnread(userId: string, limit: number): Promise<NotificationModel[]>;
   countUnread(userId: string): Promise<number>;
-  findByIdForUser(id: string, userId: string): Promise<Notification | null>;
-  save(notification: Notification): Promise<Notification>;
+  findByIdForUser(
+    id: string,
+    userId: string,
+  ): Promise<NotificationModel | null>;
+  markOneAsRead(
+    id: string,
+    userId: string,
+    readAt: Date,
+  ): Promise<NotificationModel | null>;
   markAllAsRead(userId: string, readAt: Date): Promise<number>;
-  create(input: CreateNotificationInput): Promise<Notification>;
+  create(input: PublishNotificationInput): Promise<NotificationModel>;
 }

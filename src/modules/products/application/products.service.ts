@@ -59,7 +59,7 @@ export class ProductsService {
     private readonly wishlistRepo: Repository<Wishlist>,
 
     @Inject(NOTIFICATION_PUBLISHER)
-    private readonly notificationsService: NotificationPublisherPort,
+    private readonly notificationPublisher: NotificationPublisherPort,
 
     private readonly dataSource: DataSource,
   ) { }
@@ -596,7 +596,7 @@ export class ProductsService {
         ? NotifType.PRODUCT_APPROVED
         : NotifType.PRODUCT_STATUS_CHANGED;
 
-    await this.notificationsService.create({
+    await this.notificationPublisher.publish({
       userId: product.sellerId,
       type,
       title: titleByStatus[product.status],
