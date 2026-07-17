@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../../domain/ports/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../../domain/ports/notification-realtime-publisher.port';
+import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
+import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
 import { MarkAllNotificationsReadUseCase } from './mark-all-notifications-read.use-case';
 
 describe('MarkAllNotificationsReadUseCase', () => {

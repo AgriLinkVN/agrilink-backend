@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { NotifType } from '@common/enums';
-import { NotificationNotFoundError } from '../../domain/errors/notification-not-found.error';
-import { NotificationModel } from '../../domain/notification.types';
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../../domain/ports/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../../domain/ports/notification-realtime-publisher.port';
+import { NotificationNotFoundError } from '../errors/notification-not-found.error';
+import { NotificationModel } from '../models/notification.model';
+import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
+import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
 import { MarkNotificationReadUseCase } from './mark-notification-read.use-case';
 
 describe('MarkNotificationReadUseCase', () => {

@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { NotificationModel } from '../../domain/notification.types';
+import { NotificationModel } from '../models/notification.model';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 import { normalizeUnreadNotificationLimit } from './notification-pagination';
 
 @Injectable()

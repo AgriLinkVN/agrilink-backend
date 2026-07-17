@@ -6,8 +6,8 @@ import { ListNotificationsUseCase } from './application/use-cases/list-notificat
 import { ListUnreadNotificationsUseCase } from './application/use-cases/list-unread-notifications.use-case';
 import { MarkAllNotificationsReadUseCase } from './application/use-cases/mark-all-notifications-read.use-case';
 import { MarkNotificationReadUseCase } from './application/use-cases/mark-notification-read.use-case';
-import { NotificationNotFoundError } from './domain/errors/notification-not-found.error';
-import { NotificationModel } from './domain/notification.types';
+import { NotificationNotFoundError } from './application/errors/notification-not-found.error';
+import { NotificationModel } from './application/models/notification.model';
 import { NotificationsController } from './presentation/controllers/notifications.controller';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 

@@ -5,12 +5,12 @@ import {
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
-import { NotificationRealtimePublisherPort } from '../../domain/ports/notification-realtime-publisher.port';
+import { NotificationRealtimePublisherPort } from '../../application/ports/outbound/notification-realtime-publisher.port';
 import {
   AllNotificationsReadPayload,
   NotificationMarkedReadPayload,
   NotificationModel,
-} from '../../domain/notification.types';
+} from '../../application/models/notification.model';
 import {
   NOTIFICATION_SOCKET_EVENTS,
   NewNotificationEvent,

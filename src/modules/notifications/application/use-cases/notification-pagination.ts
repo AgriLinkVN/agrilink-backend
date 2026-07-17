@@ -1,7 +1,7 @@
 import {
   NormalizedNotificationPagination,
   NotificationPagination,
-} from '../../domain/notification.types';
+} from '../models/notification.model';
 
 export function normalizeNotificationPagination(
   pagination: NotificationPagination,

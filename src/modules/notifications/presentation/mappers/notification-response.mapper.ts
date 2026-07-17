@@ -3,7 +3,7 @@ import {
   NotificationListResult,
   NotificationMarkedReadPayload,
   NotificationModel,
-} from '../../domain/notification.types';
+} from '../../application/models/notification.model';
 import {
   MarkAllNotificationsReadResponseDto,
   NotificationListResponseDto,

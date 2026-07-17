@@ -3,7 +3,7 @@ import {
   NotificationListResult,
   NormalizedNotificationPagination,
   PublishNotificationInput,
-} from '../notification.types';
+} from '../../models/notification.model';
 
 export const NOTIFICATION_REPOSITORY = Symbol('NOTIFICATION_REPOSITORY');
 

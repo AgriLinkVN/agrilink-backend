@@ -4,9 +4,9 @@ import { NotificationsController } from './presentation/controllers/notification
 import { NotificationsGateway } from './presentation/gateways/notifications.gateway';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmNotificationRepository } from './infrastructure/repositories/typeorm-notification.repository';
-import { NOTIFICATION_REPOSITORY } from './domain/ports/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER } from './domain/ports/notification-realtime-publisher.port';
-import { NOTIFICATION_PUBLISHER } from './domain/ports/notification-publisher.port';
+import { NOTIFICATION_REPOSITORY } from './application/ports/outbound/notification-repository.port';
+import { NOTIFICATION_REALTIME_PUBLISHER } from './application/ports/outbound/notification-realtime-publisher.port';
+import { NOTIFICATION_PUBLISHER } from './application/ports/inbound/notification-publisher.port';
 import { NotificationOrmEntity } from './infrastructure/persistence/notification.orm-entity';
 import { ListNotificationsUseCase } from './application/use-cases/list-notifications.use-case';
 import { ListUnreadNotificationsUseCase } from './application/use-cases/list-unread-notifications.use-case';

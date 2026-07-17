@@ -2,7 +2,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Server } from 'socket.io';
 
 import { NotifType } from '@common/enums';
-import { NotificationModel } from '../../domain/notification.types';
+import { NotificationModel } from '../../application/models/notification.model';
 import { NOTIFICATION_SOCKET_EVENTS } from '../contracts/notification-socket.events';
 import { NotificationsGateway } from './notifications.gateway';
 

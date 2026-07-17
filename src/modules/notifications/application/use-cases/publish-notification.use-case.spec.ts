@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { NotifType } from '@common/enums';
 import { PublishNotificationUseCase } from './publish-notification.use-case';
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../../domain/ports/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../../domain/ports/notification-realtime-publisher.port';
-import { NotificationModel, PublishNotificationInput } from '../../domain/notification.types';
+import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
+import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
+import { NotificationModel, PublishNotificationInput } from '../models/notification.model';
 
 describe('PublishNotificationUseCase', () => {
   let useCase: PublishNotificationUseCase;

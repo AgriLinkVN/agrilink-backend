@@ -52,6 +52,8 @@ Acceptance:
 - P5 notification enum values exist: `new_review`, `review_reply`, `ad_approved`, `ad_rejected`.
 - Product module uses `NOTIFICATION_PUBLISHER` instead of depending on the concrete notification service.
 - Notification repository and realtime ports return/use notification models or DTO payloads, not TypeORM entities.
+- Notification cross-module publisher is an application inbound port, while repository and realtime dependencies are application outbound ports.
+- Notification application models and application errors are kept outside the domain layer because they represent use-case results and ownership-aware lookup failures rather than domain invariants.
 
 ### Phase 2 - Ads Backend Contract
 
