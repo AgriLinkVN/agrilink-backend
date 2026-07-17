@@ -19,6 +19,7 @@ import { Product } from '../src/modules/products/domain/entities/product.entity'
 import { ProductCertification } from '../src/modules/products/domain/entities/product-certification.entity';
 import { ProductCategory } from '../src/modules/products/domain/entities/product-category.entity';
 import { Wishlist } from '../src/modules/products/domain/entities/wishlist.entity';
+import { ProductNotFoundError } from '../src/modules/products/domain/errors/product-application.error';
 import { ProductsController } from '../src/modules/products/presentation/controllers/products.controller';
 import { WishlistController } from '../src/modules/products/presentation/controllers/wishlist.controller';
 
@@ -172,7 +173,7 @@ describe('Products REST contract (e2e)', () => {
     );
   });
 
-  it('POST /products resolves sellerType from authenticated seller role', async () => {
+  it('POST /products forwards authenticated role so application resolves sellerType', async () => {
     const body = {
       name: 'Xoai cat Hoa Loc',
       pricePerUnit: 25000,
@@ -191,9 +192,18 @@ describe('Products REST contract (e2e)', () => {
     expect(response.body.data.status).toBe(ProductStatus.DRAFT);
     expect(productsService.create).toHaveBeenCalledWith(
       SELLER_ID,
-      SellerType.FARMER,
+      undefined,
+      UserRole.FARMER,
       expect.objectContaining(body),
     );
+  });
+
+  it('maps a typed product error to its HTTP status', async () => {
+    productsService.findOne.mockRejectedValueOnce(
+      new ProductNotFoundError('Không tìm thấy sản phẩm'),
+    );
+
+    await request(server).get(`/products/${PRODUCT_ID}`).expect(404);
   });
 
   it('GET /products/me forwards seller-owned filters', async () => {

@@ -95,10 +95,11 @@ export class ProductsService {
 
   create(
     sellerId: string,
-    sellerType: SellerType,
+    sellerType: SellerType | undefined,
+    role: UserRole,
     dto: CreateProductInput,
   ) {
-    return this.createProductUseCase.execute(sellerId, sellerType, dto);
+    return this.createProductUseCase.execute(sellerId, sellerType, role, dto);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────

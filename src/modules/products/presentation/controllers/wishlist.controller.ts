@@ -14,12 +14,21 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import { WishlistQueryDto } from '../schemas/wishlist-query.dto';
 import { WishlistQueryInput } from '../../application/models/product-input.model';
+import { mapProductApplicationError } from '../mappers/product-error.mapper';
 
 @ApiTags('wishlist')
 @ApiBearerAuth('access-token')
 @Controller('wishlist')
 export class WishlistController {
   constructor(private readonly productsService: ProductsService) {}
+
+  private async execute<T>(operation: () => Promise<T> | T): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      return mapProductApplicationError(error);
+    }
+  }
 
   @Post(':productId')
   @HttpCode(HttpStatus.CREATED)
@@ -31,7 +40,7 @@ export class WishlistController {
     @CurrentUser('sub') userId: string,
     @Param('productId', ParseUuidPipe) productId: string,
   ) {
-    return this.productsService.addToWishlist(userId, productId);
+    return this.execute(() => this.productsService.addToWishlist(userId, productId));
   }
 
   @Delete(':productId')
@@ -43,7 +52,9 @@ export class WishlistController {
     @CurrentUser('sub') userId: string,
     @Param('productId', ParseUuidPipe) productId: string,
   ) {
-    return this.productsService.removeFromWishlist(userId, productId);
+    return this.execute(() =>
+      this.productsService.removeFromWishlist(userId, productId),
+    );
   }
 
   @Get()
