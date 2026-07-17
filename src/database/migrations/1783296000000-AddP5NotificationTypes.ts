@@ -21,6 +21,10 @@ export class AddP5NotificationTypes1783296000000
     `);
   }
 
+  /**
+   * Irreversible migration:
+   * PostgreSQL enum values cannot be safely removed without rebuilding the enum.
+   */
   public async down(): Promise<void> {
     return Promise.resolve();
   }
