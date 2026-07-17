@@ -4,7 +4,7 @@ Generated: 2026-07-18
 
 Baseline: `develop` at `7aac989`
 
-Phase: `0 - audit, acceptance baseline, and refactor plan`
+Phase: `0-4 completed; Phase 5 is next`
 
 Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Frontend SEO, image optimization, skeleton loading, mobile responsive work, and deploy work are tracked separately.
 
@@ -12,7 +12,7 @@ Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Fronte
 
 P2 Product is functionally broad enough for the current sprint acceptance, but it is only partially aligned with the backend Clean Architecture rules.
 
-The highest-risk file is `src/modules/products/application/products.service.ts`. It currently acts as a large application service that mixes product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data.
+The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-4 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, and focused use cases. `ProductsService` is now a temporary facade for controller compatibility plus the remaining development seed flow.
 
 The safest refactor path is incremental:
 
@@ -22,7 +22,19 @@ The safest refactor path is incremental:
 4. Split the large service into focused use cases.
 5. Move persistence entities out of the domain layer only after tests and ports are stable.
 
-Phase 0 intentionally changes documentation only. No runtime behavior is changed.
+Phase 0 intentionally changed documentation only. Phases 1-4 preserve the public API contract while changing internal boundaries.
+
+## Current Refactor Progress
+
+| Phase | Status | Result |
+| --- | --- | --- |
+| 0 - Audit and baseline docs | Complete | Scope, risks, acceptance matrix, and incremental plan documented. |
+| 1 - Product contract tests | Complete | Product REST contract tests and product unit tests protect the public flow. |
+| 2 - Application models | Complete | Application uses product input/result models and does not import presentation DTOs. |
+| 3 - Repository and query ports | Complete | TypeORM/query builder/raw SQL code is isolated in `infrastructure/repositories`. |
+| 4 - Focused use cases | Complete | Product CRUD, catalog, images, certifications, status, wishlist, and categories each have a focused use-case class. |
+| 5 - Domain rules and typed errors | Next | Move role/status/certification/wishlist policy out of Nest exception-based use cases. |
+| 6-8 | Pending | Transactions, seed cleanup, then persistence entity split. |
 
 ## Clean Architecture Baseline
 
@@ -63,15 +75,15 @@ Adjacent P2 upload/storage boundary:
 
 | Area | Current Status | Evidence | Target |
 | --- | --- | --- | --- |
-| Presentation to application dependency | Partial | Controllers inject concrete `ProductsService`; controllers are mostly thin, but `ProductsController.resolveSellerType` contains role-to-seller business mapping. | Controllers call focused use cases or a thin application facade. Role-to-seller policy moves to application/domain. |
-| Application independent from presentation | Not compliant | `ProductsService` imports `CreateProductDto`, `UpdateProductDto`, `ProductFilterDto`, `WishlistQueryDto`, certification DTOs, and `ProductDetailResponse` from `presentation/schemas`. | Application receives application input models and returns application result models. |
-| Application independent from TypeORM | Not compliant | `ProductsService` injects `Repository<T>`, `DataSource`, and uses `createQueryBuilder`, `transaction`, `manager`, and `query`. | TypeORM usage moves to infrastructure repository/query adapters behind outbound ports. |
-| Raw SQL placement | Not compliant | Seller/profile/location projections use `dataSource.query` inside `ProductsService`. | Raw SQL moves to an infrastructure query adapter such as `ProductDetailQueryPort`. |
+| Presentation to application dependency | Partial | Controllers use a thin `ProductsService` facade that delegates to focused use cases. `ProductsController.resolveSellerType` still contains role-to-seller policy. | Move role-to-seller policy to application/domain in Phase 5. |
+| Application independent from presentation | Compliant | Application uses `application/models` and has no presentation DTO/schema imports. | Preserve this boundary. |
+| Application independent from TypeORM | Compliant | Product application code accesses persistence through outbound ports only. | Preserve this boundary. |
+| Raw SQL placement | Compliant | Seller/profile/location projections are implemented by the infrastructure query adapter. | Preserve this boundary. |
 | Domain persistence separation | Legacy partial | `domain/entities/*` are TypeORM entities with decorators. | Keep temporarily during early phases; move to `infrastructure/persistence/entities` after ports and tests are stable. |
-| Use-case size | Not compliant | `ProductsService` contains category, seed, create, list, mine, detail, update, status, image, certification, wishlist, and mock data behavior. | Split into focused use cases. |
-| Cross-module notification | Mostly compliant | Product uses `NOTIFICATION_PUBLISHER` inbound port from Notification module. | Keep the port, but trigger notification from a focused status use case after persistence succeeds. |
+| Use-case size | Partial | Focused use cases own runtime behavior; the compatibility facade still owns only delegation and development seed orchestration. | Move seed orchestration out in Phase 7. |
+| Cross-module notification | Compliant | `ChangeProductStatusUseCase` publishes through `NOTIFICATION_PUBLISHER` after persistence succeeds, covered by a unit test. | Preserve the order when adding transactions in Phase 6. |
 | Storage/upload boundary | Partial | Storage has image/file interfaces and infrastructure adapters, but ports are under `domain/interfaces`; application imports `CLOUDINARY_FOLDERS` and `PresignDto`; controller imports infrastructure config. | Move storage ports to `application/ports/outbound`; use application input models; keep Cloudinary/Supabase details in infrastructure. |
-| Product tests | Not compliant | No product-specific `*.spec.ts` or `*.e2e-spec.ts` files exist under `src/modules/products`. | Add contract/e2e tests before refactoring behavior. |
+| Product tests | Partial | Product use-case unit tests, repository tests, and REST contract tests exist. | Add transaction and integration coverage in later phases. |
 
 ## P2 Task Acceptance Matrix
 
@@ -79,11 +91,11 @@ Adjacent P2 upload/storage boundary:
 | --- | --- | --- | --- | --- |
 | I1-8 | DB entity + seed product categories | TRUE | PARTIAL | Entities and seed exist, but Product persistence entities are in `domain/entities`; seed logic is still reachable through `ProductsService` and startup logic. |
 | I1-9 | Cloudinary config + upload service | TRUE | PARTIAL | Cloudinary/Supabase adapters exist behind interfaces, but Storage still has legacy boundary issues. This does not block Product refactor, but should be cleaned when Storage is touched. |
-| I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints exist, seller authorization exists, but application uses presentation DTOs and TypeORM directly. |
-| I2-7 | Product search and filters | TRUE | PARTIAL | Public catalog is active-only by default, matching the latest decision. Query logic is still in application service and lacks contract tests. |
-| I2-9 | Wishlist API | TRUE | PARTIAL | Add/remove/list/ids endpoints exist. Wishlist behavior is mixed into `ProductsService` and lacks repository ports/tests. |
-| I3-5 | Product status flow | TRUE | PARTIAL | Status transitions and notification publishing exist. Status policy and side effect should move to a focused use case with tests. |
-| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | PARTIAL | Admin/state-agency pending and verify endpoints exist. Certification behavior is mixed into `ProductsService` and lacks tests. |
+| I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints and seller authorization are implemented through ports and focused use cases; typed domain errors and persistence entity split remain. |
+| I2-7 | Product search and filters | TRUE | PARTIAL | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
+| I2-9 | Wishlist API | TRUE | PARTIAL | Add/remove/list/ids are in focused use cases and use an outbound port; concurrency hardening remains Phase 6. |
+| I3-5 | Product status flow | TRUE | PARTIAL | Transition and notification behavior live in `ChangeProductStatusUseCase` with persistence-before-notification coverage. |
+| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | PARTIAL | Pending/verify behavior is in focused use cases; typed policy/errors are Phase 5. |
 | I2-10 | Product staging deploy | FALSE | OUT OF SCOPE | Deferred by project decision. |
 | I3-8 | Cloudinary production key | FALSE | OUT OF SCOPE | Deferred until production secrets are available. |
 | I4-8 | Product production deploy + search test | FALSE | OUT OF SCOPE | Deferred by project decision. |

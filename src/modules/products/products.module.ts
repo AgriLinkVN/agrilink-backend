@@ -21,6 +21,27 @@ import {
   PRODUCT_WISHLIST_REPOSITORY,
 } from './application/ports/outbound/product-repository.port';
 import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
+import {
+  AddProductCertificationUseCase,
+  AddProductImageUseCase,
+  AddWishlistItemUseCase,
+  ChangeProductStatusUseCase,
+  CreateProductUseCase,
+  DeleteProductUseCase,
+  GetProductCategoryTreeUseCase,
+  GetProductDetailUseCase,
+  ListPendingProductCertificationsUseCase,
+  ListProductCategoriesUseCase,
+  ListPublicProductsUseCase,
+  ListSellerProductsUseCase,
+  ListWishlistUseCase,
+  ListWishlistedProductIdsUseCase,
+  RemoveProductCertificationUseCase,
+  RemoveProductImageUseCase,
+  RemoveWishlistItemUseCase,
+  UpdateProductUseCase,
+  VerifyProductCertificationUseCase,
+} from './application/use-cases/product.use-cases';
 
 @Module({
   imports: [
@@ -37,6 +58,25 @@ import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-
   providers: [
     TypeOrmProductRepository,
     ProductsService,
+    CreateProductUseCase,
+    ListPublicProductsUseCase,
+    GetProductDetailUseCase,
+    ListSellerProductsUseCase,
+    UpdateProductUseCase,
+    DeleteProductUseCase,
+    ChangeProductStatusUseCase,
+    AddProductImageUseCase,
+    RemoveProductImageUseCase,
+    AddProductCertificationUseCase,
+    RemoveProductCertificationUseCase,
+    ListPendingProductCertificationsUseCase,
+    VerifyProductCertificationUseCase,
+    AddWishlistItemUseCase,
+    RemoveWishlistItemUseCase,
+    ListWishlistUseCase,
+    ListWishlistedProductIdsUseCase,
+    ListProductCategoriesUseCase,
+    GetProductCategoryTreeUseCase,
     { provide: PRODUCT_REPOSITORY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_CATALOG_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_DETAIL_QUERY, useExisting: TypeOrmProductRepository },
@@ -49,6 +89,5 @@ import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-
     { provide: PRODUCT_WISHLIST_REPOSITORY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
   ],
-  exports: [ProductsService],
 })
 export class ProductsModule { }
