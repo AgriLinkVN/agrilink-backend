@@ -139,6 +139,8 @@ Acceptance:
 
 Current status: `PARTIAL`.
 
+Detailed Phase 0 baseline and the Product refactor sequence are tracked in `docs/p2-product-architecture-audit.md`.
+
 What is already good:
 
 - Product module already uses a clean-ish folder split: `presentation`, `application`, `domain`, `infrastructure`.

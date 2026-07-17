@@ -1,6 +1,6 @@
 # P2 Product Deploy Readiness
 
-Generated: 2026-07-17
+Generated: 2026-07-18
 
 Status: deploy is intentionally deferred. This document records what must be ready before turning the P2 Product module loose on staging or production.
 
@@ -64,6 +64,9 @@ After deploy, verify these flows with real environment values:
 
 ## Known Gaps
 
-- Backend targeted lint cannot currently run from the repo script because ESLint config discovery fails locally. `npm run build` is the current verification gate.
+- Product backend behavior is functionally present, but the Product module is still architecturally PARTIAL under `docs/architecture/clean-architecture-rules.md`.
+- Product-specific contract/e2e tests are not in place yet. Add them before refactoring Product service boundaries.
 - Production Cloudinary, Supabase, and DB secrets are not available in this workspace.
 - No staging or production URL has been provided yet.
+
+See `docs/p2-product-architecture-audit.md` for the Phase 0 architecture baseline and refactor plan.
