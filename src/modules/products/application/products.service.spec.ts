@@ -75,7 +75,7 @@ describe('ProductsService contract', () => {
         status: ProductStatus.DRAFT,
         sortBy: 'pricePerUnit',
         order: 'ASC',
-      } as never);
+      });
 
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.pricePerUnit', 'ASC');
       expect(queryBuilder.skip).toHaveBeenCalledWith(10);
@@ -105,7 +105,7 @@ describe('ProductsService contract', () => {
         {
           sellerId: SELLER_ID,
           status: ProductStatus.DRAFT,
-        } as never,
+        },
         SELLER_ID,
       );
 
@@ -129,7 +129,7 @@ describe('ProductsService contract', () => {
       const result = await service.getWishlist(USER_ID, {
         page: 3,
         limit: 5,
-      } as never);
+      });
 
       expect(queryBuilder.where).toHaveBeenCalledWith('w.userId = :userId', {
         userId: USER_ID,

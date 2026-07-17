@@ -32,6 +32,13 @@ import {
 } from '../schemas/product-certification.dto';
 import { SellerType, UserRole } from '@common/enums';
 import { Roles } from '@common/decorators/roles.decorator';
+import {
+  CreateProductCertificationInput,
+  CreateProductInput,
+  ProductFilterInput,
+  UpdateProductInput,
+  VerifyProductCertificationInput,
+} from '../../application/models/product-input.model';
 
 @ApiTags('Products')
 @ApiBearerAuth('access-token')
@@ -66,10 +73,11 @@ export class ProductsController {
     @CurrentUser('role') role: UserRole,
     @Body() dto: CreateProductDto,
   ) {
+    const input: CreateProductInput = dto;
     return this.productsService.create(
       sellerId,
       sellerType ?? this.resolveSellerType(role),
-      dto,
+      input,
     );
   }
 
@@ -79,7 +87,8 @@ export class ProductsController {
   findAll( @Query() filter: ProductFilterDto,
     @CurrentUser('sub') currentUserId?: string, // optional — guest không có
   ) {
-    return this.productsService.findAll(filter, currentUserId);
+    const input: ProductFilterInput = filter;
+    return this.productsService.findAll(input, currentUserId);
   }
 
   @Public()
@@ -104,7 +113,8 @@ export class ProductsController {
     @CurrentUser('sub') sellerId: string,
     @Query() filter: ProductFilterDto,
   ) {
-    return this.productsService.findMine(sellerId, filter);
+    const input: ProductFilterInput = filter;
+    return this.productsService.findMine(sellerId, input);
   }
 
   @Get('certifications/pending')
@@ -124,7 +134,8 @@ export class ProductsController {
     @CurrentUser('sub') adminId: string,
     @Body() dto: VerifyProductCertificationDto,
   ) {
-    return this.productsService.verifyCertification(certId, adminId, dto);
+    const input: VerifyProductCertificationInput = dto;
+    return this.productsService.verifyCertification(certId, adminId, input);
   }
 
   @Public()
@@ -144,7 +155,8 @@ export class ProductsController {
     @CurrentUser('sub') sellerId: string,
     @Body() dto: UpdateProductDto,
   ) {
-    return this.productsService.update(id, sellerId, dto);
+    const input: UpdateProductInput = dto;
+    return this.productsService.update(id, sellerId, input);
   }
 
   @Patch(':id/status')
@@ -241,7 +253,8 @@ export class ProductsController {
     @CurrentUser('sub') sellerId: string,
     @Body() data: CreateProductCertificationDto,
   ) {
-    return this.productsService.addCertification(productId, sellerId, data);
+    const input: CreateProductCertificationInput = data;
+    return this.productsService.addCertification(productId, sellerId, input);
   }
 
   @Delete(':id/certifications/:certId')

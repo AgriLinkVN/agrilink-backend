@@ -12,14 +12,14 @@ import { Product } from '../domain/entities/product.entity';
 import { ProductCategory } from '../domain/entities/product-category.entity';
 import { ProductImage } from '../domain/entities/product-image.entity';
 import { ProductCertification } from '../domain/entities/product-certification.entity';
-import { CreateProductDto } from '../presentation/schemas/create-product.dto';
-import { UpdateProductDto } from '../presentation/schemas/update-product.dto';
 import {
-  CreateProductCertificationDto,
-  VerifyProductCertificationDto,
-} from '../presentation/schemas/product-certification.dto';
-import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
-import { WishlistQueryDto } from '../presentation/schemas/wishlist-query.dto';
+  CreateProductCertificationInput,
+  CreateProductInput,
+  ProductFilterInput,
+  UpdateProductInput,
+  VerifyProductCertificationInput,
+  WishlistQueryInput,
+} from './models/product-input.model';
 import { Wishlist } from '../domain/entities/wishlist.entity';
 import {
   NOTIFICATION_PUBLISHER,
@@ -30,7 +30,7 @@ import {
   ProductDetailLocation,
   ProductDetailResponse,
   ProductDetailSeller,
-} from '../presentation/schemas/product-detail.response';
+} from './models/product-detail.model';
 import {
   CertificationStatus,
   NotifType,
@@ -105,7 +105,7 @@ export class ProductsService {
   async create(
     sellerId: string,
     sellerType: SellerType,
-    dto: CreateProductDto,
+    dto: CreateProductInput,
   ): Promise<Product> {
     const { images = [], certifications = [], ...productData } = dto;
 
@@ -162,7 +162,7 @@ export class ProductsService {
   // ─── Find All + Filter ────────────────────────────────────────
 
   async findAll(
-    filter: ProductFilterDto,
+    filter: ProductFilterInput,
     currentUserId?: string,
   ): Promise<{ data: Product[]; total: number }> {
     const { page = 1, limit = 20, search, categoryId, provinceId,
@@ -221,7 +221,7 @@ export class ProductsService {
 
   async findMine(
     sellerId: string,
-    filter: ProductFilterDto,
+    filter: ProductFilterInput,
   ): Promise<{ data: Product[]; total: number }> {
     const {
       page = 1,
@@ -486,7 +486,7 @@ export class ProductsService {
 
   // ─── Update ───────────────────────────────────────────────────
 
-  async update(id: string, sellerId: string, dto: UpdateProductDto): Promise<Product> {
+  async update(id: string, sellerId: string, dto: UpdateProductInput): Promise<Product> {
     const product = await this.findEntityOrFail(id);
     this.assertProductOwner(product, sellerId, 'chỉnh sửa');
     Object.assign(product, dto);
@@ -658,7 +658,7 @@ export class ProductsService {
   async addCertification(
     productId: string,
     sellerId: string,
-    dto: CreateProductCertificationDto,
+    dto: CreateProductCertificationInput,
   ): Promise<ProductCertification> {
     const product = await this.findEntityOrFail(productId);
     this.assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
@@ -688,7 +688,7 @@ export class ProductsService {
   async verifyCertification(
     certId: string,
     adminId: string,
-    dto: VerifyProductCertificationDto,
+    dto: VerifyProductCertificationInput,
   ): Promise<ProductCertification> {
     const cert = await this.certRepo.findOne({
       where: { id: certId },
@@ -763,7 +763,7 @@ export class ProductsService {
 
   async getWishlist(
     userId: string,
-    query: WishlistQueryDto,
+    query: WishlistQueryInput,
   ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
