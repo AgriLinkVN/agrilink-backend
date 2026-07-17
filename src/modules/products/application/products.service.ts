@@ -1,15 +1,9 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
-  NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 
 import { Product } from '../domain/entities/product.entity';
-import { ProductCategory } from '../domain/entities/product-category.entity';
-import { ProductImage } from '../domain/entities/product-image.entity';
-import { ProductCertification } from '../domain/entities/product-certification.entity';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -18,81 +12,79 @@ import {
   VerifyProductCertificationInput,
   WishlistQueryInput,
 } from './models/product-input.model';
-import { Wishlist } from '../domain/entities/wishlist.entity';
 import {
-  NOTIFICATION_PUBLISHER,
-  NotificationPublisherPort,
-} from '@modules/notifications/application/ports/inbound/notification-publisher.port';
-import { ProductDetailResponse } from './models/product-detail.model';
-import {
-  PRODUCT_CATALOG_QUERY,
   PRODUCT_CATEGORY_QUERY,
-  PRODUCT_CERTIFICATION_REPOSITORY,
-  PRODUCT_DETAIL_QUERY,
-  PRODUCT_IMAGE_REPOSITORY,
-  PRODUCT_REPOSITORY,
   PRODUCT_SEED_REPOSITORY,
-  PRODUCT_WISHLIST_REPOSITORY,
-  ProductCatalogQueryPort,
   ProductCategoryQueryPort,
-  ProductCertificationRepositoryPort,
-  ProductDetailQueryPort,
-  ProductImageRepositoryPort,
-  ProductRepositoryPort,
   ProductSeedRepositoryPort,
-  ProductWishlistRepositoryPort,
 } from './ports/outbound/product-repository.port';
 import {
-  CertificationStatus,
   FarmingType,
-  NotifType,
   ProductStatus,
   ProductUnit,
   SellerType,
   UserRole,
 } from '@common/enums';
+import {
+  AddProductCertificationUseCase,
+  AddProductImageUseCase,
+  AddWishlistItemUseCase,
+  ChangeProductStatusUseCase,
+  CreateProductUseCase,
+  DeleteProductUseCase,
+  GetProductCategoryTreeUseCase,
+  GetProductDetailUseCase,
+  ListPendingProductCertificationsUseCase,
+  ListProductCategoriesUseCase,
+  ListPublicProductsUseCase,
+  ListSellerProductsUseCase,
+  ListWishlistUseCase,
+  ListWishlistedProductIdsUseCase,
+  RemoveProductCertificationUseCase,
+  RemoveProductImageUseCase,
+  RemoveWishlistItemUseCase,
+  UpdateProductUseCase,
+  VerifyProductCertificationUseCase,
+} from './use-cases/product.use-cases';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @Inject(PRODUCT_REPOSITORY)
-    private readonly productRepository: ProductRepositoryPort,
-
-    @Inject(PRODUCT_CATALOG_QUERY)
-    private readonly productCatalogQuery: ProductCatalogQueryPort,
-
-    @Inject(PRODUCT_DETAIL_QUERY)
-    private readonly productDetailQuery: ProductDetailQueryPort,
-
     @Inject(PRODUCT_CATEGORY_QUERY)
     private readonly productCategoryQuery: ProductCategoryQueryPort,
-
-    @Inject(PRODUCT_IMAGE_REPOSITORY)
-    private readonly productImageRepository: ProductImageRepositoryPort,
-
-    @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
-    private readonly productCertificationRepository: ProductCertificationRepositoryPort,
-
-    @Inject(PRODUCT_WISHLIST_REPOSITORY)
-    private readonly productWishlistRepository: ProductWishlistRepositoryPort,
-
     @Inject(PRODUCT_SEED_REPOSITORY)
     private readonly productSeedRepository: ProductSeedRepositoryPort,
-
-    @Inject(NOTIFICATION_PUBLISHER)
-    private readonly notificationPublisher: NotificationPublisherPort,
+    private readonly createProductUseCase: CreateProductUseCase,
+    private readonly listPublicProductsUseCase: ListPublicProductsUseCase,
+    private readonly getProductDetailUseCase: GetProductDetailUseCase,
+    private readonly listSellerProductsUseCase: ListSellerProductsUseCase,
+    private readonly updateProductUseCase: UpdateProductUseCase,
+    private readonly deleteProductUseCase: DeleteProductUseCase,
+    private readonly changeProductStatusUseCase: ChangeProductStatusUseCase,
+    private readonly addProductImageUseCase: AddProductImageUseCase,
+    private readonly removeProductImageUseCase: RemoveProductImageUseCase,
+    private readonly addProductCertificationUseCase: AddProductCertificationUseCase,
+    private readonly removeProductCertificationUseCase: RemoveProductCertificationUseCase,
+    private readonly listPendingProductCertificationsUseCase: ListPendingProductCertificationsUseCase,
+    private readonly verifyProductCertificationUseCase: VerifyProductCertificationUseCase,
+    private readonly addWishlistItemUseCase: AddWishlistItemUseCase,
+    private readonly removeWishlistItemUseCase: RemoveWishlistItemUseCase,
+    private readonly listWishlistUseCase: ListWishlistUseCase,
+    private readonly listWishlistedProductIdsUseCase: ListWishlistedProductIdsUseCase,
+    private readonly listProductCategoriesUseCase: ListProductCategoriesUseCase,
+    private readonly getProductCategoryTreeUseCase: GetProductCategoryTreeUseCase,
   ) { }
 
   // ─── Categories ───────────────────────────────────────────────
 
   /** Root categories only (parentId null) — used by `GET /products/categories`. */
-  async findCategories(): Promise<ProductCategory[]> {
-    return this.productCategoryQuery.findRootCategories();
+  findCategories() {
+    return this.listProductCategoriesUseCase.execute();
   }
 
   /** Full 2-level tree (roots + nested children) — used by search filter. */
-  async getCategoryTree(): Promise<ProductCategory[]> {
-    return this.productCategoryQuery.getCategoryTree();
+  getCategoryTree() {
+    return this.getProductCategoryTreeUseCase.execute();
   }
 
   async seedCategories(): Promise<void> {
@@ -101,306 +93,135 @@ export class ProductsService {
 
   // ─── Create ──────────────────────────────────────────────────
 
-  async create(
+  create(
     sellerId: string,
     sellerType: SellerType,
     dto: CreateProductInput,
-  ): Promise<Product> {
-    return this.productRepository.create(sellerId, sellerType, dto);
+  ) {
+    return this.createProductUseCase.execute(sellerId, sellerType, dto);
   }
 
   // ─── Find All + Filter ────────────────────────────────────────
 
-  async findAll(
+  findAll(
     filter: ProductFilterInput,
     currentUserId?: string,
-  ): Promise<{ data: Product[]; total: number }> {
-    return this.productCatalogQuery.findAll(filter, currentUserId);
+  ) {
+    return this.listPublicProductsUseCase.execute(filter, currentUserId);
   }
 
-  async findMine(
+  findMine(
     sellerId: string,
     filter: ProductFilterInput,
-  ): Promise<{ data: Product[]; total: number }> {
-    return this.productCatalogQuery.findMine(sellerId, filter);
+  ) {
+    return this.listSellerProductsUseCase.execute(sellerId, filter);
   }
 
   // ─── Find One ─────────────────────────────────────────────────
-
-  /** Internal lookup — entity only, used by update/remove/etc. */
-  private async findEntityOrFail(id: string): Promise<Product> {
-    const product = await this.productRepository.findByIdWithRelations(id);
-    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
-    return product;
-  }
 
   /**
    * GET /products/:id — full detail with seller info populated via raw queries
    * (avoids cross-module entity coupling with P1's auth/profiles).
    */
-  async findOne(id: string): Promise<ProductDetailResponse> {
-    const product = await this.productDetailQuery.findOne(id);
-    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
-    return product;
+  findOne(id: string) {
+    return this.getProductDetailUseCase.execute(id);
   }
 
   // ─── Update ───────────────────────────────────────────────────
 
-  async update(id: string, sellerId: string, dto: UpdateProductInput): Promise<Product> {
-    const product = await this.findEntityOrFail(id);
-    this.assertProductOwner(product, sellerId, 'chỉnh sửa');
-    Object.assign(product, dto);
-    return this.productRepository.save(product);
+  update(id: string, sellerId: string, dto: UpdateProductInput) {
+    return this.updateProductUseCase.execute(id, sellerId, dto);
   }
 
-  async updateStatus(
+  updateStatus(
     id: string,
     actorId: string,
     actorRole: UserRole,
     nextStatus: ProductStatus,
-  ): Promise<Product> {
-    const product = await this.findEntityOrFail(id);
-    const previousStatus = product.status;
-    const isOwner = product.sellerId === actorId;
-    const isReviewer = [UserRole.ADMIN, UserRole.STATE_AGENCY].includes(actorRole);
-
-    if (!isOwner && !isReviewer) {
-      throw new ForbiddenException('Bạn không có quyền đổi trạng thái sản phẩm này');
-    }
-
-    if (previousStatus === nextStatus) {
-      return product;
-    }
-
-    if (!this.getAllowedStatusTargets(previousStatus).includes(nextStatus)) {
-      throw new BadRequestException(
-        `Không thể chuyển trạng thái sản phẩm từ ${previousStatus} sang ${nextStatus}`,
-      );
-    }
-
-    this.assertStatusPermission(previousStatus, nextStatus, isOwner, isReviewer);
-
-    if (nextStatus === ProductStatus.ACTIVE && Number(product.availableQuantity) <= 0) {
-      throw new BadRequestException('Sản phẩm phải có số lượng tồn kho lớn hơn 0 để kích hoạt');
-    }
-
-    product.status = nextStatus;
-    product.rejectionReason = null;
-
-    const saved = await this.productRepository.save(product);
-    await this.notifySellerStatusChanged(saved, previousStatus);
-
-    return saved;
-  }
-
-  private getAllowedStatusTargets(currentStatus: ProductStatus): ProductStatus[] {
-    const flow: Partial<Record<ProductStatus, ProductStatus[]>> = {
-      [ProductStatus.DRAFT]: [ProductStatus.PENDING_APPROVAL],
-      [ProductStatus.REJECTED]: [ProductStatus.PENDING_APPROVAL],
-      [ProductStatus.PENDING_APPROVAL]: [ProductStatus.ACTIVE],
-      [ProductStatus.ACTIVE]: [ProductStatus.OUT_OF_STOCK],
-      [ProductStatus.OUT_OF_STOCK]: [ProductStatus.ACTIVE],
-    };
-
-    return flow[currentStatus] ?? [];
-  }
-
-  private assertStatusPermission(
-    currentStatus: ProductStatus,
-    nextStatus: ProductStatus,
-    isOwner: boolean,
-    isReviewer: boolean,
   ) {
-    if (nextStatus === ProductStatus.PENDING_APPROVAL && !isOwner) {
-      throw new ForbiddenException('Chỉ người bán mới được gửi sản phẩm chờ duyệt');
-    }
-
-    if (
-      currentStatus === ProductStatus.PENDING_APPROVAL &&
-      nextStatus === ProductStatus.ACTIVE &&
-      !isReviewer
-    ) {
-      throw new ForbiddenException('Chỉ admin hoặc cơ quan quản lý mới được duyệt sản phẩm');
-    }
-
-    if (
-      currentStatus === ProductStatus.OUT_OF_STOCK &&
-      nextStatus === ProductStatus.ACTIVE &&
-      !isOwner &&
-      !isReviewer
-    ) {
-      throw new ForbiddenException('Bạn không có quyền mở bán lại sản phẩm này');
-    }
-
-    if (nextStatus === ProductStatus.OUT_OF_STOCK && !isOwner && !isReviewer) {
-      throw new ForbiddenException('Bạn không có quyền đánh dấu hết hàng');
-    }
-  }
-
-  private async notifySellerStatusChanged(
-    product: Product,
-    previousStatus: ProductStatus,
-  ): Promise<void> {
-    const titleByStatus: Record<ProductStatus, string> = {
-      [ProductStatus.DRAFT]: 'Sản phẩm đã lưu nháp',
-      [ProductStatus.PENDING_APPROVAL]: 'Sản phẩm đang chờ duyệt',
-      [ProductStatus.ACTIVE]: 'Sản phẩm đã được duyệt',
-      [ProductStatus.OUT_OF_STOCK]: 'Sản phẩm đã hết hàng',
-      [ProductStatus.REJECTED]: 'Sản phẩm bị từ chối',
-      [ProductStatus.ARCHIVED]: 'Sản phẩm đã lưu trữ',
-      [ProductStatus.SUSPENDED]: 'Sản phẩm đã bị tạm khóa',
-    };
-
-    const type =
-      product.status === ProductStatus.ACTIVE
-        ? NotifType.PRODUCT_APPROVED
-        : NotifType.PRODUCT_STATUS_CHANGED;
-
-    await this.notificationPublisher.publish({
-      userId: product.sellerId,
-      type,
-      title: titleByStatus[product.status],
-      body: `Sản phẩm "${product.name}" đã chuyển từ ${previousStatus} sang ${product.status}.`,
-      data: {
-        productId: product.id,
-        previousStatus,
-        status: product.status,
-      },
-    });
+    return this.changeProductStatusUseCase.execute(
+      id,
+      actorId,
+      actorRole,
+      nextStatus,
+    );
   }
 
   // ─── Remove ───────────────────────────────────────────────────
 
-  async remove(id: string, sellerId: string): Promise<void> {
-    const product = await this.findEntityOrFail(id);
-    this.assertProductOwner(product, sellerId, 'xóa');
-    product.status = ProductStatus.DRAFT;
-    await this.productRepository.save(product);
+  remove(id: string, sellerId: string) {
+    return this.deleteProductUseCase.execute(id, sellerId);
   }
 
   // ─── Images ───────────────────────────────────────────────────
 
-  async addImage(
+  addImage(
     productId: string,
     sellerId: string,
     imageUrl: string,
     isPrimary: boolean,
-  ): Promise<ProductImage> {
-    const product = await this.findEntityOrFail(productId);
-    this.assertProductOwner(product, sellerId, 'thêm ảnh cho');
-    return this.productImageRepository.addImage(productId, imageUrl, isPrimary);
+  ) {
+    return this.addProductImageUseCase.execute(
+      productId,
+      sellerId,
+      imageUrl,
+      isPrimary,
+    );
   }
 
-  async removeImage(productId: string, imageId: string, sellerId: string): Promise<void> {
-    const product = await this.findEntityOrFail(productId);
-    this.assertProductOwner(product, sellerId, 'xóa ảnh của');
-
-    const removed = await this.productImageRepository.removeImageByProduct(
-      productId,
-      imageId,
-    );
-    if (!removed) throw new NotFoundException('Không tìm thấy ảnh');
+  removeImage(productId: string, imageId: string, sellerId: string) {
+    return this.removeProductImageUseCase.execute(productId, imageId, sellerId);
   }
 
   // ─── Certifications ───────────────────────────────────────────
 
-  async addCertification(
+  addCertification(
     productId: string,
     sellerId: string,
     dto: CreateProductCertificationInput,
-  ): Promise<ProductCertification> {
-    const product = await this.findEntityOrFail(productId);
-    this.assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
-    return this.productCertificationRepository.addCertification(productId, dto);
+  ) {
+    return this.addProductCertificationUseCase.execute(productId, sellerId, dto);
   }
 
-  async findPendingCertifications(): Promise<ProductCertification[]> {
-    return this.productCertificationRepository.findPending();
+  findPendingCertifications() {
+    return this.listPendingProductCertificationsUseCase.execute();
   }
 
-  async verifyCertification(
+  verifyCertification(
     certId: string,
     adminId: string,
     dto: VerifyProductCertificationInput,
-  ): Promise<ProductCertification> {
-    const cert = await this.productCertificationRepository.findByIdWithProduct(
+  ) {
+    return this.verifyProductCertificationUseCase.execute(certId, adminId, dto);
+  }
+
+  removeCertification(productId: string, certId: string, sellerId: string) {
+    return this.removeProductCertificationUseCase.execute(
+      productId,
       certId,
+      sellerId,
     );
-    if (!cert) throw new NotFoundException('Không tìm thấy chứng nhận');
-
-    if (dto.status === CertificationStatus.PENDING) {
-      throw new BadRequestException('Trạng thái duyệt phải là verified hoặc rejected');
-    }
-
-    if (
-      dto.status === CertificationStatus.REJECTED &&
-      !dto.rejectionReason?.trim()
-    ) {
-      throw new BadRequestException('Vui lòng nhập lý do từ chối chứng nhận');
-    }
-
-    cert.status = dto.status;
-    cert.isVerified = dto.status === CertificationStatus.VERIFIED;
-    cert.verifiedBy = adminId;
-    cert.verifiedAt = new Date();
-    cert.rejectionReason =
-      dto.status === CertificationStatus.REJECTED
-        ? dto.rejectionReason.trim()
-        : null;
-
-    return this.productCertificationRepository.saveCertification(cert);
-  }
-
-  async removeCertification(productId: string, certId: string, sellerId: string): Promise<void> {
-    const product = await this.findEntityOrFail(productId);
-    this.assertProductOwner(product, sellerId, 'xóa chứng nhận của');
-
-    const removed =
-      await this.productCertificationRepository.removeCertificationByProduct(
-        productId,
-        certId,
-      );
-    if (!removed) throw new NotFoundException('Không tìm thấy chứng nhận');
-  }
-
-  private assertProductOwner(product: Product, sellerId: string, action: string): void {
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenException(`Bạn không có quyền ${action} sản phẩm này`);
-    }
   }
 
   // ─── Wishlist ─────────────────────────────────────────────────
 
-  async addToWishlist(userId: string, productId: string): Promise<Wishlist> {
-    const product = await this.productRepository.findActiveById(productId);
-    if (!product) {
-      throw new NotFoundException('Không tìm thấy sản phẩm hoạt động');
-    }
-
-    const existing = await this.productWishlistRepository.findByUserAndProduct(
-      userId,
-      productId,
-    );
-    if (existing) {
-      return existing;
-    }
-
-    return this.productWishlistRepository.addWishlist(userId, productId);
+  addToWishlist(userId: string, productId: string) {
+    return this.addWishlistItemUseCase.execute(userId, productId);
   }
 
-  async removeFromWishlist(userId: string, productId: string): Promise<void> {
-    await this.productWishlistRepository.remove(userId, productId);
+  removeFromWishlist(userId: string, productId: string) {
+    return this.removeWishlistItemUseCase.execute(userId, productId);
   }
 
-  async getWishlist(
+  getWishlist(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
-    return this.productWishlistRepository.getWishlist(userId, query);
+  ) {
+    return this.listWishlistUseCase.execute(userId, query);
   }
 
-  async getWishlistedIds(userId: string): Promise<string[]> {
-    return this.productWishlistRepository.getWishlistedIds(userId);
+  getWishlistedIds(userId: string) {
+    return this.listWishlistedProductIdsUseCase.execute(userId);
   }
 
   // ─── Dev seed ─────────────────────────────────────────────────
