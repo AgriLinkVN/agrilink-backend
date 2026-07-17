@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -32,6 +31,7 @@ import {
 } from '../schemas/product-certification.dto';
 import { SellerType, UserRole } from '@common/enums';
 import { Roles } from '@common/decorators/roles.decorator';
+import { mapProductApplicationError } from '../mappers/product-error.mapper';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -46,16 +46,11 @@ import {
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
 
-  private resolveSellerType(role: UserRole): SellerType {
-    switch (role) {
-      case UserRole.FARMER:
-        return SellerType.FARMER;
-      case UserRole.COOPERATIVE:
-        return SellerType.COOPERATIVE;
-      case UserRole.SUPPLIER:
-        return SellerType.SUPPLIER;
-      default:
-        throw new BadRequestException('Vai trò hiện tại không phải người bán');
+  private async execute<T>(operation: () => Promise<T> | T): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      return mapProductApplicationError(error);
     }
   }
 
@@ -74,10 +69,8 @@ export class ProductsController {
     @Body() dto: CreateProductDto,
   ) {
     const input: CreateProductInput = dto;
-    return this.productsService.create(
-      sellerId,
-      sellerType ?? this.resolveSellerType(role),
-      input,
+    return this.execute(() =>
+      this.productsService.create(sellerId, sellerType, role, input),
     );
   }
 
@@ -135,7 +128,9 @@ export class ProductsController {
     @Body() dto: VerifyProductCertificationDto,
   ) {
     const input: VerifyProductCertificationInput = dto;
-    return this.productsService.verifyCertification(certId, adminId, input);
+    return this.execute(() =>
+      this.productsService.verifyCertification(certId, adminId, input),
+    );
   }
 
   @Public()
@@ -143,7 +138,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'Chi tiết sản phẩm (public)' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy' })
   findOne(@Param('id', ParseUuidPipe) id: string) {
-    return this.productsService.findOne(id);
+    return this.execute(() => this.productsService.findOne(id));
   }
 
   @Patch(':id')
@@ -156,7 +151,7 @@ export class ProductsController {
     @Body() dto: UpdateProductDto,
   ) {
     const input: UpdateProductInput = dto;
-    return this.productsService.update(id, sellerId, input);
+    return this.execute(() => this.productsService.update(id, sellerId, input));
   }
 
   @Patch(':id/status')
@@ -175,7 +170,9 @@ export class ProductsController {
     @CurrentUser('role') actorRole: UserRole,
     @Body() dto: UpdateProductStatusDto,
   ) {
-    return this.productsService.updateStatus(id, actorId, actorRole, dto.status);
+    return this.execute(() =>
+      this.productsService.updateStatus(id, actorId, actorRole, dto.status),
+    );
   }
 
   @Delete(':id')
@@ -187,7 +184,7 @@ export class ProductsController {
     @Param('id', ParseUuidPipe) id: string,
     @CurrentUser('sub') sellerId: string,
   ) {
-    return this.productsService.remove(id, sellerId);
+    return this.execute(() => this.productsService.remove(id, sellerId));
   }
 
   // ─── Dev seed ─────────────────────────────────────────────────
@@ -226,7 +223,9 @@ export class ProductsController {
     @Body('imageUrl') imageUrl: string,
     @Body('isPrimary') isPrimary: boolean,
   ) {
-    return this.productsService.addImage(productId, sellerId, imageUrl, isPrimary);
+    return this.execute(() =>
+      this.productsService.addImage(productId, sellerId, imageUrl, isPrimary),
+    );
   }
 
   @Delete(':id/images/:imageId')
@@ -239,7 +238,9 @@ export class ProductsController {
     @Param('imageId', ParseUuidPipe) imageId: string,
     @CurrentUser('sub') sellerId: string,
   ) {
-    return this.productsService.removeImage(productId, imageId, sellerId);
+    return this.execute(() =>
+      this.productsService.removeImage(productId, imageId, sellerId),
+    );
   }
 
   // ─── Certifications ───────────────────────────────────────────
@@ -254,7 +255,9 @@ export class ProductsController {
     @Body() data: CreateProductCertificationDto,
   ) {
     const input: CreateProductCertificationInput = data;
-    return this.productsService.addCertification(productId, sellerId, input);
+    return this.execute(() =>
+      this.productsService.addCertification(productId, sellerId, input),
+    );
   }
 
   @Delete(':id/certifications/:certId')
@@ -267,6 +270,8 @@ export class ProductsController {
     @Param('certId', ParseUuidPipe) certId: string,
     @CurrentUser('sub') sellerId: string,
   ) {
-    return this.productsService.removeCertification(productId, certId, sellerId);
+    return this.execute(() =>
+      this.productsService.removeCertification(productId, certId, sellerId),
+    );
   }
 }

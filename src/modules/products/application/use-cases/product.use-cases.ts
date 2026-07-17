@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import {
   CertificationStatus,
@@ -22,6 +16,18 @@ import { ProductCategory } from '../../domain/entities/product-category.entity';
 import { ProductCertification } from '../../domain/entities/product-certification.entity';
 import { ProductImage } from '../../domain/entities/product-image.entity';
 import { Wishlist } from '../../domain/entities/wishlist.entity';
+import {
+  ProductCertificationNotFoundError,
+  ProductForbiddenError,
+  ProductNotFoundError,
+} from '../../domain/errors/product-application.error';
+import { assertValidCertificationVerification } from '../../domain/policies/product-certification-verification.policy';
+import { assertProductStatusTransition } from '../../domain/policies/product-status-transition.policy';
+import { resolveSellerType } from '../../domain/policies/seller-type.policy';
+import {
+  assertWishlistProductIsAvailable,
+  shouldCreateWishlistItem,
+} from '../../domain/policies/wishlist.policy';
 import { ProductDetailResponse } from '../models/product-detail.model';
 import {
   CreateProductCertificationInput,
@@ -54,7 +60,7 @@ async function findProductOrFail(
 ): Promise<Product> {
   const product = await productRepository.findByIdWithRelations(productId);
   if (!product) {
-    throw new NotFoundException('Không tìm thấy sản phẩm');
+    throw new ProductNotFoundError('Không tìm thấy sản phẩm');
   }
   return product;
 }
@@ -65,7 +71,7 @@ function assertProductOwner(
   action: string,
 ): void {
   if (product.sellerId !== sellerId) {
-    throw new ForbiddenException(`Bạn không có quyền ${action} sản phẩm này`);
+    throw new ProductForbiddenError(`Bạn không có quyền ${action} sản phẩm này`);
   }
 }
 
@@ -78,10 +84,15 @@ export class CreateProductUseCase {
 
   execute(
     sellerId: string,
-    sellerType: SellerType,
+    sellerType: SellerType | undefined,
+    role: UserRole,
     input: CreateProductInput,
   ): Promise<Product> {
-    return this.productRepository.create(sellerId, sellerType, input);
+    return this.productRepository.create(
+      sellerId,
+      sellerType ?? resolveSellerType(role),
+      input,
+    );
   }
 }
 
@@ -110,7 +121,7 @@ export class GetProductDetailUseCase {
   async execute(id: string): Promise<ProductDetailResponse> {
     const product = await this.productDetailQuery.findOne(id);
     if (!product) {
-      throw new NotFoundException('Không tìm thấy sản phẩm');
+      throw new ProductNotFoundError('Không tìm thấy sản phẩm');
     }
     return product;
   }
@@ -182,23 +193,16 @@ export class ChangeProductStatusUseCase {
   ): Promise<Product> {
     const product = await findProductOrFail(this.productRepository, id);
     const previousStatus = product.status;
-    const isOwner = product.sellerId === actorId;
-    const isReviewer = [UserRole.ADMIN, UserRole.STATE_AGENCY].includes(actorRole);
-
-    if (!isOwner && !isReviewer) {
-      throw new ForbiddenException('Bạn không có quyền đổi trạng thái sản phẩm này');
-    }
+    assertProductStatusTransition({
+      currentStatus: previousStatus,
+      nextStatus,
+      sellerId: product.sellerId,
+      actorId,
+      actorRole,
+      availableQuantity: Number(product.availableQuantity),
+    });
     if (previousStatus === nextStatus) {
       return product;
-    }
-    if (!this.getAllowedTargets(previousStatus).includes(nextStatus)) {
-      throw new BadRequestException(
-        `Không thể chuyển trạng thái sản phẩm từ ${previousStatus} sang ${nextStatus}`,
-      );
-    }
-    this.assertTransitionPermission(previousStatus, nextStatus, isOwner, isReviewer);
-    if (nextStatus === ProductStatus.ACTIVE && Number(product.availableQuantity) <= 0) {
-      throw new BadRequestException('Sản phẩm phải có số lượng tồn kho lớn hơn 0 để kích hoạt');
     }
 
     product.status = nextStatus;
@@ -206,46 +210,6 @@ export class ChangeProductStatusUseCase {
     const saved = await this.productRepository.save(product);
     await this.publishStatusChanged(saved, previousStatus);
     return saved;
-  }
-
-  private getAllowedTargets(currentStatus: ProductStatus): ProductStatus[] {
-    const flow: Partial<Record<ProductStatus, ProductStatus[]>> = {
-      [ProductStatus.DRAFT]: [ProductStatus.PENDING_APPROVAL],
-      [ProductStatus.REJECTED]: [ProductStatus.PENDING_APPROVAL],
-      [ProductStatus.PENDING_APPROVAL]: [ProductStatus.ACTIVE],
-      [ProductStatus.ACTIVE]: [ProductStatus.OUT_OF_STOCK],
-      [ProductStatus.OUT_OF_STOCK]: [ProductStatus.ACTIVE],
-    };
-    return flow[currentStatus] ?? [];
-  }
-
-  private assertTransitionPermission(
-    currentStatus: ProductStatus,
-    nextStatus: ProductStatus,
-    isOwner: boolean,
-    isReviewer: boolean,
-  ): void {
-    if (nextStatus === ProductStatus.PENDING_APPROVAL && !isOwner) {
-      throw new ForbiddenException('Chỉ người bán mới được gửi sản phẩm chờ duyệt');
-    }
-    if (
-      currentStatus === ProductStatus.PENDING_APPROVAL &&
-      nextStatus === ProductStatus.ACTIVE &&
-      !isReviewer
-    ) {
-      throw new ForbiddenException('Chỉ admin hoặc cơ quan quản lý mới được duyệt sản phẩm');
-    }
-    if (
-      currentStatus === ProductStatus.OUT_OF_STOCK &&
-      nextStatus === ProductStatus.ACTIVE &&
-      !isOwner &&
-      !isReviewer
-    ) {
-      throw new ForbiddenException('Bạn không có quyền mở bán lại sản phẩm này');
-    }
-    if (nextStatus === ProductStatus.OUT_OF_STOCK && !isOwner && !isReviewer) {
-      throw new ForbiddenException('Bạn không có quyền đánh dấu hết hàng');
-    }
   }
 
   private async publishStatusChanged(
@@ -309,7 +273,7 @@ export class RemoveProductImageUseCase {
     assertProductOwner(product, sellerId, 'xóa ảnh của');
     const removed = await this.productImageRepository.removeImageByProduct(productId, imageId);
     if (!removed) {
-      throw new NotFoundException('Không tìm thấy ảnh');
+      throw new ProductNotFoundError('Không tìm thấy ảnh');
     }
   }
 }
@@ -351,7 +315,7 @@ export class RemoveProductCertificationUseCase {
       certId,
     );
     if (!removed) {
-      throw new NotFoundException('Không tìm thấy chứng nhận');
+      throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
   }
 }
@@ -382,14 +346,9 @@ export class VerifyProductCertificationUseCase {
   ): Promise<ProductCertification> {
     const certification = await this.productCertificationRepository.findByIdWithProduct(certId);
     if (!certification) {
-      throw new NotFoundException('Không tìm thấy chứng nhận');
+      throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
-    if (input.status === CertificationStatus.PENDING) {
-      throw new BadRequestException('Trạng thái duyệt phải là verified hoặc rejected');
-    }
-    if (input.status === CertificationStatus.REJECTED && !input.rejectionReason?.trim()) {
-      throw new BadRequestException('Vui lòng nhập lý do từ chối chứng nhận');
-    }
+    assertValidCertificationVerification(input);
 
     certification.status = input.status;
     certification.isVerified = input.status === CertificationStatus.VERIFIED;
@@ -414,11 +373,12 @@ export class AddWishlistItemUseCase {
 
   async execute(userId: string, productId: string): Promise<Wishlist> {
     const product = await this.productRepository.findActiveById(productId);
-    if (!product) {
-      throw new NotFoundException('Không tìm thấy sản phẩm hoạt động');
-    }
+    assertWishlistProductIsAvailable(product);
     const existing = await this.productWishlistRepository.findByUserAndProduct(userId, productId);
-    return existing ?? this.productWishlistRepository.addWishlist(userId, productId);
+    if (!shouldCreateWishlistItem(existing)) {
+      return existing;
+    }
+    return this.productWishlistRepository.addWishlist(userId, productId);
   }
 }
 

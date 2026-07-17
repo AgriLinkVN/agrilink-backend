@@ -1,10 +1,4 @@
 import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-
-import {
   CertificationStatus,
   NotifType,
   ProductStatus,
@@ -16,6 +10,12 @@ import { Product } from '../domain/entities/product.entity';
 import { ProductCertification } from '../domain/entities/product-certification.entity';
 import { Wishlist } from '../domain/entities/wishlist.entity';
 import {
+  InvalidProductCertificationVerificationError,
+  ProductForbiddenError,
+  ProductNotFoundError,
+  WishlistProductUnavailableError,
+} from '../domain/errors/product-application.error';
+import {
   ProductCertificationRepositoryPort,
   ProductRepositoryPort,
   ProductWishlistRepositoryPort,
@@ -23,6 +23,7 @@ import {
 import {
   AddWishlistItemUseCase,
   ChangeProductStatusUseCase,
+  CreateProductUseCase,
   GetProductDetailUseCase,
   UpdateProductUseCase,
   VerifyProductCertificationUseCase,
@@ -87,7 +88,7 @@ describe('Product application use cases', () => {
 
     await expect(
       useCase.execute(PRODUCT_ID, OTHER_SELLER_ID, { name: 'Ten moi' }),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toThrow(ProductForbiddenError);
     expect(repository.save).not.toHaveBeenCalled();
   });
 
@@ -136,7 +137,24 @@ describe('Product application use cases', () => {
 
     await expect(
       useCase.execute(PRODUCT_ID, SELLER_ID, UserRole.FARMER, ProductStatus.ACTIVE),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toThrow(ProductForbiddenError);
+  });
+
+  it('checks authorization before accepting a no-op status request', async () => {
+    const repository = makeProductRepository();
+    repository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    const useCase = new ChangeProductStatusUseCase(repository, {
+      publish: jest.fn(),
+    });
+
+    await expect(
+      useCase.execute(
+        PRODUCT_ID,
+        OTHER_SELLER_ID,
+        UserRole.BUYER,
+        ProductStatus.DRAFT,
+      ),
+    ).rejects.toThrow(ProductForbiddenError);
   });
 
   it('requires a rejection reason when rejecting a certification', async () => {
@@ -148,7 +166,7 @@ describe('Product application use cases', () => {
 
     await expect(
       useCase.execute(CERT_ID, ADMIN_ID, { status: CertificationStatus.REJECTED }),
-    ).rejects.toThrow(BadRequestException);
+    ).rejects.toThrow(InvalidProductCertificationVerificationError);
     expect(repository.saveCertification).not.toHaveBeenCalled();
   });
 
@@ -168,9 +186,45 @@ describe('Product application use cases', () => {
     expect(wishlistRepository.addWishlist).not.toHaveBeenCalled();
   });
 
+  it('rejects a wishlist item when the product is not active', async () => {
+    const productRepository = makeProductRepository();
+    const wishlistRepository = makeWishlistRepository();
+    productRepository.findActiveById.mockResolvedValue(null);
+    const useCase = new AddWishlistItemUseCase(productRepository, wishlistRepository);
+
+    await expect(useCase.execute(USER_ID, PRODUCT_ID)).rejects.toThrow(
+      WishlistProductUnavailableError,
+    );
+    expect(wishlistRepository.findByUserAndProduct).not.toHaveBeenCalled();
+  });
+
   it('maps a missing public detail projection to not found', async () => {
     const useCase = new GetProductDetailUseCase({ findOne: jest.fn().mockResolvedValue(null) });
 
-    await expect(useCase.execute(PRODUCT_ID)).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute(PRODUCT_ID)).rejects.toThrow(ProductNotFoundError);
+  });
+
+  it('derives seller type from the authenticated seller role when JWT has no sellerType', async () => {
+    const repository = makeProductRepository();
+    repository.create.mockResolvedValue(makeProduct());
+    const useCase = new CreateProductUseCase(repository);
+
+    await useCase.execute(
+      SELLER_ID,
+      undefined,
+      UserRole.COOPERATIVE,
+      {
+        name: 'Xoai cat Hoa Loc',
+        pricePerUnit: 25000,
+        unit: ProductUnit.KG,
+        availableQuantity: 10,
+      },
+    );
+
+    expect(repository.create).toHaveBeenCalledWith(
+      SELLER_ID,
+      SellerType.COOPERATIVE,
+      expect.any(Object),
+    );
   });
 });
