@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -20,7 +21,10 @@ import {
 import { ProductFilterDto } from '../presentation/schemas/product-filter.dto';
 import { WishlistQueryDto } from '../presentation/schemas/wishlist-query.dto';
 import { Wishlist } from '../domain/entities/wishlist.entity';
-import { NotificationsService } from '@modules/notifications/notifications.service';
+import {
+  NOTIFICATION_PUBLISHER,
+  NotificationPublisherPort,
+} from '@modules/notifications/domain/ports/notification-publisher.port';
 import {
   ProductDetailCategory,
   ProductDetailLocation,
@@ -54,7 +58,8 @@ export class ProductsService {
     @InjectRepository(Wishlist)
     private readonly wishlistRepo: Repository<Wishlist>,
 
-    private readonly notificationsService: NotificationsService,
+    @Inject(NOTIFICATION_PUBLISHER)
+    private readonly notificationsService: NotificationPublisherPort,
 
     private readonly dataSource: DataSource,
   ) { }

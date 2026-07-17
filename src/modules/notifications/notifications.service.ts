@@ -1,57 +1,81 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Notification } from './entities/notification.entity';
-import { CreateNotificationDto } from './dto/create-notification.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { NotificationsGateway } from './notifications.gateway';
+import {
+  NOTIFICATION_REPOSITORY,
+  NotificationRepositoryPort,
+} from './domain/ports/notification-repository.port';
+import {
+  NOTIFICATION_REALTIME_PUBLISHER,
+  NotificationRealtimePublisherPort,
+} from './domain/ports/notification-realtime-publisher.port';
+import { NotificationPublisherPort } from './domain/ports/notification-publisher.port';
+import { CreateNotificationInput } from './domain/notification.types';
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService implements NotificationPublisherPort {
   constructor(
-    @InjectRepository(Notification)
-    private readonly notifRepo: Repository<Notification>,
-    private readonly notificationsGateway: NotificationsGateway,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly notifications: NotificationRepositoryPort,
+    @Inject(NOTIFICATION_REALTIME_PUBLISHER)
+    private readonly realtimePublisher: NotificationRealtimePublisherPort,
   ) {}
 
   async findAll(userId: string, pagination: PaginationDto): Promise<{ data: Notification[]; total: number }> {
-    const page = pagination.page ?? 1;
-    const limit = pagination.limit ?? 20;
+    return this.notifications.findAll(userId, pagination);
+  }
 
-    const [data, total] = await this.notifRepo.findAndCount({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  getUnread(userId: string, limit?: number): Promise<Notification[]> {
+    return this.notifications.findUnread(userId, this.normalizeLimit(limit));
+  }
 
-    return { data, total };
+  async countUnread(userId: string): Promise<{ count: number }> {
+    const count = await this.notifications.countUnread(userId);
+    return { count };
   }
 
   async markAsRead(notifId: string, userId: string): Promise<Notification> {
-    const notification = await this.notifRepo.findOne({
-      where: { id: notifId, userId },
-    });
+    const notification = await this.notifications.findByIdForUser(
+      notifId,
+      userId,
+    );
     if (!notification) {
       throw new NotFoundException('Không tìm thấy thông báo');
     }
 
+    if (notification.isRead) {
+      return notification;
+    }
+
     notification.isRead = true;
     notification.readAt = new Date();
-    return this.notifRepo.save(notification);
+    const saved = await this.notifications.save(notification);
+    this.realtimePublisher.publishRead(userId, saved.id);
+    return saved;
   }
 
-  async markAllAsRead(userId: string): Promise<void> {
-    await this.notifRepo.update(
-      { userId, isRead: false },
-      { isRead: true, readAt: new Date() },
-    );
+  async markAllAsRead(userId: string): Promise<{ updated: number }> {
+    const updated = await this.notifications.markAllAsRead(userId, new Date());
+    if (updated > 0) {
+      this.realtimePublisher.publishAllRead(userId);
+    }
+
+    return { updated };
   }
 
   /** Internal use — called by other services to push a notification */
-  async create(dto: CreateNotificationDto): Promise<Notification> {
-    const notification = await this.notifRepo.save(this.notifRepo.create(dto));
-    this.notificationsGateway.emitToUser(notification.userId, notification);
+  async create(dto: CreateNotificationInput): Promise<Notification> {
+    return this.createAndEmit(dto);
+  }
+
+  async createAndEmit(dto: CreateNotificationInput): Promise<Notification> {
+    const notification = await this.notifications.create(dto);
+    this.realtimePublisher.publishCreated(notification.userId, notification);
     return notification;
+  }
+
+  private normalizeLimit(limit?: number): number {
+    if (!limit || Number.isNaN(limit)) return 20;
+    return Math.min(50, Math.max(1, limit));
   }
 }

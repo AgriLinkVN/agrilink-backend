@@ -6,15 +6,18 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { Notification } from './entities/notification.entity';
+import { NotificationRealtimePublisherPort } from './domain/ports/notification-realtime-publisher.port';
 
 @WebSocketGateway({
-  namespace: 'notifications',
+  namespace: '/notifications',
   cors: {
     origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:4000'],
     credentials: true,
   },
 })
-export class NotificationsGateway implements OnGatewayConnection {
+export class NotificationsGateway
+  implements OnGatewayConnection, NotificationRealtimePublisherPort
+{
   @WebSocketServer()
   private server: Server;
 
@@ -41,9 +44,21 @@ export class NotificationsGateway implements OnGatewayConnection {
     }
   }
 
-  emitToUser(userId: string, notification: Notification) {
+  publishCreated(userId: string, notification: Notification): void {
+    this.emitToUser(userId, 'new_notification', notification);
+  }
+
+  publishRead(userId: string, notificationId: string): void {
+    this.emitToUser(userId, 'marked_read', { id: notificationId });
+  }
+
+  publishAllRead(userId: string): void {
+    this.emitToUser(userId, 'all_notifications_read', {});
+  }
+
+  emitToUser(userId: string, event: string, payload: unknown): void {
     if (!this.server) return;
-    this.server.to(this.userRoom(userId)).emit('notification:new', notification);
+    this.server.to(this.userRoom(userId)).emit(event, payload);
   }
 
   private userRoom(userId: string) {

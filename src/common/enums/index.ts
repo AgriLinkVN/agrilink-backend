@@ -142,6 +142,10 @@ export enum NotifType {
   PRODUCT_STATUS_CHANGED = 'product_status_changed',
   PRICE_ALERT = 'price_alert',
   MEMBER_REQUEST = 'member_request',
+  NEW_REVIEW = 'new_review',
+  REVIEW_REPLY = 'review_reply',
+  AD_APPROVED = 'ad_approved',
+  AD_REJECTED = 'ad_rejected',
   CONTRACT_SIGNED = 'contract_signed',
   DISPUTE_OPENED = 'dispute_opened',
 }
