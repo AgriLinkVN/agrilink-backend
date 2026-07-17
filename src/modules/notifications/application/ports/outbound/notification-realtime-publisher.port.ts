@@ -2,7 +2,7 @@ import {
   AllNotificationsReadPayload,
   NotificationMarkedReadPayload,
   NotificationModel,
-} from '../notification.types';
+} from '../../models/notification.model';
 
 export const NOTIFICATION_REALTIME_PUBLISHER = Symbol(
   'NOTIFICATION_REALTIME_PUBLISHER',

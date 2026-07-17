@@ -3,11 +3,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   NotificationListResult,
   NotificationPagination,
-} from '../../domain/notification.types';
+} from '../models/notification.model';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 import { normalizeNotificationPagination } from './notification-pagination';
 
 @Injectable()

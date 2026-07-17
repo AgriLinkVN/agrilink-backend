@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { CountUnreadNotificationsResult } from '../../domain/notification.types';
+import { CountUnreadNotificationsResult } from '../models/notification.model';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 
 @Injectable()
 export class CountUnreadNotificationsUseCase {

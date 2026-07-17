@@ -18,7 +18,7 @@ import { ListUnreadNotificationsUseCase } from '../../application/use-cases/list
 import { CountUnreadNotificationsUseCase } from '../../application/use-cases/count-unread-notifications.use-case';
 import { MarkNotificationReadUseCase } from '../../application/use-cases/mark-notification-read.use-case';
 import { MarkAllNotificationsReadUseCase } from '../../application/use-cases/mark-all-notifications-read.use-case';
-import { NotificationNotFoundError } from '../../domain/errors/notification-not-found.error';
+import { NotificationNotFoundError } from '../../application/errors/notification-not-found.error';
 import {
   MarkAllNotificationsReadResponseDto,
   NotificationCountResponseDto,

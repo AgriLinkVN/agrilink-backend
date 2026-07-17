@@ -15,7 +15,7 @@ import { ListNotificationsUseCase } from '../src/modules/notifications/applicati
 import { ListUnreadNotificationsUseCase } from '../src/modules/notifications/application/use-cases/list-unread-notifications.use-case';
 import { MarkAllNotificationsReadUseCase } from '../src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case';
 import { MarkNotificationReadUseCase } from '../src/modules/notifications/application/use-cases/mark-notification-read.use-case';
-import { NotificationModel } from '../src/modules/notifications/domain/notification.types';
+import { NotificationModel } from '../src/modules/notifications/application/models/notification.model';
 import { NotificationsController } from '../src/modules/notifications/presentation/controllers/notifications.controller';
 
 interface TestRequest {

@@ -1,7 +1,7 @@
 import {
   NotificationModel,
   PublishNotificationInput,
-} from '../notification.types';
+} from '../../models/notification.model';
 
 export const NOTIFICATION_PUBLISHER = Symbol('NOTIFICATION_PUBLISHER');
 

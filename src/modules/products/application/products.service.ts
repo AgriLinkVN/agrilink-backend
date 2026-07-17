@@ -24,7 +24,7 @@ import { Wishlist } from '../domain/entities/wishlist.entity';
 import {
   NOTIFICATION_PUBLISHER,
   NotificationPublisherPort,
-} from '@modules/notifications/domain/ports/notification-publisher.port';
+} from '@modules/notifications/application/ports/inbound/notification-publisher.port';
 import {
   ProductDetailCategory,
   ProductDetailLocation,

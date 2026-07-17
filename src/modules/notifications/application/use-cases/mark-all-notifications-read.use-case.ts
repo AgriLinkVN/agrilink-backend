@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { AllNotificationsReadPayload } from '../../domain/notification.types';
+import { AllNotificationsReadPayload } from '../models/notification.model';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
-} from '../../domain/ports/notification-realtime-publisher.port';
+} from '../ports/outbound/notification-realtime-publisher.port';
 
 @Injectable()
 export class MarkAllNotificationsReadUseCase {

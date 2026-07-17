@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { NotificationRepositoryPort } from '../../domain/ports/notification-repository.port';
+import { NotificationRepositoryPort } from '../../application/ports/outbound/notification-repository.port';
 import {
   NotificationData,
   NotificationListResult,
   NotificationModel,
   NormalizedNotificationPagination,
   PublishNotificationInput,
-} from '../../domain/notification.types';
+} from '../../application/models/notification.model';
 import { NotificationOrmEntity } from '../persistence/notification.orm-entity';
 
 @Injectable()

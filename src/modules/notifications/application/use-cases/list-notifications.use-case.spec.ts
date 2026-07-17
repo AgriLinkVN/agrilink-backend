@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../../domain/ports/notification-repository.port';
+import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
 import { CountUnreadNotificationsUseCase } from './count-unread-notifications.use-case';
 import { ListNotificationsUseCase } from './list-notifications.use-case';
 import { ListUnreadNotificationsUseCase } from './list-unread-notifications.use-case';

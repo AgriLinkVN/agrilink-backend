@@ -3,16 +3,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   NotificationModel,
   PublishNotificationInput,
-} from '../../domain/notification.types';
-import { NotificationPublisherPort } from '../../domain/ports/notification-publisher.port';
+} from '../models/notification.model';
+import { NotificationPublisherPort } from '../ports/inbound/notification-publisher.port';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
-} from '../../domain/ports/notification-realtime-publisher.port';
+} from '../ports/outbound/notification-realtime-publisher.port';
 
 @Injectable()
 export class PublishNotificationUseCase implements NotificationPublisherPort {

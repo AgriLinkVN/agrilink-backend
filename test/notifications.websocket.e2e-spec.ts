@@ -5,7 +5,7 @@ import { AddressInfo } from 'net';
 import { io, Socket as ClientSocket } from 'socket.io-client';
 
 import { NotifType } from '../src/common/enums';
-import { NotificationModel } from '../src/modules/notifications/domain/notification.types';
+import { NotificationModel } from '../src/modules/notifications/application/models/notification.model';
 import {
   AllNotificationsReadEvent,
   NewNotificationEvent,

@@ -1,15 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { NotificationNotFoundError } from '../../domain/errors/notification-not-found.error';
-import { NotificationModel } from '../../domain/notification.types';
+import { NotificationNotFoundError } from '../errors/notification-not-found.error';
+import { NotificationModel } from '../models/notification.model';
 import {
   NOTIFICATION_REPOSITORY,
   NotificationRepositoryPort,
-} from '../../domain/ports/notification-repository.port';
+} from '../ports/outbound/notification-repository.port';
 import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
-} from '../../domain/ports/notification-realtime-publisher.port';
+} from '../ports/outbound/notification-realtime-publisher.port';
 
 @Injectable()
 export class MarkNotificationReadUseCase {
