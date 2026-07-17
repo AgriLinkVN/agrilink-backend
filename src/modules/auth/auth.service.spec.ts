@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { OtpType, OtpPurpose } from '../../common/enums';
 import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
+import { SmsService } from '../../shared/sms/sms.service';
 
 describe('AuthService Security Tests', () => {
   let authService: AuthService;
@@ -44,6 +45,7 @@ describe('AuthService Security Tests', () => {
         { provide: getRepositoryToken(RefreshToken), useValue: refreshTokenRepo },
         { provide: getRepositoryToken(OtpVerification), useValue: otpRepo },
         { provide: HttpService, useValue: { get: jest.fn().mockReturnValue(of({ data: { CodeResult: 100 } })) } },
+        { provide: SmsService, useValue: { sendOtp: jest.fn().mockResolvedValue(true) } },
       ],
     }).compile();
 
