@@ -2,7 +2,7 @@
 
 Scope: P5 Ads, Notifications, Reviews, and the cross-module contracts they need.
 
-Long-term backend rules: see `docs/clean-architecture-rules.md`.
+Long-term backend rules: see `docs/architecture/clean-architecture-rules.md`.
 
 ## Architecture Direction
 
@@ -12,21 +12,21 @@ Target layering inside a backend module:
 
 1. `presentation`: controllers, gateways, HTTP/WebSocket DTOs.
 2. `application`: use cases and orchestration.
-3. `domain`: domain types, entities, business rules, and ports/interfaces.
+3. `domain`: domain types, entities, business rules, policies, and domain errors.
 4. `infrastructure`: TypeORM repositories, storage, realtime adapters, external APIs.
 
 Dependency rule:
 
 - `presentation` calls `application`.
-- `application` depends on `domain` ports, not concrete TypeORM repositories or gateways.
-- `infrastructure` implements `domain` ports.
+- `application` depends on inbound/outbound ports, not concrete TypeORM repositories or gateways.
+- `infrastructure` implements application outbound ports, or domain abstractions only when the abstraction is truly a domain concept.
 - Cross-module calls should use exported ports, not concrete services, when the dependency is part of a business event contract.
 
 Practical compromise for this project:
 
 - Existing legacy TypeORM entities may remain in module-level `entities` or `domain/entities` during the current sprint, but new P5 code should keep persistence entities inside `infrastructure/persistence`.
 - Do not add a separate mapper layer everywhere yet. Add it only when persistence shape and API/domain shape start diverging heavily.
-- New P5 work should introduce ports first for repository, event publishing, and cross-module notification publishing.
+- New P5 work should introduce application ports first for repository, event publishing, and cross-module notification publishing.
 
 ## Phase Plan
 
