@@ -2,6 +2,8 @@
 
 Scope: P5 Ads, Notifications, Reviews, and the cross-module contracts they need.
 
+Long-term backend rules: see `docs/clean-architecture-rules.md`.
+
 ## Architecture Direction
 
 AgriLink should stay a modular monolith for now. The team is not at a point where splitting services is worth the operational cost, but each module should be designed as if it could be extracted later.
@@ -22,7 +24,7 @@ Dependency rule:
 
 Practical compromise for this project:
 
-- Existing TypeORM entities may remain in module-level `entities` or `domain/entities` during the current sprint.
+- Existing legacy TypeORM entities may remain in module-level `entities` or `domain/entities` during the current sprint, but new P5 code should keep persistence entities inside `infrastructure/persistence`.
 - Do not add a separate mapper layer everywhere yet. Add it only when persistence shape and API/domain shape start diverging heavily.
 - New P5 work should introduce ports first for repository, event publishing, and cross-module notification publishing.
 
@@ -49,6 +51,7 @@ Acceptance:
 - WebSocket namespace `/notifications` emits `new_notification`, `marked_read`, and `all_notifications_read`.
 - P5 notification enum values exist: `new_review`, `review_reply`, `ad_approved`, `ad_rejected`.
 - Product module uses `NOTIFICATION_PUBLISHER` instead of depending on the concrete notification service.
+- Notification repository and realtime ports return/use notification models or DTO payloads, not TypeORM entities.
 
 ### Phase 2 - Ads Backend Contract
 
