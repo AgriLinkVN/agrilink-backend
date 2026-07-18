@@ -64,9 +64,10 @@ After deploy, verify these flows with real environment values:
 
 ## Known Gaps
 
-- Product backend behavior is functionally present, but the Product module is still architecturally PARTIAL under `docs/architecture/clean-architecture-rules.md`.
-- Product-specific contract/e2e tests are not in place yet. Add them before refactoring Product service boundaries.
+- Product core architecture is accepted under `docs/architecture/clean-architecture-rules.md`; see `p2-product-final-acceptance.md`.
+- Product unit, repository, development-seed, and REST contract/e2e tests are in place and passing.
+- Storage/upload remains architecturally PARTIAL and is tracked as a separate follow-up from Product core acceptance.
 - Production Cloudinary, Supabase, and DB secrets are not available in this workspace.
 - No staging or production URL has been provided yet.
 
-See `docs/p2-product-architecture-audit.md` for the Phase 0 architecture baseline and refactor plan.
+See `docs/p2-product-final-acceptance.md` for the accepted Product-core scope and `docs/p2-product-architecture-audit.md` for the phase history.

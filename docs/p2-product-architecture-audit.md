@@ -4,13 +4,13 @@ Generated: 2026-07-18
 
 Baseline: `develop` at `b706b52`
 
-Phase: `0-8 completed; Phase 9 is next`
+Phase: `0-9 completed; Product core final acceptance recorded`
 
 Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Frontend SEO, image optimization, skeleton loading, mobile responsive work, and deploy work are tracked separately.
 
 ## Executive Summary
 
-P2 Product is functionally broad enough for the current sprint acceptance, but it is only partially aligned with the backend Clean Architecture rules.
+P2 Product core is functionally broad enough for the current sprint acceptance and meets the backend Clean Architecture rules in the touched Product scope. Storage/upload remains a separate partial boundary and is not included in this Product-core conclusion.
 
 The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-8 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, focused use cases, domain policies, an opt-in development seed service, and infrastructure-owned persistence entities. `ProductsService` is now a controller compatibility facade only.
 
@@ -37,7 +37,7 @@ Phase 0 intentionally changed documentation only. Phases 1-4 preserve the public
 | 6 - Transaction and side-effect hardening | Complete | Atomic Product creation is explicit through `createAtomically`, status notification occurs only after persistence, and wishlist writes use conflict-safe insertion. |
 | 7 - Seed and dev flow cleanup | Complete | Seed orchestration lives in infrastructure, startup is opt-in, reset is explicitly gated, and seed endpoints are removed from the public API. |
 | 8 - Persistence split | Complete | TypeORM entities are in infrastructure persistence; application ports and use cases expose only application models. |
-| 9 - Final acceptance docs | Next | Record final architecture acceptance separately from deferred deploy work. |
+| 9 - Final acceptance docs | Complete | Product core accepted as Clean Architecture compliant; Storage/upload and deploy remain explicitly separate. |
 
 ## Clean Architecture Baseline
 
@@ -79,7 +79,7 @@ Adjacent P2 upload/storage boundary:
 
 | Area | Current Status | Evidence | Target |
 | --- | --- | --- | --- |
-| Presentation to application dependency | Partial | Controllers use a thin `ProductsService` facade that delegates to focused use cases and map typed application errors to HTTP exceptions. | Remove the temporary facade after seed cleanup if controller compatibility is no longer needed. |
+| Presentation to application dependency | Compliant | Controllers use a thin `ProductsService` compatibility facade that delegates to focused use cases and maps typed application errors to HTTP exceptions; it has no Product business logic. | Preserve the thin boundary or remove it in a future non-functional cleanup. |
 | Application independent from presentation | Compliant | Application uses `application/models` and has no presentation DTO/schema imports. | Preserve this boundary. |
 | Application independent from TypeORM | Compliant | Product application code accesses persistence through outbound ports only. | Preserve this boundary. |
 | Raw SQL placement | Compliant | Seller/profile/location projections are implemented by the infrastructure query adapter. | Preserve this boundary. |
@@ -88,19 +88,19 @@ Adjacent P2 upload/storage boundary:
 | Use-case size | Compliant | Focused use cases own runtime behavior; domain policies own seller role, status, certification, and wishlist rules; the compatibility facade delegates only. Development seed orchestration lives in infrastructure. | Preserve the split. |
 | Cross-module notification | Compliant | `ChangeProductStatusUseCase` publishes through `NOTIFICATION_PUBLISHER` after persistence succeeds, covered by a unit test. | Preserve the order when adding transactions in Phase 6. |
 | Storage/upload boundary | Partial | Storage has image/file interfaces and infrastructure adapters, but ports are under `domain/interfaces`; application imports `CLOUDINARY_FOLDERS` and `PresignDto`; controller imports infrastructure config. | Move storage ports to `application/ports/outbound`; use application input models; keep Cloudinary/Supabase details in infrastructure. |
-| Product tests | Partial | Product use-case unit tests, repository tests, and REST contract tests exist. | Add transaction and integration coverage in later phases. |
+| Product tests | Compliant | Product use-case, repository, development-seed, and REST contract tests cover the accepted behavior. | Add real-database integration coverage when deployment work begins. |
 
 ## P2 Task Acceptance Matrix
 
 | Iteration | Task | Functional Status | Architecture Status | Notes |
 | --- | --- | --- | --- | --- |
-| I1-8 | DB entity + seed product categories | TRUE | READY FOR FINAL ACCEPTANCE | Entities and seed exist; development seeding is opt-in infrastructure behavior with no public endpoint. TypeORM entities are infrastructure-owned. |
+| I1-8 | DB entity + seed product categories | TRUE | TRUE | Accepted: entities are infrastructure-owned and development seeding is opt-in with no public endpoint. |
 | I1-9 | Cloudinary config + upload service | TRUE | PARTIAL | Cloudinary/Supabase adapters exist behind interfaces, but Storage still has legacy boundary issues. This does not block Product refactor, but should be cleaned when Storage is touched. |
-| I1-10 | Basic Product CRUD API | TRUE | READY FOR FINAL ACCEPTANCE | CRUD endpoints and seller authorization use ports, focused use cases, typed errors, presentation error mapping, and atomic create persistence. |
-| I2-7 | Product search and filters | TRUE | READY FOR FINAL ACCEPTANCE | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
-| I2-9 | Wishlist API | TRUE | READY FOR FINAL ACCEPTANCE | Add/remove/list/ids are in focused use cases with active-product policy and conflict-safe idempotent persistence. |
-| I3-5 | Product status flow | TRUE | READY FOR FINAL ACCEPTANCE | Transition policy is isolated in the domain; notification is published only after the status write succeeds. |
-| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | READY FOR FINAL ACCEPTANCE | Pending/verify behavior uses dedicated typed verification policy and presentation error mapping. |
+| I1-10 | Basic Product CRUD API | TRUE | TRUE | Accepted: seller-aware CRUD uses ports, focused use cases, typed errors, presentation error mapping, and atomic persistence. |
+| I2-7 | Product search and filters | TRUE | TRUE | Accepted: public catalog remains active-only and catalog querying is behind an infrastructure query port. |
+| I2-9 | Wishlist API | TRUE | TRUE | Accepted: add/remove/list/ids use focused use cases, an active-product policy, and conflict-safe persistence. |
+| I3-5 | Product status flow | TRUE | TRUE | Accepted: transition policy is domain-owned and notification is published only after persistence. |
+| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | TRUE | Accepted: pending/verify behavior uses a dedicated verification policy and presentation error mapping. |
 | I2-10 | Product staging deploy | FALSE | OUT OF SCOPE | Deferred by project decision. |
 | I3-8 | Cloudinary production key | FALSE | OUT OF SCOPE | Deferred until production secrets are available. |
 | I4-8 | Product production deploy + search test | FALSE | OUT OF SCOPE | Deferred by project decision. |
@@ -337,11 +337,13 @@ Acceptance:
 
 Recommended branch: `feature/p2-product-acceptance-docs`
 
+Status: Complete
+
 Deliverables:
 
-- Update P2 acceptance status after refactor.
-- Mark backend Product architecture status as TRUE only after Phase 8 acceptance passes.
-- Keep deploy items FALSE until staging/production secrets and URLs exist.
+- Added `docs/p2-product-final-acceptance.md` with a Product-core acceptance decision and verification evidence.
+- Marked accepted Product-core backend tasks as architecture `TRUE` after Phase 8 boundary checks and Product tests passed.
+- Kept Storage/upload `PARTIAL` and deploy items `FALSE` until their own conditions are met.
 
 Acceptance:
 
@@ -350,4 +352,4 @@ Acceptance:
 
 ## Recommended Immediate Next Step
 
-Start Phase 9 next. Finalize the P2 acceptance document, mark the backend Product architecture status after reviewing the Phase 8 evidence, and keep deferred deploy work separate.
+No additional Product-core architecture phase is required. Use `docs/p2-product-final-acceptance.md` as the acceptance record; handle Storage and deployment in their dedicated scopes.
