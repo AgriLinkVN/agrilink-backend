@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
-import { Product } from '../../../domain/entities/product.entity';
-import { ProductImage } from '../../../domain/entities/product-image.entity';
-import { ProductCategory } from '../../../domain/entities/product-category.entity';
+import { Product } from '../../persistence/entities/product.entity';
+import { ProductImage } from '../../persistence/entities/product-image.entity';
+import { ProductCategory } from '../../persistence/entities/product-category.entity';
 import { Province } from '../../../../geography/entities/province.entity';
 import {
   FarmingType,

@@ -10,10 +10,10 @@ import { DataSource } from 'typeorm';
 // Entities
 import { Province } from '../../modules/geography/entities/province.entity';
 import { District } from '../../modules/geography/entities/district.entity';
-import { ProductCategory } from '../../modules/products/domain/entities/product-category.entity';
-import { Product } from '../../modules/products/domain/entities/product.entity';
-import { ProductImage } from '../../modules/products/domain/entities/product-image.entity';
-import { ProductCertification } from '../../modules/products/domain/entities/product-certification.entity';
+import { ProductCategory } from '../../modules/products/infrastructure/persistence/entities/product-category.entity';
+import { Product } from '../../modules/products/infrastructure/persistence/entities/product.entity';
+import { ProductImage } from '../../modules/products/infrastructure/persistence/entities/product-image.entity';
+import { ProductCertification } from '../../modules/products/infrastructure/persistence/entities/product-certification.entity';
 import { User } from '../entities/user.entity';
 
 // Seeds

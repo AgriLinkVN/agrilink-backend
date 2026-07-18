@@ -11,11 +11,6 @@ import {
   NOTIFICATION_PUBLISHER,
   NotificationPublisherPort,
 } from '@modules/notifications/application/ports/inbound/notification-publisher.port';
-import { Product } from '../../domain/entities/product.entity';
-import { ProductCategory } from '../../domain/entities/product-category.entity';
-import { ProductCertification } from '../../domain/entities/product-certification.entity';
-import { ProductImage } from '../../domain/entities/product-image.entity';
-import { Wishlist } from '../../domain/entities/wishlist.entity';
 import {
   ProductCertificationNotFoundError,
   ProductForbiddenError,
@@ -26,6 +21,13 @@ import { assertProductStatusTransition } from '../../domain/policies/product-sta
 import { resolveSellerType } from '../../domain/policies/seller-type.policy';
 import { assertWishlistProductIsAvailable } from '../../domain/policies/wishlist.policy';
 import { ProductDetailResponse } from '../models/product-detail.model';
+import {
+  ProductCategoryModel,
+  ProductCertificationModel,
+  ProductImageModel,
+  ProductModel,
+  WishlistModel,
+} from '../models/product.model';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -54,7 +56,7 @@ import {
 async function findProductOrFail(
   productRepository: ProductRepositoryPort,
   productId: string,
-): Promise<Product> {
+): Promise<ProductModel> {
   const product = await productRepository.findByIdWithRelations(productId);
   if (!product) {
     throw new ProductNotFoundError('Không tìm thấy sản phẩm');
@@ -63,7 +65,7 @@ async function findProductOrFail(
 }
 
 function assertProductOwner(
-  product: Product,
+  product: ProductModel,
   sellerId: string,
   action: string,
 ): void {
@@ -84,7 +86,7 @@ export class CreateProductUseCase {
     sellerType: SellerType | undefined,
     role: UserRole,
     input: CreateProductInput,
-  ): Promise<Product> {
+  ): Promise<ProductModel> {
     return this.productRepository.createAtomically(
       sellerId,
       sellerType ?? resolveSellerType(role),
@@ -103,7 +105,7 @@ export class ListPublicProductsUseCase {
   execute(
     filter: ProductFilterInput,
     currentUserId?: string,
-  ): Promise<{ data: Product[]; total: number }> {
+  ): Promise<{ data: ProductModel[]; total: number }> {
     return this.productCatalogQuery.findAll(filter, currentUserId);
   }
 }
@@ -134,7 +136,7 @@ export class ListSellerProductsUseCase {
   execute(
     sellerId: string,
     filter: ProductFilterInput,
-  ): Promise<{ data: Product[]; total: number }> {
+  ): Promise<{ data: ProductModel[]; total: number }> {
     return this.productCatalogQuery.findMine(sellerId, filter);
   }
 }
@@ -150,7 +152,7 @@ export class UpdateProductUseCase {
     id: string,
     sellerId: string,
     input: UpdateProductInput,
-  ): Promise<Product> {
+  ): Promise<ProductModel> {
     const product = await findProductOrFail(this.productRepository, id);
     assertProductOwner(product, sellerId, 'chỉnh sửa');
     Object.assign(product, input);
@@ -187,7 +189,7 @@ export class ChangeProductStatusUseCase {
     actorId: string,
     actorRole: UserRole,
     nextStatus: ProductStatus,
-  ): Promise<Product> {
+  ): Promise<ProductModel> {
     const product = await findProductOrFail(this.productRepository, id);
     const previousStatus = product.status;
     assertProductStatusTransition({
@@ -210,7 +212,7 @@ export class ChangeProductStatusUseCase {
   }
 
   private async publishStatusChanged(
-    product: Product,
+    product: ProductModel,
     previousStatus: ProductStatus,
   ): Promise<void> {
     const titleByStatus: Record<ProductStatus, string> = {
@@ -249,7 +251,7 @@ export class AddProductImageUseCase {
     sellerId: string,
     imageUrl: string,
     isPrimary: boolean,
-  ): Promise<ProductImage> {
+  ): Promise<ProductImageModel> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'thêm ảnh cho');
     return this.productImageRepository.addImage(productId, imageUrl, isPrimary);
@@ -288,7 +290,7 @@ export class AddProductCertificationUseCase {
     productId: string,
     sellerId: string,
     input: CreateProductCertificationInput,
-  ): Promise<ProductCertification> {
+  ): Promise<ProductCertificationModel> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
     return this.productCertificationRepository.addCertification(productId, input);
@@ -324,7 +326,7 @@ export class ListPendingProductCertificationsUseCase {
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
   ) {}
 
-  execute(): Promise<ProductCertification[]> {
+  execute(): Promise<ProductCertificationModel[]> {
     return this.productCertificationRepository.findPending();
   }
 }
@@ -340,7 +342,7 @@ export class VerifyProductCertificationUseCase {
     certId: string,
     adminId: string,
     input: VerifyProductCertificationInput,
-  ): Promise<ProductCertification> {
+  ): Promise<ProductCertificationModel> {
     const certification = await this.productCertificationRepository.findByIdWithProduct(certId);
     if (!certification) {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
@@ -368,7 +370,7 @@ export class AddWishlistItemUseCase {
     private readonly productWishlistRepository: ProductWishlistRepositoryPort,
   ) {}
 
-  async execute(userId: string, productId: string): Promise<Wishlist> {
+  async execute(userId: string, productId: string): Promise<WishlistModel> {
     const product = await this.productRepository.findActiveById(productId);
     assertWishlistProductIsAvailable(product);
     return this.productWishlistRepository.addIfAbsent(userId, productId);
@@ -397,7 +399,7 @@ export class ListWishlistUseCase {
   execute(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }> {
     return this.productWishlistRepository.getWishlist(userId, query);
   }
 }
@@ -421,7 +423,7 @@ export class ListProductCategoriesUseCase {
     private readonly productCategoryQuery: ProductCategoryQueryPort,
   ) {}
 
-  execute(): Promise<ProductCategory[]> {
+  execute(): Promise<ProductCategoryModel[]> {
     return this.productCategoryQuery.findRootCategories();
   }
 }
@@ -433,7 +435,7 @@ export class GetProductCategoryTreeUseCase {
     private readonly productCategoryQuery: ProductCategoryQueryPort,
   ) {}
 
-  execute(): Promise<ProductCategory[]> {
+  execute(): Promise<ProductCategoryModel[]> {
     return this.productCategoryQuery.getCategoryTree();
   }
 }

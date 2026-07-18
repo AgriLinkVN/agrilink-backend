@@ -6,9 +6,11 @@ import {
   SellerType,
   UserRole,
 } from '@common/enums';
-import { Product } from '../domain/entities/product.entity';
-import { ProductCertification } from '../domain/entities/product-certification.entity';
-import { Wishlist } from '../domain/entities/wishlist.entity';
+import {
+  ProductCertificationModel,
+  ProductModel,
+  WishlistModel,
+} from './models/product.model';
 import {
   InvalidProductCertificationVerificationError,
   ProductForbiddenError,
@@ -36,8 +38,8 @@ const OTHER_SELLER_ID = '44444444-4444-4444-8444-444444444444';
 const USER_ID = '55555555-5555-4555-8555-555555555555';
 const ADMIN_ID = '66666666-6666-4666-8666-666666666666';
 
-function makeProduct(overrides: Partial<Product> = {}): Product {
-  return Object.assign(new Product(), {
+function makeProduct(overrides: Partial<ProductModel> = {}): ProductModel {
+  return {
     id: PRODUCT_ID,
     sellerId: SELLER_ID,
     sellerType: SellerType.FARMER,
@@ -48,7 +50,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     status: ProductStatus.DRAFT,
     rejectionReason: null,
     ...overrides,
-  });
+  } as ProductModel;
 }
 
 function makeProductRepository(): jest.Mocked<ProductRepositoryPort> {
@@ -160,7 +162,7 @@ describe('Product application use cases', () => {
   it('requires a rejection reason when rejecting a certification', async () => {
     const repository = makeCertificationRepository();
     repository.findByIdWithProduct.mockResolvedValue(
-      Object.assign(new ProductCertification(), { id: CERT_ID }),
+      { id: CERT_ID } as ProductCertificationModel,
     );
     const useCase = new VerifyProductCertificationUseCase(repository);
 
@@ -173,11 +175,12 @@ describe('Product application use cases', () => {
   it('delegates duplicate-safe wishlist persistence to the atomic repository operation', async () => {
     const productRepository = makeProductRepository();
     const wishlistRepository = makeWishlistRepository();
-    const existing = Object.assign(new Wishlist(), {
+    const existing: WishlistModel = {
       id: '77777777-7777-4777-8777-777777777777',
       userId: USER_ID,
       productId: PRODUCT_ID,
-    });
+      createdAt: new Date(),
+    };
     productRepository.findActiveById.mockResolvedValue(makeProduct({ status: ProductStatus.ACTIVE }));
     wishlistRepository.addIfAbsent.mockResolvedValue(existing);
     const useCase = new AddWishlistItemUseCase(productRepository, wishlistRepository);

@@ -1,9 +1,4 @@
 import { SellerType } from '@common/enums';
-import { Product } from '../../../domain/entities/product.entity';
-import { ProductCategory } from '../../../domain/entities/product-category.entity';
-import { ProductCertification } from '../../../domain/entities/product-certification.entity';
-import { ProductImage } from '../../../domain/entities/product-image.entity';
-import { Wishlist } from '../../../domain/entities/wishlist.entity';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -11,6 +6,13 @@ import {
   WishlistQueryInput,
 } from '../../models/product-input.model';
 import { ProductDetailResponse } from '../../models/product-detail.model';
+import {
+  ProductCategoryModel,
+  ProductCertificationModel,
+  ProductImageModel,
+  ProductModel,
+  WishlistModel,
+} from '../../models/product.model';
 
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');
 export const PRODUCT_CATALOG_QUERY = Symbol('PRODUCT_CATALOG_QUERY');
@@ -28,21 +30,21 @@ export interface ProductRepositoryPort {
     sellerId: string,
     sellerType: SellerType,
     input: CreateProductInput,
-  ): Promise<Product>;
-  findByIdWithRelations(id: string): Promise<Product | null>;
-  findActiveById(id: string): Promise<Product | null>;
-  save(product: Product): Promise<Product>;
+  ): Promise<ProductModel>;
+  findByIdWithRelations(id: string): Promise<ProductModel | null>;
+  findActiveById(id: string): Promise<ProductModel | null>;
+  save(product: ProductModel): Promise<ProductModel>;
 }
 
 export interface ProductCatalogQueryPort {
   findAll(
     filter: ProductFilterInput,
     currentUserId?: string,
-  ): Promise<{ data: Product[]; total: number }>;
+  ): Promise<{ data: ProductModel[]; total: number }>;
   findMine(
     sellerId: string,
     filter: ProductFilterInput,
-  ): Promise<{ data: Product[]; total: number }>;
+  ): Promise<{ data: ProductModel[]; total: number }>;
 }
 
 export interface ProductDetailQueryPort {
@@ -50,9 +52,9 @@ export interface ProductDetailQueryPort {
 }
 
 export interface ProductCategoryQueryPort {
-  findRootCategories(): Promise<ProductCategory[]>;
-  getCategoryTree(): Promise<ProductCategory[]>;
-  findAllCategories(): Promise<ProductCategory[]>;
+  findRootCategories(): Promise<ProductCategoryModel[]>;
+  getCategoryTree(): Promise<ProductCategoryModel[]>;
+  findAllCategories(): Promise<ProductCategoryModel[]>;
 }
 
 export interface ProductImageRepositoryPort {
@@ -60,7 +62,7 @@ export interface ProductImageRepositoryPort {
     productId: string,
     imageUrl: string,
     isPrimary: boolean,
-  ): Promise<ProductImage>;
+  ): Promise<ProductImageModel>;
   removeImageByProduct(productId: string, imageId: string): Promise<boolean>;
 }
 
@@ -68,12 +70,12 @@ export interface ProductCertificationRepositoryPort {
   addCertification(
     productId: string,
     input: CreateProductCertificationInput,
-  ): Promise<ProductCertification>;
-  findPending(): Promise<ProductCertification[]>;
-  findByIdWithProduct(certId: string): Promise<ProductCertification | null>;
+  ): Promise<ProductCertificationModel>;
+  findPending(): Promise<ProductCertificationModel[]>;
+  findByIdWithProduct(certId: string): Promise<ProductCertificationModel | null>;
   saveCertification(
-    certification: ProductCertification,
-  ): Promise<ProductCertification>;
+    certification: ProductCertificationModel,
+  ): Promise<ProductCertificationModel>;
   removeCertificationByProduct(
     productId: string,
     certId: string,
@@ -84,13 +86,13 @@ export interface ProductWishlistRepositoryPort {
   findByUserAndProduct(
     userId: string,
     productId: string,
-  ): Promise<Wishlist | null>;
-  addIfAbsent(userId: string, productId: string): Promise<Wishlist>;
+  ): Promise<WishlistModel | null>;
+  addIfAbsent(userId: string, productId: string): Promise<WishlistModel>;
   remove(userId: string, productId: string): Promise<void>;
   getWishlist(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: Product[]; total: number; page: number; limit: number }>;
+  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }>;
   getWishlistedIds(userId: string): Promise<string[]>;
 }
 
@@ -98,9 +100,9 @@ export interface ProductSeedRepositoryPort {
   seedCategories(): Promise<void>;
   countProducts(): Promise<number>;
   resetProducts(): Promise<number>;
-  saveSeedProducts(products: Array<Partial<Product>>): Promise<Product[]>;
+  saveSeedProducts(products: Array<Partial<ProductModel>>): Promise<ProductModel[]>;
   savePrimaryImagesForProducts(
-    products: Product[],
+    products: ProductModel[],
     imageUrl: string,
   ): Promise<void>;
 }

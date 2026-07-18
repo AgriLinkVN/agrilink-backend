@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { Product } from '../../../domain/entities/product.entity';
+import { Product } from '../../persistence/entities/product.entity';
 import {
   PRODUCT_CATEGORY_QUERY,
   PRODUCT_SEED_REPOSITORY,

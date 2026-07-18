@@ -2,9 +2,9 @@
 
 Generated: 2026-07-18
 
-Baseline: `develop` at `7aac989`
+Baseline: `develop` at `b706b52`
 
-Phase: `0-7 completed; Phase 8 is next`
+Phase: `0-8 completed; Phase 9 is next`
 
 Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Frontend SEO, image optimization, skeleton loading, mobile responsive work, and deploy work are tracked separately.
 
@@ -12,7 +12,7 @@ Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Fronte
 
 P2 Product is functionally broad enough for the current sprint acceptance, but it is only partially aligned with the backend Clean Architecture rules.
 
-The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-7 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, focused use cases, domain policies, and a separate opt-in development seed service. `ProductsService` is now a controller compatibility facade only.
+The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-8 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, focused use cases, domain policies, an opt-in development seed service, and infrastructure-owned persistence entities. `ProductsService` is now a controller compatibility facade only.
 
 The safest refactor path is incremental:
 
@@ -36,7 +36,8 @@ Phase 0 intentionally changed documentation only. Phases 1-4 preserve the public
 | 5 - Domain rules and typed errors | Complete | Seller role, status transition, certification verification, and wishlist policy are pure domain policies; controllers map typed errors to HTTP exceptions. |
 | 6 - Transaction and side-effect hardening | Complete | Atomic Product creation is explicit through `createAtomically`, status notification occurs only after persistence, and wishlist writes use conflict-safe insertion. |
 | 7 - Seed and dev flow cleanup | Complete | Seed orchestration lives in infrastructure, startup is opt-in, reset is explicitly gated, and seed endpoints are removed from the public API. |
-| 8 - Persistence split | Next | Move TypeORM persistence entities out of the domain layer. |
+| 8 - Persistence split | Complete | TypeORM entities are in infrastructure persistence; application ports and use cases expose only application models. |
+| 9 - Final acceptance docs | Next | Record final architecture acceptance separately from deferred deploy work. |
 
 ## Clean Architecture Baseline
 
@@ -61,7 +62,8 @@ Product module:
 - `src/modules/products/presentation/controllers/wishlist.controller.ts`
 - `src/modules/products/presentation/schemas/*`
 - `src/modules/products/application/products.service.ts`
-- `src/modules/products/domain/entities/*`
+- `src/modules/products/application/models/product.model.ts`
+- `src/modules/products/infrastructure/persistence/entities/*`
 - `src/modules/products/infrastructure/database/seeds/*`
 
 Adjacent P2 upload/storage boundary:
@@ -81,8 +83,9 @@ Adjacent P2 upload/storage boundary:
 | Application independent from presentation | Compliant | Application uses `application/models` and has no presentation DTO/schema imports. | Preserve this boundary. |
 | Application independent from TypeORM | Compliant | Product application code accesses persistence through outbound ports only. | Preserve this boundary. |
 | Raw SQL placement | Compliant | Seller/profile/location projections are implemented by the infrastructure query adapter. | Preserve this boundary. |
-| Domain persistence separation | Legacy partial | `domain/entities/*` are TypeORM entities with decorators. | Keep temporarily during early phases; move to `infrastructure/persistence/entities` after ports and tests are stable. |
-| Use-case size | Compliant except persistence legacy | Focused use cases own runtime behavior; domain policies own seller role, status, certification, and wishlist rules; the compatibility facade delegates only. Development seed orchestration lives in infrastructure. | Complete the Phase 8 persistence split. |
+| Domain persistence separation | Compliant | TypeORM entities live in `infrastructure/persistence/entities`; the Product domain contains only policies and typed errors. | Preserve the boundary. |
+| Application persistence contract | Compliant | Repository/query ports and focused use cases use `application/models/product.model.ts`, never persistence entity types. | Add a mapper only if a future persistence shape diverges. |
+| Use-case size | Compliant | Focused use cases own runtime behavior; domain policies own seller role, status, certification, and wishlist rules; the compatibility facade delegates only. Development seed orchestration lives in infrastructure. | Preserve the split. |
 | Cross-module notification | Compliant | `ChangeProductStatusUseCase` publishes through `NOTIFICATION_PUBLISHER` after persistence succeeds, covered by a unit test. | Preserve the order when adding transactions in Phase 6. |
 | Storage/upload boundary | Partial | Storage has image/file interfaces and infrastructure adapters, but ports are under `domain/interfaces`; application imports `CLOUDINARY_FOLDERS` and `PresignDto`; controller imports infrastructure config. | Move storage ports to `application/ports/outbound`; use application input models; keep Cloudinary/Supabase details in infrastructure. |
 | Product tests | Partial | Product use-case unit tests, repository tests, and REST contract tests exist. | Add transaction and integration coverage in later phases. |
@@ -91,13 +94,13 @@ Adjacent P2 upload/storage boundary:
 
 | Iteration | Task | Functional Status | Architecture Status | Notes |
 | --- | --- | --- | --- | --- |
-| I1-8 | DB entity + seed product categories | TRUE | PARTIAL | Entities and seed exist; development seeding is opt-in infrastructure behavior with no public endpoint. TypeORM entities remain in `domain/entities` until Phase 8. |
+| I1-8 | DB entity + seed product categories | TRUE | READY FOR FINAL ACCEPTANCE | Entities and seed exist; development seeding is opt-in infrastructure behavior with no public endpoint. TypeORM entities are infrastructure-owned. |
 | I1-9 | Cloudinary config + upload service | TRUE | PARTIAL | Cloudinary/Supabase adapters exist behind interfaces, but Storage still has legacy boundary issues. This does not block Product refactor, but should be cleaned when Storage is touched. |
-| I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints and seller authorization use ports, focused use cases, typed errors, presentation error mapping, and atomic create persistence; persistence entity split remains. |
-| I2-7 | Product search and filters | TRUE | PARTIAL | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
-| I2-9 | Wishlist API | TRUE | PARTIAL | Add/remove/list/ids are in focused use cases with active-product policy and conflict-safe idempotent persistence. |
-| I3-5 | Product status flow | TRUE | PARTIAL | Transition policy is isolated in the domain; notification is published only after the status write succeeds. |
-| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | PARTIAL | Pending/verify behavior uses dedicated typed verification policy and presentation error mapping. |
+| I1-10 | Basic Product CRUD API | TRUE | READY FOR FINAL ACCEPTANCE | CRUD endpoints and seller authorization use ports, focused use cases, typed errors, presentation error mapping, and atomic create persistence. |
+| I2-7 | Product search and filters | TRUE | READY FOR FINAL ACCEPTANCE | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
+| I2-9 | Wishlist API | TRUE | READY FOR FINAL ACCEPTANCE | Add/remove/list/ids are in focused use cases with active-product policy and conflict-safe idempotent persistence. |
+| I3-5 | Product status flow | TRUE | READY FOR FINAL ACCEPTANCE | Transition policy is isolated in the domain; notification is published only after the status write succeeds. |
+| I3-7 | Certification badge + verify flow | TRUE for backend verify flow | READY FOR FINAL ACCEPTANCE | Pending/verify behavior uses dedicated typed verification policy and presentation error mapping. |
 | I2-10 | Product staging deploy | FALSE | OUT OF SCOPE | Deferred by project decision. |
 | I3-8 | Cloudinary production key | FALSE | OUT OF SCOPE | Deferred until production secrets are available. |
 | I4-8 | Product production deploy + search test | FALSE | OUT OF SCOPE | Deferred by project decision. |
@@ -317,16 +320,18 @@ Acceptance:
 
 Recommended branch: `feature/p2-product-persistence-split`
 
+Status: Complete
+
 Deliverables:
 
-- Move TypeORM entities from `domain/entities` to `infrastructure/persistence/entities`.
-- Keep application/domain models free of TypeORM decorators.
-- Add mappers only where persistence shape differs from application results.
+- Moved TypeORM entities from `domain/entities` to `infrastructure/persistence/entities`.
+- Added application-facing Product, category, image, certification, and wishlist models for all repository/query port contracts.
+- Kept application/domain free of TypeORM decorators. The current persistence and application shapes are structurally compatible, so an extra mapper would only duplicate data without protecting a distinct shape.
 
 Acceptance:
 
 - `rg -n "from 'typeorm'|from \"typeorm\"" src/modules/products/domain` returns no matches.
-- Product contract tests pass.
+- Product unit, repository, and REST contract tests pass.
 
 ### Phase 9 - Final Acceptance Docs
 
@@ -345,4 +350,4 @@ Acceptance:
 
 ## Recommended Immediate Next Step
 
-Start Phase 8 next. Move TypeORM entities from `domain/entities` to infrastructure persistence, update imports and adapters, then re-run Product contract tests.
+Start Phase 9 next. Finalize the P2 acceptance document, mark the backend Product architecture status after reviewing the Phase 8 evidence, and keep deferred deploy work separate.
