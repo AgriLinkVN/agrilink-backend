@@ -4,7 +4,7 @@ Generated: 2026-07-18
 
 Baseline: `develop` at `7aac989`
 
-Phase: `0-6 completed; Phase 7 is next`
+Phase: `0-7 completed; Phase 8 is next`
 
 Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Frontend SEO, image optimization, skeleton loading, mobile responsive work, and deploy work are tracked separately.
 
@@ -12,7 +12,7 @@ Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Fronte
 
 P2 Product is functionally broad enough for the current sprint acceptance, but it is only partially aligned with the backend Clean Architecture rules.
 
-The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-4 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, and focused use cases. `ProductsService` is now a temporary facade for controller compatibility plus the remaining development seed flow.
+The original highest-risk file was `src/modules/products/application/products.service.ts`, which mixed product CRUD, catalog queries, seller product management, images, certifications, wishlist, status transitions, notifications, raw SQL projections, TypeORM repositories, transactions, and seed data. Phases 1-7 moved runtime product behavior behind application models, outbound ports, infrastructure adapters, focused use cases, domain policies, and a separate opt-in development seed service. `ProductsService` is now a controller compatibility facade only.
 
 The safest refactor path is incremental:
 
@@ -35,7 +35,8 @@ Phase 0 intentionally changed documentation only. Phases 1-4 preserve the public
 | 4 - Focused use cases | Complete | Product CRUD, catalog, images, certifications, status, wishlist, and categories each have a focused use-case class. |
 | 5 - Domain rules and typed errors | Complete | Seller role, status transition, certification verification, and wishlist policy are pure domain policies; controllers map typed errors to HTTP exceptions. |
 | 6 - Transaction and side-effect hardening | Complete | Atomic Product creation is explicit through `createAtomically`, status notification occurs only after persistence, and wishlist writes use conflict-safe insertion. |
-| 7-8 | Pending | Seed cleanup, then persistence entity split. |
+| 7 - Seed and dev flow cleanup | Complete | Seed orchestration lives in infrastructure, startup is opt-in, reset is explicitly gated, and seed endpoints are removed from the public API. |
+| 8 - Persistence split | Next | Move TypeORM persistence entities out of the domain layer. |
 
 ## Clean Architecture Baseline
 
@@ -81,7 +82,7 @@ Adjacent P2 upload/storage boundary:
 | Application independent from TypeORM | Compliant | Product application code accesses persistence through outbound ports only. | Preserve this boundary. |
 | Raw SQL placement | Compliant | Seller/profile/location projections are implemented by the infrastructure query adapter. | Preserve this boundary. |
 | Domain persistence separation | Legacy partial | `domain/entities/*` are TypeORM entities with decorators. | Keep temporarily during early phases; move to `infrastructure/persistence/entities` after ports and tests are stable. |
-| Use-case size | Partial | Focused use cases own runtime behavior; domain policies own seller role, status, certification, and wishlist rules. The compatibility facade still owns delegation and development seed orchestration. | Move seed orchestration out in Phase 7. |
+| Use-case size | Compliant except persistence legacy | Focused use cases own runtime behavior; domain policies own seller role, status, certification, and wishlist rules; the compatibility facade delegates only. Development seed orchestration lives in infrastructure. | Complete the Phase 8 persistence split. |
 | Cross-module notification | Compliant | `ChangeProductStatusUseCase` publishes through `NOTIFICATION_PUBLISHER` after persistence succeeds, covered by a unit test. | Preserve the order when adding transactions in Phase 6. |
 | Storage/upload boundary | Partial | Storage has image/file interfaces and infrastructure adapters, but ports are under `domain/interfaces`; application imports `CLOUDINARY_FOLDERS` and `PresignDto`; controller imports infrastructure config. | Move storage ports to `application/ports/outbound`; use application input models; keep Cloudinary/Supabase details in infrastructure. |
 | Product tests | Partial | Product use-case unit tests, repository tests, and REST contract tests exist. | Add transaction and integration coverage in later phases. |
@@ -90,7 +91,7 @@ Adjacent P2 upload/storage boundary:
 
 | Iteration | Task | Functional Status | Architecture Status | Notes |
 | --- | --- | --- | --- | --- |
-| I1-8 | DB entity + seed product categories | TRUE | PARTIAL | Entities and seed exist, but Product persistence entities are in `domain/entities`; seed logic is still reachable through `ProductsService` and startup logic. |
+| I1-8 | DB entity + seed product categories | TRUE | PARTIAL | Entities and seed exist; development seeding is opt-in infrastructure behavior with no public endpoint. TypeORM entities remain in `domain/entities` until Phase 8. |
 | I1-9 | Cloudinary config + upload service | TRUE | PARTIAL | Cloudinary/Supabase adapters exist behind interfaces, but Storage still has legacy boundary issues. This does not block Product refactor, but should be cleaned when Storage is touched. |
 | I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints and seller authorization use ports, focused use cases, typed errors, presentation error mapping, and atomic create persistence; persistence entity split remains. |
 | I2-7 | Product search and filters | TRUE | PARTIAL | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
@@ -299,6 +300,8 @@ Acceptance:
 
 Recommended branch: `feature/p2-product-seed-cleanup`
 
+Status: Complete
+
 Deliverables:
 
 - Move Product seed orchestration out of `ProductsService`.
@@ -342,4 +345,4 @@ Acceptance:
 
 ## Recommended Immediate Next Step
 
-Start Phase 7 next. Move development seed orchestration out of `ProductsService`, lock down public seed endpoints, and remove `main.ts` dependence on the Product application facade.
+Start Phase 8 next. Move TypeORM entities from `domain/entities` to infrastructure persistence, update imports and adapters, then re-run Product contract tests.

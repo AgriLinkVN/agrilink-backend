@@ -10,7 +10,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { initSentry } from './config/sentry.config';
 import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
-import { ProductsService } from '@modules/products/application/products.service';
+import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -102,14 +102,18 @@ async function bootstrap() {
     },
   });
 
-  // Auto-seed mock products on startup
-  if (process.env.NODE_ENV !== 'production') {
-    const productsService = app.get(ProductsService);
-    await productsService.seedCategories();
-    const result = await productsService.resetAndSeed();
-    if (result.seeded > 0) {
-      console.log(`[Seed] Reset ${result.deleted} old → inserted ${result.seeded} mock products`);
-    }
+  // Development data is opt-in so a local restart never resets Product records.
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.PRODUCT_DEV_SEED === 'true'
+  ) {
+    const productSeedService = app.get(ProductDevelopmentSeedService);
+    const result = await productSeedService.seedForDevelopment({
+      reset: process.env.PRODUCT_DEV_SEED_RESET === 'true',
+    });
+    console.log(
+      `[Seed] products: ${result.seeded} inserted, ${result.skipped} skipped, ${result.deleted} deleted`,
+    );
   }
 
   await app.listen(port);
