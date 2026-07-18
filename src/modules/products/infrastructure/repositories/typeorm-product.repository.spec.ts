@@ -6,11 +6,11 @@ import {
   ProductUnit,
   SellerType,
 } from '@common/enums';
-import { Product } from '../../domain/entities/product.entity';
-import { ProductCategory } from '../../domain/entities/product-category.entity';
-import { ProductCertification } from '../../domain/entities/product-certification.entity';
-import { ProductImage } from '../../domain/entities/product-image.entity';
-import { Wishlist } from '../../domain/entities/wishlist.entity';
+import { Product } from '../persistence/entities/product.entity';
+import { ProductCategory } from '../persistence/entities/product-category.entity';
+import { ProductCertification } from '../persistence/entities/product-certification.entity';
+import { ProductImage } from '../persistence/entities/product-image.entity';
+import { Wishlist } from '../persistence/entities/wishlist.entity';
 import { TypeOrmProductRepository } from './typeorm-product.repository';
 
 const PRODUCT_ID = '11111111-1111-4111-8111-111111111111';

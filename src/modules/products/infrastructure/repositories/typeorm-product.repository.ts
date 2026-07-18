@@ -20,6 +20,13 @@ import {
   ProductDetailSeller,
 } from '../../application/models/product-detail.model';
 import {
+  ProductCategoryModel,
+  ProductCertificationModel,
+  ProductImageModel,
+  ProductModel,
+  WishlistModel,
+} from '../../application/models/product.model';
+import {
   ProductCatalogQueryPort,
   ProductCategoryQueryPort,
   ProductCertificationRepositoryPort,
@@ -29,11 +36,11 @@ import {
   ProductSeedRepositoryPort,
   ProductWishlistRepositoryPort,
 } from '../../application/ports/outbound/product-repository.port';
-import { Product } from '../../domain/entities/product.entity';
-import { ProductCategory } from '../../domain/entities/product-category.entity';
-import { ProductCertification } from '../../domain/entities/product-certification.entity';
-import { ProductImage } from '../../domain/entities/product-image.entity';
-import { Wishlist } from '../../domain/entities/wishlist.entity';
+import { Product } from '../persistence/entities/product.entity';
+import { ProductCategory } from '../persistence/entities/product-category.entity';
+import { ProductCertification } from '../persistence/entities/product-certification.entity';
+import { ProductImage } from '../persistence/entities/product-image.entity';
+import { Wishlist } from '../persistence/entities/wishlist.entity';
 import { seedProductCategories } from '../database/seeds/product-category.seed';
 
 @Injectable()
@@ -62,14 +69,14 @@ export class TypeOrmProductRepository
     private readonly dataSource: DataSource,
   ) {}
 
-  async findRootCategories(): Promise<ProductCategory[]> {
+  async findRootCategories(): Promise<ProductCategoryModel[]> {
     return this.categoryRepo.find({
       where: { parentId: null as unknown as string, isActive: true },
       order: { sortOrder: 'ASC' },
     });
   }
 
-  async getCategoryTree(): Promise<ProductCategory[]> {
+  async getCategoryTree(): Promise<ProductCategoryModel[]> {
     const all = await this.categoryRepo.find({
       where: { isActive: true },
       order: { sortOrder: 'ASC', name: 'ASC' },
@@ -91,14 +98,14 @@ export class TypeOrmProductRepository
     return roots;
   }
 
-  async findAllCategories(): Promise<ProductCategory[]> {
+  async findAllCategories(): Promise<ProductCategoryModel[]> {
     return this.categoryRepo.find();
   }
 
   async findAll(
     filter: ProductFilterInput,
     currentUserId?: string,
-  ): Promise<{ data: Product[]; total: number }> {
+  ): Promise<{ data: ProductModel[]; total: number }> {
     const {
       page = 1,
       limit = 20,
@@ -176,7 +183,7 @@ export class TypeOrmProductRepository
   async findMine(
     sellerId: string,
     filter: ProductFilterInput,
-  ): Promise<{ data: Product[]; total: number }> {
+  ): Promise<{ data: ProductModel[]; total: number }> {
     const {
       page = 1,
       limit = 20,
@@ -236,7 +243,7 @@ export class TypeOrmProductRepository
     sellerId: string,
     sellerType: SellerType,
     input: CreateProductInput,
-  ): Promise<Product> {
+  ): Promise<ProductModel> {
     const { images = [], certifications = [], ...productData } = input;
 
     return this.dataSource.transaction(async (manager) => {
@@ -289,21 +296,21 @@ export class TypeOrmProductRepository
     });
   }
 
-  async findByIdWithRelations(id: string): Promise<Product | null> {
+  async findByIdWithRelations(id: string): Promise<ProductModel | null> {
     return this.productRepo.findOne({
       where: { id },
       relations: ['category', 'category.parent', 'images', 'certifications'],
     });
   }
 
-  async findActiveById(id: string): Promise<Product | null> {
+  async findActiveById(id: string): Promise<ProductModel | null> {
     return this.productRepo.findOne({
       where: { id, status: ProductStatus.ACTIVE },
     });
   }
 
-  async save(product: Product): Promise<Product> {
-    return this.productRepo.save(product);
+  async save(product: ProductModel): Promise<ProductModel> {
+    return this.productRepo.save(product as Product);
   }
 
   async findOne(id: string): Promise<ProductDetailResponse | null> {
@@ -325,7 +332,7 @@ export class TypeOrmProductRepository
     productId: string,
     imageUrl: string,
     isPrimary: boolean,
-  ): Promise<ProductImage> {
+  ): Promise<ProductImageModel> {
     if (isPrimary) {
       await this.imageRepo.update({ productId }, { isPrimary: false });
     }
@@ -356,7 +363,7 @@ export class TypeOrmProductRepository
   async addCertification(
     productId: string,
     input: CreateProductCertificationInput,
-  ): Promise<ProductCertification> {
+  ): Promise<ProductCertificationModel> {
     const cert = this.certRepo.create({
       ...input,
       productId,
@@ -371,7 +378,7 @@ export class TypeOrmProductRepository
     return this.certRepo.save(cert);
   }
 
-  async findPending(): Promise<ProductCertification[]> {
+  async findPending(): Promise<ProductCertificationModel[]> {
     return this.certRepo.find({
       where: { status: CertificationStatus.PENDING },
       relations: ['product'],
@@ -379,7 +386,7 @@ export class TypeOrmProductRepository
     });
   }
 
-  async findByIdWithProduct(certId: string): Promise<ProductCertification | null> {
+  async findByIdWithProduct(certId: string): Promise<ProductCertificationModel | null> {
     return this.certRepo.findOne({
       where: { id: certId },
       relations: ['product'],
@@ -387,9 +394,9 @@ export class TypeOrmProductRepository
   }
 
   async saveCertification(
-    certification: ProductCertification,
-  ): Promise<ProductCertification> {
-    return this.certRepo.save(certification);
+    certification: ProductCertificationModel,
+  ): Promise<ProductCertificationModel> {
+    return this.certRepo.save(certification as ProductCertification);
   }
 
   async removeCertificationByProduct(
@@ -407,11 +414,11 @@ export class TypeOrmProductRepository
   async findByUserAndProduct(
     userId: string,
     productId: string,
-  ): Promise<Wishlist | null> {
+  ): Promise<WishlistModel | null> {
     return this.wishlistRepo.findOne({ where: { userId, productId } });
   }
 
-  async addIfAbsent(userId: string, productId: string): Promise<Wishlist> {
+  async addIfAbsent(userId: string, productId: string): Promise<WishlistModel> {
     await this.wishlistRepo
       .createQueryBuilder()
       .insert()
@@ -436,7 +443,7 @@ export class TypeOrmProductRepository
   async getWishlist(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
 
@@ -490,14 +497,16 @@ export class TypeOrmProductRepository
     return deleted;
   }
 
-  async saveSeedProducts(products: Array<Partial<Product>>): Promise<Product[]> {
+  async saveSeedProducts(
+    products: Array<Partial<ProductModel>>,
+  ): Promise<ProductModel[]> {
     return this.productRepo.save(
-      products.map((product) => this.productRepo.create(product)),
+      products.map((product) => this.productRepo.create(product as Partial<Product>)),
     );
   }
 
   async savePrimaryImagesForProducts(
-    products: Product[],
+    products: ProductModel[],
     imageUrl: string,
   ): Promise<void> {
     await this.imageRepo.save(
@@ -608,7 +617,7 @@ export class TypeOrmProductRepository
   }
 
   private toDetailResponse(
-    product: Product,
+    product: ProductModel,
     seller: ProductDetailSeller | null,
     province: ProductDetailLocation | null,
     district: ProductDetailLocation | null,

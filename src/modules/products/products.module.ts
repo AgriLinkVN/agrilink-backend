@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Product } from './domain/entities/product.entity';
-import { ProductImage } from './domain/entities/product-image.entity';
-import { ProductCertification } from './domain/entities/product-certification.entity';
-import { ProductCategory } from './domain/entities/product-category.entity';
-import { Wishlist } from './domain/entities/wishlist.entity';
+import { Product } from './infrastructure/persistence/entities/product.entity';
+import { ProductImage } from './infrastructure/persistence/entities/product-image.entity';
+import { ProductCertification } from './infrastructure/persistence/entities/product-certification.entity';
+import { ProductCategory } from './infrastructure/persistence/entities/product-category.entity';
+import { Wishlist } from './infrastructure/persistence/entities/wishlist.entity';
 import { ProductsService } from './application/products.service';
 import { ProductsController } from './presentation/controllers/products.controller';
 import { WishlistController } from './presentation/controllers/wishlist.controller';

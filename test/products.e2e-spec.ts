@@ -15,10 +15,12 @@ import {
 } from '../src/common/enums';
 import { ResponseInterceptor } from '../src/common/interceptors/response.interceptor';
 import { ProductsService } from '../src/modules/products/application/products.service';
-import { Product } from '../src/modules/products/domain/entities/product.entity';
-import { ProductCertification } from '../src/modules/products/domain/entities/product-certification.entity';
-import { ProductCategory } from '../src/modules/products/domain/entities/product-category.entity';
-import { Wishlist } from '../src/modules/products/domain/entities/wishlist.entity';
+import {
+  ProductCategoryModel,
+  ProductCertificationModel,
+  ProductModel,
+  WishlistModel,
+} from '../src/modules/products/application/models/product.model';
 import { ProductNotFoundError } from '../src/modules/products/domain/errors/product-application.error';
 import { ProductsController } from '../src/modules/products/presentation/controllers/products.controller';
 import { WishlistController } from '../src/modules/products/presentation/controllers/wishlist.controller';
@@ -311,7 +313,7 @@ function headerValue(req: Request, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function makeCategory(overrides: Partial<ProductCategory> = {}): ProductCategory {
+function makeCategory(overrides: Partial<ProductCategoryModel> = {}): ProductCategoryModel {
   return {
     id: CATEGORY_ID,
     name: 'Trai cay',
@@ -326,10 +328,10 @@ function makeCategory(overrides: Partial<ProductCategory> = {}): ProductCategory
     parent: null,
     children: [],
     ...overrides,
-  } as ProductCategory;
+  } as ProductCategoryModel;
 }
 
-function makeProduct(overrides: Partial<Product> = {}): Product {
+function makeProduct(overrides: Partial<ProductModel> = {}): ProductModel {
   return {
     id: PRODUCT_ID,
     sellerId: SELLER_ID,
@@ -362,12 +364,12 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     images: [],
     certifications: [],
     ...overrides,
-  } as Product;
+  } as ProductModel;
 }
 
 function makeCertification(
-  overrides: Partial<ProductCertification> = {},
-): ProductCertification {
+  overrides: Partial<ProductCertificationModel> = {},
+): ProductCertificationModel {
   return {
     id: CERT_ID,
     productId: PRODUCT_ID,
@@ -385,10 +387,10 @@ function makeCertification(
     createdAt: new Date('2026-06-01T00:00:00.000Z'),
     product: makeProduct(),
     ...overrides,
-  } as ProductCertification;
+  } as ProductCertificationModel;
 }
 
-function makeWishlist(overrides: Partial<Wishlist> = {}): Wishlist {
+function makeWishlist(overrides: Partial<WishlistModel> = {}): WishlistModel {
   return {
     id: '88888888-8888-4888-8888-888888888888',
     userId: USER_ID,
@@ -396,5 +398,5 @@ function makeWishlist(overrides: Partial<Wishlist> = {}): Wishlist {
     createdAt: new Date('2026-06-01T00:00:00.000Z'),
     product: makeProduct(),
     ...overrides,
-  } as Wishlist;
+  } as WishlistModel;
 }

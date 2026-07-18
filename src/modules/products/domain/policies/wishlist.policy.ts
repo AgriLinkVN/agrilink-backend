@@ -1,9 +1,13 @@
-import { Product } from '../entities/product.entity';
+import { ProductStatus } from '@common/enums';
 import { WishlistProductUnavailableError } from '../errors/product-application.error';
 
+interface WishlistEligibleProduct {
+  status: ProductStatus;
+}
+
 export function assertWishlistProductIsAvailable(
-  product: Product | null,
-): asserts product is Product {
+  product: WishlistEligibleProduct | null,
+): asserts product is WishlistEligibleProduct {
   if (!product) {
     throw new WishlistProductUnavailableError('Không tìm thấy sản phẩm hoạt động');
   }
