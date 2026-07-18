@@ -206,6 +206,11 @@ describe('Products REST contract (e2e)', () => {
     await request(server).get(`/products/${PRODUCT_ID}`).expect(404);
   });
 
+  it('does not expose Product seed or reset operations as public endpoints', async () => {
+    await request(server).post('/products/seed').expect(404);
+    await request(server).post('/products/seed/reset').expect(404);
+  });
+
   it('GET /products/me forwards seller-owned filters', async () => {
     await request(server)
       .get('/products/me')

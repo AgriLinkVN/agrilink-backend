@@ -21,6 +21,7 @@ import {
   PRODUCT_WISHLIST_REPOSITORY,
 } from './application/ports/outbound/product-repository.port';
 import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
+import { ProductDevelopmentSeedService } from './infrastructure/database/seeds/product-development-seed.service';
 import {
   AddProductCertificationUseCase,
   AddProductImageUseCase,
@@ -57,6 +58,7 @@ import {
   controllers: [ProductsController, WishlistController],
   providers: [
     TypeOrmProductRepository,
+    ProductDevelopmentSeedService,
     ProductsService,
     CreateProductUseCase,
     ListPublicProductsUseCase,
