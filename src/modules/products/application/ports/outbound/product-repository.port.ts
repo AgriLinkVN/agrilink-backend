@@ -24,7 +24,7 @@ export const PRODUCT_WISHLIST_REPOSITORY = Symbol('PRODUCT_WISHLIST_REPOSITORY')
 export const PRODUCT_SEED_REPOSITORY = Symbol('PRODUCT_SEED_REPOSITORY');
 
 export interface ProductRepositoryPort {
-  create(
+  createAtomically(
     sellerId: string,
     sellerType: SellerType,
     input: CreateProductInput,
@@ -85,7 +85,7 @@ export interface ProductWishlistRepositoryPort {
     userId: string,
     productId: string,
   ): Promise<Wishlist | null>;
-  addWishlist(userId: string, productId: string): Promise<Wishlist>;
+  addIfAbsent(userId: string, productId: string): Promise<Wishlist>;
   remove(userId: string, productId: string): Promise<void>;
   getWishlist(
     userId: string,

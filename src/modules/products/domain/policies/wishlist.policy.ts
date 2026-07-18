@@ -8,7 +8,3 @@ export function assertWishlistProductIsAvailable(
     throw new WishlistProductUnavailableError('Không tìm thấy sản phẩm hoạt động');
   }
 }
-
-export function shouldCreateWishlistItem(existingItem: unknown): boolean {
-  return !existingItem;
-}

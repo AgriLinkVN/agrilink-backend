@@ -53,7 +53,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
 
 function makeProductRepository(): jest.Mocked<ProductRepositoryPort> {
   return {
-    create: jest.fn(),
+    createAtomically: jest.fn(),
     findByIdWithRelations: jest.fn(),
     findActiveById: jest.fn(),
     save: jest.fn(),
@@ -73,7 +73,7 @@ function makeCertificationRepository(): jest.Mocked<ProductCertificationReposito
 function makeWishlistRepository(): jest.Mocked<ProductWishlistRepositoryPort> {
   return {
     findByUserAndProduct: jest.fn(),
-    addWishlist: jest.fn(),
+    addIfAbsent: jest.fn(),
     remove: jest.fn(),
     getWishlist: jest.fn(),
     getWishlistedIds: jest.fn(),
@@ -170,7 +170,7 @@ describe('Product application use cases', () => {
     expect(repository.saveCertification).not.toHaveBeenCalled();
   });
 
-  it('returns an existing wishlist item without creating a duplicate', async () => {
+  it('delegates duplicate-safe wishlist persistence to the atomic repository operation', async () => {
     const productRepository = makeProductRepository();
     const wishlistRepository = makeWishlistRepository();
     const existing = Object.assign(new Wishlist(), {
@@ -179,11 +179,14 @@ describe('Product application use cases', () => {
       productId: PRODUCT_ID,
     });
     productRepository.findActiveById.mockResolvedValue(makeProduct({ status: ProductStatus.ACTIVE }));
-    wishlistRepository.findByUserAndProduct.mockResolvedValue(existing);
+    wishlistRepository.addIfAbsent.mockResolvedValue(existing);
     const useCase = new AddWishlistItemUseCase(productRepository, wishlistRepository);
 
     await expect(useCase.execute(USER_ID, PRODUCT_ID)).resolves.toBe(existing);
-    expect(wishlistRepository.addWishlist).not.toHaveBeenCalled();
+    expect(wishlistRepository.addIfAbsent).toHaveBeenCalledWith(
+      USER_ID,
+      PRODUCT_ID,
+    );
   });
 
   it('rejects a wishlist item when the product is not active', async () => {
@@ -195,7 +198,25 @@ describe('Product application use cases', () => {
     await expect(useCase.execute(USER_ID, PRODUCT_ID)).rejects.toThrow(
       WishlistProductUnavailableError,
     );
-    expect(wishlistRepository.findByUserAndProduct).not.toHaveBeenCalled();
+    expect(wishlistRepository.addIfAbsent).not.toHaveBeenCalled();
+  });
+
+  it('does not publish a status notification when persistence fails', async () => {
+    const repository = makeProductRepository();
+    const publisher = { publish: jest.fn() };
+    repository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    repository.save.mockRejectedValue(new Error('database unavailable'));
+    const useCase = new ChangeProductStatusUseCase(repository, publisher);
+
+    await expect(
+      useCase.execute(
+        PRODUCT_ID,
+        SELLER_ID,
+        UserRole.FARMER,
+        ProductStatus.PENDING_APPROVAL,
+      ),
+    ).rejects.toThrow('database unavailable');
+    expect(publisher.publish).not.toHaveBeenCalled();
   });
 
   it('maps a missing public detail projection to not found', async () => {
@@ -206,7 +227,7 @@ describe('Product application use cases', () => {
 
   it('derives seller type from the authenticated seller role when JWT has no sellerType', async () => {
     const repository = makeProductRepository();
-    repository.create.mockResolvedValue(makeProduct());
+    repository.createAtomically.mockResolvedValue(makeProduct());
     const useCase = new CreateProductUseCase(repository);
 
     await useCase.execute(
@@ -221,7 +242,7 @@ describe('Product application use cases', () => {
       },
     );
 
-    expect(repository.create).toHaveBeenCalledWith(
+    expect(repository.createAtomically).toHaveBeenCalledWith(
       SELLER_ID,
       SellerType.COOPERATIVE,
       expect.any(Object),
