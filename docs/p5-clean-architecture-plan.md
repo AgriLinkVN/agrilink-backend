@@ -34,6 +34,8 @@ Practical compromise for this project:
 
 Branch: `feature/p5-notification-contract`
 
+Status: Complete. Notification contract and Clean Architecture port work were merged through PRs #37, #39, and #41.
+
 Goal:
 
 - Make backend notification API match the FE contract.
@@ -57,6 +59,10 @@ Acceptance:
 
 ### Phase 2 - Ads Backend Contract
 
+Branch: `feature/p5-ads-backend-contract`
+
+Status: Complete.
+
 Goal:
 
 - Port the useful Ads logic from `origin/Tinvv` onto current `develop` without merging stale branch structure.
@@ -71,7 +77,17 @@ Acceptance:
 - Event tracking works: `POST /ads/events`.
 - Ads service depends on repository ports, not direct repository usage from presentation.
 
+Delivered:
+
+- Replaced the Ads TODO service with focused application use cases and an `AdsRepositoryPort` implementation.
+- Moved Ads TypeORM entities into `infrastructure/persistence/entities` and aligned their fields with the existing database/FE contract.
+- Added supplier ownership checks, active-package validation, pause/resume state policies, active banner lookup, and best-effort anonymous event recording.
+- Added unit and REST contract tests for the Phase 2 routes.
+- Deliberately excluded admin moderation, approval notifications, analytics, Redis rate limiting, and package administration; they belong to later P5 phases.
+
 ### Phase 3 - Ads Moderation
+
+Status: Next.
 
 Goal:
 
@@ -135,36 +151,11 @@ Acceptance:
 - Load test for WebSocket can be deferred if deploy is still intentionally skipped.
 - Sprint status is updated with TRUE/PARTIAL/FALSE based on verified behavior.
 
-## P2 Product Clean Architecture Evaluation
+## P2 Product Architecture Reference
 
-Current status: `PARTIAL`.
+Product core is now accepted as `TRUE` for the backend Clean Architecture scope. The completed audit and acceptance evidence are in `docs/p2-product-final-acceptance.md`.
 
-Detailed Phase 0 baseline and the Product refactor sequence are tracked in `docs/p2-product-architecture-audit.md`.
-
-What is already good:
-
-- Product module already uses a clean-ish folder split: `presentation`, `application`, `domain`, `infrastructure`.
-- Controllers are mostly thin and delegate behavior to `ProductsService`.
-- DTOs and response schemas are kept outside the entity files.
-- Product status flow and certification verification have explicit application rules.
-- After Phase 1, product no longer needs to depend on concrete `NotificationsService`; it can publish through `NOTIFICATION_PUBLISHER`.
-
-What is not fully clean yet:
-
-- `ProductsService` is too large and mixes many use cases: CRUD, filters, wishlist, image handling, certifications, status transitions, seeding, seller profile projection.
-- Application layer still injects TypeORM repositories directly.
-- Application layer still runs raw SQL through `DataSource`.
-- Domain entities are TypeORM entities, so domain and persistence are coupled.
-- There are no repository ports for product/category/wishlist/certification yet.
-- Notification side effects are in the main service flow instead of a dedicated domain/application event handler.
-
-Recommended P2 cleanup, after P5 priority work:
-
-1. Split `ProductsService` into use-case services: product catalog query, seller product command, wishlist, certification, product status.
-2. Add product repository ports only around areas with real complexity: product query, product command, wishlist, certification.
-3. Move raw SQL projections into infrastructure query adapters.
-4. Keep TypeORM entities in place until a mapper layer becomes justified.
-5. Add contract tests for public marketplace query, seller CRUD/status, certification verify, and wishlist.
+Storage/upload remains a separate `PARTIAL` boundary, and deferred deployment items remain outside that Product-core acceptance. Do not use this P5 plan as the source of truth for P2 work.
 
 ## Decision
 

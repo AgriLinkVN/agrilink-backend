@@ -1,21 +1,35 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { AdType } from '../../../common/enums';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { AdType } from '../../../../../common/enums';
 
 @Entity('ad_packages')
 export class AdPackage {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: AdType })
+  @Column({ name: 'type', type: 'enum', enum: AdType })
   adType: AdType;
 
   @Column({ name: 'duration_days' })
   durationDays: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    transformer: {
+      to: (value?: number) => value,
+      from: (value?: string | null) => (value == null ? 0 : Number(value)),
+    },
+  })
   price: number;
 
   @Column({ name: 'max_impressions', nullable: true })
