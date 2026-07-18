@@ -4,7 +4,7 @@ Generated: 2026-07-18
 
 Baseline: `develop` at `7aac989`
 
-Phase: `0-5 completed; Phase 6 is next`
+Phase: `0-6 completed; Phase 7 is next`
 
 Scope: backend P2 Product module and adjacent P2 upload/storage boundary. Frontend SEO, image optimization, skeleton loading, mobile responsive work, and deploy work are tracked separately.
 
@@ -34,7 +34,8 @@ Phase 0 intentionally changed documentation only. Phases 1-4 preserve the public
 | 3 - Repository and query ports | Complete | TypeORM/query builder/raw SQL code is isolated in `infrastructure/repositories`. |
 | 4 - Focused use cases | Complete | Product CRUD, catalog, images, certifications, status, wishlist, and categories each have a focused use-case class. |
 | 5 - Domain rules and typed errors | Complete | Seller role, status transition, certification verification, and wishlist policy are pure domain policies; controllers map typed errors to HTTP exceptions. |
-| 6-8 | Pending | Transactions, seed cleanup, then persistence entity split. |
+| 6 - Transaction and side-effect hardening | Complete | Atomic Product creation is explicit through `createAtomically`, status notification occurs only after persistence, and wishlist writes use conflict-safe insertion. |
+| 7-8 | Pending | Seed cleanup, then persistence entity split. |
 
 ## Clean Architecture Baseline
 
@@ -91,10 +92,10 @@ Adjacent P2 upload/storage boundary:
 | --- | --- | --- | --- | --- |
 | I1-8 | DB entity + seed product categories | TRUE | PARTIAL | Entities and seed exist, but Product persistence entities are in `domain/entities`; seed logic is still reachable through `ProductsService` and startup logic. |
 | I1-9 | Cloudinary config + upload service | TRUE | PARTIAL | Cloudinary/Supabase adapters exist behind interfaces, but Storage still has legacy boundary issues. This does not block Product refactor, but should be cleaned when Storage is touched. |
-| I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints and seller authorization are implemented through ports, focused use cases, typed errors, and presentation error mapping; persistence entity split remains. |
+| I1-10 | Basic Product CRUD API | TRUE | PARTIAL | CRUD endpoints and seller authorization use ports, focused use cases, typed errors, presentation error mapping, and atomic create persistence; persistence entity split remains. |
 | I2-7 | Product search and filters | TRUE | PARTIAL | Public catalog remains active-only; catalog querying is behind an infrastructure query port. |
-| I2-9 | Wishlist API | TRUE | PARTIAL | Add/remove/list/ids are in focused use cases with explicit active-product and idempotency policy; concurrency hardening remains Phase 6. |
-| I3-5 | Product status flow | TRUE | PARTIAL | Transition policy is isolated in the domain, while notification remains persistence-first in `ChangeProductStatusUseCase`. |
+| I2-9 | Wishlist API | TRUE | PARTIAL | Add/remove/list/ids are in focused use cases with active-product policy and conflict-safe idempotent persistence. |
+| I3-5 | Product status flow | TRUE | PARTIAL | Transition policy is isolated in the domain; notification is published only after the status write succeeds. |
 | I3-7 | Certification badge + verify flow | TRUE for backend verify flow | PARTIAL | Pending/verify behavior uses dedicated typed verification policy and presentation error mapping. |
 | I2-10 | Product staging deploy | FALSE | OUT OF SCOPE | Deferred by project decision. |
 | I3-8 | Cloudinary production key | FALSE | OUT OF SCOPE | Deferred until production secrets are available. |
@@ -279,9 +280,11 @@ Acceptance:
 
 Recommended branch: `feature/p2-product-transactions`
 
+Status: Complete
+
 Deliverables:
 
-- Add `UnitOfWorkPort` only where atomicity is required.
+- Use an explicit transaction abstraction only where atomicity is required. Product creation uses the narrow `ProductRepositoryPort.createAtomically` contract rather than a generic `UnitOfWorkPort`, because it is one aggregate persistence operation.
 - Product create with images/certifications is atomic.
 - Status update persists before notification publishing.
 - Wishlist add/remove remains idempotent and safe under duplicate calls.
@@ -289,7 +292,7 @@ Deliverables:
 Acceptance:
 
 - No controllers open transactions.
-- Application uses transaction abstraction only where needed.
+- Product creation retains a narrow atomic persistence contract; no generic Unit of Work is introduced without a multi-repository workflow.
 - Notification side effects are covered by unit tests with mocked ports.
 
 ### Phase 7 - Seed and Dev Flow Cleanup
@@ -339,4 +342,4 @@ Acceptance:
 
 ## Recommended Immediate Next Step
 
-Start Phase 6 next. Add a transaction abstraction only to multi-write Product behavior, then prove that notification publishing happens after a committed status transition and that wishlist writes remain safe under duplicate calls.
+Start Phase 7 next. Move development seed orchestration out of `ProductsService`, lock down public seed endpoints, and remove `main.ts` dependence on the Product application facade.

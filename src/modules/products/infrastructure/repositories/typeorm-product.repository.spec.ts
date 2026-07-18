@@ -145,7 +145,7 @@ describe('TypeOrmProductRepository', () => {
     };
     dataSource.transaction.mockImplementation(async (work) => work(manager));
 
-    const result = await repository.create(SELLER_ID, SellerType.FARMER, {
+    const result = await repository.createAtomically(SELLER_ID, SellerType.FARMER, {
       name: 'Xoai cat Hoa Loc',
       pricePerUnit: 25000,
       unit: ProductUnit.KG,
@@ -193,6 +193,58 @@ describe('TypeOrmProductRepository', () => {
         }),
       ],
     );
+  });
+
+  it('propagates a child write failure so the product creation transaction rolls back', async () => {
+    const manager = {
+      create: jest.fn((_entity, value) => value),
+      save: jest.fn(async (entity, value) => {
+        if (entity === Product) return { ...value, id: PRODUCT_ID };
+        if (entity === ProductImage) throw new Error('image persistence failed');
+        return value;
+      }),
+      findOneOrFail: jest.fn(),
+    };
+    dataSource.transaction.mockImplementation(async (work) => work(manager));
+
+    await expect(
+      repository.createAtomically(SELLER_ID, SellerType.FARMER, {
+        name: 'Xoai cat Hoa Loc',
+        pricePerUnit: 25000,
+        unit: ProductUnit.KG,
+        availableQuantity: 100,
+        images: [{ imageUrl: 'https://example.test/product.jpg' }],
+      }),
+    ).rejects.toThrow('image persistence failed');
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses conflict-safe insertion when adding a wishlist item', async () => {
+    const entry = Object.assign(new Wishlist(), {
+      id: '88888888-8888-4888-8888-888888888888',
+      userId: USER_ID,
+      productId: PRODUCT_ID,
+    });
+    const queryBuilder = {
+      insert: jest.fn(),
+      into: jest.fn(),
+      values: jest.fn(),
+      orIgnore: jest.fn(),
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+    queryBuilder.insert.mockReturnValue(queryBuilder);
+    queryBuilder.into.mockReturnValue(queryBuilder);
+    queryBuilder.values.mockReturnValue(queryBuilder);
+    queryBuilder.orIgnore.mockReturnValue(queryBuilder);
+    wishlistRepo.createQueryBuilder.mockReturnValue(queryBuilder);
+    wishlistRepo.findOne.mockResolvedValue(entry);
+
+    await expect(repository.addIfAbsent(USER_ID, PRODUCT_ID)).resolves.toBe(entry);
+    expect(queryBuilder.values).toHaveBeenCalledWith({
+      userId: USER_ID,
+      productId: PRODUCT_ID,
+    });
+    expect(queryBuilder.orIgnore).toHaveBeenCalledTimes(1);
   });
 });
 

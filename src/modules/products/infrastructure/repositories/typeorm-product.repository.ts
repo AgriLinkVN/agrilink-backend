@@ -232,7 +232,7 @@ export class TypeOrmProductRepository
     return { data, total };
   }
 
-  async create(
+  async createAtomically(
     sellerId: string,
     sellerType: SellerType,
     input: CreateProductInput,
@@ -411,9 +411,22 @@ export class TypeOrmProductRepository
     return this.wishlistRepo.findOne({ where: { userId, productId } });
   }
 
-  async addWishlist(userId: string, productId: string): Promise<Wishlist> {
-    const entry = this.wishlistRepo.create({ userId, productId });
-    return this.wishlistRepo.save(entry);
+  async addIfAbsent(userId: string, productId: string): Promise<Wishlist> {
+    await this.wishlistRepo
+      .createQueryBuilder()
+      .insert()
+      .into(Wishlist)
+      .values({ userId, productId })
+      .orIgnore()
+      .execute();
+
+    const entry = await this.wishlistRepo.findOne({
+      where: { userId, productId },
+    });
+    if (!entry) {
+      throw new Error('Wishlist write did not return a persisted item');
+    }
+    return entry;
   }
 
   async remove(userId: string, productId: string): Promise<void> {

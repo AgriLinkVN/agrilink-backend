@@ -24,10 +24,7 @@ import {
 import { assertValidCertificationVerification } from '../../domain/policies/product-certification-verification.policy';
 import { assertProductStatusTransition } from '../../domain/policies/product-status-transition.policy';
 import { resolveSellerType } from '../../domain/policies/seller-type.policy';
-import {
-  assertWishlistProductIsAvailable,
-  shouldCreateWishlistItem,
-} from '../../domain/policies/wishlist.policy';
+import { assertWishlistProductIsAvailable } from '../../domain/policies/wishlist.policy';
 import { ProductDetailResponse } from '../models/product-detail.model';
 import {
   CreateProductCertificationInput,
@@ -88,7 +85,7 @@ export class CreateProductUseCase {
     role: UserRole,
     input: CreateProductInput,
   ): Promise<Product> {
-    return this.productRepository.create(
+    return this.productRepository.createAtomically(
       sellerId,
       sellerType ?? resolveSellerType(role),
       input,
@@ -374,11 +371,7 @@ export class AddWishlistItemUseCase {
   async execute(userId: string, productId: string): Promise<Wishlist> {
     const product = await this.productRepository.findActiveById(productId);
     assertWishlistProductIsAvailable(product);
-    const existing = await this.productWishlistRepository.findByUserAndProduct(userId, productId);
-    if (!shouldCreateWishlistItem(existing)) {
-      return existing;
-    }
-    return this.productWishlistRepository.addWishlist(userId, productId);
+    return this.productWishlistRepository.addIfAbsent(userId, productId);
   }
 }
 
