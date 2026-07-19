@@ -115,6 +115,10 @@ Next: Phase 4 - Reviews Contract.
 
 ### Phase 4 - Reviews Contract
 
+Branch: `feature/p5-reviews-contract`
+
+Status: Complete.
+
 Goal:
 
 - Complete review API expected by FE.
@@ -126,6 +130,15 @@ Acceptance:
 - Seller inbox works: `GET /reviews/seller/me`.
 - Seller reply works with ownership check.
 - Admin review moderation works: hide/unhide with reason.
+
+Delivered:
+
+- Replaced the legacy Review service with application use cases, domain policies, a repository port, and a TypeORM adapter.
+- Consolidated the duplicate Review entity definitions into the module persistence layer and added a migration for moderation metadata, legacy reply backfill, and the buyer/product uniqueness constraint.
+- Added public review pagination, rating stats, seller inbox filters, one-time seller replies, and admin hide/unhide while preserving the FE route and response contract.
+- Added unit and REST-contract tests for review ownership, duplicate prevention, state transitions, and all public/seller/admin endpoints.
+
+Next: Phase 5 - Rating And Trust Score.
 
 ### Phase 5 - Rating And Trust Score
 
