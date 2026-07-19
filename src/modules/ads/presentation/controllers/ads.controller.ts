@@ -24,17 +24,26 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { UserRole } from '@common/enums';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import {
+  ApproveAdCampaignUseCase,
   CreateAdCampaignUseCase,
+  GetAdCampaignForModerationUseCase,
   GetSupplierAdCampaignUseCase,
   ListActiveAdBannersUseCase,
+  ListAdCampaignsForModerationUseCase,
   ListAdPackagesUseCase,
   ListSupplierAdCampaignsUseCase,
   PauseAdCampaignUseCase,
+  RejectAdCampaignUseCase,
   ResumeAdCampaignUseCase,
   TrackAdEventUseCase,
 } from '../../application/use-cases/ads.use-cases';
 import { CreateAdCampaignDto } from '../dto/create-ad-campaign.dto';
-import { AdBannerQueryDto, AdCampaignQueryDto } from '../dto/ad-campaign-query.dto';
+import {
+  AdBannerQueryDto,
+  AdCampaignModerationQueryDto,
+  AdCampaignQueryDto,
+} from '../dto/ad-campaign-query.dto';
+import { RejectAdCampaignDto } from '../dto/reject-ad-campaign.dto';
 import { TrackAdEventDto } from '../dto/track-ad-event.dto';
 import { mapAdsApplicationError } from '../mappers/ads-error.mapper';
 
@@ -51,6 +60,10 @@ export class AdsController {
     private readonly resumeCampaign: ResumeAdCampaignUseCase,
     private readonly listBanners: ListActiveAdBannersUseCase,
     private readonly trackEvent: TrackAdEventUseCase,
+    private readonly listModerationCampaigns: ListAdCampaignsForModerationUseCase,
+    private readonly getModerationCampaign: GetAdCampaignForModerationUseCase,
+    private readonly approveCampaign: ApproveAdCampaignUseCase,
+    private readonly rejectCampaign: RejectAdCampaignUseCase,
   ) {}
 
   private async execute<T>(operation: () => Promise<T>): Promise<T> {
@@ -146,5 +159,40 @@ export class AdsController {
     @CurrentUser('sub') supplierId: string,
   ) {
     return this.execute(() => this.resumeCampaign.execute(id, supplierId));
+  }
+
+  @Get('admin/campaigns')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Danh sách chiến dịch cho admin kiểm duyệt' })
+  listForModeration(@Query() query: AdCampaignModerationQueryDto) {
+    return this.listModerationCampaigns.execute(query);
+  }
+
+  @Get('admin/campaigns/:id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Chi tiết chiến dịch cho admin kiểm duyệt' })
+  getForModeration(@Param('id', ParseUuidPipe) id: string) {
+    return this.execute(() => this.getModerationCampaign.execute(id));
+  }
+
+  @Patch('admin/campaigns/:id/approve')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Duyệt chiến dịch đang chờ phê duyệt' })
+  approve(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.execute(() => this.approveCampaign.execute(id, adminId));
+  }
+
+  @Patch('admin/campaigns/:id/reject')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Từ chối chiến dịch đang chờ phê duyệt' })
+  reject(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('sub') adminId: string,
+    @Body() dto: RejectAdCampaignDto,
+  ) {
+    return this.execute(() => this.rejectCampaign.execute(id, adminId, dto.reason));
   }
 }

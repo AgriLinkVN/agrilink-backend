@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import {
   AdCampaignForbiddenError,
@@ -19,7 +15,7 @@ export function mapAdsApplicationError(error: unknown): never {
     throw new ForbiddenException(error.message);
   }
   if (error instanceof InvalidAdCampaignStateError) {
-    throw new BadRequestException(error.message);
+    throw new ConflictException(error.message);
   }
   throw error;
 }

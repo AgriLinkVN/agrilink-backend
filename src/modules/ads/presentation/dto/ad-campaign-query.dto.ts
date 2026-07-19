@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { AdStatus } from '@common/enums';
 
 export class AdCampaignQueryDto {
   @IsOptional()
@@ -22,4 +23,10 @@ export class AdBannerQueryDto {
   @IsInt()
   @Min(1)
   province_id?: number;
+}
+
+export class AdCampaignModerationQueryDto extends AdCampaignQueryDto {
+  @IsOptional()
+  @IsEnum(AdStatus)
+  status?: AdStatus;
 }
