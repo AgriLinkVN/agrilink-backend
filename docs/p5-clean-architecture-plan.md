@@ -87,7 +87,9 @@ Delivered:
 
 ### Phase 3 - Ads Moderation
 
-Status: Next.
+Branch: `feature/p5-ads-moderation`
+
+Status: Complete.
 
 Goal:
 
@@ -99,6 +101,17 @@ Acceptance:
 - Admin approve/reject works.
 - Approval emits `ad_approved`; rejection emits `ad_rejected`.
 - Rejection reason is persisted and shown to supplier.
+
+Delivered:
+
+- Added admin-only moderation list/detail endpoints with pagination and optional status filtering.
+- Added explicit approve/reject use cases, with the `pending_approval` transition rule kept in the Ads domain policy.
+- Enforced that transition again in the persistence update, preventing concurrent moderators from recording two decisions.
+- Persisted the moderation decision before publishing the cross-module notification through `NotificationPublisherPort`.
+- Stored approver, approval timestamp, scheduled run dates, and rejection reason on the campaign.
+- Added unit coverage for transition validation, persistence-before-publish ordering, and persistence failure; added REST contract coverage for all admin routes.
+
+Next: Phase 4 - Reviews Contract.
 
 ### Phase 4 - Reviews Contract
 
