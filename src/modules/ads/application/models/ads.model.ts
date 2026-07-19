@@ -47,6 +47,10 @@ export interface AdCampaignPagination {
   limit?: number;
 }
 
+export interface AdCampaignModerationFilter extends AdCampaignPagination {
+  status?: AdStatus;
+}
+
 export interface NormalizedAdCampaignPagination {
   page: number;
   limit: number;
@@ -65,4 +69,13 @@ export interface TrackAdEventInput {
   userId?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
+}
+
+export interface ModerateAdCampaignInput {
+  status: AdStatus.ACTIVE | AdStatus.REJECTED;
+  approvedBy: string;
+  approvedAt: Date;
+  rejectionReason: string | null;
+  startDate: string | null;
+  endDate: string | null;
 }

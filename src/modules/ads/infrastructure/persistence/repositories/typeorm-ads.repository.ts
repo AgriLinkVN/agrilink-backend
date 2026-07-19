@@ -4,14 +4,17 @@ import { Repository } from 'typeorm';
 
 import {
   AdCampaignListResult,
+  AdCampaignModerationFilter,
   AdCampaignModel,
   AdCampaignPagination,
   AdPackageModel,
   CreateAdCampaignInput,
+  ModerateAdCampaignInput,
   NormalizedAdCampaignPagination,
   TrackAdEventInput,
 } from '../../../application/models/ads.model';
 import { AdsRepositoryPort } from '../../../application/ports/outbound/ads-repository.port';
+import { InvalidAdCampaignStateError } from '../../../domain/errors/invalid-ad-campaign-state.error';
 import { AdCampaign } from '../entities/ad-campaign.entity';
 import { AdEvent, AdEventType } from '../entities/ad-event.entity';
 import { AdPackage } from '../entities/ad-package.entity';
@@ -105,6 +108,58 @@ export class TypeOrmAdsRepository implements AdsRepositoryPort {
     const campaign = await this.findCampaignById(id);
     if (!campaign) {
       throw new Error('Campaign was not found after status update');
+    }
+    return campaign;
+  }
+
+  async findCampaignsForModeration(
+    filter: AdCampaignModerationFilter,
+  ): Promise<AdCampaignListResult> {
+    const { page, limit } = this.normalizePagination(filter);
+    const query = this.campaigns
+      .createQueryBuilder('campaign')
+      .leftJoinAndSelect('campaign.package', 'package')
+      .orderBy('campaign.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (filter.status) {
+      query.where('campaign.status = :status', { status: filter.status });
+    }
+
+    const [campaigns, total] = await query.getManyAndCount();
+    return {
+      data: campaigns.map((campaign) => this.toCampaignModel(campaign)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async moderateCampaign(
+    id: string,
+    input: ModerateAdCampaignInput,
+  ): Promise<AdCampaignModel> {
+    const result = await this.campaigns.update(
+      { id, status: AdStatus.PENDING_APPROVAL },
+      {
+        status: input.status,
+        approvedBy: input.approvedBy,
+        approvedAt: input.approvedAt,
+        rejectionReason: input.rejectionReason,
+        startDate: input.startDate,
+        endDate: input.endDate,
+      },
+    );
+    if (result.affected !== 1) {
+      throw new InvalidAdCampaignStateError(
+        'Campaign is no longer pending approval',
+      );
+    }
+
+    const campaign = await this.findCampaignById(id);
+    if (!campaign) {
+      throw new Error('Campaign was not found after moderation');
     }
     return campaign;
   }

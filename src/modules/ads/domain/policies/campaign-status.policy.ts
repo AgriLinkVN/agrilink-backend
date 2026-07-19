@@ -16,3 +16,11 @@ export function assertCampaignCanBeResumed(status: AdStatus): void {
     );
   }
 }
+
+export function assertCampaignCanBeModerated(status: AdStatus): void {
+  if (status !== AdStatus.PENDING_APPROVAL) {
+    throw new InvalidAdCampaignStateError(
+      `Chỉ có thể duyệt hoặc từ chối chiến dịch đang chờ duyệt. Trạng thái hiện tại: ${status}`,
+    );
+  }
+}

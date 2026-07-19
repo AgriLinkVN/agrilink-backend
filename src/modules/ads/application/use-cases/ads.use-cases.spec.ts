@@ -1,16 +1,19 @@
-import { AdStatus, AdType } from '@common/enums';
+import { AdStatus, AdType, NotifType } from '@common/enums';
 import {
   AdCampaignForbiddenError,
   AdPackageNotFoundError,
 } from '../errors/ads-application.error';
 import { AdsRepositoryPort } from '../ports/outbound/ads-repository.port';
 import {
+  ApproveAdCampaignUseCase,
   CreateAdCampaignUseCase,
+  RejectAdCampaignUseCase,
   PauseAdCampaignUseCase,
   ResumeAdCampaignUseCase,
   TrackAdEventUseCase,
 } from './ads.use-cases';
 import { InvalidAdCampaignStateError } from '../../domain/errors/invalid-ad-campaign-state.error';
+import { NotificationPublisherPort } from '@modules/notifications/application/ports/inbound/notification-publisher.port';
 
 const CAMPAIGN_ID = '11111111-1111-4111-8111-111111111111';
 const SUPPLIER_ID = '22222222-2222-4222-8222-222222222222';
@@ -43,11 +46,17 @@ function createRepository(): jest.Mocked<AdsRepositoryPort> {
     findActivePackageById: jest.fn(),
     createCampaign: jest.fn(),
     findCampaignsBySupplier: jest.fn(),
+    findCampaignsForModeration: jest.fn(),
     findCampaignById: jest.fn(),
     updateCampaignStatus: jest.fn(),
+    moderateCampaign: jest.fn(),
     findActiveBanners: jest.fn(),
     recordEvent: jest.fn(),
   };
+}
+
+function createNotificationPublisher(): jest.Mocked<NotificationPublisherPort> {
+  return { publish: jest.fn() };
 }
 
 describe('Ads use cases', () => {
@@ -143,5 +152,112 @@ describe('Ads use cases', () => {
 
     await useCase.execute({ campaignId: CAMPAIGN_ID, eventType: 'impression' });
     expect(repository.recordEvent).not.toHaveBeenCalled();
+  });
+
+  it('persists approval before notifying the campaign supplier', async () => {
+    const repository = createRepository();
+    const notifications = createNotificationPublisher();
+    repository.findCampaignById.mockResolvedValue(
+      makeCampaign({ package: { durationDays: 7 } }),
+    );
+    repository.moderateCampaign.mockResolvedValue(
+      makeCampaign({
+        status: AdStatus.ACTIVE,
+        startDate: '2026-07-19',
+        endDate: '2026-07-26',
+      }),
+    );
+    notifications.publish.mockResolvedValue({} as never);
+    const useCase = new ApproveAdCampaignUseCase(repository, notifications);
+
+    await expect(useCase.execute(CAMPAIGN_ID, OTHER_SUPPLIER_ID)).resolves.toMatchObject({
+      status: AdStatus.ACTIVE,
+    });
+
+    expect(repository.moderateCampaign).toHaveBeenCalledWith(
+      CAMPAIGN_ID,
+      expect.objectContaining({
+        status: AdStatus.ACTIVE,
+        approvedBy: OTHER_SUPPLIER_ID,
+        rejectionReason: null,
+      }),
+    );
+    expect(notifications.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: SUPPLIER_ID,
+        type: NotifType.AD_APPROVED,
+        data: expect.objectContaining({ campaignId: CAMPAIGN_ID }),
+      }),
+    );
+    expect(
+      repository.moderateCampaign.mock.invocationCallOrder[0],
+    ).toBeLessThan(notifications.publish.mock.invocationCallOrder[0]);
+  });
+
+  it('does not publish approval when campaign persistence fails', async () => {
+    const repository = createRepository();
+    const notifications = createNotificationPublisher();
+    repository.findCampaignById.mockResolvedValue(
+      makeCampaign({ package: { durationDays: 7 } }),
+    );
+    repository.moderateCampaign.mockRejectedValue(new Error('database unavailable'));
+    const useCase = new ApproveAdCampaignUseCase(repository, notifications);
+
+    await expect(useCase.execute(CAMPAIGN_ID, OTHER_SUPPLIER_ID)).rejects.toThrow(
+      'database unavailable',
+    );
+    expect(notifications.publish).not.toHaveBeenCalled();
+  });
+
+  it('persists rejection reason and notifies the campaign supplier', async () => {
+    const repository = createRepository();
+    const notifications = createNotificationPublisher();
+    repository.findCampaignById.mockResolvedValue(makeCampaign());
+    repository.moderateCampaign.mockResolvedValue(
+      makeCampaign({
+        status: AdStatus.REJECTED,
+        rejectionReason: 'Thiếu thông tin pháp lý.',
+      }),
+    );
+    notifications.publish.mockResolvedValue({} as never);
+    const useCase = new RejectAdCampaignUseCase(repository, notifications);
+
+    await useCase.execute(
+      CAMPAIGN_ID,
+      OTHER_SUPPLIER_ID,
+      '  Thiếu thông tin pháp lý.  ',
+    );
+
+    expect(repository.moderateCampaign).toHaveBeenCalledWith(
+      CAMPAIGN_ID,
+      expect.objectContaining({
+        status: AdStatus.REJECTED,
+        approvedBy: OTHER_SUPPLIER_ID,
+        rejectionReason: 'Thiếu thông tin pháp lý.',
+      }),
+    );
+    expect(notifications.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: NotifType.AD_REJECTED,
+        data: expect.objectContaining({
+          rejectionReason: 'Thiếu thông tin pháp lý.',
+        }),
+      }),
+    );
+  });
+
+  it('does not moderate or notify a campaign outside pending approval', async () => {
+    const repository = createRepository();
+    const notifications = createNotificationPublisher();
+    repository.findCampaignById.mockResolvedValue(
+      makeCampaign({ status: AdStatus.ACTIVE }),
+    );
+    const useCase = new RejectAdCampaignUseCase(repository, notifications);
+
+    await expect(
+      useCase.execute(CAMPAIGN_ID, OTHER_SUPPLIER_ID, 'Không đạt yêu cầu.'),
+    ).rejects.toThrow(InvalidAdCampaignStateError);
+    expect(repository.moderateCampaign).not.toHaveBeenCalled();
+    expect(notifications.publish).not.toHaveBeenCalled();
   });
 });

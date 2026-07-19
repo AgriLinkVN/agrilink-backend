@@ -1,9 +1,11 @@
 import {
   AdCampaignListResult,
+  AdCampaignModerationFilter,
   AdCampaignModel,
   AdCampaignPagination,
   AdPackageModel,
   CreateAdCampaignInput,
+  ModerateAdCampaignInput,
   TrackAdEventInput,
 } from '../../models/ads.model';
 
@@ -24,6 +26,13 @@ export interface AdsRepositoryPort {
   updateCampaignStatus(
     id: string,
     status: AdCampaignModel['status'],
+  ): Promise<AdCampaignModel>;
+  findCampaignsForModeration(
+    filter: AdCampaignModerationFilter,
+  ): Promise<AdCampaignListResult>;
+  moderateCampaign(
+    id: string,
+    input: ModerateAdCampaignInput,
   ): Promise<AdCampaignModel>;
   findActiveBanners(provinceId?: number): Promise<AdCampaignModel[]>;
   recordEvent(input: TrackAdEventInput): Promise<void>;
