@@ -30,6 +30,9 @@ Practical compromise for this project:
 
 ## Phase Plan
 
+Remaining-work handoff for Phase 5 onward:
+`docs/p5-remaining-work-handoff.md`.
+
 ### Phase 1 - Notification Contract And Ports
 
 Branch: `feature/p5-notification-contract`
