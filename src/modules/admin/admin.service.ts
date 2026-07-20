@@ -10,7 +10,7 @@ import { CooperativeProfile } from '../../database/entities/cooperative-profile.
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
 import { User } from '../../database/entities/user.entity';
-import { Product } from '../../database/entities/product.entity';
+import { Product } from '../products/infrastructure/persistence/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
 import { ProductStatus, UserStatus } from '../../common/enums';
 
