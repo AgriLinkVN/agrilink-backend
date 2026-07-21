@@ -199,24 +199,37 @@ export class AdminService {
   async getPendingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
       where: { status: ProductStatus.PENDING_APPROVAL },
-      relations: ['seller'],
       order: { createdAt: 'DESC' },
       skip: pagination.skip,
       take: pagination.limit ?? 20,
     });
-    return { data, total };
+    return { data: await this.attachSellers(data), total };
   }
 
   /** Products suspended/rejected for policy violations — state agency oversight view */
   async getViolatingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
       where: [{ status: 'suspended' as any }, { status: 'rejected' as any }],
-      relations: ['seller'],
       order: { updatedAt: 'DESC' },
       skip: pagination.skip,
       take: pagination.limit ?? 20,
     });
-    return { data, total };
+    return { data: await this.attachSellers(data), total };
+  }
+
+  private async attachSellers(products: Product[]) {
+    const sellerIds = [...new Set(products.map((p) => p.sellerId))];
+    if (sellerIds.length === 0) return products;
+
+    const sellers = await this.userRepo.findByIds(sellerIds);
+    const sellerById = new Map(sellers.map((s) => [s.id, s]));
+
+    return products.map((p) => ({
+      ...p,
+      seller: sellerById.get(p.sellerId)
+        ? { fullName: sellerById.get(p.sellerId)!.fullName }
+        : null,
+    }));
   }
 
   /** All verified cooperatives and enterprises — state agency oversight list */

@@ -6,6 +6,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../common/enums';
@@ -16,6 +17,7 @@ export class ForumController {
   constructor(private readonly forumService: ForumService) {}
 
   @Get('posts')
+  @Public()
   @ApiOperation({ summary: 'List forum posts (public)' })
   @ApiQuery({ name: 'category', required: false, enum: ['technical', 'market', 'experience'] })
   @ApiQuery({ name: 'search', required: false })
@@ -28,6 +30,7 @@ export class ForumController {
   }
 
   @Get('posts/:id')
+  @Public()
   @ApiOperation({ summary: 'Get post detail (public)' })
   getPost(@Param('id') id: string) {
     return this.forumService.getPost(id);
@@ -67,6 +70,7 @@ export class ForumController {
   }
 
   @Get('posts/:id/comments')
+  @Public()
   @ApiOperation({ summary: 'List comments for a post (public)' })
   listComments(@Param('id') id: string, @Query() pagination: PaginationDto) {
     return this.forumService.listComments(id, pagination);

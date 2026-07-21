@@ -3,7 +3,6 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
@@ -53,7 +52,7 @@ async function bootstrap() {
   );
 
   // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter(), new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Global interceptors
   app.useGlobalInterceptors(
