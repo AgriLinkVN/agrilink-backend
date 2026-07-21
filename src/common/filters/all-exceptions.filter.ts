@@ -17,7 +17,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     if (exception instanceof HttpException) {
-      throw exception; // let HttpExceptionFilter handle it
+      const statusCode = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
+      const message =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : ((exceptionResponse as Record<string, unknown>).message ?? 'Error');
+
+      response.status(statusCode).json({
+        statusCode,
+        message,
+        error: exception.name,
+        path: request.url,
+        timestamp: new Date().toISOString(),
+      });
+      return;
     }
 
     const statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
