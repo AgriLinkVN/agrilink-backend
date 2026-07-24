@@ -251,7 +251,7 @@ calendar date in the Phase 0 PR discussion before the dependent phase starts.
 | ID | Required owner to confirm | Current status | Required by | Blocking evidence recorded in this audit |
 | --- | --- | --- | --- | --- |
 | D1 | P1 lead, P3 owner, product owner | `PENDING_ACCEPTANCE` | Before creating the Phase 4 branch | No accepted bulk-publication/moderation policy is recorded in current P3 code or architecture docs; the recommended self-publication policy is not approval. |
-| D2 | P4 Geography lead, P3 owner, P1/P2 consumer owners | `PENDING_ACCEPTANCE` | Before creating the Phase 1 branch | Active Geography `Province.id` is UUID, while legacy profile/address entities and the `06c2846` development seed use numeric `province_id` values. |
+| D2 | P4 Geography lead, P3 owner, P1/P2 consumer owners | `ACCEPTED_FOR_P3_PHASE_1` | Before creating the Phase 1 branch | P3 owner confirmed on 2026-07-24: the Geography UUID is the only canonical P3 `provinceId`. Phase 1 preserves legacy numeric profile/address values unchanged, writes no guessed conversion, and stops with a preflight report when a UUID mapping is missing or invalid. P4 remains owner of the legacy-to-UUID mapping. |
 | D3 | P2 Product lead, P3 owner | `PENDING_ACCEPTANCE` | Before creating the Phase 4 branch | No accepted P3-facing Product eligibility query contract is exported; direct Product infrastructure imports are prohibited. |
 | D4 | P5 Notification lead, P3 owner | `PENDING_ACCEPTANCE` | Before creating the Phase 2 branch | P3 event names/payloads and post-commit publication adapter are not accepted contracts. |
 | D5 | P1 Profiles lead, P3 owner | `PENDING_ACCEPTANCE` | Before creating the Phase 2 branch | Role-only eligibility is insufficient; no accepted profile/account query contract proves cooperative verification. |
@@ -259,11 +259,15 @@ calendar date in the Phase 0 PR discussion before the dependent phase starts.
 
 Phase 0 cannot be marked `DONE` until the required reviewers either accept the
 decision or replace the recommendation with an explicit accepted contract. A
-draft Phase 0 PR may be used to obtain that review; Phase 1 and Phase 4 remain
-`BLOCKED` until D2 and D1 respectively are accepted.
+draft Phase 0 PR may be used to obtain that review. Phase 1 may proceed once
+the bounded D2 contract below is accepted; Phase 4 remains `BLOCKED` until D1
+is accepted.
 
-If D1 or D2 is not accepted, mark the affected phase `BLOCKED`; do not choose a
-status or column type based on the current WIP.
+If D1 is not accepted, mark the affected Phase 4 work `BLOCKED`; do not choose
+a status based on the current WIP. D2 is accepted only for the bounded Phase 1
+contract above: P3 may persist canonical UUID references but must not alter,
+coerce, or backfill legacy numeric Geography data. Any broader legacy mapping
+work remains blocked on the Geography owner.
 
 ## Non-Negotiable Invariants
 
