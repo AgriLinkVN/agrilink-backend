@@ -25,6 +25,7 @@ import {
   ReplyToReviewUseCase,
   UnhideReviewUseCase,
 } from '../../application/use-cases/reviews.use-cases';
+import { TrustScoreService } from '../../application/trust-score.service';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { HideReviewDto } from '../dto/moderate-review.dto';
 import {
@@ -52,6 +53,7 @@ export class ReviewsController {
     private readonly listModerationReviews: ListReviewsForModerationUseCase,
     private readonly hideReview: HideReviewUseCase,
     private readonly unhideReview: UnhideReviewUseCase,
+    private readonly trustScoreService: TrustScoreService,
   ) {}
 
   private async execute<T>(operation: () => Promise<T>): Promise<T> {
@@ -153,5 +155,13 @@ export class ReviewsController {
   @ApiOperation({ summary: 'Admin khôi phục đánh giá đã ẩn' })
   unhide(@Param('id', ParseUuidPipe) reviewId: string) {
     return this.execute(async () => presentReview(await this.unhideReview.execute(reviewId)));
+  }
+
+  @Public()
+  @Get('seller/:id/trust')
+  @ApiOperation({ summary: 'Điểm tin cậy của người bán (public)' })
+  async getSellerTrustScore(@Param('id', ParseUuidPipe) sellerId: string) {
+    const score = await this.trustScoreService.getTrustScore(sellerId);
+    return { data: { seller_id: sellerId, trust_score: score } };
   }
 }

@@ -34,6 +34,9 @@ export class EnterpriseProfile {
   @Column({ length: 255, nullable: true })
   industry: string | null;
 
+  @Column({ name: 'trust_score', type: 'decimal', precision: 3, scale: 2, default: 0 })
+  trustScore: number;
+
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 

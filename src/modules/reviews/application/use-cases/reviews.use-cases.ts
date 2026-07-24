@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import {
   ProductForReviewNotFoundError,
@@ -24,6 +24,7 @@ import {
   assertCanReviewProduct,
 } from '../../domain/policies/review.policy';
 import { ReviewStateError } from '../../domain/errors/review-domain.error';
+import { TRUST_SCORE_SERVICE, TrustScoreService } from '../trust-score.service';
 
 @Injectable()
 export class ListPublicProductReviewsUseCase {
@@ -42,9 +43,13 @@ export class ListPublicProductReviewsUseCase {
 
 @Injectable()
 export class CreateProductReviewUseCase {
+  private readonly logger = new Logger(CreateProductReviewUseCase.name);
+
   constructor(
     @Inject(REVIEWS_REPOSITORY)
     private readonly reviews: ReviewsRepositoryPort,
+    @Inject(TRUST_SCORE_SERVICE)
+    private readonly trustScore: TrustScoreService,
   ) {}
 
   async execute(
@@ -65,6 +70,12 @@ export class CreateProductReviewUseCase {
     if (!review) {
       throw new ReviewAlreadyExistsError();
     }
+
+    // Update trust score in background — don't block response
+    this.trustScore.recalculateForSeller(product.sellerId).catch((err) => {
+      this.logger.error({ sellerId: product.sellerId, err }, 'Trust score recalc failed');
+    });
+
     return review;
   }
 }
@@ -127,9 +138,13 @@ export class ListReviewsForModerationUseCase {
 
 @Injectable()
 export class HideReviewUseCase {
+  private readonly logger = new Logger(HideReviewUseCase.name);
+
   constructor(
     @Inject(REVIEWS_REPOSITORY)
     private readonly reviews: ReviewsRepositoryPort,
+    @Inject(TRUST_SCORE_SERVICE)
+    private readonly trustScore: TrustScoreService,
   ) {}
 
   async execute(id: string, adminId: string, reason: string): Promise<ReviewModel> {
@@ -147,6 +162,13 @@ export class HideReviewUseCase {
     if (!saved) {
       throw new ReviewStateError('This review is no longer visible');
     }
+
+    if (saved.revieweeId) {
+      this.trustScore.recalculateForSeller(saved.revieweeId).catch((err) => {
+        this.logger.error({ sellerId: saved.revieweeId, err }, 'Trust score recalc failed');
+      });
+    }
+
     return saved;
   }
 
@@ -161,9 +183,13 @@ export class HideReviewUseCase {
 
 @Injectable()
 export class UnhideReviewUseCase {
+  private readonly logger = new Logger(UnhideReviewUseCase.name);
+
   constructor(
     @Inject(REVIEWS_REPOSITORY)
     private readonly reviews: ReviewsRepositoryPort,
+    @Inject(TRUST_SCORE_SERVICE)
+    private readonly trustScore: TrustScoreService,
   ) {}
 
   async execute(id: string): Promise<ReviewModel> {
@@ -181,6 +207,13 @@ export class UnhideReviewUseCase {
     if (!saved) {
       throw new ReviewStateError('This review is no longer hidden');
     }
+
+    if (saved.revieweeId) {
+      this.trustScore.recalculateForSeller(saved.revieweeId).catch((err) => {
+        this.logger.error({ sellerId: saved.revieweeId, err }, 'Trust score recalc failed');
+      });
+    }
+
     return saved;
   }
 

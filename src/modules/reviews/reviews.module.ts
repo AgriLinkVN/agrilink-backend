@@ -16,12 +16,14 @@ import { REVIEWS_REPOSITORY } from './application/ports/outbound/reviews-reposit
 import { Review } from './infrastructure/persistence/entities/review.entity';
 import { TypeOrmReviewsRepository } from './infrastructure/persistence/repositories/typeorm-reviews.repository';
 import { ReviewsController } from './presentation/controllers/reviews.controller';
+import { TrustScoreService, TRUST_SCORE_SERVICE } from './application/trust-score.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Review, Product, User])],
   controllers: [ReviewsController],
   providers: [
     TypeOrmReviewsRepository,
+    TrustScoreService,
     ListPublicProductReviewsUseCase,
     CreateProductReviewUseCase,
     ListSellerReviewsUseCase,
@@ -30,6 +32,7 @@ import { ReviewsController } from './presentation/controllers/reviews.controller
     HideReviewUseCase,
     UnhideReviewUseCase,
     { provide: REVIEWS_REPOSITORY, useExisting: TypeOrmReviewsRepository },
+    { provide: TRUST_SCORE_SERVICE, useExisting: TrustScoreService },
   ],
 })
 export class ReviewsModule {}
