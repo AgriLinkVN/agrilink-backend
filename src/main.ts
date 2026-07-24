@@ -10,6 +10,7 @@ import { initSentry } from './config/sentry.config';
 import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
 import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
+import { DevSeedService } from './database/dev-seed.service';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -101,7 +102,7 @@ async function bootstrap() {
     },
   });
 
-  // Development data is opt-in so a local restart never resets Product records.
+  // Development data is opt-in so a local restart never resets records.
   if (
     process.env.NODE_ENV !== 'production' &&
     process.env.PRODUCT_DEV_SEED === 'true'
@@ -113,6 +114,12 @@ async function bootstrap() {
     console.log(
       `[Seed] products: ${result.seeded} inserted, ${result.skipped} skipped, ${result.deleted} deleted`,
     );
+
+    // Comprehensive dev seed — users, profiles, forum, reviews, ads, etc.
+    const devSeed = app.get(DevSeedService);
+    await devSeed.seedAll({
+      reset: process.env.PRODUCT_DEV_SEED_RESET === 'true',
+    });
   }
 
   await app.listen(port);
