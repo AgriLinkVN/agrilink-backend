@@ -30,6 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any — matches Passport base class signature
   handleRequest(err: any, user: any) {
     if (err || !user) {
       throw err ?? new UnauthorizedException('Invalid or expired token');

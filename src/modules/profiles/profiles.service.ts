@@ -7,7 +7,7 @@ import { EnterpriseProfile } from '../../database/entities/enterprise-profile.en
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
 import { UpsertFarmerProfileDto } from './dto/upsert-farmer-profile.dto';
 import { UpsertB2bProfileDto } from './dto/upsert-b2b-profile.dto';
-import { FptVisionService } from '../../shared/fpt-vision/fpt-vision.service';
+import { FptVisionService } from '../storage/application/fpt-vision.service';
 import { UserRole } from '../../common/enums';
 
 @Injectable()
@@ -29,10 +29,12 @@ export class ProfilesService {
   }
 
   async upsertFarmerProfile(userId: string, dto: UpsertFarmerProfileDto): Promise<FarmerProfile> {
-    // 1. Verify CCCD Front image using FPT Vision Mock
-    const isVisionValid = await this.fptVisionService.verifyCccdImage(dto.cccdFrontUrl);
-    if (!isVisionValid) {
-      throw new BadRequestException('CCCD image verification failed.');
+    // 1. Verify CCCD both sides using FPT AI Vision
+    let cccdData: any = null;
+    if (dto.cccdFrontUrl && dto.cccdBackUrl) {
+      cccdData = await this.fptVisionService.verifyCccdFull(dto.cccdFrontUrl, dto.cccdBackUrl);
+    } else if (dto.cccdFrontUrl) {
+      cccdData = await this.fptVisionService.verifyCccd(dto.cccdFrontUrl);
     }
 
     // 2. Check if profile exists

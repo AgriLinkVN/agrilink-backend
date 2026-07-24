@@ -6,7 +6,7 @@ export class SystemConfig {
   key: string;
 
   @Column({ type: 'jsonb' })
-  value: Record<string, any>;
+  value: Record<string, unknown>;
 
   @Column({ type: 'text', nullable: true })
   description: string | null;

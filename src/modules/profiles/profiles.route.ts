@@ -7,7 +7,7 @@ import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
-import { FptVisionRoute } from '../../shared/fpt-vision/fpt-vision.route';
+import { FptVisionService } from '../storage/application/fpt-vision.service';
 
 @Module({
   imports: [
@@ -17,10 +17,9 @@ import { FptVisionRoute } from '../../shared/fpt-vision/fpt-vision.route';
       EnterpriseProfile,
       SupplierProfile,
     ]),
-    FptVisionRoute,
   ],
   controllers: [ProfilesController, FarmPublicController],
-  providers: [ProfilesService],
+  providers: [ProfilesService, FptVisionService],
   exports: [ProfilesService],
 })
 export class ProfilesRoute {}

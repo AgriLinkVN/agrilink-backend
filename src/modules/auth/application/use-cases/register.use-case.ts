@@ -3,6 +3,7 @@ import { USER_MANAGER_PORT, IUserManagerPort } from '../ports/outbound/user-mana
 import { PASSWORD_HASHER_PORT, IPasswordHasherPort } from '../ports/outbound/password-hasher.port';
 import { UserAlreadyExistsError } from '../../domain/errors/auth.errors';
 import { RegisterDto } from '../../presentation/dto/register.dto';
+import type { User } from '../../../../database/entities/user.entity';
 
 @Injectable()
 export class RegisterUseCase {
@@ -11,7 +12,7 @@ export class RegisterUseCase {
     @Inject(PASSWORD_HASHER_PORT) private readonly passwordHasher: IPasswordHasherPort,
   ) {}
 
-  async execute(dto: RegisterDto): Promise<any> {
+  async execute(dto: RegisterDto): Promise<Omit<User, 'passwordHash'>> {
     const existing = await this.userManager.findByEmail(dto.email);
     if (existing) {
       throw new UserAlreadyExistsError("Email already exists");

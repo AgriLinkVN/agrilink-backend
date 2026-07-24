@@ -29,7 +29,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const message =
       typeof exceptionResponse === 'string'
         ? exceptionResponse
-        : (exceptionResponse as any).message ?? 'Internal server error';
+        : (exceptionResponse as Record<string, unknown>).message ?? 'Internal server error';
 
     const errorBody = {
       statusCode,

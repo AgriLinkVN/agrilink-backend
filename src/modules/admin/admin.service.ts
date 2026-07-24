@@ -98,7 +98,7 @@ export class AdminService {
   }
 
   async verifyProfile(type: string, profileId: string, dto: VerifyProfileDto, adminId: string) {
-    let repo: Repository<any>;
+    let repo: Repository<FarmerProfile | CooperativeProfile | EnterpriseProfile | SupplierProfile>;
     let isVerifiedField = 'isVerified';
 
     switch (type) {
@@ -125,7 +125,7 @@ export class AdminService {
     profile[isVerifiedField] = dto.isApproved;
     profile.verifiedBy = adminId;
     profile.rejectionReason = dto.isApproved ? null : (dto.rejectionReason ?? null);
-    if (dto.isApproved) profile.verifiedAt = new Date();
+    if (dto.isApproved) (profile as unknown as Record<string, unknown>).verifiedAt = new Date();
 
     await repo.save(profile);
 
@@ -209,7 +209,10 @@ export class AdminService {
   /** Products suspended/rejected for policy violations — state agency oversight view */
   async getViolatingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
-      where: [{ status: 'suspended' as any }, { status: 'rejected' as any }],
+      where: [
+        { status: ProductStatus.SUSPENDED },
+        { status: ProductStatus.REJECTED },
+      ],
       order: { updatedAt: 'DESC' },
       skip: pagination.skip,
       take: pagination.limit ?? 20,

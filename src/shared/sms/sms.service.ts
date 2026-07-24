@@ -41,8 +41,9 @@ export class SmsService {
         this.logger.error(`eSMS API returned error code: ${response.data?.CodeResult} - ${response.data?.ErrorMessage}`);
         return false;
       }
-    } catch (error: any) {
-      this.logger.error(`Failed to send SMS to ${phone}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send SMS to ${phone}: ${err.message}`, err.stack);
       return false;
     }
   }

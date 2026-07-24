@@ -18,7 +18,7 @@ export class FptVisionService {
    * Verify CCCD (Vietnamese ID card) using FPT AI Vision
    * @param imageUrl The publicly accessible URL of the uploaded image
    */
-  async verifyCccd(imageUrl: string): Promise<any> {
+  async verifyCccd(imageUrl: string): Promise<Record<string, string>> {
     if (!this.apiKey) {
       this.logger.error('FPT_AI_VISION_KEY is not configured');
       // If FPT AI is not configured, we just return empty data or throw error.
@@ -61,10 +61,12 @@ export class FptVisionService {
           HttpStatus.BAD_REQUEST,
         );
       }
-    } catch (error: any) {
-      this.logger.error(`Error calling FPT AI Vision: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Error calling FPT AI Vision: ${err.message}`);
+      const axiosErr = error as { response?: { data?: unknown } };
+      if (axiosErr.response) {
+         this.logger.error(`FPT AI Response data: ${JSON.stringify(axiosErr.response.data)}`);
       }
       if (error instanceof HttpException) {
         throw error;
@@ -79,7 +81,7 @@ export class FptVisionService {
   /**
    * Verify BOTH sides of CCCD using FPT AI Vision
    */
-  async verifyCccdFull(frontUrl: string, backUrl: string): Promise<any> {
+  async verifyCccdFull(frontUrl: string, backUrl: string): Promise<Record<string, string>> {
     if (!this.apiKey) {
       this.logger.error('FPT_AI_VISION_KEY is not configured');
       throw new HttpException('Hệ thống chưa cấu hình FPT AI', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -134,10 +136,12 @@ export class FptVisionService {
         issue_date: backResult.issue_date || frontResult.issue_date,
         issue_loc: backResult.issue_loc || frontResult.issue_loc,
       };
-    } catch (error: any) {
-      this.logger.error(`Error in verifyCccdFull: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Error in verifyCccdFull: ${err.message}`);
+      const axiosErr = error as { response?: { data?: unknown } };
+      if (axiosErr.response) {
+         this.logger.error(`FPT AI Response data: ${JSON.stringify(axiosErr.response.data)}`);
       }
       if (error instanceof HttpException) {
         throw error;
@@ -153,7 +157,7 @@ export class FptVisionService {
    * Verify Business Registration Certificate (Giấy phép ĐKKD) using FPT AI Vision
    * @param imageUrl The publicly accessible URL of the uploaded image
    */
-  async verifyBrc(imageUrl: string): Promise<any> {
+  async verifyBrc(imageUrl: string): Promise<Record<string, string>> {
     if (!this.apiKey) {
       throw new HttpException('Hệ thống chưa cấu hình FPT AI', HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -189,10 +193,12 @@ export class FptVisionService {
           HttpStatus.BAD_REQUEST,
         );
       }
-    } catch (error: any) {
-      this.logger.error(`Error calling FPT AI Vision BRC: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Error calling FPT AI Vision BRC: ${err.message}`);
+      const axiosErr = error as { response?: { data?: unknown } };
+      if (axiosErr.response) {
+         this.logger.error(`FPT AI Response data: ${JSON.stringify(axiosErr.response.data)}`);
       }
       if (error instanceof HttpException) {
         throw error;
