@@ -5,6 +5,7 @@ import {
   Controller,
   Get,
   Delete,
+  Headers,
   Param,
   Post,
   Query,
@@ -34,6 +35,7 @@ import { InvalidStoredFileTransitionError, UnauthorizedStoredFileReviewError } f
 import { ReviewStoredFileDto } from '../schemas/review-stored-file.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/common/enums';
+import { randomUUID } from 'crypto';
 
 @ApiTags('Storage')
 @UseGuards(StorageThrottlerGuard)
@@ -50,24 +52,24 @@ export class StorageController {
 
   @Post('uploads/intents')
   @Throttle({ storage: { limit: 10, ttl: 60_000 } })
-  createIntent(@CurrentUser('sub') ownerId: string, @Body() dto: CreateUploadIntentDto) {
-    return this.storageService.createUploadIntent(ownerId, dto);
+  createIntent(@CurrentUser('sub') ownerId: string, @Body() dto: CreateUploadIntentDto, @Headers('x-correlation-id') correlationId?: string) {
+    return this.storageService.createUploadIntent(ownerId, dto, this.getCorrelationId(correlationId));
   }
 
   @Post('uploads/:id/complete')
-  completeIntent(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
-    return this.withStoredFileErrors(() => this.storageService.completeUploadIntent(ownerId, id));
+  completeIntent(@CurrentUser('sub') ownerId: string, @Param('id') id: string, @Headers('x-correlation-id') correlationId?: string) {
+    return this.withStoredFileErrors(() => this.storageService.completeUploadIntent(ownerId, id, this.getCorrelationId(correlationId)));
   }
 
   @Get('files/:id/download-url')
   @Throttle({ storage: { limit: 30, ttl: 60_000 } })
-  downloadById(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
-    return this.withStoredFileErrors(() => this.storageService.createFileDownloadUrl(ownerId, id));
+  downloadById(@CurrentUser('sub') ownerId: string, @Param('id') id: string, @Headers('x-correlation-id') correlationId?: string) {
+    return this.withStoredFileErrors(() => this.storageService.createFileDownloadUrl(ownerId, id, this.getCorrelationId(correlationId)));
   }
 
   @Delete('files/:id')
-  deleteById(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
-    return this.withStoredFileErrors(() => this.storageService.deleteStoredFile(ownerId, id));
+  deleteById(@CurrentUser('sub') ownerId: string, @Param('id') id: string, @Headers('x-correlation-id') correlationId?: string) {
+    return this.withStoredFileErrors(() => this.storageService.deleteStoredFile(ownerId, id, this.getCorrelationId(correlationId)));
   }
 
   @Post('files/:id/review')
@@ -212,5 +214,9 @@ export class StorageController {
       if (error instanceof UnauthorizedStoredFileReviewError) throw new BadRequestException(error.message);
       throw error;
     }
+  }
+
+  private getCorrelationId(value?: string): string {
+    return value && /^[A-Za-z0-9._:-]{1,128}$/.test(value) ? value : randomUUID();
   }
 }
