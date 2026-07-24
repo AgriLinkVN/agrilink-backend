@@ -17,6 +17,8 @@ import { TypeOrmStoredFileRepository } from './infrastructure/persistence/typeor
 import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file-repository.port';
 import { StorageCleanupService } from './application/storage-cleanup.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { STORAGE_OBSERVABILITY } from './application/ports/outbound/storage-observability.port';
+import { StorageObservabilityService } from './infrastructure/observability/storage-observability.service';
 
 @Module({
   imports: [ConfigModule, ScheduleModule.forRoot(), TypeOrmModule.forFeature([StoredFileEntity])],
@@ -33,6 +35,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     // Services
     CloudinaryService,
     SupabaseStorageService,
+    StorageObservabilityService,
 
     // Bind token → implementation
     {
@@ -44,6 +47,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       useExisting: SupabaseStorageService,
     },
     { provide: STORED_FILE_REPOSITORY, useExisting: TypeOrmStoredFileRepository },
+    { provide: STORAGE_OBSERVABILITY, useExisting: StorageObservabilityService },
 
     StorageService,
     StorageCleanupService,
