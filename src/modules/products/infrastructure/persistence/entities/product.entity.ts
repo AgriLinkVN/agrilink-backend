@@ -25,7 +25,7 @@ export class Product {
   @Column({ name: 'seller_type', type: 'enum', enum: SellerType })
   sellerType: SellerType;
 
-  @Column()
+  @Column({ length: 255, nullable: true })
   name: string;
 
   @Column({ nullable: true, type: 'text' })
