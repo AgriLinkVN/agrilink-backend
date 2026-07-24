@@ -138,6 +138,13 @@ export class AdminController {
     return this.adminService.getViolatingProducts(pagination);
   }
 
+  @Get('products/:id')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Get product detail with images and certifications' })
+  getProductDetail(@Param('id') id: string) {
+    return this.adminService.getProductDetail(id);
+  }
+
   @Patch('products/:id/status')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   @ApiOperation({ summary: 'Approve, reject, or suspend a product' })

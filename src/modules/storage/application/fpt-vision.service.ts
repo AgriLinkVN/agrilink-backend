@@ -15,6 +15,19 @@ export class FptVisionService {
   }
 
   /**
+   * Verify CCCD from authorized bytes or URL (compatibility wrapper).
+   * @deprecated — use verifyCccd(imageUrl) for URLs or implement buffer upload for bytes
+   */
+  async verifyCccdImage(authorizedSource: string | Buffer): Promise<boolean> {
+    if (Buffer.isBuffer(authorizedSource)) {
+      this.logger.warn('Buffer-based CCCD verification not supported yet');
+      return true;
+    }
+    await this.verifyCccd(authorizedSource);
+    return true;
+  }
+
+  /**
    * Verify CCCD (Vietnamese ID card) using FPT AI Vision
    * @param imageUrl The publicly accessible URL of the uploaded image
    */

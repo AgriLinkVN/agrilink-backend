@@ -13,6 +13,8 @@ export interface CccdData {
 }
 
 export interface KycVisionPort {
+  /** @deprecated — use verifyCccd or verifyCccdFull */
+  verifyCccdImage(authorizedSource: string | Buffer): Promise<boolean>;
   verifyCccd(imageUrl: string): Promise<Record<string, string>>;
   verifyCccdFull(frontUrl: string, backUrl: string): Promise<Record<string, string>>;
   verifyBrc(imageUrl: string): Promise<Record<string, string>>;

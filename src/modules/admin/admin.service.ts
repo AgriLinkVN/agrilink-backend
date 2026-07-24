@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -125,10 +125,21 @@ export class AdminService {
       }),
       this.supplierRepo.find({
         where: { isVerified: false },
-        relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
     ]);
+
+    // Attach user info for suppliers (no relation, uses userId column)
+    if (suppliers.length > 0) {
+      const supplierUserIds = [...new Set(suppliers.map(s => s.userId).filter(Boolean))] as string[];
+      const supplierUsers = supplierUserIds.length > 0
+        ? await this.userRepo.findBy({ id: In(supplierUserIds) })
+        : [];
+      const userById = new Map(supplierUsers.map(u => [u.id, u]));
+      for (const s of suppliers) {
+        (s as unknown as Record<string, unknown>).user = userById.get(s.userId) ?? null;
+      }
+    }
 
     return {
       farmer: farmers,
@@ -318,6 +329,16 @@ export class AdminService {
       changes: { status },
     });
     return saved;
+  }
+
+  async getProductDetail(id: string) {
+    const product = await this.productRepo.findOne({
+      where: { id },
+      relations: ['images', 'certifications'],
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    const sellers = await this.userRepo.findByIds([product.sellerId]);
+    return { ...product, seller: sellers[0] ? { fullName: sellers[0].fullName } : null };
   }
 
   async getPendingProducts(pagination: PaginationDto) {
