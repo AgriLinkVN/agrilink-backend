@@ -14,7 +14,7 @@ import {
   UploadUrlResult,
 } from '../domain/interfaces/file-storage.service.interface';
 import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
-import { PresignDto } from '../presentation/schemas/presign.dto';
+import { buildOwnedStoragePath } from './storage-upload.policy';
 
 @Injectable()
 export class StorageService {
@@ -66,23 +66,24 @@ export class StorageService {
 
   // ─── File/Document (Supabase) ────────────────────────────────
 
-  async createFileUploadUrl(dto: PresignDto): Promise<UploadUrlResult> {
-    return this.fileStorage.createUploadUrl(dto.path);
+  async createFileUploadUrl(ownerId: string, path: string): Promise<UploadUrlResult> {
+    return this.fileStorage.createUploadUrl(buildOwnedStoragePath(ownerId, path));
   }
 
   async uploadDocumentFile(
+    ownerId: string,
     path: string,
     file: Buffer,
     contentType: string,
   ): Promise<StoredFileResult> {
-    return this.fileStorage.upload(path, file, contentType);
+    return this.fileStorage.upload(buildOwnedStoragePath(ownerId, path), file, contentType);
   }
 
-  async getDocumentDownloadUrl(path: string): Promise<DownloadUrlResult> {
-    return this.fileStorage.createDownloadUrl(path);
+  async getDocumentDownloadUrl(ownerId: string, path: string): Promise<DownloadUrlResult> {
+    return this.fileStorage.createDownloadUrl(buildOwnedStoragePath(ownerId, path));
   }
 
-  async deleteDocument(path: string): Promise<void> {
-    return this.fileStorage.delete(path);
+  async deleteDocument(ownerId: string, path: string): Promise<void> {
+    return this.fileStorage.delete(buildOwnedStoragePath(ownerId, path));
   }
 }

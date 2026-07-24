@@ -1,10 +1,13 @@
 import {
   Body,
+  BadRequestException,
   Controller,
   Get,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Readable } from 'stream';
 
@@ -15,16 +18,25 @@ import { UploadedImage } from '../decorators/uploaded-image.decorator';
 import { UploadedDocument } from '../decorators/uploaded-document.decorator';
 import { ImageTransformOptions } from '../../domain/interfaces/image-storage.service.interface';
 import { CLOUDINARY_FOLDERS } from '../../infrastructure/cloudinary/cloudinary.config';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import {
+  assertPublicImageType,
+  InvalidStoragePathError,
+  PrivateDocumentImageTypeError,
+} from '../../application/storage-upload.policy';
+import { StorageThrottlerGuard } from '../guards/storage-throttler.guard';
 
 @ApiTags('Storage')
+@UseGuards(StorageThrottlerGuard)
 @Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post('files/presign')
+  @Throttle({ storage: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Tạo presigned URL để upload file lên Supabase' })
-  presign(@Body() dto: PresignDto) {
-    return this.storageService.createFileUploadUrl(dto);
+  presign(@CurrentUser('sub') ownerId: string, @Body() dto: PresignDto) {
+    return this.withPathValidation(() => this.storageService.createFileUploadUrl(ownerId, dto.path));
   }
 
   // ─── Upload ảnh — Cloudinary ──────────────────────────────────
@@ -39,13 +51,14 @@ export class StorageController {
         type: {
           type: 'string',
           description:
-            'Loại ảnh: product | ads | reviews | profile | cccd | business_license | document | avatar | avatar_farmer',
+            'Loại ảnh: product | ads | reviews | profile | avatar | avatar_farmer',
           example: 'product',
         },
       },
     },
   })
-  @UploadFile('file')
+  @Throttle({ storage: { limit: 5, ttl: 60_000 } })
+  @UploadFile('file', 5 * 1024 * 1024)
   async uploadImage(
     @UploadedImage() file: Express.Multer.File,
     @Body('type') type?: string,
@@ -65,6 +78,7 @@ export class StorageController {
 
   // ─── Upload tài liệu — Supabase ───────────────────────────────
   @Post('files/upload')
+  @Throttle({ storage: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Upload tài liệu trực tiếp lên Supabase Storage' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -81,29 +95,37 @@ export class StorageController {
       required: ['file', 'path'],
     },
   })
-  @UploadFile('file')
+  @UploadFile('file', 10 * 1024 * 1024)
   async uploadFile(
+    @CurrentUser('sub') ownerId: string,
     @UploadedDocument() file: Express.Multer.File,
     @Body('path') path: string,
   ) {
-    return this.storageService.uploadDocumentFile(
-      path,
-      file.buffer,
-      file.mimetype,
+    return this.withPathValidation(() =>
+      this.storageService.uploadDocumentFile(ownerId, path, file.buffer, file.mimetype),
     );
   }
 
   @Get('files/download-url')
+  @Throttle({ storage: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Tạo signed URL để xem hoặc tải tài liệu Supabase' })
-  getDownloadUrl(@Query() dto: PresignDto) {
-    return this.storageService.getDocumentDownloadUrl(dto.path);
+  getDownloadUrl(@CurrentUser('sub') ownerId: string, @Query() dto: PresignDto) {
+    return this.withPathValidation(() => this.storageService.getDocumentDownloadUrl(ownerId, dto.path));
   }
 
   private getImageTarget(type?: string): {
     folder: string;
     options?: ImageTransformOptions;
   } {
-    const normalizedType = type?.trim().toLowerCase();
+    let normalizedType: string | undefined;
+    try {
+      normalizedType = assertPublicImageType(type);
+    } catch (error) {
+      if (error instanceof PrivateDocumentImageTypeError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
 
     if (normalizedType?.startsWith('avatar')) {
       const role = normalizedType.split('_')[1]?.replace(/[^a-z0-9-]/g, '');
@@ -129,14 +151,22 @@ export class StorageController {
         return { folder: CLOUDINARY_FOLDERS.REVIEWS };
       case 'profile':
       case 'profiles':
-      case 'cccd':
-      case 'business_license':
-      case 'document':
         return { folder: CLOUDINARY_FOLDERS.PROFILES };
       case 'product':
       case 'products':
       default:
         return { folder: CLOUDINARY_FOLDERS.PRODUCTS };
+    }
+  }
+
+  private withPathValidation<T>(operation: () => T): T {
+    try {
+      return operation();
+    } catch (error) {
+      if (error instanceof InvalidStoragePathError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
     }
   }
 }
