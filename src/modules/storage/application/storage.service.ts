@@ -1,4 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { STORAGE_CONFIG, StorageConfig } from '@config/storage.config';
+import { STORED_FILE_REPOSITORY, StoredFileModel, StoredFileRepositoryPort } from './ports/outbound/stored-file-repository.port';
 import { Readable } from 'stream';
 
 import {
@@ -15,6 +18,7 @@ import {
 } from '../domain/interfaces/file-storage.service.interface';
 import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
 import { buildOwnedStoragePath } from './storage-upload.policy';
+import { StoredFileNotFoundError, UploadNotCompletedError } from './storage-file.errors';
 
 @Injectable()
 export class StorageService {
@@ -24,6 +28,9 @@ export class StorageService {
 
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorage: IFileStorageService,
+    @Inject(STORED_FILE_REPOSITORY)
+    private readonly storedFiles: StoredFileRepositoryPort,
+    @Inject(STORAGE_CONFIG) private readonly config: StorageConfig,
   ) {}
 
   // ─── Image (Cloudinary) ───────────────────────────────────────
@@ -85,5 +92,41 @@ export class StorageService {
 
   async deleteDocument(ownerId: string, path: string): Promise<void> {
     return this.fileStorage.delete(buildOwnedStoragePath(ownerId, path));
+  }
+
+  async createUploadIntent(ownerId: string, input: { assetType: string; originalName: string; declaredMime: string; sizeBytes: number; resourceType?: string; resourceId?: string; }) {
+    const id = randomUUID();
+    const extension = input.originalName.match(/\.([a-zA-Z0-9]{1,10})$/)?.[1]?.toLowerCase() ?? 'bin';
+    const objectKey = `${this.config.environmentPrefix}/owners/${ownerId}/${input.assetType}/${id}.${extension}`;
+    const expiresAt = new Date(Date.now() + this.config.uploadIntentTtlSeconds * 1000);
+    const file: StoredFileModel = { id, ownerId, assetType: input.assetType, provider: 'SUPABASE', visibility: 'PRIVATE', status: 'PENDING', objectKey, originalName: input.originalName, declaredMime: input.declaredMime, sizeBytes: input.sizeBytes, expiresAt, resourceType: input.resourceType ?? null, resourceId: input.resourceId ?? null };
+    await this.storedFiles.create(file);
+    const upload = await this.fileStorage.createUploadUrl(objectKey);
+    return { fileId: id, uploadUrl: upload.signedUrl, uploadToken: upload.token, expiresAt };
+  }
+
+  async completeUploadIntent(ownerId: string, id: string) {
+    const file = await this.requireOwnedFile(id, ownerId);
+    if (file.status !== 'PENDING') return file;
+    if (!(await this.fileStorage.exists(file.objectKey))) throw new UploadNotCompletedError('Upload has not completed');
+    return this.storedFiles.updateStatus(id, ownerId, 'UPLOADED');
+  }
+
+  async createFileDownloadUrl(ownerId: string, id: string) {
+    const file = await this.requireOwnedFile(id, ownerId);
+    if (file.status === 'DELETED') throw new Error('File is deleted');
+    return this.fileStorage.createDownloadUrl(file.objectKey);
+  }
+
+  async deleteStoredFile(ownerId: string, id: string) {
+    const file = await this.requireOwnedFile(id, ownerId);
+    await this.fileStorage.delete(file.objectKey);
+    return this.storedFiles.updateStatus(id, ownerId, 'DELETED');
+  }
+
+  private async requireOwnedFile(id: string, ownerId: string): Promise<StoredFileModel> {
+    const file = await this.storedFiles.findByIdForOwner(id, ownerId);
+    if (!file) throw new StoredFileNotFoundError('Stored file not found');
+    return file;
   }
 }

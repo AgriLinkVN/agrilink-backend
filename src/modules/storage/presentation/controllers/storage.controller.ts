@@ -1,8 +1,11 @@
 import {
   Body,
   BadRequestException,
+  NotFoundException,
   Controller,
   Get,
+  Delete,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -25,6 +28,8 @@ import {
   PrivateDocumentImageTypeError,
 } from '../../application/storage-upload.policy';
 import { StorageThrottlerGuard } from '../guards/storage-throttler.guard';
+import { CreateUploadIntentDto } from '../schemas/create-upload-intent.dto';
+import { StoredFileNotFoundError, UploadNotCompletedError } from '../../application/storage-file.errors';
 
 @ApiTags('Storage')
 @UseGuards(StorageThrottlerGuard)
@@ -37,6 +42,28 @@ export class StorageController {
   @ApiOperation({ summary: 'Tạo presigned URL để upload file lên Supabase' })
   presign(@CurrentUser('sub') ownerId: string, @Body() dto: PresignDto) {
     return this.withPathValidation(() => this.storageService.createFileUploadUrl(ownerId, dto.path));
+  }
+
+  @Post('uploads/intents')
+  @Throttle({ storage: { limit: 10, ttl: 60_000 } })
+  createIntent(@CurrentUser('sub') ownerId: string, @Body() dto: CreateUploadIntentDto) {
+    return this.storageService.createUploadIntent(ownerId, dto);
+  }
+
+  @Post('uploads/:id/complete')
+  completeIntent(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
+    return this.withStoredFileErrors(() => this.storageService.completeUploadIntent(ownerId, id));
+  }
+
+  @Get('files/:id/download-url')
+  @Throttle({ storage: { limit: 30, ttl: 60_000 } })
+  downloadById(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
+    return this.withStoredFileErrors(() => this.storageService.createFileDownloadUrl(ownerId, id));
+  }
+
+  @Delete('files/:id')
+  deleteById(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
+    return this.withStoredFileErrors(() => this.storageService.deleteStoredFile(ownerId, id));
   }
 
   // ─── Upload ảnh — Cloudinary ──────────────────────────────────
@@ -166,6 +193,14 @@ export class StorageController {
       if (error instanceof InvalidStoragePathError) {
         throw new BadRequestException(error.message);
       }
+      throw error;
+    }
+  }
+
+  private async withStoredFileErrors<T>(operation: () => Promise<T>): Promise<T> {
+    try { return await operation(); } catch (error) {
+      if (error instanceof StoredFileNotFoundError) throw new NotFoundException(error.message);
+      if (error instanceof UploadNotCompletedError) throw new BadRequestException(error.message);
       throw error;
     }
   }

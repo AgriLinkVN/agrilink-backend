@@ -22,5 +22,6 @@ export interface IFileStorageService {
   createUploadUrl(path: string): Promise<UploadUrlResult>;
   upload(path: string, file: Buffer, contentType: string): Promise<StoredFileResult>;
   createDownloadUrl(path: string): Promise<DownloadUrlResult>;
+  exists(path: string): Promise<boolean>;
   delete(path: string): Promise<void>;
 }

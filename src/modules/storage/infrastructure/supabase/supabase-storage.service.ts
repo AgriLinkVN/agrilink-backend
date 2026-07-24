@@ -87,6 +87,16 @@ export class SupabaseStorageService implements IFileStorageService {
     if (error) throw new BadRequestException(`Xóa file thất bại: ${error.message}`);
   }
 
+  async exists(path: string): Promise<boolean> {
+    const safePath = this.validatePath(path);
+    const slash = safePath.lastIndexOf('/');
+    const folder = slash >= 0 ? safePath.slice(0, slash) : '';
+    const filename = slash >= 0 ? safePath.slice(slash + 1) : safePath;
+    const { data, error } = await this.getClient().storage.from(this.bucket).list(folder, { search: filename });
+    if (error) throw new BadRequestException(`Kiểm tra file thất bại: ${error.message}`);
+    return data.some((file) => file.name === filename);
+  }
+
   private getClient(): SupabaseClient {
     if (!this.supabase) {
       throw new InternalServerErrorException('Supabase storage chưa được cấu hình');

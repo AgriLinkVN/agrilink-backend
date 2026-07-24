@@ -11,9 +11,13 @@ import { SupabaseStorageService } from './infrastructure/supabase/supabase-stora
 import { StorageThrottlerGuard } from './presentation/guards/storage-throttler.guard';
 import { createStorageConfig, STORAGE_CONFIG } from '@config/storage.config';
 import { CloudinaryProvider } from './infrastructure/cloudinary/cloudinary.config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StoredFileEntity } from './infrastructure/persistence/stored-file.entity';
+import { TypeOrmStoredFileRepository } from './infrastructure/persistence/typeorm-stored-file.repository';
+import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file-repository.port';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, TypeOrmModule.forFeature([StoredFileEntity])],
   controllers: [StorageController],
   providers: [
     {
@@ -22,6 +26,7 @@ import { CloudinaryProvider } from './infrastructure/cloudinary/cloudinary.confi
     },
     SupabaseClientProvider,
     CloudinaryProvider,
+    TypeOrmStoredFileRepository,
  
     // Services
     CloudinaryService,
@@ -36,6 +41,7 @@ import { CloudinaryProvider } from './infrastructure/cloudinary/cloudinary.confi
       provide: FILE_STORAGE_SERVICE,
       useExisting: SupabaseStorageService,
     },
+    { provide: STORED_FILE_REPOSITORY, useExisting: TypeOrmStoredFileRepository },
 
     StorageService,
     StorageThrottlerGuard,

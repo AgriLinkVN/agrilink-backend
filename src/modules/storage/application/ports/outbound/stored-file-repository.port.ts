@@ -1,0 +1,3 @@
+export const STORED_FILE_REPOSITORY = Symbol('STORED_FILE_REPOSITORY');
+export interface StoredFileModel { id: string; ownerId: string; assetType: string; provider: string; visibility: string; status: string; objectKey: string; originalName: string; declaredMime: string; sizeBytes: number; expiresAt: Date; resourceType: string | null; resourceId: string | null; }
+export interface StoredFileRepositoryPort { create(file: StoredFileModel): Promise<StoredFileModel>; findByIdForOwner(id: string, ownerId: string): Promise<StoredFileModel | null>; updateStatus(id: string, ownerId: string, status: string): Promise<StoredFileModel | null>; }
