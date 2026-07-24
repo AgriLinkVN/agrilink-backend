@@ -15,9 +15,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoredFileEntity } from './infrastructure/persistence/stored-file.entity';
 import { TypeOrmStoredFileRepository } from './infrastructure/persistence/typeorm-stored-file.repository';
 import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file-repository.port';
+import { StorageCleanupService } from './application/storage-cleanup.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([StoredFileEntity])],
+  imports: [ConfigModule, ScheduleModule.forRoot(), TypeOrmModule.forFeature([StoredFileEntity])],
   controllers: [StorageController],
   providers: [
     {
@@ -44,6 +46,7 @@ import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file
     { provide: STORED_FILE_REPOSITORY, useExisting: TypeOrmStoredFileRepository },
 
     StorageService,
+    StorageCleanupService,
     StorageThrottlerGuard,
   ],
   exports: [StorageService],
