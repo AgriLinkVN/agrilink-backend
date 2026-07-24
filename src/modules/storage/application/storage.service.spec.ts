@@ -7,6 +7,7 @@ describe('StorageService document paths', () => {
       upload: jest.fn(),
       createDownloadUrl: jest.fn(),
       exists: jest.fn(),
+      download: jest.fn(),
       delete: jest.fn(),
     };
     const service = new StorageService({} as never, fileStorage, {} as never, {} as never);
@@ -17,8 +18,8 @@ describe('StorageService document paths', () => {
   });
 
   it('creates an owner-scoped private upload intent with a server-generated key', async () => {
-    const fileStorage = { createUploadUrl: jest.fn().mockResolvedValue({ signedUrl: 'upload-url', token: 'token' }), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), delete: jest.fn() };
-    const repository = { create: jest.fn().mockImplementation(async (file) => file), findByIdForOwner: jest.fn(), updateStatus: jest.fn() };
+    const fileStorage = { createUploadUrl: jest.fn().mockResolvedValue({ signedUrl: 'upload-url', token: 'token' }), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), download: jest.fn(), delete: jest.fn() };
+    const repository = { create: jest.fn().mockImplementation(async (file) => file), findById: jest.fn(), findByIdForOwner: jest.fn(), updateStatus: jest.fn() };
     const service = new StorageService({} as never, fileStorage, repository, { environmentPrefix: 'development', uploadIntentTtlSeconds: 900 } as never);
 
     const result = await service.createUploadIntent('owner-1', { assetType: 'KYC_IDENTITY', originalName: 'id-card.pdf', declaredMime: 'application/pdf', sizeBytes: 20 });
@@ -28,8 +29,8 @@ describe('StorageService document paths', () => {
   });
 
   it('does not issue a download URL when the owner-scoped record is absent', async () => {
-    const fileStorage = { createUploadUrl: jest.fn(), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), delete: jest.fn() };
-    const repository = { create: jest.fn(), findByIdForOwner: jest.fn().mockResolvedValue(null), updateStatus: jest.fn() };
+    const fileStorage = { createUploadUrl: jest.fn(), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), download: jest.fn(), delete: jest.fn() };
+    const repository = { create: jest.fn(), findById: jest.fn(), findByIdForOwner: jest.fn().mockResolvedValue(null), updateStatus: jest.fn() };
     const service = new StorageService({} as never, fileStorage, repository, {} as never);
 
     await expect(service.createFileDownloadUrl('other-owner', 'file-1')).rejects.toThrow('Stored file not found');

@@ -30,6 +30,10 @@ import {
 import { StorageThrottlerGuard } from '../guards/storage-throttler.guard';
 import { CreateUploadIntentDto } from '../schemas/create-upload-intent.dto';
 import { StoredFileNotFoundError, UploadNotCompletedError } from '../../application/storage-file.errors';
+import { InvalidStoredFileTransitionError, UnauthorizedStoredFileReviewError } from '../../application/storage-file.errors';
+import { ReviewStoredFileDto } from '../schemas/review-stored-file.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums';
 
 @ApiTags('Storage')
 @UseGuards(StorageThrottlerGuard)
@@ -64,6 +68,12 @@ export class StorageController {
   @Delete('files/:id')
   deleteById(@CurrentUser('sub') ownerId: string, @Param('id') id: string) {
     return this.withStoredFileErrors(() => this.storageService.deleteStoredFile(ownerId, id));
+  }
+
+  @Post('files/:id/review')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  reviewFile(@Param('id') id: string, @CurrentUser('role') role: string, @Body() dto: ReviewStoredFileDto) {
+    return this.withStoredFileErrors(() => this.storageService.reviewStoredFile(id, role, dto.approve));
   }
 
   // ─── Upload ảnh — Cloudinary ──────────────────────────────────
@@ -201,6 +211,8 @@ export class StorageController {
     try { return await operation(); } catch (error) {
       if (error instanceof StoredFileNotFoundError) throw new NotFoundException(error.message);
       if (error instanceof UploadNotCompletedError) throw new BadRequestException(error.message);
+      if (error instanceof InvalidStoredFileTransitionError) throw new BadRequestException(error.message);
+      if (error instanceof UnauthorizedStoredFileReviewError) throw new BadRequestException(error.message);
       throw error;
     }
   }

@@ -97,6 +97,12 @@ export class SupabaseStorageService implements IFileStorageService {
     return data.some((file) => file.name === filename);
   }
 
+  async download(path: string): Promise<Buffer> {
+    const { data, error } = await this.getClient().storage.from(this.bucket).download(this.validatePath(path));
+    if (error) throw new BadRequestException(`Tải file thất bại: ${error.message}`);
+    return Buffer.from(await data.arrayBuffer());
+  }
+
   private getClient(): SupabaseClient {
     if (!this.supabase) {
       throw new InternalServerErrorException('Supabase storage chưa được cấu hình');
