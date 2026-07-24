@@ -330,6 +330,36 @@ export class AdminService {
     return { data: await this.attachSellers(data), total };
   }
 
+  async updateProductStatus(
+    id: string,
+    status: string,
+    reason: string,
+    adminId: string,
+  ) {
+    const product = await this.productRepo.findOne({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const validStatuses = [ProductStatus.ACTIVE, ProductStatus.REJECTED, ProductStatus.SUSPENDED];
+    if (!validStatuses.includes(status as ProductStatus)) {
+      throw new BadRequestException('Invalid status. Allowed: active, rejected, suspended');
+    }
+
+    const previousStatus = product.status;
+    product.status = status as ProductStatus;
+    product.rejectionReason = status === ProductStatus.REJECTED ? (reason ?? null) : null;
+    await this.productRepo.save(product);
+
+    await this.createAuditLog({
+      userId: adminId,
+      action: 'PRODUCT_STATUS_UPDATE',
+      entityType: 'Product',
+      entityId: id,
+      changes: { previousStatus, status, reason },
+    });
+
+    return product;
+  }
+
   /** Products suspended/rejected for policy violations — state agency oversight view */
   async getViolatingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
@@ -354,6 +384,38 @@ export class AdminService {
         ? { fullName: sellerById.get(p.sellerId)!.fullName }
         : null,
     }));
+  }
+
+  // ─── User management ──────────────────────────────────────────────
+
+  async getUsers(pagination: PaginationDto) {
+    const [data, total] = await this.userRepo.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: pagination.skip,
+      take: pagination.limit ?? 20,
+    });
+    return { data: data.map(({ passwordHash: _, ...u }) => u), total };
+  }
+
+  async toggleUserStatus(id: string, adminId: string, status: UserStatus) {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.role === UserRole.ADMIN) throw new BadRequestException('Cannot modify admin users');
+
+    const previousStatus = user.status;
+    user.status = status;
+    await this.userRepo.save(user);
+
+    await this.createAuditLog({
+      userId: adminId,
+      action: status === UserStatus.ACTIVE ? 'USER_UNLOCKED' : 'USER_LOCKED',
+      entityType: 'User',
+      entityId: id,
+      changes: { previousStatus, status },
+    });
+
+    const { passwordHash: _, ...safeUser } = user;
+    return safeUser;
   }
 
   /** All verified cooperatives and enterprises — state agency oversight list */

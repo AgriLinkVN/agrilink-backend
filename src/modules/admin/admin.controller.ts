@@ -21,7 +21,7 @@ import { AdminReportService } from './admin-report.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../common/enums';
+import { UserRole, UserStatus } from '../../common/enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { VerifyProfileDto } from './dto/verify-profile.dto';
 import { StorageReviewerRole } from '../storage/application/ports/inbound/stored-file-access.port';
@@ -138,11 +138,45 @@ export class AdminController {
     return this.adminService.getViolatingProducts(pagination);
   }
 
+  @Patch('products/:id/status')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Approve, reject, or suspend a product' })
+  updateProductStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @Body('reason') reason: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.updateProductStatus(id, status, reason, adminId);
+  }
+
   @Get('cooperatives-enterprises')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   @ApiOperation({ summary: 'List all cooperatives and enterprises' })
   getCooperativesAndEnterprises() {
     return this.adminService.getCooperativesAndEnterprises();
+  }
+
+  // ─── User management ──────────────────────────────────────────────
+
+  @Get('users')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List all users (paginated)' })
+  getUsers(@Query() pagination: PaginationDto) {
+    return this.adminService.getUsers(pagination);
+  }
+
+  @Patch('users/:id/status')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Lock or unlock a user account' })
+  @ApiResponse({ status: 200, description: 'User status updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  toggleUserStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.toggleUserStatus(id, adminId, status as UserStatus);
   }
 
   @Get('reports/system.pdf')
