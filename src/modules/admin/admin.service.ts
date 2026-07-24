@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -109,22 +109,22 @@ export class AdminService {
   async getPendingProfiles() {
     const [farmers, cooperatives, enterprises, suppliers] = await Promise.all([
       this.farmerRepo.find({
-        where: { isKycVerified: false },
+        where: { isKycVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.cooperativeRepo.find({
-        where: { isVerified: false },
+        where: { isVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.enterpriseRepo.find({
-        where: { isVerified: false },
+        where: { isVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.supplierRepo.find({
-        where: { isVerified: false },
+        where: { isVerified: false, rejectionReason: IsNull() },
         order: { createdAt: 'DESC' },
       }),
     ]);

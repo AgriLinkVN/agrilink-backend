@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { TOKEN_GENERATOR_PORT, ITokenGeneratorPort, TokenPair } from '../ports/outbound/token-generator.port';
 import { InvalidTokenError } from '../../domain/errors/auth.errors';
 import { RefreshTokenDto } from '../../presentation/dto/refresh-token.dto';
-import { JwtPayload } from '../../presentation/strategies/jwt.strategy';
+import { JwtPayload } from '../ports/outbound/jwt-payload.type';
 import * as crypto from 'crypto';
 
 @Injectable()

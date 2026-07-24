@@ -1,4 +1,4 @@
-import type { JwtPayload } from '@modules/auth/presentation/strategies/jwt.strategy';
+import type { JwtPayload } from './jwt-payload.type';
 import type { RefreshToken } from '@database/entities/refresh-token.entity';
 
 export const TOKEN_GENERATOR_PORT = Symbol('TOKEN_GENERATOR_PORT');

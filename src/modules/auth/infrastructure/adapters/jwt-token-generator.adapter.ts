@@ -6,7 +6,7 @@ import { Repository, IsNull } from "typeorm";
 import * as crypto from "crypto";
 import { RefreshToken } from "../../../../database/entities/refresh-token.entity";
 import { ITokenGeneratorPort, TokenPair } from "../../application/ports/outbound/token-generator.port";
-import { JwtPayload } from "@modules/auth/presentation/strategies/jwt.strategy";
+import { JwtPayload } from "../../application/ports/outbound/jwt-payload.type";
 
 import { UsersService } from "../../../users/users.service";
 

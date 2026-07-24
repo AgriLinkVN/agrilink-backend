@@ -3,13 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-export interface JwtPayload {
-  sub: string;       // user id
-  phone: string;
-  role: string;
-  iat?: number;
-  exp?: number;
-}
+import type { JwtPayload } from '../../application/ports/outbound/jwt-payload.type';
+export type { JwtPayload } from '../../application/ports/outbound/jwt-payload.type';
 
 /**
  * Validates access tokens on protected routes.
