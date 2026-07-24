@@ -17,6 +17,7 @@ describeMigration('Storage Phase 9 PostgreSQL migration', () => {
       username: process.env.DB_USER ?? 'postgres',
       password: process.env.DB_PASS ?? 'postgres',
       database: process.env.DB_NAME ?? 'agrilink_test',
+      schema,
       synchronize: false,
       logging: false,
     });
