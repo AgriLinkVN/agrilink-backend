@@ -50,6 +50,19 @@ Track `ready to merge`, `merged`, and `deployed` separately.
   onboarding is deterministic; canonical parity diff is zero.
 - Risk: critical. Dependency: Phase 0.
 
+Implementation contract:
+
+- ADR 0004 makes canonical PostgreSQL catalog parity authoritative.
+- TypeORM raw zero-diff is temporarily replaced by zero unreviewed diff; every
+  reviewed operation must match the exact compatibility manifest.
+- Compatibility entries are owned and must be retired in Phase 4 or Phase 5.
+- The v2 baseline contains exactly the 26 reviewed Group A/B tables. Group C/D
+  remain preserved extras during existing-environment verification.
+- `agrilink_db` is a read-only reconciliation fixture and is never an
+  onboarding apply target.
+- Clean-v2 runtime, query-count and OpenAPI baselines are versioned under
+  `docs/architecture/persistence/baselines`.
+
 ## Phase 2: Low-Risk Consolidation Pattern
 
 - Branch: `refactor/persistence-phase-2-low-risk-entities`

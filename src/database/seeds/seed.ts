@@ -3,45 +3,60 @@
  * Run with: npm run seed
  */
 
-import 'reflect-metadata';
-import * as dotenv from 'dotenv';
-import { DataSource } from 'typeorm';
+import "reflect-metadata";
+import * as dotenv from "dotenv";
+import { DataSource } from "typeorm";
+import { assertSeedEnvironment } from "../../config/database-environment";
+import { RUNTIME_ENTITY_REGISTRY } from "../entity-registry";
+import { createDataSourceOptions } from "../data-source-options";
 
 // Entities
-import { Province } from '../../modules/geography/entities/province.entity';
-import { District } from '../../modules/geography/entities/district.entity';
-import { ProductCategory } from '../../modules/products/infrastructure/persistence/entities/product-category.entity';
-import { Product } from '../../modules/products/infrastructure/persistence/entities/product.entity';
-import { ProductImage } from '../../modules/products/infrastructure/persistence/entities/product-image.entity';
-import { ProductCertification } from '../../modules/products/infrastructure/persistence/entities/product-certification.entity';
-import { User } from '../entities/user.entity';
+import { Province } from "../../modules/geography/entities/province.entity";
 
 // Seeds
-import { provinceSeedData } from './provinces.seed';
-import { seedProductCategories } from '../../modules/products/infrastructure/database/seeds/product-category.seed';
-import { seedUsers } from '../../modules/users/infrastructure/database/seeds/user.seed';
+import { provinceSeedData } from "./provinces.seed";
+import { seedProductCategories } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
+import { seedUsers } from "../../modules/users/infrastructure/database/seeds/user.seed";
 
 dotenv.config();
 
-const AppDataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
-  port: parseInt(process.env.DB_PORT ?? '5432', 10),
-  database: process.env.DB_NAME ?? 'agrilink_db',
-  username: process.env.DB_USER ?? 'postgres',
-  password: process.env.DB_PASS ?? '',
-  entities: [
-    Province,
-    District,
-    ProductCategory,
-    Product,
-    ProductImage,
-    ProductCertification,
-    User,
-  ],
-  synchronize: true,
-  logging: false,
-});
+assertSeedEnvironment(process.env);
+
+const AppDataSource = new DataSource(
+  createDataSourceOptions(process.env, {
+    entities: RUNTIME_ENTITY_REGISTRY,
+    logging: false,
+  }),
+);
+
+const REQUIRED_SEED_TABLES = [
+  "districts",
+  "product_categories",
+  "product_certifications",
+  "product_images",
+  "products",
+  "provinces",
+  "users",
+] as const;
+
+async function assertMigratedSeedSchema(ds: DataSource): Promise<void> {
+  const rows = (await ds.query(
+    `
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = current_schema()
+        AND table_name = ANY($1::text[])
+    `,
+    [REQUIRED_SEED_TABLES],
+  )) as Array<{ table_name: string }>;
+  const present = new Set(rows.map(({ table_name }) => table_name));
+  const missing = REQUIRED_SEED_TABLES.filter((table) => !present.has(table));
+  if (missing.length > 0) {
+    throw new Error(
+      `Seed requires a migrated database; missing tables: ${missing.join(", ")}`,
+    );
+  }
+}
 
 async function seedProvinces(ds: DataSource): Promise<void> {
   const repo = ds.getRepository(Province);
@@ -79,14 +94,15 @@ async function seedProvinces(ds: DataSource): Promise<void> {
 }
 
 async function runSeed() {
-  console.log('🌱 Khởi tạo kết nối DB...');
+  console.log("🌱 Khởi tạo kết nối DB...");
   await AppDataSource.initialize();
-  console.log('✅ Kết nối DB thành công\n');
+  await assertMigratedSeedSchema(AppDataSource);
+  console.log("✅ Kết nối DB thành công\n");
 
   await seedProductCategories(AppDataSource);
   await seedProvinces(AppDataSource);
 
-  console.log('🌱 Bắt đầu seed người dùng...');
+  console.log("🌱 Bắt đầu seed người dùng...");
   await seedUsers(AppDataSource);
 
   // Products được seed riêng qua endpoint POST /products/seed (50 mock products)
@@ -96,10 +112,10 @@ async function runSeed() {
 
 runSeed()
   .then(() => {
-    console.log('\n🎉 Seed hoàn tất thành công');
+    console.log("\n🎉 Seed hoàn tất thành công");
     process.exit(0);
   })
   .catch((err) => {
-    console.error('\n❌ Seed thất bại:', err);
+    console.error("\n❌ Seed thất bại:", err);
     process.exit(1);
   });

@@ -1,5 +1,7 @@
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigService } from "@nestjs/config";
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
+import { RUNTIME_ENTITY_REGISTRY } from "../database/entity-registry";
+import { createDataSourceOptions } from "../database/data-source-options";
 
 /**
  * TypeORM configuration factory.
@@ -8,22 +10,22 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
  */
 export const databaseConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres',
-  host: configService.get<string>('DB_HOST', 'localhost'),
-  port: configService.get<number>('DB_PORT', 5432),
-  database: configService.get<string>('DB_NAME', 'agrilink_db'),
-  username: configService.get<string>('DB_USER', 'postgres'),
-  password: configService.get<string>('DB_PASS', ''),
-  // Auto-load all *.entity.ts files under src/
-  autoLoadEntities: true,
-  // Sync schema in dev only — NEVER enable in production
-  synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
-  logging: configService.get<boolean>('DB_LOGGING', false),
-  // Connection pool
-  extra: {
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  },
-});
+): TypeOrmModuleOptions =>
+  createDataSourceOptions(
+    {
+      NODE_ENV: configService.get("NODE_ENV"),
+      DB_HOST: configService.get("DB_HOST"),
+      DB_PORT: configService.get("DB_PORT"),
+      DB_NAME: configService.get("DB_NAME"),
+      DB_USER: configService.get("DB_USER"),
+      DB_PASS: configService.get("DB_PASS"),
+      DB_SCHEMA: configService.get("DB_SCHEMA"),
+      DB_SYNCHRONIZE: configService.get("DB_SYNCHRONIZE"),
+      DB_LOGGING: configService.get("DB_LOGGING"),
+      PRODUCT_DEV_SEED: configService.get("PRODUCT_DEV_SEED"),
+      PRODUCT_DEV_SEED_RESET: configService.get("PRODUCT_DEV_SEED_RESET"),
+    },
+    {
+      entities: RUNTIME_ENTITY_REGISTRY,
+    },
+  ) as TypeOrmModuleOptions;
