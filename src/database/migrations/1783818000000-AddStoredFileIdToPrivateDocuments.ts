@@ -101,7 +101,7 @@ const MIME_SQL = (column: string): string => `CASE
   ELSE 'application/octet-stream'
 END`;
 
-export class AddStoredFileIdToPrivateDocuments1783731600000 implements MigrationInterface {
+export class AddStoredFileIdToPrivateDocuments1783818000000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       'ALTER TABLE "product_certifications" ADD COLUMN IF NOT EXISTS "stored_file_id" uuid',

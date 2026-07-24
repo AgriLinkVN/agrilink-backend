@@ -30,7 +30,8 @@
     "storage:phase9:plan": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts plan",
     "storage:phase9:migrate": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts apply",
     "storage:phase9:finalize": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts finalize",
-    "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify"
+    "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify",
+    "migration:verify:p3-phase-1": "ts-node -r tsconfig-paths/register src/scripts/verify-p3-phase-1-migration.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",

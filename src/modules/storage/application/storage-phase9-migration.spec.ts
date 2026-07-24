@@ -1,5 +1,5 @@
 import { QueryRunner } from 'typeorm';
-import { AddStoredFileIdToPrivateDocuments1783731600000 } from '../../../database/migrations/1783731600000-AddStoredFileIdToPrivateDocuments';
+import { AddStoredFileIdToPrivateDocuments1783818000000 } from '../../../database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments';
 
 describe('Phase 9 private document migration', () => {
   it('adds metadata links and backfills only retained non-public object paths', async () => {
@@ -11,7 +11,7 @@ describe('Phase 9 private document migration', () => {
       }),
     } as unknown as QueryRunner;
 
-    await new AddStoredFileIdToPrivateDocuments1783731600000().up(runner);
+    await new AddStoredFileIdToPrivateDocuments1783818000000().up(runner);
 
     const sql = queries.join('\n');
     expect(sql).toContain(
@@ -37,7 +37,7 @@ describe('Phase 9 private document migration', () => {
       }),
     } as unknown as QueryRunner;
 
-    await new AddStoredFileIdToPrivateDocuments1783731600000().down(runner);
+    await new AddStoredFileIdToPrivateDocuments1783818000000().down(runner);
 
     const sql = queries.join('\n');
     expect(sql).toContain(

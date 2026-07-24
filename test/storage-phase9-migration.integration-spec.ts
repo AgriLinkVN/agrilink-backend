@@ -1,5 +1,5 @@
 import { DataSource, QueryRunner } from 'typeorm';
-import { AddStoredFileIdToPrivateDocuments1783731600000 } from '../src/database/migrations/1783731600000-AddStoredFileIdToPrivateDocuments';
+import { AddStoredFileIdToPrivateDocuments1783818000000 } from '../src/database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments';
 
 const runMigrationTests = process.env.STORAGE_MIGRATION_TESTS === 'true';
 const describeMigration = runMigrationTests ? describe : describe.skip;
@@ -41,7 +41,7 @@ describeMigration('Storage Phase 9 PostgreSQL migration', () => {
 
   it('runs up idempotently and down without deleting stored metadata', async () => {
     const migration =
-      new AddStoredFileIdToPrivateDocuments1783731600000();
+      new AddStoredFileIdToPrivateDocuments1783818000000();
 
     await migration.up(queryRunner);
 
