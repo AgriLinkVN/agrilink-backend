@@ -4,19 +4,9 @@ import { STORAGE_CONFIG, StorageConfig } from '@config/storage.config';
 import { STORED_FILE_REPOSITORY, StoredFileModel, StoredFileRepositoryPort } from './ports/outbound/stored-file-repository.port';
 import { Readable } from 'stream';
 
-import {
-  IImageStorageService,
-  IMAGE_STORAGE_SERVICE,
-  ImageTransformOptions,
-} from '../domain/interfaces/image-storage.service.interface';
-import {
-  DownloadUrlResult,
-  IFileStorageService,
-  FILE_STORAGE_SERVICE,
-  StoredFileResult,
-  UploadUrlResult,
-} from '../domain/interfaces/file-storage.service.interface';
-import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
+import { DownloadUrlResult, FILE_STORAGE, FileStoragePort, StoredFileResult, UploadUrlResult } from './ports/outbound/file-storage.port';
+import { IMAGE_STORAGE, ImageStoragePort, ImageTransformOptions } from './ports/outbound/image-storage.port';
+import { AVATAR_TRANSFORM, STORAGE_IMAGE_TARGETS } from './storage-image.policy';
 import { buildOwnedStoragePath } from './storage-upload.policy';
 import { InvalidStoredFileTransitionError, StoredFileNotFoundError, UnauthorizedStoredFileReviewError, UploadNotCompletedError } from './storage-file.errors';
 import { validatePrivateContent } from './content-validation.policy';
@@ -24,11 +14,11 @@ import { validatePrivateContent } from './content-validation.policy';
 @Injectable()
 export class StorageService {
   constructor(
-    @Inject(IMAGE_STORAGE_SERVICE)
-    private readonly imageStorage: IImageStorageService,
+    @Inject(IMAGE_STORAGE)
+    private readonly imageStorage: ImageStoragePort,
 
-    @Inject(FILE_STORAGE_SERVICE)
-    private readonly fileStorage: IFileStorageService,
+    @Inject(FILE_STORAGE)
+    private readonly fileStorage: FileStoragePort,
     @Inject(STORED_FILE_REPOSITORY)
     private readonly storedFiles: StoredFileRepositoryPort,
     @Inject(STORAGE_CONFIG) private readonly config: StorageConfig,
@@ -40,21 +30,16 @@ export class StorageService {
     return this.imageStorage.uploadImageFromStream(
       stream,
       filename,
-      CLOUDINARY_FOLDERS.PRODUCTS,
+      STORAGE_IMAGE_TARGETS.PRODUCTS,
     );
   }
 
   async uploadAvatar(stream: Readable, filename: string): Promise<string> {
-    const options: ImageTransformOptions = {
-      width: 400,
-      height: 400,
-      crop: 'fill',
-      quality: 'auto',
-    };
+    const options: ImageTransformOptions = AVATAR_TRANSFORM;
     return this.imageStorage.uploadImageFromStream(
       stream,
       filename,
-      CLOUDINARY_FOLDERS.AVATARS,
+      STORAGE_IMAGE_TARGETS.AVATARS,
       options,
     );
   }
@@ -62,10 +47,11 @@ export class StorageService {
   async uploadCustomFolder(
     stream: Readable,
     filename: string,
-    folder: string,
+    target: import('./ports/outbound/image-storage.port').ImageStorageTarget,
     options?: ImageTransformOptions,
+    folderSuffix?: string,
   ): Promise<string> {
-    return this.imageStorage.uploadImageFromStream(stream, filename, folder, options);
+    return this.imageStorage.uploadImageFromStream(stream, filename, target, options, folderSuffix);
   }
 
   async deleteImage(imageUrl: string): Promise<void> {
