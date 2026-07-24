@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class PresignDto {
   @ApiProperty({
@@ -8,5 +8,6 @@ export class PresignDto {
   })
   @IsString()
   @MinLength(1)
+  @MaxLength(255)
   path: string;
 }

@@ -13,7 +13,7 @@ export class FptVisionService {
    * @returns boolean Indicating whether the CCCD is valid
    */
   async verifyCccdImage(imageUrl: string): Promise<boolean> {
-    this.logger.log(`Starting FPT.AI Vision verification for image: ${imageUrl}`);
+    this.logger.log('Starting FPT.AI Vision verification');
     
     // Example structure for the real HTTP call (commented out):
     /*
@@ -38,7 +38,7 @@ export class FptVisionService {
     // Mock logic: Simulate network delay of 2 seconds
     return new Promise((resolve) => {
       setTimeout(() => {
-        this.logger.log(`FPT.AI Vision verification completed for image: ${imageUrl}`);
+        this.logger.log('FPT.AI Vision verification completed');
         resolve(true); // Always return true for now
       }, 2000);
     });

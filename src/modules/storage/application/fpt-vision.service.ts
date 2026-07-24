@@ -30,7 +30,7 @@ export class FptVisionService {
       const formData = new FormData();
       formData.append('image_url', imageUrl); // FPT AI IDR supports image_url or image file
 
-      this.logger.debug(`Sending CCCD image to FPT AI: ${imageUrl}`);
+      this.logger.debug('Sending CCCD image to FPT AI');
 
       const response = await axios.post(this.idrUrl, formData, {
         headers: {
@@ -55,17 +55,14 @@ export class FptVisionService {
           type_new: result.type_new,
         };
       } else {
-        this.logger.warn(`FPT AI Error Code: ${data.errorCode}, Message: ${data.errorMessage}`);
+        this.logger.warn('FPT AI returned an unsuccessful response');
         throw new HttpException(
           `Không thể đọc thông tin CCCD: ${data.errorMessage || 'Vui lòng cung cấp ảnh rõ nét hơn'}`,
           HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error: any) {
-      this.logger.error(`Error calling FPT AI Vision: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
-      }
+      this.logger.error('Error calling FPT AI Vision');
       if (error instanceof HttpException) {
         throw error;
       }
@@ -86,7 +83,7 @@ export class FptVisionService {
     }
 
     try {
-      this.logger.debug(`[CCCD FULL] Bắt đầu verify mặt trước: ${frontUrl}`);
+      this.logger.debug('[CCCD FULL] Starting front-side verification');
       // Lấy dữ liệu mặt trước
       const frontData = new FormData();
       frontData.append('image_url', frontUrl);
@@ -95,7 +92,7 @@ export class FptVisionService {
       });
 
       if (frontResponse.data?.errorCode !== 0 || !frontResponse.data?.data?.[0]) {
-        this.logger.warn(`Lỗi OCR Mặt trước. Mã lỗi: ${frontResponse.data?.errorCode}, Message: ${frontResponse.data?.errorMessage}`);
+        this.logger.warn('FPT AI returned an unsuccessful front-side OCR response');
         throw new HttpException(
           `Lỗi đọc Mặt trước CCCD: ${frontResponse.data?.errorMessage || 'Ảnh mờ hoặc không hợp lệ'}`,
           HttpStatus.BAD_REQUEST,
@@ -103,7 +100,7 @@ export class FptVisionService {
       }
       const frontResult = frontResponse.data.data[0];
 
-      this.logger.debug(`[CCCD FULL] Bắt đầu verify mặt sau: ${backUrl}`);
+      this.logger.debug('[CCCD FULL] Starting back-side verification');
       // Lấy dữ liệu mặt sau
       const backData = new FormData();
       backData.append('image_url', backUrl);
@@ -112,7 +109,7 @@ export class FptVisionService {
       });
 
       if (backResponse.data?.errorCode !== 0 || !backResponse.data?.data?.[0]) {
-        this.logger.warn(`Lỗi OCR Mặt sau. Mã lỗi: ${backResponse.data?.errorCode}, Message: ${backResponse.data?.errorMessage}`);
+        this.logger.warn('FPT AI returned an unsuccessful back-side OCR response');
         throw new HttpException(
           `Lỗi đọc Mặt sau CCCD: ${backResponse.data?.errorMessage || 'Ảnh mờ hoặc không hợp lệ'}`,
           HttpStatus.BAD_REQUEST,
@@ -135,10 +132,7 @@ export class FptVisionService {
         issue_loc: backResult.issue_loc || frontResult.issue_loc,
       };
     } catch (error: any) {
-      this.logger.error(`Error in verifyCccdFull: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
-      }
+      this.logger.error('Error in verifyCccdFull');
       if (error instanceof HttpException) {
         throw error;
       }
@@ -162,7 +156,7 @@ export class FptVisionService {
       const formData = new FormData();
       formData.append('image_url', imageUrl); 
 
-      this.logger.debug(`Sending BRC image to FPT AI: ${imageUrl}`);
+      this.logger.debug('Sending BRC image to FPT AI');
 
       const response = await axios.post(this.brcUrl, formData, {
         headers: {
@@ -183,17 +177,14 @@ export class FptVisionService {
           capital: result.capital, // Vốn điều lệ
         };
       } else {
-        this.logger.warn(`FPT AI Error Code: ${data.errorCode}, Message: ${data.errorMessage}`);
+        this.logger.warn('FPT AI returned an unsuccessful response');
         throw new HttpException(
           `Không thể đọc thông tin Giấy phép: ${data.errorMessage || 'Vui lòng cung cấp ảnh rõ nét hơn'}`,
           HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error: any) {
-      this.logger.error(`Error calling FPT AI Vision BRC: ${error.message}`);
-      if (error.response) {
-         this.logger.error(`FPT AI Response data: ${JSON.stringify(error.response.data)}`);
-      }
+      this.logger.error('Error calling FPT AI Vision BRC');
       if (error instanceof HttpException) {
         throw error;
       }
