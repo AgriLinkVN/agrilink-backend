@@ -1,0 +1,3885 @@
+{
+  "fingerprint": "16dfdb72f5f489def07b41be7cb1d48c9017cb61409ee7812d685f4eacfc7c4b",
+  "pathCount": 84,
+  "operationCount": 95,
+  "snapshot": {
+    "paths": {
+      "/api/v1": {
+        "get": {
+          "operationId": "AppController_getHealth",
+          "summary": "Health check — returns API status and version",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Health"]
+        }
+      },
+      "/api/v1/auth/register": {
+        "post": {
+          "operationId": "AuthController_register",
+          "summary": "Register a new user account",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User created successfully"
+            },
+            "400": {
+              "description": "Validation error or phone already taken"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/login": {
+        "post": {
+          "operationId": "AuthController_login",
+          "summary": "Login with phone and password — returns access token, sets refresh cookie",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful"
+            },
+            "401": {
+              "description": "Invalid credentials"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/login-otp": {
+        "post": {
+          "operationId": "AuthController_loginOtp",
+          "summary": "Login with phone and OTP — returns access token, sets refresh cookie",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOtpDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful"
+            },
+            "400": {
+              "description": "Invalid OTP"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/sync": {
+        "post": {
+          "operationId": "AuthController_syncFirebaseUser",
+          "summary": "Sync Firebase authenticated mobile user with local JWT account",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirebaseSyncDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Firebase user synced and access token returned"
+            },
+            "401": {
+              "description": "Invalid Firebase ID token"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/refresh": {
+        "post": {
+          "operationId": "AuthController_refresh",
+          "summary": "Exchange a valid refresh token cookie for a new token pair",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Tokens refreshed"
+            },
+            "401": {
+              "description": "Refresh token invalid or expired"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/logout": {
+        "post": {
+          "operationId": "AuthController_logout",
+          "summary": "Revoke refresh token and log out",
+          "parameters": [],
+          "responses": {
+            "204": {
+              "description": "Logged out successfully"
+            }
+          },
+          "tags": ["Auth"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/auth/send-otp": {
+        "post": {
+          "operationId": "AuthController_sendOtp",
+          "summary": "Send OTP code via SMS or email",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendOtpDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "OTP sent"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/auth/verify-otp": {
+        "post": {
+          "operationId": "AuthController_verifyOtp",
+          "summary": "Verify OTP code and activate phone/email",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOtpDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "OTP verified"
+            },
+            "400": {
+              "description": "Invalid or expired OTP"
+            }
+          },
+          "tags": ["Auth"]
+        }
+      },
+      "/api/v1/users/me": {
+        "get": {
+          "operationId": "UsersController_getMe",
+          "summary": "Get the authenticated user's own profile",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Current user profile"
+            }
+          },
+          "tags": ["Users"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "patch": {
+          "operationId": "UsersController_updateMe",
+          "summary": "Update the authenticated user's own profile",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateUserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Profile updated"
+            }
+          },
+          "tags": ["Users"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/users/me/role": {
+        "put": {
+          "operationId": "UsersController_updateMyRole",
+          "summary": "Update current mobile user role during onboarding",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoleDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Role updated"
+            }
+          },
+          "tags": ["Users"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/users/{id}": {
+        "get": {
+          "operationId": "UsersController_adminGetUser",
+          "summary": "(Admin) Get any user by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User found"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          },
+          "tags": ["Users"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/profiles/farmer": {
+        "put": {
+          "operationId": "ProfilesController_upsertFarmerProfile",
+          "summary": "Create or update the authenticated farmer's profile",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpsertFarmerProfileDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Farmer profile saved"
+            }
+          },
+          "tags": ["Profiles"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/profiles/b2b": {
+        "put": {
+          "operationId": "ProfilesController_upsertB2bProfile",
+          "summary": "Create or update the authenticated B2B (Coop/Enterprise/Supplier) profile",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpsertB2bProfileDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Profiles"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/farm/{userId}": {
+        "get": {
+          "operationId": "FarmPublicController_getFarmPublic",
+          "summary": "Get public farm profile by userId",
+          "parameters": [
+            {
+              "name": "userId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Farm profile"
+            },
+            "404": {
+              "description": "Farm not found"
+            }
+          },
+          "tags": ["Farm"]
+        }
+      },
+      "/api/v1/storage/uploads/intents": {
+        "post": {
+          "operationId": "StorageController_createIntent",
+          "parameters": [
+            {
+              "name": "x-correlation-id",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUploadIntentDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/storage/uploads/{id}/complete": {
+        "post": {
+          "operationId": "StorageController_completeIntent",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "x-correlation-id",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/storage/files/{id}/download-url": {
+        "get": {
+          "operationId": "StorageController_downloadById",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "x-correlation-id",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/storage/files/{id}": {
+        "delete": {
+          "operationId": "StorageController_deleteById",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "x-correlation-id",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/storage/files/{id}/review": {
+        "post": {
+          "operationId": "StorageController_reviewFile",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStoredFileDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/storage/images/upload": {
+        "post": {
+          "operationId": "StorageController_uploadImage",
+          "summary": "Upload ảnh lên Cloudinary",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Loại ảnh: product | ads | reviews | profile | avatar | avatar_farmer",
+                      "example": "product"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Storage"]
+        }
+      },
+      "/api/v1/geography/provinces": {
+        "get": {
+          "operationId": "GeographyController_findAllProvinces",
+          "summary": "List all Vietnamese provinces",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Array of provinces"
+            }
+          },
+          "tags": ["Geography"]
+        }
+      },
+      "/api/v1/geography/provinces/{id}/districts": {
+        "get": {
+          "operationId": "GeographyController_findDistricts",
+          "summary": "List all districts in a province",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Array of districts"
+            }
+          },
+          "tags": ["Geography"]
+        }
+      },
+      "/api/v1/products": {
+        "post": {
+          "operationId": "ProductsController_create",
+          "summary": "Tạo sản phẩm mới (seller)",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProductDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Tạo thành công"
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "get": {
+          "operationId": "ProductsController_findAll",
+          "summary": "Danh sách sản phẩm + filter (public)",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "enum": [
+                  "createdAt",
+                  "pricePerUnit",
+                  "name",
+                  "soldCount",
+                  "avgRating"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "xoai",
+                "type": "string"
+              }
+            },
+            {
+              "name": "categoryId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "provinceId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "farmingType",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["organic", "traditional", "vietgap", "globalgap"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": [
+                  "draft",
+                  "pending_approval",
+                  "active",
+                  "out_of_stock",
+                  "rejected",
+                  "archived",
+                  "suspended"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "minPrice",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 10000,
+                "type": "number"
+              }
+            },
+            {
+              "name": "maxPrice",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 100000,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sellerId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "isFeatured",
+              "required": false,
+              "in": "query",
+              "description": "Chi lay san pham noi bat",
+              "schema": {
+                "example": true,
+                "type": "boolean"
+              }
+            },
+            {
+              "name": "order",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/categories": {
+        "get": {
+          "operationId": "ProductsController_findCategories",
+          "summary": "Danh mục sản phẩm — root categories (public)",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/categories/tree": {
+        "get": {
+          "operationId": "ProductsController_getCategoryTree",
+          "summary": "Cây danh mục sản phẩm 2 cấp (public)",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/me": {
+        "get": {
+          "operationId": "ProductsController_findMine",
+          "summary": "Danh sách sản phẩm của seller đang đăng nhập",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "enum": [
+                  "createdAt",
+                  "pricePerUnit",
+                  "name",
+                  "soldCount",
+                  "avgRating"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "xoai",
+                "type": "string"
+              }
+            },
+            {
+              "name": "categoryId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "provinceId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "farmingType",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["organic", "traditional", "vietgap", "globalgap"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": [
+                  "draft",
+                  "pending_approval",
+                  "active",
+                  "out_of_stock",
+                  "rejected",
+                  "archived",
+                  "suspended"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "minPrice",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 10000,
+                "type": "number"
+              }
+            },
+            {
+              "name": "maxPrice",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 100000,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sellerId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "isFeatured",
+              "required": false,
+              "in": "query",
+              "description": "Chi lay san pham noi bat",
+              "schema": {
+                "example": true,
+                "type": "boolean"
+              }
+            },
+            {
+              "name": "order",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/certifications/pending": {
+        "get": {
+          "operationId": "ProductsController_findPendingCertifications",
+          "summary": "Danh sách chứng nhận sản phẩm đang chờ duyệt",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/certifications/{certId}/verify": {
+        "patch": {
+          "operationId": "ProductsController_verifyCertification",
+          "summary": "Duyệt hoặc từ chối chứng nhận sản phẩm",
+          "parameters": [
+            {
+              "name": "certId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyProductCertificationDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}": {
+        "get": {
+          "operationId": "ProductsController_findOne",
+          "summary": "Chi tiết sản phẩm (public)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "404": {
+              "description": "Không tìm thấy"
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "patch": {
+          "operationId": "ProductsController_update",
+          "summary": "Cập nhật sản phẩm (chủ sở hữu)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateProductDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "delete": {
+          "operationId": "ProductsController_remove",
+          "summary": "Xóa sản phẩm (chủ sở hữu)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}/status": {
+        "patch": {
+          "operationId": "ProductsController_updateStatus",
+          "summary": "Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateProductStatusDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}/images": {
+        "post": {
+          "operationId": "ProductsController_addImage",
+          "summary": "Thêm ảnh cho sản phẩm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}/images/{imageId}": {
+        "delete": {
+          "operationId": "ProductsController_removeImage",
+          "summary": "Xóa ảnh sản phẩm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "imageId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}/certifications": {
+        "post": {
+          "operationId": "ProductsController_addCertification",
+          "summary": "Thêm chứng nhận cho sản phẩm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProductCertificationDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/products/{id}/certifications/{certId}": {
+        "delete": {
+          "operationId": "ProductsController_removeCertification",
+          "summary": "Xóa chứng nhận sản phẩm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "certId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": ""
+            }
+          },
+          "tags": ["Products"],
+          "security": [
+            {
+              "access-token": []
+            },
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/wishlist/{productId}": {
+        "post": {
+          "operationId": "WishlistController_addToWishlist",
+          "summary": "Thêm sản phẩm vào danh sách yêu thích",
+          "parameters": [
+            {
+              "name": "productId",
+              "required": true,
+              "in": "path",
+              "description": "ID của sản phẩm",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Đã thêm thành công"
+            },
+            "404": {
+              "description": "Sản phẩm không tồn tại hoặc không hoạt động"
+            }
+          },
+          "tags": ["wishlist"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "delete": {
+          "operationId": "WishlistController_removeFromWishlist",
+          "summary": "Xóa sản phẩm khỏi danh sách yêu thích",
+          "parameters": [
+            {
+              "name": "productId",
+              "required": true,
+              "in": "path",
+              "description": "ID của sản phẩm",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": "Đã xóa thành công (idempotent)"
+            }
+          },
+          "tags": ["wishlist"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/wishlist": {
+        "get": {
+          "operationId": "WishlistController_getWishlist",
+          "summary": "Lấy danh sách yêu thích đã phân trang của người dùng hiện tại",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Trả về danh sách sản phẩm yêu thích kèm thông tin phân trang"
+            }
+          },
+          "tags": ["wishlist"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/wishlist/ids": {
+        "get": {
+          "operationId": "WishlistController_getWishlistedIds",
+          "summary": "Lấy danh sách IDs của các sản phẩm đã yêu thích",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Mảng string chứa IDs của các sản phẩm"
+            }
+          },
+          "tags": ["wishlist"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications": {
+        "get": {
+          "operationId": "NotificationsController_findAll",
+          "summary": "Get all notifications for the authenticated user",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated notifications"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications/unread": {
+        "get": {
+          "operationId": "NotificationsController_getUnread",
+          "summary": "Get unread notifications for the authenticated user",
+          "parameters": [
+            {
+              "name": "limit",
+              "required": true,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Unread notifications"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications/count": {
+        "get": {
+          "operationId": "NotificationsController_countUnread",
+          "summary": "Get unread notification count",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Unread notification count"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications/{id}/read": {
+        "patch": {
+          "operationId": "NotificationsController_markAsRead",
+          "summary": "Mark a single notification as read",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Notification marked as read"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications/mark-all-read": {
+        "patch": {
+          "operationId": "NotificationsController_markAllRead",
+          "summary": "Mark all notifications as read for the authenticated user",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "All notifications marked as read"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/notifications/read-all": {
+        "patch": {
+          "operationId": "NotificationsController_markAllAsRead",
+          "summary": "Mark all notifications as read for the authenticated user",
+          "parameters": [],
+          "responses": {
+            "204": {
+              "description": "All notifications marked as read"
+            }
+          },
+          "tags": ["Notifications"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/market-prices": {
+        "get": {
+          "operationId": "MarketPricesController_findAll",
+          "summary": "Get market price data with filters (public)",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "productName",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "provinceId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "categoryId",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "unit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "fromDate",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "2026-01-01",
+                "type": "string"
+              }
+            },
+            {
+              "name": "toDate",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "2026-12-31",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated market prices"
+            }
+          },
+          "tags": ["Market Prices"]
+        },
+        "post": {
+          "operationId": "MarketPricesController_create",
+          "summary": "(Admin/State Agency) Submit a new market price entry",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMarketPriceDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Market price recorded"
+            }
+          },
+          "tags": ["Market Prices"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/trace/{qrCode}": {
+        "get": {
+          "operationId": "TraceabilityController_findByQrCode",
+          "summary": "Scan a QR code and retrieve the traceability record (public)",
+          "parameters": [
+            {
+              "name": "qrCode",
+              "required": true,
+              "in": "path",
+              "description": "The QR code string printed on the product label",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Traceability record"
+            },
+            "404": {
+              "description": "QR code not found"
+            }
+          },
+          "tags": ["Traceability"]
+        }
+      },
+      "/api/v1/trace/product/{productId}": {
+        "get": {
+          "operationId": "TraceabilityController_findByProduct",
+          "summary": "Get all traceability records for a product (public)",
+          "parameters": [
+            {
+              "name": "productId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Traceability"]
+        }
+      },
+      "/api/v1/trace": {
+        "post": {
+          "operationId": "TraceabilityController_create",
+          "summary": "Create a traceability record for a product batch",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTraceabilityDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Traceability record created"
+            }
+          },
+          "tags": ["Traceability"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/product/{id}": {
+        "get": {
+          "operationId": "ReviewsController_getPublicReviews",
+          "summary": "Danh sách đánh giá public của sản phẩm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews": {
+        "post": {
+          "operationId": "ReviewsController_create",
+          "summary": "Buyer tạo một đánh giá cho mỗi sản phẩm",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateReviewDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "409": {
+              "description": "Đã đánh giá hoặc review không hợp lệ"
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/seller/me": {
+        "get": {
+          "operationId": "ReviewsController_getSellerReviews",
+          "summary": "Inbox đánh giá của seller hiện tại",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/{id}/reply": {
+        "patch": {
+          "operationId": "ReviewsController_reply",
+          "summary": "Seller phản hồi một lần cho đánh giá",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyReviewDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/admin/reviews": {
+        "get": {
+          "operationId": "ReviewsController_getModerationReviews",
+          "summary": "Danh sách đánh giá để admin kiểm duyệt",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/admin/reviews/{id}/hide": {
+        "patch": {
+          "operationId": "ReviewsController_hide",
+          "summary": "Admin ẩn đánh giá vi phạm",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HideReviewDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/reviews/admin/reviews/{id}/unhide": {
+        "patch": {
+          "operationId": "ReviewsController_unhide",
+          "summary": "Admin khôi phục đánh giá đã ẩn",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Reviews"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/packages": {
+        "get": {
+          "operationId": "AdsController_getPackages",
+          "summary": "Danh sách gói quảng cáo đang hoạt động",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/banners": {
+        "get": {
+          "operationId": "AdsController_getBanners",
+          "summary": "Danh sách banner quảng cáo đang chạy",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/events": {
+        "post": {
+          "operationId": "AdsController_track",
+          "summary": "Ghi nhận impression hoặc click quảng cáo",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackAdEventDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "204": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/campaigns": {
+        "post": {
+          "operationId": "AdsController_create",
+          "summary": "Tạo chiến dịch quảng cáo mới",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAdCampaignDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Chiến dịch chờ duyệt"
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "get": {
+          "operationId": "AdsController_list",
+          "summary": "Danh sách chiến dịch của supplier hiện tại",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/campaigns/{id}": {
+        "get": {
+          "operationId": "AdsController_get",
+          "summary": "Chi tiết chiến dịch của supplier hiện tại",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/campaigns/{id}/pause": {
+        "patch": {
+          "operationId": "AdsController_pause",
+          "summary": "Tạm dừng chiến dịch đang chạy",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/campaigns/{id}/resume": {
+        "patch": {
+          "operationId": "AdsController_resume",
+          "summary": "Tiếp tục chiến dịch đã tạm dừng",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/admin/campaigns": {
+        "get": {
+          "operationId": "AdsController_listForModeration",
+          "summary": "Danh sách chiến dịch cho admin kiểm duyệt",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/admin/campaigns/{id}": {
+        "get": {
+          "operationId": "AdsController_getForModeration",
+          "summary": "Chi tiết chiến dịch cho admin kiểm duyệt",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/admin/campaigns/{id}/approve": {
+        "patch": {
+          "operationId": "AdsController_approve",
+          "summary": "Duyệt chiến dịch đang chờ phê duyệt",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/ads/admin/campaigns/{id}/reject": {
+        "patch": {
+          "operationId": "AdsController_reject",
+          "summary": "Từ chối chiến dịch đang chờ phê duyệt",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectAdCampaignDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Ads"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/stats": {
+        "get": {
+          "operationId": "AdminController_getStats",
+          "summary": "System-wide statistics for admin/state-agency dashboard",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/pending-profiles": {
+        "get": {
+          "operationId": "AdminController_getPendingProfiles",
+          "summary": "List all pending profiles for KYC verification",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/profiles/{type}/{profileId}/verify": {
+        "patch": {
+          "operationId": "AdminController_verifyProfile",
+          "summary": "Approve or reject a profile",
+          "parameters": [
+            {
+              "name": "type",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "profileId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyProfileDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/system-configs": {
+        "get": {
+          "operationId": "AdminController_getSystemConfigs",
+          "summary": "List all system configuration keys",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/system-configs/{key}": {
+        "patch": {
+          "operationId": "AdminController_updateSystemConfig",
+          "summary": "Update a system configuration value",
+          "parameters": [
+            {
+              "name": "key",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/audit-logs": {
+        "get": {
+          "operationId": "AdminController_getAuditLogs",
+          "summary": "Paginated audit logs",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/disputes": {
+        "get": {
+          "operationId": "AdminController_getDisputes",
+          "summary": "List incident reports / disputes",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["open", "in_progress", "resolved"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/disputes/{id}/status": {
+        "patch": {
+          "operationId": "AdminController_updateDisputeStatus",
+          "summary": "Update dispute status",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/products/pending": {
+        "get": {
+          "operationId": "AdminController_getPendingProducts",
+          "summary": "List products awaiting approval",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/products/violating": {
+        "get": {
+          "operationId": "AdminController_getViolatingProducts",
+          "summary": "List suspended/rejected products (policy violations)",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/cooperatives-enterprises": {
+        "get": {
+          "operationId": "AdminController_getCooperativesAndEnterprises",
+          "summary": "List all cooperatives and enterprises",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/reports/system.pdf": {
+        "get": {
+          "operationId": "AdminController_exportSystemReport",
+          "summary": "Export a system-wide overview report as PDF",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Admin"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/posts": {
+        "get": {
+          "operationId": "ForumController_listPosts",
+          "summary": "List forum posts (public)",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "category",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "enum": ["technical", "market", "experience"],
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"]
+        },
+        "post": {
+          "operationId": "ForumController_createPost",
+          "summary": "Create a forum post",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePostDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/posts/{id}": {
+        "get": {
+          "operationId": "ForumController_getPost",
+          "summary": "Get post detail (public)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"]
+        },
+        "patch": {
+          "operationId": "ForumController_updatePost",
+          "summary": "Update own post",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePostDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        },
+        "delete": {
+          "operationId": "ForumController_deletePost",
+          "summary": "Delete own post",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/posts/{id}/moderate": {
+        "patch": {
+          "operationId": "ForumController_moderatePost",
+          "summary": "Hide/show a post (moderation)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/posts/{id}/comments": {
+        "get": {
+          "operationId": "ForumController_listComments",
+          "summary": "List comments for a post (public)",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": ["ASC", "DESC"],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"]
+        },
+        "post": {
+          "operationId": "ForumController_addComment",
+          "summary": "Add a comment to a post",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCommentDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/comments/{commentId}": {
+        "delete": {
+          "operationId": "ForumController_deleteComment",
+          "summary": "Delete own comment",
+          "parameters": [
+            {
+              "name": "commentId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/forum/posts/{id}/like": {
+        "post": {
+          "operationId": "ForumController_toggleLike",
+          "summary": "Toggle like on a post",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": ["Forum"],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "access-token": {
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "type": "http",
+          "name": "Authorization",
+          "in": "header"
+        }
+      },
+      "schemas": {
+        "RegisterDto": {
+          "type": "object",
+          "properties": {
+            "phone": {
+              "type": "string",
+              "example": "+84901234567",
+              "description": "Vietnamese phone number"
+            },
+            "email": {
+              "type": "string",
+              "example": "user@example.com"
+            },
+            "password": {
+              "type": "string",
+              "example": "Str0ngP@ss!",
+              "minLength": 6
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "farmer",
+                "cooperative",
+                "buyer",
+                "enterprise",
+                "supplier",
+                "logistics",
+                "state_agency",
+                "admin"
+              ],
+              "example": "farmer"
+            },
+            "fullName": {
+              "type": "string",
+              "example": "Nguyen Van A"
+            }
+          },
+          "required": ["email", "password", "role"]
+        },
+        "LoginDto": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "example": "user@example.com",
+              "description": "Registered email address"
+            },
+            "password": {
+              "type": "string",
+              "example": "Str0ngP@ss!"
+            }
+          },
+          "required": ["email", "password"]
+        },
+        "VerifyOtpDto": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "string",
+              "example": "user@example.com"
+            },
+            "code": {
+              "type": "string",
+              "example": "123456"
+            },
+            "purpose": {
+              "type": "string",
+              "enum": ["register", "login", "reset_password"],
+              "example": "register"
+            }
+          },
+          "required": ["target", "code", "purpose"]
+        },
+        "FirebaseSyncDto": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": ["farmer", "supplier", "buyer"]
+            },
+            "fullName": {
+              "type": "string",
+              "example": "Nguyen Van A"
+            },
+            "email": {
+              "type": "string",
+              "example": "user@example.com"
+            }
+          }
+        },
+        "SendOtpDto": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "string",
+              "example": "user@example.com"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["sms", "email"],
+              "example": "sms"
+            },
+            "purpose": {
+              "type": "string",
+              "enum": ["register", "login", "reset_password"],
+              "example": "register"
+            }
+          },
+          "required": ["target", "type", "purpose"]
+        },
+        "UpdateUserDto": {
+          "type": "object",
+          "properties": {
+            "fullName": {
+              "type": "string",
+              "example": "Nguyen Van A"
+            },
+            "email": {
+              "type": "string",
+              "example": "user@example.com"
+            },
+            "avatarUrl": {
+              "type": "string",
+              "example": "https://cdn.agrilink.vn/avatars/abc.jpg"
+            }
+          }
+        },
+        "UpdateRoleDto": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": ["farmer", "supplier", "buyer"]
+            }
+          },
+          "required": ["role"]
+        },
+        "UpsertFarmerProfileDto": {
+          "type": "object",
+          "properties": {
+            "cccdNumber": {
+              "type": "string",
+              "example": "012345678912",
+              "description": "12-digit CCCD number"
+            },
+            "cccdFrontFileId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "cccdBackFileId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "residenceAddress": {
+              "type": "string",
+              "example": "123 Nguyen Van Linh"
+            },
+            "provinceId": {
+              "type": "number",
+              "example": 1
+            },
+            "districtId": {
+              "type": "number",
+              "example": 1
+            },
+            "ward": {
+              "type": "string",
+              "example": "Phuong Tan Phong"
+            },
+            "bio": {
+              "type": "string",
+              "example": "Long time farmer"
+            }
+          },
+          "required": [
+            "cccdNumber",
+            "cccdFrontFileId",
+            "cccdBackFileId",
+            "residenceAddress"
+          ]
+        },
+        "UpsertB2bProfileDto": {
+          "type": "object",
+          "properties": {
+            "taxCode": {
+              "type": "string"
+            },
+            "address": {
+              "type": "string"
+            },
+            "cooperativeName": {
+              "type": "string"
+            },
+            "representativeName": {
+              "type": "string"
+            },
+            "representativePhone": {
+              "type": "string"
+            },
+            "representativeCccdFrontFileId": {
+              "type": "string"
+            },
+            "representativeCccdBackFileId": {
+              "type": "string"
+            },
+            "cooperativeCertFileId": {
+              "type": "string"
+            },
+            "membersListFileId": {
+              "type": "string"
+            },
+            "companyName": {
+              "type": "string"
+            },
+            "businessLicenseFileId": {
+              "type": "string"
+            }
+          }
+        },
+        "CreateUploadIntentDto": {
+          "type": "object",
+          "properties": {}
+        },
+        "ReviewStoredFileDto": {
+          "type": "object",
+          "properties": {}
+        },
+        "CreateProductImageDto": {
+          "type": "object",
+          "properties": {
+            "imageUrl": {
+              "type": "string",
+              "example": "https://res.cloudinary.com/.../xoai.jpg"
+            },
+            "isPrimary": {
+              "type": "boolean",
+              "example": true
+            },
+            "sortOrder": {
+              "type": "number",
+              "example": 0
+            }
+          },
+          "required": ["imageUrl"]
+        },
+        "CreateProductDto": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "example": "Xoai cat Hoa Loc"
+            },
+            "description": {
+              "type": "string",
+              "example": "Xoai tuoi, kich co lon, ngot dam."
+            },
+            "categoryId": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string",
+              "example": "XCHL-001",
+              "description": "Mã SKU duy nhất"
+            },
+            "variety": {
+              "type": "string",
+              "example": "Hoa Loc",
+              "description": "Giong cay/con"
+            },
+            "pricePerUnit": {
+              "type": "number",
+              "example": 25000
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "example": "kg"
+            },
+            "availableQuantity": {
+              "type": "number",
+              "example": 500
+            },
+            "minOrderQuantity": {
+              "type": "number",
+              "example": 5
+            },
+            "farmingType": {
+              "type": "string",
+              "enum": ["organic", "traditional", "vietgap", "globalgap"]
+            },
+            "provinceId": {
+              "type": "string"
+            },
+            "districtId": {
+              "type": "string"
+            },
+            "farmLatitude": {
+              "type": "number",
+              "example": 12.6667,
+              "description": "Vi do nong trai"
+            },
+            "farmLongitude": {
+              "type": "number",
+              "example": 108.05,
+              "description": "Kinh do nong trai"
+            },
+            "harvestDate": {
+              "type": "string",
+              "example": "2026-06-01"
+            },
+            "expiryDate": {
+              "type": "string",
+              "example": "2026-06-15"
+            },
+            "images": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CreateProductImageDto"
+              }
+            }
+          },
+          "required": ["name", "pricePerUnit", "unit", "availableQuantity"]
+        },
+        "VerifyProductCertificationDto": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["verified", "rejected"],
+              "example": "verified"
+            },
+            "rejectionReason": {
+              "type": "string",
+              "example": "Thông tin chứng nhận không khớp hồ sơ tải lên"
+            }
+          },
+          "required": ["status"]
+        },
+        "UpdateProductDto": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "example": "Xoai cat Hoa Loc"
+            },
+            "description": {
+              "type": "string",
+              "example": "Xoai tuoi, kich co lon, ngot dam."
+            },
+            "categoryId": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string",
+              "example": "XCHL-001",
+              "description": "Mã SKU duy nhất"
+            },
+            "variety": {
+              "type": "string",
+              "example": "Hoa Loc",
+              "description": "Giong cay/con"
+            },
+            "pricePerUnit": {
+              "type": "number",
+              "example": 25000
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "example": "kg"
+            },
+            "availableQuantity": {
+              "type": "number",
+              "example": 500
+            },
+            "minOrderQuantity": {
+              "type": "number",
+              "example": 5
+            },
+            "farmingType": {
+              "type": "string",
+              "enum": ["organic", "traditional", "vietgap", "globalgap"]
+            },
+            "provinceId": {
+              "type": "string"
+            },
+            "districtId": {
+              "type": "string"
+            },
+            "farmLatitude": {
+              "type": "number",
+              "example": 12.6667,
+              "description": "Vi do nong trai"
+            },
+            "farmLongitude": {
+              "type": "number",
+              "example": 108.05,
+              "description": "Kinh do nong trai"
+            },
+            "harvestDate": {
+              "type": "string",
+              "example": "2026-06-01"
+            },
+            "expiryDate": {
+              "type": "string",
+              "example": "2026-06-15"
+            },
+            "images": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CreateProductImageDto"
+              }
+            }
+          }
+        },
+        "UpdateProductStatusDto": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["pending_approval", "active", "out_of_stock"],
+              "example": "pending_approval"
+            }
+          },
+          "required": ["status"]
+        },
+        "CreateProductCertificationDto": {
+          "type": "object",
+          "properties": {
+            "certType": {
+              "type": "string",
+              "enum": ["vietgap", "organic", "globalgap", "ocop", "other"],
+              "example": "vietgap"
+            },
+            "certNumber": {
+              "type": "string",
+              "example": "VG-2026-001234"
+            },
+            "issuedBy": {
+              "type": "string",
+              "example": "Chi cục Quản lý chất lượng nông sản"
+            },
+            "issuedDate": {
+              "type": "string",
+              "example": "2026-06-01"
+            },
+            "expiryDate": {
+              "type": "string",
+              "example": "2027-06-01"
+            },
+            "storedFileId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Private CERTIFICATION file created through a storage upload intent"
+            }
+          },
+          "required": ["certType", "storedFileId"]
+        },
+        "CreateMarketPriceDto": {
+          "type": "object",
+          "properties": {
+            "productName": {
+              "type": "string",
+              "example": "Xoai cat Hoa Loc"
+            },
+            "categoryId": {
+              "type": "string"
+            },
+            "provinceId": {
+              "type": "string"
+            },
+            "pricePerUnit": {
+              "type": "number",
+              "example": 25000
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "example": "kg"
+            },
+            "source": {
+              "type": "string",
+              "example": "So NN&PTNT Tien Giang"
+            },
+            "priceDate": {
+              "type": "string",
+              "example": "2026-05-27"
+            }
+          },
+          "required": ["productName", "pricePerUnit", "unit", "priceDate"]
+        },
+        "CreateTraceabilityDto": {
+          "type": "object",
+          "properties": {
+            "productId": {
+              "type": "string"
+            },
+            "qrCode": {
+              "type": "string",
+              "description": "Custom QR code string; auto-generated if omitted"
+            },
+            "farmLocation": {
+              "type": "string",
+              "example": "Hoa Loc, Tien Giang"
+            },
+            "farmingMethod": {
+              "type": "string",
+              "example": "VietGAP"
+            },
+            "plantedDate": {
+              "type": "string",
+              "example": "2026-01-10"
+            },
+            "harvestedDate": {
+              "type": "string",
+              "example": "2026-06-01"
+            },
+            "pesticidesUsed": {
+              "type": "string",
+              "example": "Khong su dung thuoc tru sau"
+            },
+            "certifications": {
+              "type": "object",
+              "description": "JSON object with certification details"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": ["productId"]
+        },
+        "CreateReviewDto": {
+          "type": "object",
+          "properties": {
+            "productId": {
+              "type": "string"
+            },
+            "rating": {
+              "type": "number",
+              "example": 5,
+              "minimum": 1,
+              "maximum": 5
+            },
+            "comment": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "images": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["productId", "rating"]
+        },
+        "ReplyReviewDto": {
+          "type": "object",
+          "properties": {
+            "reply": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 500
+            }
+          },
+          "required": ["reply"]
+        },
+        "HideReviewDto": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 300
+            }
+          },
+          "required": ["reason"]
+        },
+        "TrackAdEventDto": {
+          "type": "object",
+          "properties": {
+            "campaignId": {
+              "type": "string"
+            },
+            "eventType": {
+              "type": "string",
+              "enum": ["impression", "click"]
+            }
+          },
+          "required": ["campaignId", "eventType"]
+        },
+        "CreateAdCampaignDto": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 255
+            },
+            "packageId": {
+              "type": "number",
+              "description": "ID số nguyên của gói quảng cáo"
+            },
+            "imageUrl": {
+              "type": "string",
+              "description": "URL banner đã được upload"
+            },
+            "linkUrl": {
+              "type": "string",
+              "description": "URL đích khi người dùng click banner"
+            },
+            "targetProvinces": {
+              "description": "Để trống để nhắm toàn quốc",
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "required": ["title", "packageId", "imageUrl"]
+        },
+        "RejectAdCampaignDto": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Lý do từ chối hiển thị cho supplier"
+            }
+          },
+          "required": ["reason"]
+        },
+        "VerifyProfileDto": {
+          "type": "object",
+          "properties": {
+            "isApproved": {
+              "type": "boolean",
+              "description": "True to approve, false to reject"
+            },
+            "rejectionReason": {
+              "type": "string",
+              "description": "Required if isApproved is false"
+            }
+          },
+          "required": ["isApproved"]
+        },
+        "CreatePostDto": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string",
+              "enum": ["technical", "market", "experience"]
+            },
+            "imageUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["title", "content", "category"]
+        },
+        "UpdatePostDto": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string",
+              "enum": ["technical", "market", "experience"]
+            },
+            "imageUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "CreateCommentDto": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string"
+            }
+          },
+          "required": ["content"]
+        }
+      }
+    }
+  }
+}
