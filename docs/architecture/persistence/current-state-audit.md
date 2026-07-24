@@ -2,12 +2,16 @@
 
 ## Evidence Boundary
 
-Source commit: `f66be061f1087b6d8436137d6778cbab1727f834`.
+Initial source audit commit: `f66be061f1087b6d8436137d6778cbab1727f834`.
+PostgreSQL verification source commit:
+`892677712c3e3dd4c3de50e6beff0851aca37756`.
 
-PostgreSQL was not reachable on `localhost:5432` during this audit. Counts,
-registration, and mapping differences are observed from TypeScript source.
-Migration conclusions are observed from repository history. Statements about
-the live schema are explicitly marked unverified.
+The initial audit was source-only. A later read-only verification against the
+local PostgreSQL 16.14 Docker database is recorded in
+`postgresql-schema-verification.md`. It found 33 public tables, no migration
+ledger, and a migration chain that fails on an empty disposable database at
+its first migration. These observations describe the local snapshot only, not
+production.
 
 ## Executive Assessment
 
@@ -26,9 +30,10 @@ Three assumptions needed correction:
    Runtime uses the central classes, and those contain the KYC, verification,
    and Storage Phase 9 file-ID fields missing from module-local mappings.
 
-Phase 0 is ready and contains documentation/test artifacts only. Entity
-movement remains blocked until Phase 1 establishes schema evidence and a
-baseline migration strategy.
+Phase 0 is merged and contains documentation/test artifacts only. Local schema
+evidence now supports a hybrid baseline/onboarding strategy. Entity movement
+remains blocked until Phase 1 implements that strategy and establishes
+runtime/CLI/test schema parity.
 
 ## Inventory
 
@@ -88,7 +93,9 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 
 ## Duplicate Conflict Report
 
-Live-schema match is **unverified** for every row below.
+Local-live observations supplement this source comparison. Exact columns,
+constraints, indexes, enums, and limitations are recorded in
+`postgresql-schema-verification.md`; deployed-schema match remains unverified.
 
 | Physical table | Material differences | Migration evidence | Recommendation |
 | --- | --- | --- | --- |
@@ -112,8 +119,10 @@ Live-schema match is **unverified** for every row below.
 | `traceability_records` | two incompatible trace models and date names | no bootstrap | treat as schema redesign, not a class move |
 
 `product_wishlist` and `wishlists` are not decorator duplicates because they are
-different physical tables. They are a semantic conflict requiring data/consumer
-inventory before retirement or merge.
+different physical tables. The local live database contains `wishlists` plus a
+third spelling, `product_wishlists`, while source declares singular
+`product_wishlist`. They are a semantic and naming conflict requiring deployed
+row/consumer inventory before retirement or merge.
 
 ## Dependency Boundary Report
 
@@ -145,25 +154,28 @@ Phase 1.
 | Seed source | partial explicit list, `synchronize: true` |
 | Integration source | per-test ad hoc DataSources |
 | Schema parity source | absent |
-| Migration scripts | incorrectly point at config factory, not DataSource |
+| Migration scripts | point at config factory and do not forward DataSource flags correctly |
+| Migration glob | loads a `*.spec.ts` file and fails with `describe is not defined` |
 | `DB_SYNCHRONIZE` | CLI parses string safely; Nest config generic does not coerce |
 | `DB_LOGGING` | same Nest string-coercion risk |
 | Production sync guard | absent |
 | Migration bootstrap | absent for most of 48 tables |
 
 The current migration chain cannot be treated as the source of truth for a
-fresh database. Only provinces map fields, Firebase UID, notification enums,
-product certification flow, review moderation, Storage, and P3 cooperative
-tables are represented. Phase 1 must first capture a reviewed baseline schema
-without rewriting executed migration history.
+fresh database. On `agrilink_migration_test`, all 11 migrations loaded but the
+first failed because `public.provinces` did not exist. The transaction rolled
+back with zero ledger rows and zero business tables. Phase 1 must establish a
+new reviewed baseline lineage plus controlled existing-environment onboarding,
+without rewriting historical migrations.
 
 ## Open Questions
 
-These require live database or release-platform evidence:
+These require deployed database or release-platform evidence:
 
 1. Which mapping each duplicate table currently matches in deployed
    PostgreSQL, including constraints, indexes, enums, triggers, and nullability.
-2. Whether both `product_wishlist` and `wishlists` contain production data.
+2. Whether `product_wishlist`, local-live `product_wishlists`, and `wishlists`
+   exist or contain data in deployed environments.
 3. Which migrations are recorded in each deployed environment's migration
    ledger.
 4. Whether `DB_SYNCHRONIZE` has ever been enabled outside disposable

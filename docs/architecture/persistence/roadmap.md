@@ -29,15 +29,25 @@ Track `ready to merge`, `merged`, and `deployed` separately.
 - Scope: canonical registry module, one root/CLI/test metadata source, correct
   TypeORM CLI DataSource, safe booleans, production sync guard, remove seed
   synchronize, PostgreSQL schema snapshot and migration-ledger strategy.
-- Key correction: create a reviewed bootstrap/baseline path for tables missing
-  from migration history before enabling fresh-DB parity CI.
+- Verified input: the local live database has 33 tables and no ledger; all 11
+  migrations load through a guarded DataSource, but a clean database fails at
+  migration one because `provinces` is absent. The production glob also loads a
+  migration spec file. See `postgresql-schema-verification.md`.
+- Key correction: implement a reviewed v2 baseline lineage for new databases
+  and fingerprint-gated ledger onboarding/reconciliation for existing
+  environments. Do not append a baseline after the failing legacy chain and do
+  not edit historical migrations.
 - Tests: config matrix, clean DB migration, no pending migration on second run,
-  schema log diff, OpenAPI baseline, query-count baseline.
-- Migration: a new reviewed baseline migration or environment-specific
-  baseline ledger procedure; never edit executed migrations.
+  schema log diff, guarded existing-schema onboarding, OpenAPI baseline,
+  query-count baseline.
+- Migration: hybrid strategy: new canonical baseline for fresh databases plus
+  reviewed schema reconciliation and controlled baseline registration for
+  approved existing environments.
 - Rollback: keep previous DataSource available for one release; additive schema
   only.
-- Gate: runtime/CLI/test metadata equal; clean DB can be built; parity diff zero.
+- Gate: runtime/CLI/test metadata equal; test files excluded from metadata
+  globs; clean DB can be built; second run is empty; approved local snapshot
+  onboarding is deterministic; canonical parity diff is zero.
 - Risk: critical. Dependency: Phase 0.
 
 ## Phase 2: Low-Risk Consolidation Pattern
