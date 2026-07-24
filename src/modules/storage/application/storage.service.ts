@@ -10,6 +10,7 @@ import { AVATAR_TRANSFORM, STORAGE_IMAGE_TARGETS } from './storage-image.policy'
 import { buildOwnedStoragePath } from './storage-upload.policy';
 import { InvalidStoredFileTransitionError, StoredFileNotFoundError, UnauthorizedStoredFileReviewError, UploadNotCompletedError } from './storage-file.errors';
 import { validatePrivateContent } from './content-validation.policy';
+import { canTransition } from './storage-lifecycle.policy';
 
 @Injectable()
 export class StorageService {
@@ -108,7 +109,9 @@ export class StorageService {
 
   async deleteStoredFile(ownerId: string, id: string) {
     const file = await this.requireOwnedFile(id, ownerId);
-    await this.fileStorage.delete(file.objectKey);
+    if (file.status === 'DELETED') return file;
+    try { await this.fileStorage.delete(file.objectKey); }
+    catch { await this.storedFiles.markDeletionRetry(id, ownerId); return this.storedFiles.findByIdForOwner(id, ownerId); }
     return this.storedFiles.updateStatus(id, ownerId, 'DELETED');
   }
 

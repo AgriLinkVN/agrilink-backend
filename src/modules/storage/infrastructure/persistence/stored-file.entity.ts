@@ -20,6 +20,7 @@ export class StoredFileEntity {
   @Column({ name: 'expires_at', type: 'timestamptz' }) expiresAt: Date;
   @Column({ name: 'resource_type', nullable: true }) resourceType: string | null;
   @Column({ name: 'resource_id', nullable: true }) resourceId: string | null;
+  @Column({ name: 'deletion_attempts', default: 0 }) deletionAttempts: number;
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' }) updatedAt: Date;
 }

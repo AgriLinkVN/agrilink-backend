@@ -1,0 +1,2 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+export class AddStoredFileDeletionRetry1783645200000 implements MigrationInterface { async up(queryRunner: QueryRunner): Promise<void> { await queryRunner.query('ALTER TABLE "stored_files" ADD COLUMN IF NOT EXISTS "deletion_attempts" integer NOT NULL DEFAULT 0'); } async down(queryRunner: QueryRunner): Promise<void> { await queryRunner.query('ALTER TABLE "stored_files" DROP COLUMN IF EXISTS "deletion_attempts"'); } }
