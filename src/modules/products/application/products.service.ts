@@ -9,6 +9,7 @@ import {
   WishlistQueryInput,
 } from './models/product-input.model';
 import { ProductStatus, SellerType, UserRole } from '@common/enums';
+import { StorageReviewerRole } from '@modules/storage/application/ports/inbound/stored-file-access.port';
 import {
   AddProductCertificationUseCase,
   AddProductImageUseCase,
@@ -165,7 +166,7 @@ export class ProductsService {
   verifyCertification(
     certId: string,
     adminId: string,
-    reviewerRole: UserRole,
+    reviewerRole: StorageReviewerRole,
     dto: VerifyProductCertificationInput,
   ) {
     return this.verifyProductCertificationUseCase.execute(

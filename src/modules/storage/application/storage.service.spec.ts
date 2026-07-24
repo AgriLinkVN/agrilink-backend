@@ -2,6 +2,7 @@ import {
   StoredFileModel,
   StoredFileRepositoryPort,
 } from './ports/outbound/stored-file-repository.port';
+import { UserRole } from '@common/enums';
 import { StorageService } from './storage.service';
 
 const FILE_ID = '11111111-1111-4111-8111-111111111111';
@@ -36,6 +37,8 @@ function makeRepository(): jest.Mocked<StoredFileRepositoryPort> {
     findDeletionRetries: jest.fn(),
     updateStatus: jest.fn(),
     attachToResource: jest.fn(),
+    detachFromResource: jest.fn(),
+    restoreReviewedStatus: jest.fn(),
     markDeletionRetry: jest.fn(),
   };
 }
@@ -164,6 +167,98 @@ describe('StorageService private files', () => {
       'CERTIFICATION',
       'PRODUCT',
       'product-1',
+    );
+  });
+
+  it('detaches only the expected owner resource link during compensation', async () => {
+    const { service, repository } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(
+      makeStoredFile({
+        resourceType: 'PRODUCT',
+        resourceId: 'product-1',
+      }),
+    );
+    repository.detachFromResource.mockResolvedValue(true);
+
+    await service.detachOwnedFile({
+      fileId: FILE_ID,
+      ownerId: 'owner-1',
+      resourceType: 'PRODUCT',
+      resourceId: 'product-1',
+    });
+
+    expect(repository.detachFromResource).toHaveBeenCalledWith(
+      FILE_ID,
+      'owner-1',
+      'PRODUCT',
+      'product-1',
+    );
+  });
+
+  it('reports whether a reviewer transition changed file state', async () => {
+    const { service, repository } = makeService();
+    repository.findById.mockResolvedValueOnce(makeStoredFile());
+    repository.updateStatus.mockResolvedValueOnce(
+      makeStoredFile({ status: 'ACTIVE' }),
+    );
+
+    await expect(
+      service.reviewFile({
+        fileId: FILE_ID,
+        reviewerRole: UserRole.STATE_AGENCY,
+        approve: true,
+      }),
+    ).resolves.toBe(true);
+
+    repository.findById.mockResolvedValueOnce(
+      makeStoredFile({ status: 'ACTIVE' }),
+    );
+    await expect(
+      service.reviewFile({
+        fileId: FILE_ID,
+        reviewerRole: UserRole.STATE_AGENCY,
+        approve: true,
+      }),
+    ).resolves.toBe(false);
+  });
+
+  it('restores a changed review state for saga compensation', async () => {
+    const { service, repository } = makeService();
+    repository.findById.mockResolvedValue(
+      makeStoredFile({ status: 'FAILED' }),
+    );
+    repository.restoreReviewedStatus.mockResolvedValue(true);
+
+    await service.restoreReviewedFile({
+      fileId: FILE_ID,
+      reviewerRole: UserRole.ADMIN,
+    });
+
+    expect(repository.restoreReviewedStatus).toHaveBeenCalledWith(FILE_ID);
+  });
+
+  it('retires a replaced private file through the existing cleanup flow', async () => {
+    const { service, repository, fileStorage } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(
+      makeStoredFile({ status: 'ACTIVE' }),
+    );
+    repository.updateStatus.mockResolvedValue(
+      makeStoredFile({ status: 'DELETED' }),
+    );
+
+    await service.retireOwnedFile({
+      fileId: FILE_ID,
+      ownerId: 'owner-1',
+      correlationId: 'request-1',
+    });
+
+    expect(fileStorage.delete).toHaveBeenCalledWith(
+      'development/owners/owner-1/CERTIFICATION/file.pdf',
+    );
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      FILE_ID,
+      'owner-1',
+      'DELETED',
     );
   });
 

@@ -20,6 +20,7 @@
     "test:storage": "jest --testPathPattern=src/modules/storage",
     "test:storage:e2e": "jest --config ./test/jest-e2e.json --testPathPattern=storage.e2e-spec.ts",
     "test:storage:contract": "jest --testPathPattern=supabase-storage.contract.spec.ts",
+    "test:storage:migration": "jest --config ./test/jest-migration.json",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.config.ts",

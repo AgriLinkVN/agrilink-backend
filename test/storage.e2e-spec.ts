@@ -13,7 +13,10 @@ import { StorageService } from '../src/modules/storage/application/storage.servi
 import { StorageThrottlerGuard } from '../src/modules/storage/presentation/guards/storage-throttler.guard';
 import { UserRole } from '../src/common/enums';
 import { RolesGuard } from '../src/common/guards/roles.guard';
-import { StoredFileNotFoundError } from '../src/modules/storage/application/storage-file.errors';
+import {
+  InvalidStoredFileTransitionError,
+  StoredFileNotFoundError,
+} from '../src/modules/storage/application/storage-file.errors';
 
 const OWNER_ID = '11111111-1111-4111-8111-111111111111';
 const FILE_ID = '22222222-2222-4222-8222-222222222222';
@@ -124,6 +127,55 @@ describe('Storage REST contract (e2e)', () => {
       UserRole.BUYER,
     );
   });
+  it('rejects an anonymous private download request', () =>
+    request(server)
+      .get(`/storage/files/${FILE_ID}/download-url`)
+      .expect(401));
+  it('maps an unavailable quarantined owner file without exposing a URL', async () => {
+    storage.createFileDownloadUrl.mockRejectedValue(
+      new InvalidStoredFileTransitionError('File is not available'),
+    );
+    const response = await request(server)
+      .get(`/storage/files/${FILE_ID}/download-url`)
+      .set('x-test-user', OWNER_ID)
+      .set('x-test-role', UserRole.FARMER)
+      .expect(400);
+
+    expect(response.body).not.toHaveProperty('signedUrl');
+    expect(storage.createFileDownloadUrl).toHaveBeenCalledWith(
+      OWNER_ID,
+      FILE_ID,
+      expect.any(String),
+      UserRole.FARMER,
+    );
+  });
+  it.each([UserRole.STATE_AGENCY, UserRole.ADMIN])(
+    'allows %s to request a quarantined file by opaque ID',
+    async (reviewerRole) => {
+      storage.createFileDownloadUrl.mockResolvedValue({
+        signedUrl: 'https://example.test/signed',
+        expiresIn: 300,
+      });
+
+      const response = await request(server)
+        .get(`/storage/files/${FILE_ID}/download-url`)
+        .set('x-test-user', OWNER_ID)
+        .set('x-test-role', reviewerRole)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        signedUrl: 'https://example.test/signed',
+        expiresIn: 300,
+      });
+      expect(response.body).not.toHaveProperty('path');
+      expect(storage.createFileDownloadUrl).toHaveBeenCalledWith(
+        OWNER_ID,
+        FILE_ID,
+        expect.any(String),
+        reviewerRole,
+      );
+    },
+  );
   it('allows authorized reviewers and rejects an ordinary user', async () => {
     await request(server)
       .post(`/storage/files/${FILE_ID}/review`)

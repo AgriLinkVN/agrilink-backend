@@ -14,6 +14,7 @@ import {
 import {
   InvalidProductCertificationFileError,
   InvalidProductCertificationVerificationError,
+  ProductCertificationConsistencyError,
   ProductForbiddenError,
   ProductNotFoundError,
   WishlistProductUnavailableError,
@@ -29,10 +30,12 @@ import {
   ChangeProductStatusUseCase,
   CreateProductUseCase,
   GetProductDetailUseCase,
+  RemoveProductCertificationUseCase,
   UpdateProductUseCase,
   VerifyProductCertificationUseCase,
 } from './use-cases/product.use-cases';
 import { StoredFileAccessPort } from '@modules/storage/application/ports/inbound/stored-file-access.port';
+import { StoredFileNotFoundError } from '@modules/storage/application/storage-file.errors';
 
 const PRODUCT_ID = '11111111-1111-4111-8111-111111111111';
 const CERT_ID = '22222222-2222-4222-8222-222222222222';
@@ -88,8 +91,11 @@ function makeWishlistRepository(): jest.Mocked<ProductWishlistRepositoryPort> {
 function makeStoredFileAccess(): jest.Mocked<StoredFileAccessPort> {
   return {
     attachOwnedFile: jest.fn(),
+    detachOwnedFile: jest.fn(),
     readOwnedFile: jest.fn(),
-    reviewFile: jest.fn(),
+    reviewFile: jest.fn().mockResolvedValue(true),
+    restoreReviewedFile: jest.fn(),
+    retireOwnedFile: jest.fn(),
   };
 }
 
@@ -262,7 +268,7 @@ describe('Product application use cases', () => {
     const storedFileAccess = makeStoredFileAccess();
     productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
     storedFileAccess.attachOwnedFile.mockRejectedValue(
-      new Error('Stored file not found'),
+      new StoredFileNotFoundError('Stored file not found'),
     );
     const useCase = new AddProductCertificationUseCase(
       productRepository,
@@ -277,6 +283,152 @@ describe('Product application use cases', () => {
       }),
     ).rejects.toThrow(InvalidProductCertificationFileError);
     expect(certificationRepository.addCertification).not.toHaveBeenCalled();
+  });
+
+  it('detaches a certification file when certification persistence fails', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    certificationRepository.addCertification.mockRejectedValue(
+      new Error('database unavailable'),
+    );
+    const useCase = new AddProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await expect(
+      useCase.execute(PRODUCT_ID, SELLER_ID, {
+        certType: 'vietgap' as never,
+        storedFileId: CERT_ID,
+      }),
+    ).rejects.toThrow('database unavailable');
+    expect(storedFileAccess.detachOwnedFile).toHaveBeenCalledWith({
+      fileId: CERT_ID,
+      ownerId: SELLER_ID,
+      resourceType: 'PRODUCT',
+      resourceId: PRODUCT_ID,
+    });
+  });
+
+  it('surfaces a consistency error when certification compensation fails', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    certificationRepository.addCertification.mockRejectedValue(
+      new Error('database unavailable'),
+    );
+    storedFileAccess.detachOwnedFile.mockRejectedValue(
+      new Error('detach unavailable'),
+    );
+    const useCase = new AddProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await expect(
+      useCase.execute(PRODUCT_ID, SELLER_ID, {
+        certType: 'vietgap' as never,
+        storedFileId: CERT_ID,
+      }),
+    ).rejects.toThrow(ProductCertificationConsistencyError);
+  });
+
+  it('rethrows infrastructure attachment failures without mapping them to bad input', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    storedFileAccess.attachOwnedFile.mockRejectedValue(
+      new Error('database unavailable'),
+    );
+    const useCase = new AddProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await expect(
+      useCase.execute(PRODUCT_ID, SELLER_ID, {
+        certType: 'vietgap' as never,
+        storedFileId: CERT_ID,
+      }),
+    ).rejects.toThrow('database unavailable');
+    expect(certificationRepository.addCertification).not.toHaveBeenCalled();
+  });
+
+  it('restores certification state when the file review transition fails', async () => {
+    const repository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    const certification = {
+      id: CERT_ID,
+      productId: PRODUCT_ID,
+      storedFileId: CERT_ID,
+      status: CertificationStatus.PENDING,
+      isVerified: false,
+      verifiedBy: null,
+      verifiedAt: null,
+      rejectionReason: null,
+    } as ProductCertificationModel;
+    repository.findByIdWithProduct.mockResolvedValue(certification);
+    repository.saveCertification.mockImplementation(async (saved) => ({
+      ...saved,
+    }));
+    storedFileAccess.reviewFile.mockRejectedValue(
+      new Error('storage unavailable'),
+    );
+    const useCase = new VerifyProductCertificationUseCase(
+      repository,
+      storedFileAccess,
+    );
+
+    await expect(
+      useCase.execute(CERT_ID, ADMIN_ID, UserRole.ADMIN, {
+        status: CertificationStatus.VERIFIED,
+      }),
+    ).rejects.toThrow('storage unavailable');
+
+    expect(repository.saveCertification).toHaveBeenCalledTimes(2);
+    expect(repository.saveCertification).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        status: CertificationStatus.PENDING,
+        isVerified: false,
+        verifiedBy: null,
+        verifiedAt: null,
+      }),
+    );
+  });
+
+  it('retires the private file after a certification is removed', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    certificationRepository.findByIdWithProduct.mockResolvedValue({
+      id: CERT_ID,
+      productId: PRODUCT_ID,
+      storedFileId: CERT_ID,
+    } as ProductCertificationModel);
+    certificationRepository.removeCertificationByProduct.mockResolvedValue(
+      true,
+    );
+    const useCase = new RemoveProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await useCase.execute(PRODUCT_ID, CERT_ID, SELLER_ID);
+
+    expect(storedFileAccess.retireOwnedFile).toHaveBeenCalledWith({
+      fileId: CERT_ID,
+      ownerId: SELLER_ID,
+      correlationId: expect.any(String),
+    });
   });
 
   it('delegates duplicate-safe wishlist persistence to the atomic repository operation', async () => {

@@ -145,6 +145,21 @@ Every file record follows this lifecycle:
 cleanup job removes expired pending objects and retries failed provider
 deletions. Invalid state transitions must be rejected and tested.
 
+Application workflows that update both a domain record and stored-file
+metadata use compensating operations when the repositories cannot share one
+database transaction. A compensation may restore a file from `ACTIVE` or
+`FAILED` to `QUARANTINED` only when the same review request changed that file
+and the corresponding domain write failed. This reverse transition is an
+internal recovery operation, is not exposed by an HTTP endpoint, and must be
+idempotent. A failed compensation is a consistency incident and must remain
+visible as a server error for reconciliation.
+
+Replacing a private profile document attaches and persists the new file before
+retiring the previous file through the normal deletion-retry lifecycle.
+Removing a product certification likewise retires its private file. Retired
+metadata is retained for audit and cleanup; provider deletion must never be
+implemented by dropping the metadata row.
+
 ## Security Controls
 
 - HTTP upload endpoints use Multer limits before memory buffering, request rate

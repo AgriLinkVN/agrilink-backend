@@ -39,8 +39,12 @@ import {
 } from './ports/outbound/storage-observability.port';
 import {
   AttachOwnedStoredFileInput,
+  DetachOwnedStoredFileInput,
   ReadOwnedStoredFileInput,
+  RestoreReviewedStoredFileInput,
+  RetireOwnedStoredFileInput,
   ReviewStoredFileInput,
+  StorageReviewerRole,
   StoredFileAccessPort,
 } from './ports/inbound/stored-file-access.port';
 
@@ -242,7 +246,19 @@ export class StorageService implements StoredFileAccessPort {
     return deleted;
   }
 
-  async reviewStoredFile(id: string, reviewerRole: string, approve: boolean) {
+  async reviewStoredFile(
+    id: string,
+    reviewerRole: StorageReviewerRole,
+    approve: boolean,
+  ) {
+    return (await this.transitionReviewedFile(id, reviewerRole, approve)).file;
+  }
+
+  private async transitionReviewedFile(
+    id: string,
+    reviewerRole: StorageReviewerRole,
+    approve: boolean,
+  ): Promise<{ file: StoredFileModel | null; changed: boolean }> {
     if (reviewerRole !== 'admin' && reviewerRole !== 'state_agency')
       throw new UnauthorizedStoredFileReviewError('Reviewer role is required');
     const file = await this.storedFiles.findById(id);
@@ -251,16 +267,17 @@ export class StorageService implements StoredFileAccessPort {
       (approve && file.status === 'ACTIVE') ||
       (!approve && file.status === 'FAILED')
     )
-      return file;
+      return { file, changed: false };
     if (file.status !== 'QUARANTINED')
       throw new InvalidStoredFileTransitionError(
         'Only quarantined files can be reviewed',
       );
-    return this.storedFiles.updateStatus(
+    const updated = await this.storedFiles.updateStatus(
       file.id,
       file.ownerId,
       approve ? 'ACTIVE' : 'FAILED',
     );
+    return { file: updated, changed: true };
   }
 
   async attachOwnedFile(input: AttachOwnedStoredFileInput): Promise<void> {
@@ -298,6 +315,30 @@ export class StorageService implements StoredFileAccessPort {
       );
   }
 
+  async detachOwnedFile(input: DetachOwnedStoredFileInput): Promise<void> {
+    const file = await this.requireOwnedFile(input.fileId, input.ownerId);
+    if (!file.resourceId && !file.resourceType) return;
+    if (
+      file.resourceId !== input.resourceId ||
+      file.resourceType !== input.resourceType
+    ) {
+      throw new InvalidStoredFileTransitionError(
+        'Stored file is attached to another resource',
+      );
+    }
+    const detached = await this.storedFiles.detachFromResource(
+      file.id,
+      input.ownerId,
+      input.resourceType,
+      input.resourceId,
+    );
+    if (!detached) {
+      throw new InvalidStoredFileTransitionError(
+        'Stored file could not be detached',
+      );
+    }
+  }
+
   async readOwnedFile(input: ReadOwnedStoredFileInput): Promise<Buffer> {
     const file = await this.requireOwnedFile(input.fileId, input.ownerId);
     if (
@@ -317,11 +358,46 @@ export class StorageService implements StoredFileAccessPort {
     return this.fileStorage.download(file.objectKey);
   }
 
-  async reviewFile(input: ReviewStoredFileInput): Promise<void> {
-    await this.reviewStoredFile(
+  async reviewFile(input: ReviewStoredFileInput): Promise<boolean> {
+    return (
+      await this.transitionReviewedFile(
+        input.fileId,
+        input.reviewerRole,
+        input.approve,
+      )
+    ).changed;
+  }
+
+  async restoreReviewedFile(
+    input: RestoreReviewedStoredFileInput,
+  ): Promise<void> {
+    if (
+      input.reviewerRole !== 'admin' &&
+      input.reviewerRole !== 'state_agency'
+    ) {
+      throw new UnauthorizedStoredFileReviewError('Reviewer role is required');
+    }
+    const file = await this.storedFiles.findById(input.fileId);
+    if (!file) throw new StoredFileNotFoundError('Stored file not found');
+    if (file.status === 'QUARANTINED') return;
+    if (file.status !== 'ACTIVE' && file.status !== 'FAILED') {
+      throw new InvalidStoredFileTransitionError(
+        'Only a reviewed file can be restored',
+      );
+    }
+    const restored = await this.storedFiles.restoreReviewedStatus(file.id);
+    if (!restored) {
+      throw new InvalidStoredFileTransitionError(
+        'Reviewed file could not be restored',
+      );
+    }
+  }
+
+  async retireOwnedFile(input: RetireOwnedStoredFileInput): Promise<void> {
+    await this.deleteStoredFile(
+      input.ownerId,
       input.fileId,
-      input.reviewerRole,
-      input.approve,
+      input.correlationId,
     );
   }
 

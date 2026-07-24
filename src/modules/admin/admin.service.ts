@@ -20,8 +20,11 @@ import { IncidentReport } from '../../database/entities/incident-report.entity';
 import { ProductStatus, UserRole, UserStatus } from '../../common/enums';
 import {
   STORED_FILE_ACCESS,
+  StorageReviewerRole,
   StoredFileAccessPort,
 } from '../storage/application/ports/inbound/stored-file-access.port';
+
+class ProfileReviewConsistencyError extends Error {}
 
 @Injectable()
 export class AdminService {
@@ -140,7 +143,7 @@ export class AdminService {
     profileId: string,
     dto: VerifyProfileDto,
     adminId: string,
-    reviewerRole: UserRole,
+    reviewerRole: StorageReviewerRole,
   ) {
     let repo: Repository<any>;
     let isVerifiedField = 'isVerified';
@@ -166,23 +169,56 @@ export class AdminService {
     const profile = await repo.findOne({ where: { id: profileId } });
     if (!profile) throw new NotFoundException('Profile not found');
 
+    const previousState = {
+      [isVerifiedField]: profile[isVerifiedField],
+      verifiedBy: profile.verifiedBy,
+      verifiedAt: profile.verifiedAt,
+      rejectionReason: profile.rejectionReason,
+    };
     profile[isVerifiedField] = dto.isApproved;
     profile.verifiedBy = adminId;
+    profile.verifiedAt = dto.isApproved ? new Date() : null;
     profile.rejectionReason = dto.isApproved
       ? null
       : (dto.rejectionReason ?? null);
-    if (dto.isApproved) profile.verifiedAt = new Date();
 
     await repo.save(profile);
-    await Promise.all(
-      this.getProfileStoredFileIds(profile).map((fileId) =>
-        this.storedFileAccess.reviewFile({
+    const transitionedFileIds: string[] = [];
+    try {
+      for (const fileId of this.getProfileStoredFileIds(profile)) {
+        const changed = await this.storedFileAccess.reviewFile({
           fileId,
           reviewerRole,
           approve: dto.isApproved,
-        }),
-      ),
-    );
+        });
+        if (changed) transitionedFileIds.push(fileId);
+      }
+    } catch (error) {
+      const storageCompensation = await Promise.allSettled(
+        transitionedFileIds.map((fileId) =>
+          this.storedFileAccess.restoreReviewedFile({
+            fileId,
+            reviewerRole,
+          }),
+        ),
+      );
+      Object.assign(profile, previousState);
+      let profileCompensationFailed = false;
+      try {
+        await repo.save(profile);
+      } catch {
+        profileCompensationFailed = true;
+      }
+      if (
+        profileCompensationFailed ||
+        storageCompensation.some((result) => result.status === 'rejected')
+      ) {
+        throw new ProfileReviewConsistencyError(
+          'Profile review compensation failed and requires reconciliation',
+        );
+      }
+      throw error;
+    }
 
     await this.createAuditLog({
       userId: adminId,

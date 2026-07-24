@@ -20,6 +20,7 @@ import {
 import { Public } from '@common/decorators/public.decorator';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { StorageReviewerRole } from '@modules/storage/application/ports/inbound/stored-file-access.port';
 import { ProductsService } from '@modules/products/application/products.service';
 import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
@@ -126,7 +127,7 @@ export class ProductsController {
   verifyCertification(
     @Param('certId', ParseUuidPipe) certId: string,
     @CurrentUser('sub') adminId: string,
-    @CurrentUser('role') reviewerRole: UserRole,
+    @CurrentUser('role') reviewerRole: StorageReviewerRole,
     @Body() dto: VerifyProductCertificationDto,
   ) {
     const input: VerifyProductCertificationInput = dto;

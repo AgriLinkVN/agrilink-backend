@@ -237,6 +237,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       INNER JOIN "products" product ON product."id" = certification."product_id"
       WHERE certification."stored_file_id" IS NULL
         AND certification."document_url" IS NOT NULL
+        AND btrim(certification."document_url") <> ''
         AND certification."document_url" !~* '^https?://'
       ON CONFLICT ("object_key") DO NOTHING
     `);
@@ -248,6 +249,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       WHERE product."id" = certification."product_id"
         AND certification."stored_file_id" IS NULL
         AND certification."document_url" IS NOT NULL
+        AND btrim(certification."document_url") <> ''
         AND certification."document_url" !~* '^https?://'
         AND stored."owner_id" = product."seller_id"::uuid
         AND stored."provider" = 'SUPABASE'
@@ -295,6 +297,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       FROM "quality_certificates" certificate
       WHERE certificate."stored_file_id" IS NULL
         AND certificate."document_url" IS NOT NULL
+        AND btrim(certificate."document_url") <> ''
         AND certificate."document_url" !~* '^https?://'
       ON CONFLICT ("object_key") DO NOTHING
     `);
@@ -305,6 +308,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       FROM "stored_files" stored
       WHERE certificate."stored_file_id" IS NULL
         AND certificate."document_url" IS NOT NULL
+        AND btrim(certificate."document_url") <> ''
         AND certificate."document_url" !~* '^https?://'
         AND stored."owner_id" = certificate."issued_to"
         AND stored."provider" = 'SUPABASE'
@@ -354,6 +358,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       FROM "${link.table}" profile
       WHERE profile."${link.targetColumn}" IS NULL
         AND ${source} IS NOT NULL
+        AND btrim(${source}) <> ''
         AND ${source} !~* '^https?://'
       ON CONFLICT ("object_key") DO NOTHING
     `);
@@ -364,6 +369,7 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       FROM "stored_files" stored
       WHERE profile."${link.targetColumn}" IS NULL
         AND ${source} IS NOT NULL
+        AND btrim(${source}) <> ''
         AND ${source} !~* '^https?://'
         AND stored."owner_id" = profile."${link.ownerColumn}"
         AND stored."provider" = 'SUPABASE'
@@ -386,7 +392,15 @@ export class AddStoredFileIdToPrivateDocuments1783731600000 implements Migration
       DO $phase9$
       BEGIN
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = '${constraint}'
+          SELECT 1
+          FROM pg_constraint existing_constraint
+          INNER JOIN pg_class constrained_table
+            ON constrained_table.oid = existing_constraint.conrelid
+          INNER JOIN pg_namespace table_namespace
+            ON table_namespace.oid = constrained_table.relnamespace
+          WHERE existing_constraint.conname = '${constraint}'
+            AND constrained_table.relname = '${table}'
+            AND table_namespace.nspname = current_schema()
         ) THEN
           ALTER TABLE "${table}"
           ADD CONSTRAINT "${constraint}"

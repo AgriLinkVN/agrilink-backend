@@ -16,6 +16,8 @@ interface SourceDefinition {
   resourceType: string;
   ownerExpression: string;
   resourceExpression: string;
+  approvedExpression: string;
+  rejectedExpression: string;
   optional?: boolean;
   selectSql: string;
 }
@@ -56,6 +58,8 @@ export const PRIVATE_DOCUMENT_SOURCES: SourceDefinition[] = [
     ownerExpression:
       '(SELECT seller_id FROM products WHERE id = legacy.product_id)',
     resourceExpression: 'legacy.product_id',
+    approvedExpression: "legacy.status = 'verified'",
+    rejectedExpression: "legacy.status = 'rejected'",
     selectSql: `
       SELECT certification.id::text AS "recordId",
         product.seller_id::text AS "ownerId",
@@ -78,6 +82,9 @@ export const PRIVATE_DOCUMENT_SOURCES: SourceDefinition[] = [
     resourceType: 'QUALITY_CERTIFICATE',
     ownerExpression: 'legacy.issued_to',
     resourceExpression: 'legacy.id',
+    approvedExpression: "legacy.status = 'active'",
+    rejectedExpression:
+      "legacy.status = 'revoked' OR legacy.revoked_reason IS NOT NULL",
     optional: true,
     selectSql: `
       SELECT certificate.id::text AS "recordId",
@@ -192,6 +199,8 @@ function profileSource(
     resourceType,
     ownerExpression: 'legacy.user_id',
     resourceExpression: 'legacy.id',
+    approvedExpression: `legacy.${verifiedColumn} = true`,
+    rejectedExpression: 'legacy.rejection_reason IS NOT NULL',
     selectSql: `
       SELECT profile.id::text AS "recordId",
         profile.user_id::text AS "ownerId",
@@ -515,8 +524,10 @@ async function finalizeCandidate(
 export async function verifyRollout(): Promise<void> {
   let legacySources = 0;
   let invalidLinks = 0;
+  const activeSources: SourceDefinition[] = [];
   for (const source of PRIVATE_DOCUMENT_SOURCES) {
     if (source.optional && !(await tableExists(source.table))) continue;
+    activeSources.push(source);
     const [result] = (await rolloutDataSource.query(`
       SELECT
         count(*) FILTER (WHERE legacy."${source.sourceColumn}" IS NOT NULL)::int AS "legacySources",
@@ -529,6 +540,17 @@ export async function verifyRollout(): Promise<void> {
               OR stored.visibility <> 'PRIVATE'
               OR stored."assetType" <> '${source.assetType}'
               OR stored.status NOT IN ('QUARANTINED', 'ACTIVE', 'FAILED')
+              OR (
+                (${source.approvedExpression}) AND stored.status <> 'ACTIVE'
+              )
+              OR (
+                (${source.rejectedExpression}) AND stored.status <> 'FAILED'
+              )
+              OR (
+                NOT (${source.approvedExpression})
+                AND NOT (${source.rejectedExpression})
+                AND stored.status <> 'QUARANTINED'
+              )
               OR stored.resource_type IS DISTINCT FROM '${source.resourceType}'
               OR stored.resource_id IS DISTINCT FROM resource_ref.resource_id::text
             )
@@ -546,6 +568,35 @@ export async function verifyRollout(): Promise<void> {
     legacySources += Number(result.legacySources);
     invalidLinks += Number(result.invalidLinks);
   }
+
+  const linkedSources = activeSources
+    .map(
+      (source) =>
+        `SELECT "${source.targetColumn}" AS id FROM "${source.table}" WHERE "${source.targetColumn}" IS NOT NULL`,
+    )
+    .join('\nUNION\n');
+  const resourceTypes = [
+    ...new Set(activeSources.map((source) => source.resourceType)),
+  ]
+    .map((resourceType) => `'${resourceType}'`)
+    .join(', ');
+  const [orphanResult] = (await rolloutDataSource.query(`
+    WITH linked_private_files AS (
+      ${linkedSources}
+    )
+    SELECT count(*)::int AS "orphanAttachments"
+    FROM stored_files stored
+    WHERE stored."assetType" IN (
+      'CERTIFICATION', 'KYC_IDENTITY', 'BUSINESS_LICENSE'
+    )
+      AND stored.resource_type IN (${resourceTypes})
+      AND stored.resource_id IS NOT NULL
+      AND stored.status <> 'DELETED'
+      AND NOT EXISTS (
+        SELECT 1 FROM linked_private_files linked WHERE linked.id = stored.id
+      )
+  `)) as Array<{ orphanAttachments: number }>;
+  invalidLinks += Number(orphanResult.orphanAttachments);
 
   const [policyResult] = (await rolloutDataSource.query(`
     SELECT count(*)::int AS "invalidPrivateMetadata"

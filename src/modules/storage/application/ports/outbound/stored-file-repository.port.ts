@@ -43,5 +43,12 @@ export interface StoredFileRepositoryPort {
     resourceType: string,
     resourceId: string,
   ): Promise<boolean>;
+  detachFromResource(
+    id: string,
+    ownerId: string,
+    resourceType: string,
+    resourceId: string,
+  ): Promise<boolean>;
+  restoreReviewedStatus(id: string): Promise<boolean>;
   markDeletionRetry(id: string, ownerId: string): Promise<void>;
 }

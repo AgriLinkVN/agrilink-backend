@@ -23,6 +23,8 @@ describe('storage intent load budget', () => {
       markDeletionRetry: jest.fn(),
       updateStatus: jest.fn(),
       attachToResource: jest.fn(),
+      detachFromResource: jest.fn(),
+      restoreReviewedStatus: jest.fn(),
     };
     const service = new StorageService(
       {} as never,

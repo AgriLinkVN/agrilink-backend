@@ -24,6 +24,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../common/enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { VerifyProfileDto } from './dto/verify-profile.dto';
+import { StorageReviewerRole } from '../storage/application/ports/inbound/stored-file-access.port';
 
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
@@ -59,7 +60,7 @@ export class AdminController {
     @Param('profileId') profileId: string,
     @Body() dto: VerifyProfileDto,
     @CurrentUser('sub') adminId: string,
-    @CurrentUser('role') reviewerRole: UserRole,
+    @CurrentUser('role') reviewerRole: StorageReviewerRole,
   ) {
     return this.adminService.verifyProfile(
       type,

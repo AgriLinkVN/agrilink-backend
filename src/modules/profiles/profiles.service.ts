@@ -1,5 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
 import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
@@ -16,12 +17,26 @@ import {
   STORED_FILE_ACCESS,
   StoredFileAccessPort,
 } from '../storage/application/ports/inbound/stored-file-access.port';
+import {
+  InvalidStoredFileTransitionError,
+  StoredFileNotFoundError,
+} from '../storage/application/storage-file.errors';
 
 type PrivateAssetType = 'KYC_IDENTITY' | 'BUSINESS_LICENSE' | 'CERTIFICATION';
 
-interface ProfileFileAttachment {
-  fileId?: string;
+interface ProfileFileChange {
+  fileId: string;
+  previousFileId: string | null;
   assetType: PrivateAssetType;
+}
+
+class PrivateDocumentConsistencyError extends Error {}
+
+function isInvalidPrivateDocument(error: unknown): boolean {
+  return (
+    error instanceof StoredFileNotFoundError ||
+    error instanceof InvalidStoredFileTransitionError
+  );
 }
 
 @Injectable()
@@ -85,7 +100,21 @@ export class ProfilesService {
 
     if (!profile) {
       profile = this.farmerRepo.create({ user: { id: userId } });
+      profile.id = randomUUID();
     }
+
+    const fileChanges = [
+      this.toFileChange(
+        dto.cccdFrontFileId,
+        profile.cccdFrontFileId,
+        'KYC_IDENTITY',
+      ),
+      this.toFileChange(
+        dto.cccdBackFileId,
+        profile.cccdBackFileId,
+        'KYC_IDENTITY',
+      ),
+    ].filter((change): change is ProfileFileChange => change !== null);
 
     Object.assign(profile, {
       cccdNumber: dto.cccdNumber,
@@ -99,17 +128,17 @@ export class ProfilesService {
     profile.verifiedBy = null;
     profile.verifiedAt = null;
     profile.rejectionReason = null;
-    profile = await this.farmerRepo.save(profile);
-
-    await this.attachProfileFiles(userId, 'FARMER_PROFILE', profile.id, [
-      { fileId: dto.cccdFrontFileId, assetType: 'KYC_IDENTITY' },
-      { fileId: dto.cccdBackFileId, assetType: 'KYC_IDENTITY' },
-    ]);
     profile.cccdFrontFileId = dto.cccdFrontFileId;
     profile.cccdBackFileId = dto.cccdBackFileId;
     profile.cccdFrontUrl = null;
     profile.cccdBackUrl = null;
-    return this.farmerRepo.save(profile);
+    return this.persistProfileWithFiles(
+      userId,
+      'FARMER_PROFILE',
+      profile.id,
+      fileChanges,
+      () => this.farmerRepo.save(profile),
+    );
   }
 
   async upsertB2bProfile(
@@ -130,22 +159,43 @@ export class ProfilesService {
       let profile = await this.cooperativeRepo.findOne({
         where: { user: { id: userId } },
       });
-      if (!profile)
+      if (!profile) {
         profile = this.cooperativeRepo.create({ user: { id: userId } });
+        profile.id = randomUUID();
+      }
 
       Object.assign(profile, profileData);
       profile.isVerified = false;
       profile.verifiedBy = null;
       profile.verifiedAt = null;
       profile.rejectionReason = null;
-      profile = await this.cooperativeRepo.save(profile);
-      await this.attachProfileFiles(userId, 'COOPERATIVE_PROFILE', profile.id, [
-        { fileId: businessLicenseFileId, assetType: 'BUSINESS_LICENSE' },
-        { fileId: cooperativeCertFileId, assetType: 'BUSINESS_LICENSE' },
-        { fileId: representativeCccdFrontFileId, assetType: 'KYC_IDENTITY' },
-        { fileId: representativeCccdBackFileId, assetType: 'KYC_IDENTITY' },
-        { fileId: membersListFileId, assetType: 'BUSINESS_LICENSE' },
-      ]);
+      const fileChanges = [
+        this.toFileChange(
+          businessLicenseFileId,
+          profile.businessLicenseFileId,
+          'BUSINESS_LICENSE',
+        ),
+        this.toFileChange(
+          cooperativeCertFileId,
+          profile.cooperativeCertFileId,
+          'BUSINESS_LICENSE',
+        ),
+        this.toFileChange(
+          representativeCccdFrontFileId,
+          profile.representativeCccdFrontFileId,
+          'KYC_IDENTITY',
+        ),
+        this.toFileChange(
+          representativeCccdBackFileId,
+          profile.representativeCccdBackFileId,
+          'KYC_IDENTITY',
+        ),
+        this.toFileChange(
+          membersListFileId,
+          profile.membersListFileId,
+          'BUSINESS_LICENSE',
+        ),
+      ].filter((change): change is ProfileFileChange => change !== null);
       if (businessLicenseFileId) {
         profile.businessLicenseFileId = businessLicenseFileId;
         profile.businessLicenseUrl = null;
@@ -166,48 +216,77 @@ export class ProfilesService {
         profile.membersListFileId = membersListFileId;
         profile.membersListUrl = null;
       }
-      return this.cooperativeRepo.save(profile);
+      return this.persistProfileWithFiles(
+        userId,
+        'COOPERATIVE_PROFILE',
+        profile.id,
+        fileChanges,
+        () => this.cooperativeRepo.save(profile),
+      );
     }
 
     if (role === UserRole.ENTERPRISE) {
       let profile = await this.enterpriseRepo.findOne({
         where: { user: { id: userId } },
       });
-      if (!profile)
+      if (!profile) {
         profile = this.enterpriseRepo.create({ user: { id: userId } });
+        profile.id = randomUUID();
+      }
 
       Object.assign(profile, profileData);
       profile.isVerified = false;
       profile.verifiedBy = null;
       profile.rejectionReason = null;
-      profile = await this.enterpriseRepo.save(profile);
-      await this.attachProfileFiles(userId, 'ENTERPRISE_PROFILE', profile.id, [
-        { fileId: businessLicenseFileId, assetType: 'BUSINESS_LICENSE' },
-      ]);
+      const fileChanges = [
+        this.toFileChange(
+          businessLicenseFileId,
+          profile.businessLicenseFileId,
+          'BUSINESS_LICENSE',
+        ),
+      ].filter((change): change is ProfileFileChange => change !== null);
       if (businessLicenseFileId) {
         profile.businessLicenseFileId = businessLicenseFileId;
         profile.businessLicenseUrl = null;
       }
-      return this.enterpriseRepo.save(profile);
+      return this.persistProfileWithFiles(
+        userId,
+        'ENTERPRISE_PROFILE',
+        profile.id,
+        fileChanges,
+        () => this.enterpriseRepo.save(profile),
+      );
     }
 
     if (role === UserRole.SUPPLIER) {
       let profile = await this.supplierRepo.findOne({ where: { userId } });
-      if (!profile) profile = this.supplierRepo.create({ userId });
+      if (!profile) {
+        profile = this.supplierRepo.create({ userId });
+        profile.id = randomUUID();
+      }
 
       Object.assign(profile, profileData);
       profile.isVerified = false;
       profile.verifiedBy = null;
       profile.rejectionReason = null;
-      profile = await this.supplierRepo.save(profile);
-      await this.attachProfileFiles(userId, 'SUPPLIER_PROFILE', profile.id, [
-        { fileId: businessLicenseFileId, assetType: 'BUSINESS_LICENSE' },
-      ]);
+      const fileChanges = [
+        this.toFileChange(
+          businessLicenseFileId,
+          profile.businessLicenseFileId,
+          'BUSINESS_LICENSE',
+        ),
+      ].filter((change): change is ProfileFileChange => change !== null);
       if (businessLicenseFileId) {
         profile.businessLicenseFileId = businessLicenseFileId;
         profile.businessLicenseUrl = null;
       }
-      return this.supplierRepo.save(profile);
+      return this.persistProfileWithFiles(
+        userId,
+        'SUPPLIER_PROFILE',
+        profile.id,
+        fileChanges,
+        () => this.supplierRepo.save(profile),
+      );
     }
 
     throw new BadRequestException('Invalid B2B role');
@@ -224,43 +303,97 @@ export class ProfilesService {
         ownerId,
         assetType,
       });
-    } catch {
-      throw new BadRequestException(
-        'Tài liệu riêng tư không hợp lệ hoặc không thuộc tài khoản',
-      );
+    } catch (error) {
+      if (isInvalidPrivateDocument(error)) {
+        throw new BadRequestException(
+          'Tài liệu riêng tư không hợp lệ hoặc không thuộc tài khoản',
+        );
+      }
+      throw error;
     }
   }
 
-  private async attachProfileFiles(
+  private toFileChange(
+    fileId: string | undefined,
+    previousFileId: string | null | undefined,
+    assetType: PrivateAssetType,
+  ): ProfileFileChange | null {
+    if (!fileId || fileId === previousFileId) return null;
+    return {
+      fileId,
+      previousFileId: previousFileId ?? null,
+      assetType,
+    };
+  }
+
+  private async persistProfileWithFiles<T>(
     ownerId: string,
     resourceType: string,
     resourceId: string,
-    attachments: ProfileFileAttachment[],
-  ): Promise<void> {
+    changes: ProfileFileChange[],
+    persist: () => Promise<T>,
+  ): Promise<T> {
+    const attached: ProfileFileChange[] = [];
+    let saved: T;
     try {
-      await Promise.all(
-        attachments
-          .filter(
-            (
-              attachment,
-            ): attachment is ProfileFileAttachment & {
-              fileId: string;
-            } => !!attachment.fileId,
-          )
-          .map((attachment) =>
-            this.storedFileAccess.attachOwnedFile({
-              fileId: attachment.fileId,
-              ownerId,
-              assetType: attachment.assetType,
-              resourceType,
-              resourceId,
-            }),
-          ),
+      for (const change of changes) {
+        await this.storedFileAccess.attachOwnedFile({
+          fileId: change.fileId,
+          ownerId,
+          assetType: change.assetType,
+          resourceType,
+          resourceId,
+        });
+        attached.push(change);
+      }
+      saved = await persist();
+    } catch (error) {
+      const compensation = await Promise.allSettled(
+        attached.map((change) =>
+          this.storedFileAccess.detachOwnedFile({
+            fileId: change.fileId,
+            ownerId,
+            resourceType,
+            resourceId,
+          }),
+        ),
       );
-    } catch {
-      throw new BadRequestException(
-        'Không thể gắn tài liệu riêng tư vào hồ sơ',
-      );
+      if (compensation.some((result) => result.status === 'rejected')) {
+        throw new PrivateDocumentConsistencyError(
+          'Profile file compensation failed and requires reconciliation',
+        );
+      }
+      if (isInvalidPrivateDocument(error)) {
+        throw new BadRequestException(
+          'Không thể gắn tài liệu riêng tư vào hồ sơ',
+        );
+      }
+      throw error;
+    }
+    await this.retireReplacedFiles(ownerId, changes);
+    return saved;
+  }
+
+  private async retireReplacedFiles(
+    ownerId: string,
+    changes: ProfileFileChange[],
+  ): Promise<void> {
+    for (const fileId of new Set(
+      changes
+        .map((change) => change.previousFileId)
+        .filter((fileId): fileId is string => !!fileId),
+    )) {
+      try {
+        await this.storedFileAccess.retireOwnedFile({
+          fileId,
+          ownerId,
+          correlationId: randomUUID(),
+        });
+      } catch {
+        throw new PrivateDocumentConsistencyError(
+          'Replaced profile file requires lifecycle reconciliation',
+        );
+      }
     }
   }
 }

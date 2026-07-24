@@ -51,14 +51,16 @@ has completed.
 ## Preconditions
 
 1. Phase 8 PR is merged and the Phase 9 migration has been reviewed.
-2. PostgreSQL backup and restore have been tested.
-3. `DB_SYNCHRONIZE=false`; production schema changes are migration-only.
-4. Supabase bucket is private and provider MIME/size controls match
+2. The Phase 9 migration integration gate has passed against PostgreSQL 16,
+   including `up`, a second idempotent `up`, and `down`.
+3. PostgreSQL backup and restore have been tested.
+4. `DB_SYNCHRONIZE=false`; production schema changes are migration-only.
+5. Supabase bucket is private and provider MIME/size controls match
    `storage-policy.md`.
-5. `SUPABASE_SERVICE_KEY` is available only to the backend/operator shell.
-6. Cloudinary access is available to an authorized operator who can identify
+6. `SUPABASE_SERVICE_KEY` is available only to the backend/operator shell.
+7. Cloudinary access is available to an authorized operator who can identify
    exact legacy assets without parsing public IDs from URLs.
-7. Gateway access logs show zero successful calls to the three legacy routes
+8. Gateway access logs show zero successful calls to the three legacy routes
    for the agreed observation window.
 
 ## Migration Sequence
@@ -110,6 +112,26 @@ Finalize clears a retained Supabase path after it has a metadata link. It clears
 an HTTP source only after the source returns 404 or 410. A reachable public
 source blocks finalization.
 
+## Consistency And Replacement Rules
+
+Product and profile repositories do not share one transaction boundary with
+the Storage repository. Their application workflows therefore use a bounded
+saga:
+
+1. Validate and attach only owned, quarantined private files.
+2. Persist the domain record once.
+3. Detach each newly attached file if domain persistence fails.
+4. During review, restore only files changed by that request if the domain
+   review write fails.
+5. Surface compensation failures as server-side consistency incidents; do not
+   convert provider, database, or compensation failures into HTTP 400.
+
+When a profile document is replaced, the new file is committed first and the
+previous file is retired through the deletion-retry workflow. Removing a
+product certification also retires its linked private file. The verifier counts
+non-deleted private Phase 9 attachments with no matching domain link and
+domain/storage lifecycle mismatches as `invalidLinks`.
+
 ## Cutover Gate
 
 All checks must be true before setting `storage-file-id-rollout-v1` to 100%:
@@ -132,6 +154,8 @@ All checks must be true before setting `storage-file-id-rollout-v1` to 100%:
   `storage.legacy_route_rejected` event is investigated before increasing the
   cohort.
 - Backend and frontend build/lint/test gates pass for the exact release commits.
+- The PostgreSQL 16 migration integration gate passes for the exact backend
+  commit.
 
 ## Production Smoke Test
 
@@ -169,8 +193,14 @@ untracked and is not an acceptable rollback.
 ## Evidence To Attach To Release
 
 - Backend and frontend commit SHAs.
+- Frontend private-document migration
+  [PR #45](https://github.com/AgriLinkVN/agrilink-frontend/pull/45), merged as
+  `d5ebcd0dd83fff42c6e509565207ca29deb7812b` from
+  `d12cf9f182923f6eb18718336eed82d43beb9e76`; record the exact deployed SHA in
+  the release ticket.
 - Migration execution ID and row counts by source key.
 - Cloudinary deletion confirmation held in the restricted operations system.
 - `storage:phase9:verify` output.
 - Build, lint, focused test, full test, and E2E results.
+- PostgreSQL migration integration result for `up`, repeated `up`, and `down`.
 - Flag cohort timestamps and legacy-route telemetry counts.

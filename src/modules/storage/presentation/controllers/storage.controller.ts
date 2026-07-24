@@ -44,6 +44,7 @@ import { ReviewStoredFileDto } from '../schemas/review-stored-file.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/common/enums';
 import { randomUUID } from 'crypto';
+import { StorageReviewerRole } from '../../application/ports/inbound/stored-file-access.port';
 
 @ApiTags('Storage')
 @UseGuards(StorageThrottlerGuard)
@@ -117,7 +118,7 @@ export class StorageController {
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   reviewFile(
     @Param('id') id: string,
-    @CurrentUser('role') role: string,
+    @CurrentUser('role') role: StorageReviewerRole,
     @Body() dto: ReviewStoredFileDto,
   ) {
     return this.withStoredFileErrors(() =>

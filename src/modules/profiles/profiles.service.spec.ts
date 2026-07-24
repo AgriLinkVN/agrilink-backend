@@ -1,5 +1,6 @@
 import { UserRole } from '../../common/enums';
 import { ProfilesService } from './profiles.service';
+import { StoredFileNotFoundError } from '../storage/application/storage-file.errors';
 
 const USER_ID = '11111111-1111-4111-8111-111111111111';
 const PROFILE_ID = '22222222-2222-4222-8222-222222222222';
@@ -22,8 +23,11 @@ function makeService() {
   const vision = { verifyCccdImage: jest.fn().mockResolvedValue(true) };
   const storedFileAccess = {
     attachOwnedFile: jest.fn().mockResolvedValue(undefined),
+    detachOwnedFile: jest.fn().mockResolvedValue(undefined),
     readOwnedFile: jest.fn().mockResolvedValue(Buffer.from('identity')),
-    reviewFile: jest.fn(),
+    reviewFile: jest.fn().mockResolvedValue(true),
+    restoreReviewedFile: jest.fn().mockResolvedValue(undefined),
+    retireOwnedFile: jest.fn().mockResolvedValue(undefined),
   };
   const service = new ProfilesService(
     farmerRepository as never,
@@ -63,7 +67,7 @@ describe('ProfilesService private documents', () => {
       ownerId: USER_ID,
       assetType: 'KYC_IDENTITY',
       resourceType: 'FARMER_PROFILE',
-      resourceId: PROFILE_ID,
+      resourceId: saved.id,
     });
     expect(saved).toMatchObject({
       cccdFrontFileId: FRONT_FILE_ID,
@@ -71,13 +75,13 @@ describe('ProfilesService private documents', () => {
       cccdFrontUrl: null,
       cccdBackUrl: null,
     });
-    expect(farmerRepository.save).toHaveBeenCalledTimes(2);
+    expect(farmerRepository.save).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a cross-owner CCCD before profile persistence', async () => {
     const { service, farmerRepository, storedFileAccess } = makeService();
     storedFileAccess.readOwnedFile.mockRejectedValue(
-      new Error('Stored file not found'),
+      new StoredFileNotFoundError('Stored file not found'),
     );
 
     await expect(
@@ -104,12 +108,100 @@ describe('ProfilesService private documents', () => {
       ownerId: USER_ID,
       assetType: 'BUSINESS_LICENSE',
       resourceType: 'ENTERPRISE_PROFILE',
-      resourceId: PROFILE_ID,
+      resourceId: saved.id,
     });
     expect(saved).toMatchObject({
       businessLicenseFileId: FRONT_FILE_ID,
       businessLicenseUrl: null,
     });
-    expect(enterpriseRepository.save).toHaveBeenCalledTimes(2);
+    expect(enterpriseRepository.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('detaches newly attached files when profile persistence fails', async () => {
+    const { service, farmerRepository, storedFileAccess } = makeService();
+    farmerRepository.save.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(
+      service.upsertFarmerProfile(USER_ID, {
+        cccdNumber: '012345678901',
+        cccdFrontFileId: FRONT_FILE_ID,
+        cccdBackFileId: BACK_FILE_ID,
+        residenceAddress: 'Can Tho',
+      }),
+    ).rejects.toThrow('database unavailable');
+
+    expect(storedFileAccess.detachOwnedFile).toHaveBeenCalledTimes(2);
+    expect(storedFileAccess.detachOwnedFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileId: FRONT_FILE_ID,
+        ownerId: USER_ID,
+        resourceType: 'FARMER_PROFILE',
+      }),
+    );
+  });
+
+  it('detaches earlier files when a later attachment fails', async () => {
+    const { service, farmerRepository, storedFileAccess } = makeService();
+    storedFileAccess.attachOwnedFile
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(
+        new StoredFileNotFoundError('Stored file not found'),
+      );
+
+    await expect(
+      service.upsertFarmerProfile(USER_ID, {
+        cccdNumber: '012345678901',
+        cccdFrontFileId: FRONT_FILE_ID,
+        cccdBackFileId: BACK_FILE_ID,
+        residenceAddress: 'Can Tho',
+      }),
+    ).rejects.toThrow('Không thể gắn tài liệu riêng tư');
+
+    expect(storedFileAccess.detachOwnedFile).toHaveBeenCalledTimes(1);
+    expect(storedFileAccess.detachOwnedFile).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: FRONT_FILE_ID }),
+    );
+    expect(farmerRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('retires the previous private file after a successful replacement', async () => {
+    const { service, enterpriseRepository, storedFileAccess } = makeService();
+    const previousFileId = '55555555-5555-4555-8555-555555555555';
+    enterpriseRepository.findOne.mockResolvedValue({
+      id: PROFILE_ID,
+      user: { id: USER_ID },
+      businessLicenseFileId: previousFileId,
+    });
+
+    await service.upsertB2bProfile(USER_ID, UserRole.ENTERPRISE, {
+      companyName: 'AgriLink Enterprise',
+      businessLicenseFileId: FRONT_FILE_ID,
+    });
+
+    expect(storedFileAccess.retireOwnedFile).toHaveBeenCalledWith({
+      fileId: previousFileId,
+      ownerId: USER_ID,
+      correlationId: expect.any(String),
+    });
+    expect(storedFileAccess.retireOwnedFile.mock.invocationCallOrder[0]).toBeGreaterThan(
+      enterpriseRepository.save.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('rethrows infrastructure failures instead of reporting invalid input', async () => {
+    const { service, farmerRepository, storedFileAccess } = makeService();
+    storedFileAccess.readOwnedFile.mockRejectedValue(
+      new Error('provider timeout'),
+    );
+
+    await expect(
+      service.upsertFarmerProfile(USER_ID, {
+        cccdNumber: '012345678901',
+        cccdFrontFileId: FRONT_FILE_ID,
+        cccdBackFileId: BACK_FILE_ID,
+        residenceAddress: 'Can Tho',
+      }),
+    ).rejects.toThrow('provider timeout');
+    expect(farmerRepository.save).not.toHaveBeenCalled();
   });
 });

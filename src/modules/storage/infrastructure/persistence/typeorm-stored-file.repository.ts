@@ -77,6 +77,33 @@ export class TypeOrmStoredFileRepository implements StoredFileRepositoryPort {
       .execute();
     return (result.affected ?? 0) === 1;
   }
+  async detachFromResource(
+    id: string,
+    ownerId: string,
+    resourceType: string,
+    resourceId: string,
+  ): Promise<boolean> {
+    const result = await this.files
+      .createQueryBuilder()
+      .update(StoredFileEntity)
+      .set({ resourceType: null, resourceId: null })
+      .where('id = :id', { id })
+      .andWhere('owner_id = :ownerId', { ownerId })
+      .andWhere('resource_type = :resourceType', { resourceType })
+      .andWhere('resource_id = :resourceId', { resourceId })
+      .execute();
+    return (result.affected ?? 0) === 1;
+  }
+  async restoreReviewedStatus(id: string): Promise<boolean> {
+    const result = await this.files
+      .createQueryBuilder()
+      .update(StoredFileEntity)
+      .set({ status: 'QUARANTINED' })
+      .where('id = :id', { id })
+      .andWhere("status IN ('ACTIVE', 'FAILED')")
+      .execute();
+    return (result.affected ?? 0) === 1;
+  }
   async markDeletionRetry(id: string, ownerId: string): Promise<void> {
     await this.files.increment({ id, ownerId }, 'deletionAttempts', 1);
     await this.files.update({ id, ownerId }, { status: 'DELETE_RETRY' });
