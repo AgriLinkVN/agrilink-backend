@@ -245,7 +245,11 @@ async function expectLinkedPrivateMetadata(
 
   const links = (await queryRunner.query(`
     SELECT
-      (SELECT "stored_file_id" FROM "product_certifications" LIMIT 1) AS product,
+      (
+        SELECT "stored_file_id"
+        FROM "product_certifications"
+        WHERE "id" = '22222222-2222-4222-8222-222222222222'
+      ) AS product,
       (SELECT "stored_file_id" FROM "quality_certificates" LIMIT 1) AS quality,
       (SELECT "cccd_front_file_id" FROM "farmer_profiles" LIMIT 1) AS farmer
   `)) as Array<{ product: string; quality: string; farmer: string }>;
