@@ -3,6 +3,7 @@ import { USER_MANAGER_PORT, IUserManagerPort } from '../ports/outbound/user-mana
 import { PASSWORD_HASHER_PORT, IPasswordHasherPort } from '../ports/outbound/password-hasher.port';
 import { TOKEN_GENERATOR_PORT, ITokenGeneratorPort, TokenPair } from '../ports/outbound/token-generator.port';
 import { FirebaseSyncDto } from '../../presentation/dto/firebase-sync.dto';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import { InvalidTokenError } from '../../domain/errors/auth.errors';
 import { UserRole, UserStatus } from '../../../../common/enums';
 import * as crypto from 'crypto';
@@ -15,7 +16,7 @@ export class SyncFirebaseUserUseCase {
     @Inject(TOKEN_GENERATOR_PORT) private readonly tokenGenerator: ITokenGeneratorPort,
   ) {}
 
-  async execute(firebaseUser: any, dto: FirebaseSyncDto = {}): Promise<TokenPair> {
+  async execute(firebaseUser: DecodedIdToken, dto: FirebaseSyncDto = {}): Promise<TokenPair> {
     const firebaseUid = firebaseUser.uid;
     const email = firebaseUser.email ?? dto.email;
 

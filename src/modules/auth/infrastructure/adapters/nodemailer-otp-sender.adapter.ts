@@ -22,7 +22,7 @@ export class NodemailerOtpSenderAdapter implements IOtpSenderPort {
     });
   }
 
-  async saveOtp(data: any): Promise<any> {
+  async saveOtp(data: Partial<OtpVerification>): Promise<OtpVerification> {
     return this.otpRepo.save(data);
   }
 
@@ -42,7 +42,7 @@ export class NodemailerOtpSenderAdapter implements IOtpSenderPort {
     return true; // mocked
   }
 
-  async findValidOtp(target: string, code: string, purpose: string): Promise<any> {
+  async findValidOtp(target: string, code: string, purpose: string): Promise<OtpVerification | null> {
     return this.otpRepo.findOne({
       where: {
         email: target,
@@ -54,7 +54,7 @@ export class NodemailerOtpSenderAdapter implements IOtpSenderPort {
     });
   }
 
-  async markAsUsed(otp: any): Promise<void> {
+  async markAsUsed(otp: OtpVerification): Promise<void> {
     otp.isUsed = true;
     await this.otpRepo.save(otp);
   }

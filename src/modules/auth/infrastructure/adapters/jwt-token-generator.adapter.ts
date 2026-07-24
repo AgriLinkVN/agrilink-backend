@@ -6,6 +6,8 @@ import { Repository, IsNull } from "typeorm";
 import * as crypto from "crypto";
 import { RefreshToken } from "../../../../database/entities/refresh-token.entity";
 import { ITokenGeneratorPort, TokenPair } from "../../application/ports/outbound/token-generator.port";
+import { JwtPayload } from "../../application/ports/outbound/jwt-payload.type";
+
 import { UsersService } from "../../../users/users.service";
 
 @Injectable()
@@ -53,7 +55,7 @@ export class JwtTokenGeneratorAdapter implements ITokenGeneratorPort {
     return { accessToken, refreshToken };
   }
 
-  async verifyRefreshToken(token: string): Promise<any> {
+  async verifyRefreshToken(token: string): Promise<JwtPayload> {
     const secret = this.configService.get<string>(
       "JWT_REFRESH_SECRET",
       "fallback_refresh_secret_change_me",
@@ -61,7 +63,7 @@ export class JwtTokenGeneratorAdapter implements ITokenGeneratorPort {
     return this.jwtService.verify(token, { secret });
   }
 
-  async findRefreshToken(tokenHash: string, userId: string): Promise<any> {
+  async findRefreshToken(tokenHash: string, userId: string): Promise<RefreshToken | null> {
     return this.refreshTokenRepo.findOne({
       where: { tokenHash, user: { id: userId } },
     });

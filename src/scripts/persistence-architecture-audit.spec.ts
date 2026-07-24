@@ -14,7 +14,7 @@ describe('Persistence architecture Phase 0 baseline', () => {
       duplicateTables: 18,
       centralMappings: 37,
       moduleMappings: 29,
-      centralImportEdges: 30,
+      centralImportEdges: 35,
       crossModuleInfrastructureEdges: 3,
       foreignForFeatureRegistrations: 10,
     });

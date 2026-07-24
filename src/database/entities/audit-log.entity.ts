@@ -18,10 +18,10 @@ export class AuditLog {
   entityId: string | null;
 
   @Column({ name: 'old_data', type: 'jsonb', nullable: true })
-  oldData: Record<string, any> | null;
+  oldData: Record<string, unknown> | null;
 
   @Column({ name: 'new_data', type: 'jsonb', nullable: true })
-  newData: Record<string, any> | null;
+  newData: Record<string, unknown> | null;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })
   ipAddress: string | null;

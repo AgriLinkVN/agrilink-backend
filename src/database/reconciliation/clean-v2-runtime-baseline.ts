@@ -349,7 +349,7 @@ function createProfilesService(dataSource: DataSource): ProfilesService {
     dataSource.getRepository(CooperativeProfile),
     dataSource.getRepository(EnterpriseProfile),
     dataSource.getRepository(SupplierProfile),
-    { verifyCccdImage: async () => true },
+    { verifyCccdImage: async () => true, verifyCccd: async () => ({} as Record<string, string>), verifyCccdFull: async () => ({} as Record<string, string>), verifyBrc: async () => ({} as Record<string, string>) },
     fakeStoredFileAccess(),
   );
 }

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -109,26 +109,37 @@ export class AdminService {
   async getPendingProfiles() {
     const [farmers, cooperatives, enterprises, suppliers] = await Promise.all([
       this.farmerRepo.find({
-        where: { isKycVerified: false },
+        where: { isKycVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.cooperativeRepo.find({
-        where: { isVerified: false },
+        where: { isVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.enterpriseRepo.find({
-        where: { isVerified: false },
+        where: { isVerified: false, rejectionReason: IsNull() },
         relations: ['user'],
         order: { createdAt: 'DESC' },
       }),
       this.supplierRepo.find({
-        where: { isVerified: false },
-        relations: ['user'],
+        where: { isVerified: false, rejectionReason: IsNull() },
         order: { createdAt: 'DESC' },
       }),
     ]);
+
+    // Attach user info for suppliers (no relation, uses userId column)
+    if (suppliers.length > 0) {
+      const supplierUserIds = [...new Set(suppliers.map(s => s.userId).filter(Boolean))] as string[];
+      const supplierUsers = supplierUserIds.length > 0
+        ? await this.userRepo.findBy({ id: In(supplierUserIds) })
+        : [];
+      const userById = new Map(supplierUsers.map(u => [u.id, u]));
+      for (const s of suppliers) {
+        (s as unknown as Record<string, unknown>).user = userById.get(s.userId) ?? null;
+      }
+    }
 
     return {
       farmer: farmers,
@@ -320,6 +331,16 @@ export class AdminService {
     return saved;
   }
 
+  async getProductDetail(id: string) {
+    const product = await this.productRepo.findOne({
+      where: { id },
+      relations: ['images', 'certifications'],
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    const sellers = await this.userRepo.findByIds([product.sellerId]);
+    return { ...product, seller: sellers[0] ? { fullName: sellers[0].fullName } : null };
+  }
+
   async getPendingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
       where: { status: ProductStatus.PENDING_APPROVAL },
@@ -328,6 +349,36 @@ export class AdminService {
       take: pagination.limit ?? 20,
     });
     return { data: await this.attachSellers(data), total };
+  }
+
+  async updateProductStatus(
+    id: string,
+    status: string,
+    reason: string,
+    adminId: string,
+  ) {
+    const product = await this.productRepo.findOne({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const validStatuses = [ProductStatus.ACTIVE, ProductStatus.REJECTED, ProductStatus.SUSPENDED];
+    if (!validStatuses.includes(status as ProductStatus)) {
+      throw new BadRequestException('Invalid status. Allowed: active, rejected, suspended');
+    }
+
+    const previousStatus = product.status;
+    product.status = status as ProductStatus;
+    product.rejectionReason = status === ProductStatus.REJECTED ? (reason ?? null) : null;
+    await this.productRepo.save(product);
+
+    await this.createAuditLog({
+      userId: adminId,
+      action: 'PRODUCT_STATUS_UPDATE',
+      entityType: 'Product',
+      entityId: id,
+      changes: { previousStatus, status, reason },
+    });
+
+    return product;
   }
 
   /** Products suspended/rejected for policy violations — state agency oversight view */
@@ -354,6 +405,38 @@ export class AdminService {
         ? { fullName: sellerById.get(p.sellerId)!.fullName }
         : null,
     }));
+  }
+
+  // ─── User management ──────────────────────────────────────────────
+
+  async getUsers(pagination: PaginationDto) {
+    const [data, total] = await this.userRepo.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: pagination.skip,
+      take: pagination.limit ?? 20,
+    });
+    return { data: data.map(({ passwordHash: _, ...u }) => u), total };
+  }
+
+  async toggleUserStatus(id: string, adminId: string, status: UserStatus) {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.role === UserRole.ADMIN) throw new BadRequestException('Cannot modify admin users');
+
+    const previousStatus = user.status;
+    user.status = status;
+    await this.userRepo.save(user);
+
+    await this.createAuditLog({
+      userId: adminId,
+      action: status === UserStatus.ACTIVE ? 'USER_UNLOCKED' : 'USER_LOCKED',
+      entityType: 'User',
+      entityId: id,
+      changes: { previousStatus, status },
+    });
+
+    const { passwordHash: _, ...safeUser } = user;
+    return safeUser;
   }
 
   /** All verified cooperatives and enterprises — state agency oversight list */

@@ -20,7 +20,12 @@ function makeService() {
   const cooperativeRepository = makeRepository();
   const enterpriseRepository = makeRepository();
   const supplierRepository = makeRepository();
-  const vision = { verifyCccdImage: jest.fn().mockResolvedValue(true) };
+  const vision = {
+    verifyCccdImage: jest.fn().mockResolvedValue(true),
+    verifyCccd: jest.fn().mockResolvedValue({ id: '1', name: '', dob: '', sex: '', nationality: '', home: '', address: '' }),
+    verifyCccdFull: jest.fn().mockResolvedValue({ id: '1', name: '', dob: '', sex: '', nationality: '', home: '', address: '' }),
+    verifyBrc: jest.fn().mockResolvedValue({}),
+  };
   const storedFileAccess = {
     attachOwnedFile: jest.fn().mockResolvedValue(undefined),
     detachOwnedFile: jest.fn().mockResolvedValue(undefined),
