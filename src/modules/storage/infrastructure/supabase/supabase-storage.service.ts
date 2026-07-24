@@ -7,16 +7,11 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 import { StorageConfig, STORAGE_CONFIG } from '@config/storage.config';
 
-import {
-  DownloadUrlResult,
-  IFileStorageService,
-  StoredFileResult,
-  UploadUrlResult,
-} from '../../domain/interfaces/file-storage.service.interface';
+import { DownloadUrlResult, FileStoragePort, StoredFileResult, UploadUrlResult } from '../../application/ports/outbound/file-storage.port';
 import { SUPABASE_CLIENT } from './supabase.client';
 
 @Injectable()
-export class SupabaseStorageService implements IFileStorageService {
+export class SupabaseStorageService implements FileStoragePort {
   private readonly bucket: string;
 
   constructor(

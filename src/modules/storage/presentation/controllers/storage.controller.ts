@@ -19,8 +19,8 @@ import { PresignDto } from '../schemas/presign.dto';
 import { UploadFile } from '../decorators/uploaded-interceptor.decorator';
 import { UploadedImage } from '../decorators/uploaded-image.decorator';
 import { UploadedDocument } from '../decorators/uploaded-document.decorator';
-import { ImageTransformOptions } from '../../domain/interfaces/image-storage.service.interface';
-import { CLOUDINARY_FOLDERS } from '../../infrastructure/cloudinary/cloudinary.config';
+import { ImageStorageTarget, ImageTransformOptions } from '../../application/ports/outbound/image-storage.port';
+import { AVATAR_TRANSFORM, STORAGE_IMAGE_TARGETS } from '../../application/storage-image.policy';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import {
   assertPublicImageType,
@@ -101,13 +101,14 @@ export class StorageController {
     @Body('type') type?: string,
   ) {
     const stream = Readable.from(file.buffer);
-    const { folder, options } = this.getImageTarget(type);
+    const { folder, options, folderSuffix } = this.getImageTarget(type);
 
     const secureUrl = await this.storageService.uploadCustomFolder(
       stream,
       file.originalname,
       folder,
       options,
+      folderSuffix,
     );
 
     return { secure_url: secureUrl };
@@ -151,8 +152,9 @@ export class StorageController {
   }
 
   private getImageTarget(type?: string): {
-    folder: string;
+    folder: ImageStorageTarget;
     options?: ImageTransformOptions;
+    folderSuffix?: string;
   } {
     let normalizedType: string | undefined;
     try {
@@ -168,31 +170,26 @@ export class StorageController {
       const role = normalizedType.split('_')[1]?.replace(/[^a-z0-9-]/g, '');
       return {
         folder: role
-          ? `${CLOUDINARY_FOLDERS.AVATARS}/${role}`
-          : CLOUDINARY_FOLDERS.AVATARS,
-        options: {
-          width: 400,
-          height: 400,
-          crop: 'fill',
-          quality: 'auto',
-        },
+          ? STORAGE_IMAGE_TARGETS.AVATARS : STORAGE_IMAGE_TARGETS.AVATARS,
+        options: AVATAR_TRANSFORM,
+        folderSuffix: role,
       };
     }
 
     switch (normalizedType) {
       case 'ads':
       case 'ad':
-        return { folder: CLOUDINARY_FOLDERS.ADS };
+        return { folder: STORAGE_IMAGE_TARGETS.ADS };
       case 'reviews':
       case 'review':
-        return { folder: CLOUDINARY_FOLDERS.REVIEWS };
+        return { folder: STORAGE_IMAGE_TARGETS.REVIEWS };
       case 'profile':
       case 'profiles':
-        return { folder: CLOUDINARY_FOLDERS.PROFILES };
+        return { folder: STORAGE_IMAGE_TARGETS.PROFILES };
       case 'product':
       case 'products':
       default:
-        return { folder: CLOUDINARY_FOLDERS.PRODUCTS };
+        return { folder: STORAGE_IMAGE_TARGETS.PRODUCTS };
     }
   }
 
