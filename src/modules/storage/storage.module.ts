@@ -9,13 +9,19 @@ import { StorageController } from './presentation/controllers/storage.controller
 import { SupabaseClientProvider } from './infrastructure/supabase/supabase.client';
 import { SupabaseStorageService } from './infrastructure/supabase/supabase-storage.service';
 import { StorageThrottlerGuard } from './presentation/guards/storage-throttler.guard';
+import { createStorageConfig, STORAGE_CONFIG } from '@config/storage.config';
+import { CloudinaryProvider } from './infrastructure/cloudinary/cloudinary.config';
 
 @Module({
   imports: [ConfigModule],
   controllers: [StorageController],
   providers: [
-    // Supabase client
+    {
+      provide: STORAGE_CONFIG,
+      useFactory: () => createStorageConfig(process.env),
+    },
     SupabaseClientProvider,
+    CloudinaryProvider,
  
     // Services
     CloudinaryService,
@@ -24,11 +30,11 @@ import { StorageThrottlerGuard } from './presentation/guards/storage-throttler.g
     // Bind token → implementation
     {
       provide: IMAGE_STORAGE_SERVICE,
-      useClass: CloudinaryService,       // ảnh → Cloudinary
+      useExisting: CloudinaryService,
     },
     {
       provide: FILE_STORAGE_SERVICE,
-      useClass: SupabaseStorageService,  // document → Supabase
+      useExisting: SupabaseStorageService,
     },
 
     StorageService,
