@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { ConfigService } from '@nestjs/config';
+import { StorageConfig, STORAGE_CONFIG } from '@config/storage.config';
 
 import {
   DownloadUrlResult,
@@ -21,10 +21,9 @@ export class SupabaseStorageService implements IFileStorageService {
 
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-    private readonly configService: ConfigService,
+    @Inject(STORAGE_CONFIG) private readonly config: StorageConfig,
   ) {
-    this.bucket =
-      this.configService.get<string>('SUPABASE_BUCKET') ?? 'agrilink-documents';
+    this.bucket = this.config.supabaseBucket;
   }
 
   async createUploadUrl(path: string): Promise<UploadUrlResult> {
@@ -65,7 +64,7 @@ export class SupabaseStorageService implements IFileStorageService {
 
   async createDownloadUrl(path: string): Promise<DownloadUrlResult> {
     const safePath = this.validatePath(path);
-    const expiresIn = 3600;
+    const expiresIn = this.config.downloadUrlTtlSeconds;
     const { data, error } = await this.getClient().storage
       .from(this.bucket)
       .createSignedUrl(safePath, expiresIn);

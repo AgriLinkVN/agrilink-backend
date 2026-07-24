@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { UploadApiResponse, v2 } from 'cloudinary';
 import { Readable } from 'stream';
 import { pipeline } from 'node:stream/promises';
-import { ConfigService } from '@nestjs/config';
+import { CLOUDINARY_CLIENT } from '@config/storage.config';
 
 import {
   IImageStorageService,
@@ -16,14 +16,7 @@ import {
 @Injectable()
 export class CloudinaryService implements IImageStorageService {
 
-  constructor(private readonly config: ConfigService) {
-    v2.config({
-      cloud_name: this.config.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.config.get('CLOUDINARY_API_KEY'),
-      api_secret: this.config.get('CLOUDINARY_API_SECRET'),
-      secure: true,
-    });
-  }
+  constructor(@Inject(CLOUDINARY_CLIENT) private readonly cloudinary: typeof v2) {}
 
   async uploadImageFromStream(
     stream: Readable,
@@ -55,7 +48,7 @@ export class CloudinaryService implements IImageStorageService {
         fn();
       };
 
-      const uploadStream = v2.uploader.upload_stream(
+      const uploadStream = this.cloudinary.uploader.upload_stream(
         {
           folder,
           public_id: filename.replace(/\.[^/.]+$/, ''),
@@ -83,7 +76,7 @@ export class CloudinaryService implements IImageStorageService {
 
   async deleteImage(imageUrl: string): Promise<void> {
     const publicId = this.extractPublicId(imageUrl);
-    await v2.uploader.destroy(publicId);
+    await this.cloudinary.uploader.destroy(publicId);
   }
 
   private extractPublicId(url: string): string {

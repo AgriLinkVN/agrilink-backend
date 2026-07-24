@@ -23,6 +23,7 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { SmsRoute } from "./shared/sms/sms.route";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { validateStorageEnvironment } from "./config/storage.config";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",
+      validate: validateStorageEnvironment,
     }),
     ThrottlerModule.forRoot([{ name: "storage", ttl: 60_000, limit: 30 }]),
 
