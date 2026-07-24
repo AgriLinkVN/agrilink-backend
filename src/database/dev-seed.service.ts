@@ -21,16 +21,16 @@ import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
 import { ForumLike } from '../modules/forum/entities/forum-like.entity';
 import { AdCampaign } from '../modules/ads/infrastructure/persistence/entities/ad-campaign.entity';
 import { AdPackage } from '../modules/ads/infrastructure/persistence/entities/ad-package.entity';
-import { CooperativeMember } from '../modules/cooperatives/entities/cooperative-member.entity';
-import { BulkListing } from '../modules/cooperatives/entities/bulk-listing.entity';
-import { BulkListingContribution } from '../modules/cooperatives/entities/bulk-listing-contribution.entity';
-import { HarvestSchedule } from '../modules/cooperatives/entities/harvest-schedule.entity';
+import { CooperativeMemberEntity } from '../modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity';
+import { BulkListingEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity';
+import { BulkListingContributionEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity';
+import { HarvestScheduleEntity } from '../modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity';
 import { AuditLog } from '../modules/admin/entities/audit-log.entity';
 import { NotificationOrmEntity } from '../modules/notifications/infrastructure/persistence/notification.orm-entity';
 
 import {
   UserRole, UserStatus, FarmingType, ProductUnit, ProductStatus,
-  SellerType, MemberStatus, CertType, CertificationStatus,
+  SellerType, CertType, CertificationStatus,
   AdType, AdStatus, SupplierType, NotifType,
 } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
@@ -512,7 +512,7 @@ export class DevSeedService {
 
   // ── COOPERATIVE ──────────────────────────────────────────────────────
   private async seedCoopMembers(coopId: string, farmerId: string): Promise<number> {
-    const repo = this.ds.getRepository(CooperativeMember);
+    const repo = this.ds.getRepository(CooperativeMemberEntity);
     const existing = await repo.count();
     if (existing > 0) return existing;
 
@@ -522,7 +522,7 @@ export class DevSeedService {
       await repo.save({
         cooperativeId: coopId,
         farmerId: f.id,
-        status: MemberStatus.ACTIVE,
+        status: 'active',
         role: 'Thành viên sản xuất',
         joinedAt: new Date(),
       } as any);
@@ -531,8 +531,8 @@ export class DevSeedService {
   }
 
   private async seedBulkListings(coopId: string, farmerId: string, products: Product[]) {
-    const repo = this.ds.getRepository(BulkListing);
-    const contribRepo = this.ds.getRepository(BulkListingContribution);
+    const repo = this.ds.getRepository(BulkListingEntity);
+    const contribRepo = this.ds.getRepository(BulkListingContributionEntity);
     const existing = await repo.count();
     if (existing > 0) return;
 
@@ -550,7 +550,7 @@ export class DevSeedService {
     await contribRepo.save([
       { bulkListingId: listing.id, farmerId, quantity: 1500, unit: ProductUnit.KG },
       { bulkListingId: listing.id, farmerId: farmerId, quantity: 2000, unit: ProductUnit.KG },
-    ]);
+    ] as any);
 
     await repo.save({
       cooperativeId: coopId,
@@ -565,7 +565,7 @@ export class DevSeedService {
   }
 
   private async seedHarvestSchedules(coopId: string, farmerId: string, productId: string) {
-    const repo = this.ds.getRepository(HarvestSchedule);
+    const repo = this.ds.getRepository(HarvestScheduleEntity);
     const existing = await repo.count();
     if (existing > 0) return;
 
