@@ -21,7 +21,8 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.config.ts",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "storage:check-config": "ts-node -r tsconfig-paths/register src/scripts/check-storage-config.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",
@@ -35,6 +36,7 @@
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/platform-socket.io": "^10.4.22",
     "@nestjs/swagger": "^7.2.0",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/typeorm": "^10.0.1",
     "@nestjs/websockets": "^10.4.22",
     "@sentry/nestjs": "^10.63.0",
@@ -48,6 +50,7 @@
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "fastify": "^5.8.5",
+    "file-type": "^16.5.4",
     "firebase-admin": "^14.1.0",
     "multer": "^1.4.5-lts.1",
     "nestjs-zod": "^5.4.0",
@@ -58,6 +61,7 @@
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "sharp": "^0.33.5",
     "socket.io": "^4.8.3",
     "typeorm": "^0.3.20",
     "zod": "^4.4.3"

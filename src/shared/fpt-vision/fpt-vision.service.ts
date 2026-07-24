@@ -1,19 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { KycVisionPort } from '../../modules/profiles/application/ports/outbound/kyc-vision.port';
 
 @Injectable()
-export class FptVisionService {
+export class FptVisionService implements KycVisionPort {
   private readonly logger = new Logger(FptVisionService.name);
 
   constructor(private configService: ConfigService) {}
 
   /**
    * Mocks the FPT.AI Vision API call for CCCD verification.
-   * @param imageUrl The secure URL of the CCCD image (uploaded to Cloudinary)
+   * @param authorizedSource Authorized bytes or a short-lived private source handle.
    * @returns boolean Indicating whether the CCCD is valid
    */
-  async verifyCccdImage(imageUrl: string): Promise<boolean> {
-    this.logger.log(`Starting FPT.AI Vision verification for image: ${imageUrl}`);
+  async verifyCccdImage(authorizedSource: string | Buffer): Promise<boolean> {
+    this.logger.log('Starting FPT.AI Vision verification');
     
     // Example structure for the real HTTP call (commented out):
     /*
@@ -21,7 +22,7 @@ export class FptVisionService {
     try {
       const response = await axios.post(
         'https://api.fpt.ai/vision/idr/vnm',
-        { image: imageUrl },
+        { image: authorizedSource },
         { headers: { 'api-key': apiKey } }
       );
       
@@ -38,7 +39,7 @@ export class FptVisionService {
     // Mock logic: Simulate network delay of 2 seconds
     return new Promise((resolve) => {
       setTimeout(() => {
-        this.logger.log(`FPT.AI Vision verification completed for image: ${imageUrl}`);
+        this.logger.log('FPT.AI Vision verification completed');
         resolve(true); // Always return true for now
       }, 2000);
     });

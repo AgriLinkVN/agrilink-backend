@@ -8,6 +8,7 @@ import { CooperativeProfile } from '../../database/entities/cooperative-profile.
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
 import { FptVisionService } from '../storage/application/fpt-vision.service';
+import { KYC_VISION } from './application/ports/outbound/kyc-vision.port';
 
 @Module({
   imports: [
@@ -19,7 +20,11 @@ import { FptVisionService } from '../storage/application/fpt-vision.service';
     ]),
   ],
   controllers: [ProfilesController, FarmPublicController],
-  providers: [ProfilesService, FptVisionService],
+  providers: [
+    ProfilesService,
+    FptVisionService,
+    { provide: KYC_VISION, useExisting: FptVisionService },
+  ],
   exports: [ProfilesService],
 })
 export class ProfilesRoute {}

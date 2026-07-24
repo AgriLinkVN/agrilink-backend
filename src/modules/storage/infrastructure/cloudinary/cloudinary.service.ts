@@ -1,35 +1,26 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { UploadApiResponse, v2 } from 'cloudinary';
 import { Readable } from 'stream';
 import { pipeline } from 'node:stream/promises';
-import { ConfigService } from '@nestjs/config';
+import { CLOUDINARY_CLIENT } from '@config/storage.config';
 
-import {
-  IImageStorageService,
-  ImageTransformOptions,
-} from '../../domain/interfaces/image-storage.service.interface';
+import { ImageStoragePort, ImageStorageTarget, ImageTransformOptions } from '../../application/ports/outbound/image-storage.port';
 import {
   CLOUDINARY_FOLDERS,
   CLOUDINARY_TRANSFORMATIONS,
 } from './cloudinary.config';
 
 @Injectable()
-export class CloudinaryService implements IImageStorageService {
+export class CloudinaryService implements ImageStoragePort {
 
-  constructor(private readonly config: ConfigService) {
-    v2.config({
-      cloud_name: this.config.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.config.get('CLOUDINARY_API_KEY'),
-      api_secret: this.config.get('CLOUDINARY_API_SECRET'),
-      secure: true,
-    });
-  }
+  constructor(@Inject(CLOUDINARY_CLIENT) private readonly cloudinary: typeof v2) {}
 
   async uploadImageFromStream(
     stream: Readable,
     filename: string,
-    folder: string = CLOUDINARY_FOLDERS.PRODUCTS,
+    target: ImageStorageTarget = 'PRODUCTS',
     options?: ImageTransformOptions,
+    folderSuffix?: string,
   ): Promise<string> {
     const hasCustomTransform = !!(
       options?.width ||
@@ -55,9 +46,9 @@ export class CloudinaryService implements IImageStorageService {
         fn();
       };
 
-      const uploadStream = v2.uploader.upload_stream(
+      const uploadStream = this.cloudinary.uploader.upload_stream(
         {
-          folder,
+          folder: folderSuffix ? `${this.resolveFolder(target)}/${folderSuffix}` : this.resolveFolder(target),
           public_id: filename.replace(/\.[^/.]+$/, ''),
           resource_type: options?.resourceType ?? 'auto',
           ...(transformation ? { transformation } : {}),
@@ -83,7 +74,7 @@ export class CloudinaryService implements IImageStorageService {
 
   async deleteImage(imageUrl: string): Promise<void> {
     const publicId = this.extractPublicId(imageUrl);
-    await v2.uploader.destroy(publicId);
+    await this.cloudinary.uploader.destroy(publicId);
   }
 
   private extractPublicId(url: string): string {
@@ -92,5 +83,9 @@ export class CloudinaryService implements IImageStorageService {
       .slice(-3)
       .join('/')
       .replace(/\.[^/.]+$/, '');
+  }
+
+  private resolveFolder(target: ImageStorageTarget): string {
+    return CLOUDINARY_FOLDERS[target];
   }
 }

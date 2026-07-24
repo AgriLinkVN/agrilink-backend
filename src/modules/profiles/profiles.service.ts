@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
@@ -7,7 +7,7 @@ import { EnterpriseProfile } from '../../database/entities/enterprise-profile.en
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
 import { UpsertFarmerProfileDto } from './dto/upsert-farmer-profile.dto';
 import { UpsertB2bProfileDto } from './dto/upsert-b2b-profile.dto';
-import { FptVisionService } from '../storage/application/fpt-vision.service';
+import { KYC_VISION, KycVisionPort } from './application/ports/outbound/kyc-vision.port';
 import { UserRole } from '../../common/enums';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class ProfilesService {
     private readonly enterpriseRepo: Repository<EnterpriseProfile>,
     @InjectRepository(SupplierProfile)
     private readonly supplierRepo: Repository<SupplierProfile>,
-    private readonly fptVisionService: FptVisionService,
+    @Inject(KYC_VISION) private readonly fptVisionService: KycVisionPort,
   ) {}
 
   async getFarmerProfile(userId: string): Promise<FarmerProfile | null> {
@@ -30,11 +30,10 @@ export class ProfilesService {
 
   async upsertFarmerProfile(userId: string, dto: UpsertFarmerProfileDto): Promise<FarmerProfile> {
     // 1. Verify CCCD both sides using FPT AI Vision
-    let cccdData: any = null;
     if (dto.cccdFrontUrl && dto.cccdBackUrl) {
-      cccdData = await this.fptVisionService.verifyCccdFull(dto.cccdFrontUrl, dto.cccdBackUrl);
+      await this.fptVisionService.verifyCccdFull(dto.cccdFrontUrl, dto.cccdBackUrl);
     } else if (dto.cccdFrontUrl) {
-      cccdData = await this.fptVisionService.verifyCccd(dto.cccdFrontUrl);
+      await this.fptVisionService.verifyCccd(dto.cccdFrontUrl);
     }
 
     // 2. Check if profile exists

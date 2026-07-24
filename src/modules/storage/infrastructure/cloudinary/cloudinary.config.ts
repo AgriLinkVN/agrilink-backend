@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { ConfigService } from '@nestjs/config';
+import { CLOUDINARY_CLIENT, STORAGE_CONFIG, StorageConfig } from '@config/storage.config';
 
 // Định nghĩa các folder chuẩn — dùng chung toàn dự án
 // Dùng constant — refactor 1 chỗ là xong toàn bộ
@@ -29,13 +29,14 @@ export const CLOUDINARY_TRANSFORMATIONS = {
 } as const;
 
 export const CloudinaryProvider = {
-  provide: 'CLOUDINARY',
-  useFactory: (configService: ConfigService) => {
+  provide: CLOUDINARY_CLIENT,
+  useFactory: (config: StorageConfig) => {
     return cloudinary.config({
-      cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: configService.get('CLOUDINARY_API_KEY'),
-      api_secret: configService.get('CLOUDINARY_API_SECRET'),
+      cloud_name: config.cloudinaryCloudName,
+      api_key: config.cloudinaryApiKey,
+      api_secret: config.cloudinaryApiSecret,
+      secure: true,
     });
   },
-  inject: [ConfigService],
+  inject: [STORAGE_CONFIG],
 };

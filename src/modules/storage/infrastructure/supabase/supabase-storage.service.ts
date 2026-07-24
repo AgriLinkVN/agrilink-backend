@@ -5,26 +5,20 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { ConfigService } from '@nestjs/config';
+import { StorageConfig, STORAGE_CONFIG } from '@config/storage.config';
 
-import {
-  DownloadUrlResult,
-  IFileStorageService,
-  StoredFileResult,
-  UploadUrlResult,
-} from '../../domain/interfaces/file-storage.service.interface';
+import { DownloadUrlResult, FileStoragePort, StoredFileResult, UploadUrlResult } from '../../application/ports/outbound/file-storage.port';
 import { SUPABASE_CLIENT } from './supabase.client';
 
 @Injectable()
-export class SupabaseStorageService implements IFileStorageService {
+export class SupabaseStorageService implements FileStoragePort {
   private readonly bucket: string;
 
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-    private readonly configService: ConfigService,
+    @Inject(STORAGE_CONFIG) private readonly config: StorageConfig,
   ) {
-    this.bucket =
-      this.configService.get<string>('SUPABASE_BUCKET') ?? 'agrilink-documents';
+    this.bucket = this.config.supabaseBucket;
   }
 
   async createUploadUrl(path: string): Promise<UploadUrlResult> {
@@ -65,7 +59,7 @@ export class SupabaseStorageService implements IFileStorageService {
 
   async createDownloadUrl(path: string): Promise<DownloadUrlResult> {
     const safePath = this.validatePath(path);
-    const expiresIn = 3600;
+    const expiresIn = this.config.downloadUrlTtlSeconds;
     const { data, error } = await this.getClient().storage
       .from(this.bucket)
       .createSignedUrl(safePath, expiresIn);
@@ -86,6 +80,22 @@ export class SupabaseStorageService implements IFileStorageService {
       .remove([safePath]);
 
     if (error) throw new BadRequestException(`Xóa file thất bại: ${error.message}`);
+  }
+
+  async exists(path: string): Promise<boolean> {
+    const safePath = this.validatePath(path);
+    const slash = safePath.lastIndexOf('/');
+    const folder = slash >= 0 ? safePath.slice(0, slash) : '';
+    const filename = slash >= 0 ? safePath.slice(slash + 1) : safePath;
+    const { data, error } = await this.getClient().storage.from(this.bucket).list(folder, { search: filename });
+    if (error) throw new BadRequestException(`Kiểm tra file thất bại: ${error.message}`);
+    return data.some((file) => file.name === filename);
+  }
+
+  async download(path: string): Promise<Buffer> {
+    const { data, error } = await this.getClient().storage.from(this.bucket).download(this.validatePath(path));
+    if (error) throw new BadRequestException(`Tải file thất bại: ${error.message}`);
+    return Buffer.from(await data.arrayBuffer());
   }
 
   private getClient(): SupabaseClient {

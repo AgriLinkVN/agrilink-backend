@@ -22,6 +22,8 @@ import { ForumModule } from "./modules/forum/forum.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { SmsRoute } from "./shared/sms/sms.route";
+import { ThrottlerModule } from "@nestjs/throttler";
+import { validateStorageEnvironment } from "./config/storage.config";
 
 @Module({
   imports: [
@@ -29,7 +31,9 @@ import { SmsRoute } from "./shared/sms/sms.route";
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",
+      validate: validateStorageEnvironment,
     }),
+    ThrottlerModule.forRoot([{ name: "storage", ttl: 60_000, limit: 30 }]),
 
     // Database
     TypeOrmModule.forRootAsync({
