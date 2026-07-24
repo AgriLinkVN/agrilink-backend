@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted when merged into `develop`
 
 ## Context
 
@@ -23,8 +23,10 @@ AgriLink will retain a two-provider model:
 
 - Cloudinary stores only public images: products, reviews, ads, and avatars.
 - Supabase Storage stores all private documents in a private bucket: identity
-  documents, business licenses, and certifications until they are explicitly
-  published by product policy.
+  documents, business licenses, and certifications.
+
+Certification publication is excluded from this decision. It requires a
+separate ADR; until then certification files remain private.
 
 The server owns authorization, object-key generation, metadata, and lifecycle.
 Clients request an upload intent and receive only a scoped upload mechanism.
@@ -38,6 +40,10 @@ metadata and are never recovered by parsing a delivery URL.
 New application use cases depend on storage ports in `application/ports/outbound`.
 Cloudinary and Supabase remain infrastructure adapters. Presentation DTOs are
 mapped to application input models before use cases are invoked.
+
+FPT Vision is an OCR adapter owned by the profile/KYC capability, not a storage
+provider. Private documents are passed to OCR as authorized bytes or a
+short-lived private handle; they are never made public to satisfy OCR.
 
 ## Consequences
 
@@ -58,10 +64,10 @@ mapped to application input models before use cases are invoked.
 
 ## Implementation Sequence
 
-1. Protect ingress and stop accepting unrestricted client paths.
-2. Validate provider configuration and bucket restrictions at startup/deploy.
-3. Add metadata, ownership authorization, and upload intents.
-4. Add content verification, lifecycle cleanup, observability, and migration.
+The authoritative implementation sequence, branch names, gates, non-goals, and
+verification commands are defined in `../storage-roadmap.md`. An execution agent
+must complete one phase and stop after opening its pull request. The next phase
+cannot begin until that pull request is merged into `develop`.
 
 ## Rollback
 

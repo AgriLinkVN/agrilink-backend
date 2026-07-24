@@ -2,8 +2,10 @@
 
 ## Status
 
-Accepted for all new Storage module work. This policy describes the target
-contract; legacy endpoints remain supported only until their callers migrate.
+Accepted when the pull request containing this document is merged into
+`develop`. This policy describes the target contract; legacy endpoints remain
+supported only through the controlled migration described in
+`storage-roadmap.md`.
 
 ## Goals
 
@@ -22,10 +24,44 @@ contract; legacy endpoints remain supported only until their callers migrate.
 | `AVATAR` | Cloudinary | Public | JPEG, PNG, WebP | 5 MB | Account owner or admin | Public |
 | `KYC_IDENTITY` | Supabase private bucket | Private | PDF, JPEG, PNG | 10 MB | Account owner or admin | Account owner and authorized reviewers |
 | `BUSINESS_LICENSE` | Supabase private bucket | Private | PDF, JPEG, PNG | 10 MB | Account owner or admin | Account owner and authorized reviewers |
-| `CERTIFICATION` | Supabase private bucket | Private until approved for publication | PDF, JPEG, PNG | 10 MB | Product/seller owner or admin | Owner and authorized reviewers; public only when an explicit product policy permits it |
+| `CERTIFICATION` | Supabase private bucket | Private | PDF, JPEG, PNG | 10 MB | Product/seller owner or admin | Owner and authorized reviewers |
 
 The listed limits must be enforced both at the HTTP ingress and at the storage
 provider. A MIME value supplied by a client is a claim, not proof of content.
+
+Certification publication is not part of the current roadmap. Certification
+files remain private until a separate approved ADR defines publication,
+redaction, and revocation behavior.
+
+### Authority Terms
+
+- The authenticated account ID is the JWT `sub` claim exposed through
+  `@CurrentUser('sub')`.
+- `Account owner` means the authenticated account whose `sub` owns the profile.
+- `Resource owner` means the authenticated account matches the product seller,
+  review author, campaign owner, or other persisted resource owner.
+- `Authorized reviewers` means callers with `UserRole.ADMIN` or
+  `UserRole.STATE_AGENCY`. A role match never replaces the resource-level check
+  when an operation is owner-only.
+- All other authenticated roles have no implicit access to private files.
+
+### Default Operational Limits
+
+| Control | Default |
+| --- | --- |
+| Image size | 5 MB |
+| Private document size | 10 MB |
+| Files per multipart request | 5 |
+| Original filename length | 255 characters |
+| Download signed URL TTL | 900 seconds |
+| Upload intent TTL | 900 seconds |
+| Upload intents | 10 per user per minute |
+| Direct multipart uploads | 5 per user per minute |
+| Download URL requests | 30 per user per minute |
+
+These defaults may become environment variables in Phase 2. A later phase may
+lower a limit without another ADR. Raising a limit or widening an allowed MIME
+set requires a reviewed policy change.
 
 ## Identity, Ownership, And Keys
 
@@ -36,13 +72,42 @@ folder, Cloudinary public ID, or another user's owner ID.
 The server generates an opaque UUID and a provider key using this convention:
 
 ```text
-{environment}/owners/{ownerId}/{assetType}/{resourceId}/{uuid}.{extension}
+{environment}/owners/{ownerId}/{assetType}/{fileId}.{extension}
 ```
 
-`resourceId` may be `pending` only while the upload intent is being completed.
-The server stores provider keys separately from public URLs. Cloudinary deletion
-uses the persisted public ID; it must not attempt to reconstruct an ID from a
-delivery URL.
+The file metadata record links `fileId` to a resource after the server verifies
+ownership. An upload may be unattached temporarily, but its key never contains
+`pending` and is never renamed when attached. The server stores provider keys
+separately from public URLs. Cloudinary deletion uses the persisted public ID;
+it must not attempt to reconstruct an ID from a delivery URL.
+
+## Metadata Contract
+
+Phase 3 persists one record per provider object with these fields:
+
+| Field | Required behavior |
+| --- | --- |
+| `id` | Server-generated UUID and public file identifier |
+| `ownerId` | JWT `sub`; never accepted from client input |
+| `assetType` | Value from the approved asset matrix |
+| `provider` | `CLOUDINARY` or `SUPABASE` |
+| `visibility` | `PUBLIC` or `PRIVATE`, derived from asset type |
+| `status` | Approved lifecycle state |
+| `resourceType`, `resourceId` | Nullable attachment to an authorized domain resource |
+| `objectKey` | Unique server-generated provider key |
+| `providerPublicId` | Cloudinary public ID; null for Supabase |
+| `originalName` | Sanitized display/audit name, never used as provider key |
+| `extension` | Derived from detected content |
+| `declaredMime` | Untrusted client claim |
+| `detectedMime` | Server-detected content type |
+| `sizeBytes` | Actual provider/upload byte count |
+| `checksumSha256` | Integrity value populated during validation |
+| `expiresAt` | Required for pending upload intents |
+| `createdAt`, `updatedAt`, `deletedAt` | Audit and soft-delete timestamps |
+
+The database enforces uniqueness for `(provider, objectKey)` and indexes owner,
+resource, status, and expiry lookup fields. Signed URLs and upload tokens are
+never persisted.
 
 ## Access Rules
 
@@ -61,15 +126,24 @@ delivery URL.
 
 Every file record follows this lifecycle:
 
-```text
-PENDING -> UPLOADED -> ACTIVE -> DELETED
-                 \-> QUARANTINED
-                 \-> FAILED
-```
+| From | To | Trigger |
+| --- | --- | --- |
+| `PENDING` | `UPLOADED` | Completion endpoint verifies that the provider object exists |
+| `PENDING` | `FAILED` | Upload/completion fails or the intent expires after 900 seconds |
+| `PENDING` | `DELETED` | Owner cancels an unused intent and cleanup confirms no object remains |
+| `UPLOADED` | `ACTIVE` | Public media passes content validation |
+| `UPLOADED` | `QUARANTINED` | Private document awaits automated or authorized manual review |
+| `UPLOADED` | `FAILED` | Content validation fails |
+| `UPLOADED` | `DELETED` | Owner cancels before activation and provider cleanup succeeds |
+| `QUARANTINED` | `ACTIVE` | Automated scan or authorized reviewer approves it |
+| `QUARANTINED` | `FAILED` | Automated scan or authorized reviewer rejects it |
+| `QUARANTINED` | `DELETED` | Owner or authorized reviewer removes the private document |
+| `ACTIVE` | `DELETED` | Owner or authorized administrator requests deletion |
+| `FAILED` | `DELETED` | Cleanup confirms the provider object is removed |
 
-`PENDING` records expire if upload completion does not occur. `DELETED` is a
-soft-delete state until the provider cleanup succeeds. A scheduled cleanup job
-removes expired pending objects and retries failed provider deletions.
+`DELETED` is a soft-delete state until provider cleanup succeeds. A scheduled
+cleanup job removes expired pending objects and retries failed provider
+deletions. Invalid state transitions must be rejected and tested.
 
 ## Security Controls
 
@@ -84,6 +158,19 @@ removes expired pending objects and retries failed provider deletions.
 - Supabase private buckets enforce allowed MIME types and file-size limits in
   addition to backend validation.
 
+## OCR And FPT Vision Boundary
+
+FPT Vision is a KYC/document-analysis adapter, not an image or file storage
+provider. It belongs to the profile/KYC capability and must consume an
+authorized byte stream or, only when technically required, a short-lived private
+URL. A KYC object must never be made public for OCR.
+
+The application must not log source URLs, signed URL query strings, identity
+numbers, or raw OCR provider responses. The current duplicate
+`src/modules/storage/application/fpt-vision.service.ts` is legacy/dead code and
+must not become the canonical implementation. Its consolidation is assigned to
+Phase 5 in the roadmap.
+
 ## API Direction
 
 The target API uses opaque file IDs rather than raw paths:
@@ -96,8 +183,27 @@ DELETE /storage/files/:id
 ```
 
 The current `path`-based presign, upload, and download routes are legacy
-contracts. They must be deprecated after the intent-based API has migrated all
-callers.
+contracts. During Phase 1 they must reject paths outside the authenticated
+owner's prefix. They must be deprecated after the intent-based API has migrated
+all callers and must not gain new consumers.
+
+## Known Current Deviations
+
+This policy is not yet fully implemented. At the time of acceptance:
+
+- Multipart uploads use memory storage without ingress-level byte limits.
+- Legacy Supabase endpoints accept a client-selected path.
+- Image type values such as `cccd` and `business_license` can route private
+  documents to public Cloudinary delivery.
+- There is no storage metadata table or upload-intent API.
+- Application code imports a presentation DTO and Cloudinary folder constants.
+- Cloudinary public IDs are derived from original filenames and deletion parses
+  delivery URLs.
+- The Supabase bucket is private but has no provider-level MIME or size limits.
+- FPT Vision implementations are duplicated and may log private source URLs.
+
+Each deviation is owned by an explicit roadmap phase. An execution agent must
+not assume that a rule in this document is already enforced by code.
 
 ## Definition Of Done
 
