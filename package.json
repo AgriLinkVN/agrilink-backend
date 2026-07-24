@@ -31,6 +31,7 @@
     "storage:phase9:migrate": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts apply",
     "storage:phase9:finalize": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts finalize",
     "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify",
+    "persistence:audit": "ts-node -r tsconfig-paths/register src/scripts/persistence-architecture-audit.ts",
     "migration:verify:p3-phase-1": "ts-node -r tsconfig-paths/register src/scripts/verify-p3-phase-1-migration.ts"
   },
   "dependencies": {
