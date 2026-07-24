@@ -10,6 +10,7 @@ import { ProductsService } from './application/products.service';
 import { ProductsController } from './presentation/controllers/products.controller';
 import { WishlistController } from './presentation/controllers/wishlist.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { StorageModule } from '../storage/storage.module';
 import {
   PRODUCT_CATALOG_QUERY,
   PRODUCT_CATEGORY_QUERY,
@@ -47,6 +48,7 @@ import {
 @Module({
   imports: [
     NotificationsModule,
+    StorageModule,
     TypeOrmModule.forFeature([
       Product,
       ProductImage,
@@ -83,13 +85,19 @@ import {
     { provide: PRODUCT_CATALOG_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_DETAIL_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_CATEGORY_QUERY, useExisting: TypeOrmProductRepository },
-    { provide: PRODUCT_IMAGE_REPOSITORY, useExisting: TypeOrmProductRepository },
+    {
+      provide: PRODUCT_IMAGE_REPOSITORY,
+      useExisting: TypeOrmProductRepository,
+    },
     {
       provide: PRODUCT_CERTIFICATION_REPOSITORY,
       useExisting: TypeOrmProductRepository,
     },
-    { provide: PRODUCT_WISHLIST_REPOSITORY, useExisting: TypeOrmProductRepository },
+    {
+      provide: PRODUCT_WISHLIST_REPOSITORY,
+      useExisting: TypeOrmProductRepository,
+    },
     { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
   ],
 })
-export class ProductsModule { }
+export class ProductsModule {}

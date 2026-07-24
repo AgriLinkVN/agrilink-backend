@@ -12,3 +12,11 @@ reviewer/admin routes without real providers.
 non-production Supabase bucket. Set `STORAGE_CONTRACT_TESTS=true` and use a
 `STORAGE_ENV_PREFIX` beginning with `contract` or `test`. The test creates and
 deletes its own isolated object. Never run it against production credentials.
+
+`npm run test:storage:migration` is the Phase 9 PostgreSQL integration gate.
+With `STORAGE_MIGRATION_TESTS=true`, it creates an isolated schema, seeds every
+supported legacy private-document source, runs the Phase 9 migration `up`
+twice, then runs `down`. It verifies real PostgreSQL constraints, idempotency,
+private metadata links, and rollback retention. The backend quality workflow
+runs this gate against a PostgreSQL 16 service; local runs require a disposable
+database and must never target production.

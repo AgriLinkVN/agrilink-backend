@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
-import {
-  CertificationStatus,
-  ProductStatus,
-  SellerType,
-} from '@common/enums';
+import { CertificationStatus, ProductStatus, SellerType } from '@common/enums';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -244,7 +240,7 @@ export class TypeOrmProductRepository
     sellerType: SellerType,
     input: CreateProductInput,
   ): Promise<ProductModel> {
-    const { images = [], certifications = [], ...productData } = input;
+    const { images = [], ...productData } = input;
 
     return this.dataSource.transaction(async (manager) => {
       const product = manager.create(Product, {
@@ -265,25 +261,6 @@ export class TypeOrmProductRepository
               imageUrl: image.imageUrl,
               isPrimary: hasPrimary ? !!image.isPrimary : index === 0,
               sortOrder: image.sortOrder ?? index,
-            }),
-          ),
-        );
-      }
-
-      if (certifications.length > 0) {
-        await manager.save(
-          ProductCertification,
-          certifications.map((certification) =>
-            manager.create(ProductCertification, {
-              productId: savedProduct.id,
-              certType: certification.certType,
-              certNumber: certification.certNumber ?? null,
-              issuedBy: certification.issuedBy ?? null,
-              issuedDate: this.toOptionalDate(certification.issuedDate),
-              expiryDate: this.toOptionalDate(certification.expiryDate),
-              documentUrl: certification.documentUrl ?? null,
-              isVerified: false,
-              status: CertificationStatus.PENDING,
             }),
           ),
         );
@@ -317,7 +294,9 @@ export class TypeOrmProductRepository
     const product = await this.findByIdWithRelations(id);
     if (!product) return null;
 
-    void this.productRepo.increment({ id }, 'viewCount', 1).catch(() => undefined);
+    void this.productRepo
+      .increment({ id }, 'viewCount', 1)
+      .catch(() => undefined);
 
     const [seller, province, district] = await Promise.all([
       this.populateSeller(product.sellerId, product.sellerType),
@@ -386,7 +365,9 @@ export class TypeOrmProductRepository
     });
   }
 
-  async findByIdWithProduct(certId: string): Promise<ProductCertificationModel | null> {
+  async findByIdWithProduct(
+    certId: string,
+  ): Promise<ProductCertificationModel | null> {
     return this.certRepo.findOne({
       where: { id: certId },
       relations: ['product'],
@@ -443,7 +424,12 @@ export class TypeOrmProductRepository
   async getWishlist(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ProductModel[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
 
@@ -501,7 +487,9 @@ export class TypeOrmProductRepository
     products: Array<Partial<ProductModel>>,
   ): Promise<ProductModel[]> {
     return this.productRepo.save(
-      products.map((product) => this.productRepo.create(product as Partial<Product>)),
+      products.map((product) =>
+        this.productRepo.create(product as Partial<Product>),
+      ),
     );
   }
 
@@ -521,9 +509,7 @@ export class TypeOrmProductRepository
     );
   }
 
-  private toOptionalDate(
-    value: Date | string | null | undefined,
-  ): Date | null {
+  private toOptionalDate(value: Date | string | null | undefined): Date | null {
     if (!value) return null;
     return value instanceof Date ? value : new Date(value);
   }
@@ -601,7 +587,8 @@ export class TypeOrmProductRepository
     id: string | null | undefined,
   ): Promise<ProductDetailLocation | null> {
     if (!id) return null;
-    const cols = table === 'provinces' ? 'id, name, code, region' : 'id, name, code';
+    const cols =
+      table === 'provinces' ? 'id, name, code, region' : 'id, name, code';
     const rows = await this.dataSource.query(
       `SELECT ${cols} FROM ${table} WHERE id = $1 LIMIT 1`,
       [id],
@@ -622,7 +609,9 @@ export class TypeOrmProductRepository
     province: ProductDetailLocation | null,
     district: ProductDetailLocation | null,
   ): ProductDetailResponse {
-    const toIsoDate = (date: Date | string | null | undefined): string | null => {
+    const toIsoDate = (
+      date: Date | string | null | undefined,
+    ): string | null => {
       if (!date) return null;
       return typeof date === 'string' ? date : date.toISOString();
     };
@@ -655,20 +644,21 @@ export class TypeOrmProductRepository
         isPrimary: image.isPrimary,
       }));
 
-    const certifications = (product.certifications ?? []).map((certification) => ({
-      id: certification.id,
-      certType: certification.certType,
-      certNumber: certification.certNumber ?? null,
-      issuedBy: certification.issuedBy ?? null,
-      issuedDate: toIsoDate(certification.issuedDate),
-      expiryDate: toIsoDate(certification.expiryDate),
-      documentUrl: certification.documentUrl ?? null,
-      isVerified: certification.isVerified,
-      status: certification.status,
-      verifiedBy: certification.verifiedBy ?? null,
-      verifiedAt: toIsoDate(certification.verifiedAt),
-      rejectionReason: certification.rejectionReason ?? null,
-    }));
+    const certifications = (product.certifications ?? []).map(
+      (certification) => ({
+        id: certification.id,
+        certType: certification.certType,
+        certNumber: certification.certNumber ?? null,
+        issuedBy: certification.issuedBy ?? null,
+        issuedDate: toIsoDate(certification.issuedDate),
+        expiryDate: toIsoDate(certification.expiryDate),
+        isVerified: certification.isVerified,
+        status: certification.status,
+        verifiedBy: certification.verifiedBy ?? null,
+        verifiedAt: toIsoDate(certification.verifiedAt),
+        rejectionReason: certification.rejectionReason ?? null,
+      }),
+    );
 
     return {
       id: product.id,
@@ -680,7 +670,9 @@ export class TypeOrmProductRepository
       unit: product.unit,
       availableQuantity: Number(product.availableQuantity),
       minOrderQuantity:
-        product.minOrderQuantity != null ? Number(product.minOrderQuantity) : null,
+        product.minOrderQuantity != null
+          ? Number(product.minOrderQuantity)
+          : null,
       farmingType: product.farmingType ?? null,
       status: product.status,
       harvestDate: toIsoDate(product.harvestDate),

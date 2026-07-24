@@ -20,12 +20,17 @@
     "test:storage": "jest --testPathPattern=src/modules/storage",
     "test:storage:e2e": "jest --config ./test/jest-e2e.json --testPathPattern=storage.e2e-spec.ts",
     "test:storage:contract": "jest --testPathPattern=supabase-storage.contract.spec.ts",
+    "test:storage:migration": "jest --config ./test/jest-migration.json",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.config.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
     "storage:check-config": "ts-node -r tsconfig-paths/register src/scripts/check-storage-config.ts",
+    "storage:phase9:plan": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts plan",
+    "storage:phase9:migrate": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts apply",
+    "storage:phase9:finalize": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts finalize",
+    "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify",
     "migration:verify:p3-phase-1": "ts-node -r tsconfig-paths/register src/scripts/verify-p3-phase-1-migration.ts"
   },
   "dependencies": {

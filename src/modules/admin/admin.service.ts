@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
@@ -12,7 +17,14 @@ import { SupplierProfile } from '../../database/entities/supplier-profile.entity
 import { User } from '../../database/entities/user.entity';
 import { Product } from '../products/infrastructure/persistence/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
-import { ProductStatus, UserStatus } from '../../common/enums';
+import { ProductStatus, UserRole, UserStatus } from '../../common/enums';
+import {
+  STORED_FILE_ACCESS,
+  StorageReviewerRole,
+  StoredFileAccessPort,
+} from '../storage/application/ports/inbound/stored-file-access.port';
+
+class ProfileReviewConsistencyError extends Error {}
 
 @Injectable()
 export class AdminService {
@@ -35,6 +47,8 @@ export class AdminService {
     private readonly productRepo: Repository<Product>,
     @InjectRepository(IncidentReport)
     private readonly incidentRepo: Repository<IncidentReport>,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
   async getStats() {
@@ -56,7 +70,9 @@ export class AdminService {
       this.enterpriseRepo.count({ where: { isVerified: false } }),
       this.supplierRepo.count({ where: { isVerified: false } }),
       this.productRepo.count(),
-      this.productRepo.count({ where: { status: ProductStatus.PENDING_APPROVAL } }),
+      this.productRepo.count({
+        where: { status: ProductStatus.PENDING_APPROVAL },
+      }),
       this.incidentRepo.count({ where: { status: 'open' } }),
     ]);
 
@@ -77,7 +93,11 @@ export class AdminService {
         cooperative: pendingCooperatives,
         enterprise: pendingEnterprises,
         supplier: pendingSuppliers,
-        total: pendingFarmers + pendingCooperatives + pendingEnterprises + pendingSuppliers,
+        total:
+          pendingFarmers +
+          pendingCooperatives +
+          pendingEnterprises +
+          pendingSuppliers,
       },
       totalProducts,
       pendingProducts,
@@ -88,16 +108,43 @@ export class AdminService {
 
   async getPendingProfiles() {
     const [farmers, cooperatives, enterprises, suppliers] = await Promise.all([
-      this.farmerRepo.find({ where: { isKycVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
-      this.cooperativeRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
-      this.enterpriseRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
-      this.supplierRepo.find({ where: { isVerified: false }, relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.farmerRepo.find({
+        where: { isKycVerified: false },
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
+      this.cooperativeRepo.find({
+        where: { isVerified: false },
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
+      this.enterpriseRepo.find({
+        where: { isVerified: false },
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
+      this.supplierRepo.find({
+        where: { isVerified: false },
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
     ]);
 
-    return { farmer: farmers, cooperative: cooperatives, enterprise: enterprises, supplier: suppliers };
+    return {
+      farmer: farmers,
+      cooperative: cooperatives,
+      enterprise: enterprises,
+      supplier: suppliers,
+    };
   }
 
-  async verifyProfile(type: string, profileId: string, dto: VerifyProfileDto, adminId: string) {
+  async verifyProfile(
+    type: string,
+    profileId: string,
+    dto: VerifyProfileDto,
+    adminId: string,
+    reviewerRole: StorageReviewerRole,
+  ) {
     let repo: Repository<any>;
     let isVerifiedField = 'isVerified';
 
@@ -122,29 +169,95 @@ export class AdminService {
     const profile = await repo.findOne({ where: { id: profileId } });
     if (!profile) throw new NotFoundException('Profile not found');
 
+    const previousState = {
+      [isVerifiedField]: profile[isVerifiedField],
+      verifiedBy: profile.verifiedBy,
+      verifiedAt: profile.verifiedAt,
+      rejectionReason: profile.rejectionReason,
+    };
     profile[isVerifiedField] = dto.isApproved;
     profile.verifiedBy = adminId;
-    profile.rejectionReason = dto.isApproved ? null : (dto.rejectionReason ?? null);
-    if (dto.isApproved) profile.verifiedAt = new Date();
+    profile.verifiedAt = dto.isApproved ? new Date() : null;
+    profile.rejectionReason = dto.isApproved
+      ? null
+      : (dto.rejectionReason ?? null);
 
     await repo.save(profile);
+    const transitionedFileIds: string[] = [];
+    try {
+      for (const fileId of this.getProfileStoredFileIds(profile)) {
+        const changed = await this.storedFileAccess.reviewFile({
+          fileId,
+          reviewerRole,
+          approve: dto.isApproved,
+        });
+        if (changed) transitionedFileIds.push(fileId);
+      }
+    } catch (error) {
+      const storageCompensation = await Promise.allSettled(
+        transitionedFileIds.map((fileId) =>
+          this.storedFileAccess.restoreReviewedFile({
+            fileId,
+            reviewerRole,
+          }),
+        ),
+      );
+      Object.assign(profile, previousState);
+      let profileCompensationFailed = false;
+      try {
+        await repo.save(profile);
+      } catch {
+        profileCompensationFailed = true;
+      }
+      if (
+        profileCompensationFailed ||
+        storageCompensation.some((result) => result.status === 'rejected')
+      ) {
+        throw new ProfileReviewConsistencyError(
+          'Profile review compensation failed and requires reconciliation',
+        );
+      }
+      throw error;
+    }
 
     await this.createAuditLog({
       userId: adminId,
       action: dto.isApproved ? 'PROFILE_APPROVED' : 'PROFILE_REJECTED',
       entityType: type,
       entityId: profileId,
-      changes: { isApproved: dto.isApproved, rejectionReason: dto.rejectionReason },
+      changes: {
+        isApproved: dto.isApproved,
+        rejectionReason: dto.rejectionReason,
+      },
     });
 
     return { success: true, profile };
+  }
+
+  private getProfileStoredFileIds(profile: Record<string, unknown>): string[] {
+    const fields = [
+      'cccdFrontFileId',
+      'cccdBackFileId',
+      'cooperativeCertFileId',
+      'businessLicenseFileId',
+      'representativeCccdFrontFileId',
+      'representativeCccdBackFileId',
+      'membersListFileId',
+    ];
+    return fields
+      .map((field) => profile[field])
+      .filter((value): value is string => typeof value === 'string');
   }
 
   async getSystemConfigs(): Promise<SystemConfig[]> {
     return this.configRepo.find({ order: { key: 'ASC' } });
   }
 
-  async updateSystemConfig(key: string, value: string, updatedBy: string): Promise<SystemConfig> {
+  async updateSystemConfig(
+    key: string,
+    value: string,
+    updatedBy: string,
+  ): Promise<SystemConfig> {
     let config = await this.configRepo.findOne({ where: { key } });
     if (!config) {
       config = this.configRepo.create({ key, value, updatedBy });
@@ -163,7 +276,9 @@ export class AdminService {
     return saved;
   }
 
-  async getAuditLogs(pagination: PaginationDto): Promise<{ data: AuditLog[]; total: number }> {
+  async getAuditLogs(
+    pagination: PaginationDto,
+  ): Promise<{ data: AuditLog[]; total: number }> {
     const [data, total] = await this.auditRepo.findAndCount({
       order: { createdAt: 'DESC' },
       skip: pagination.skip,
@@ -172,15 +287,24 @@ export class AdminService {
     return { data, total };
   }
 
-  async getDisputes(pagination: PaginationDto, status?: string): Promise<{ data: IncidentReport[]; total: number }> {
-    const qb = this.incidentRepo.createQueryBuilder('ir').orderBy('ir.created_at', 'DESC');
+  async getDisputes(
+    pagination: PaginationDto,
+    status?: string,
+  ): Promise<{ data: IncidentReport[]; total: number }> {
+    const qb = this.incidentRepo
+      .createQueryBuilder('ir')
+      .orderBy('ir.created_at', 'DESC');
     if (status) qb.where('ir.status = :status', { status });
     qb.skip(pagination.skip).take(pagination.limit ?? 20);
     const [data, total] = await qb.getManyAndCount();
     return { data, total };
   }
 
-  async updateDisputeStatus(id: string, status: string, adminId: string): Promise<IncidentReport> {
+  async updateDisputeStatus(
+    id: string,
+    status: string,
+    adminId: string,
+  ): Promise<IncidentReport> {
     const report = await this.incidentRepo.findOne({ where: { id } });
     if (!report) throw new NotFoundException('Incident report not found');
     report.status = status;
@@ -235,8 +359,14 @@ export class AdminService {
   /** All verified cooperatives and enterprises — state agency oversight list */
   async getCooperativesAndEnterprises() {
     const [cooperatives, enterprises] = await Promise.all([
-      this.cooperativeRepo.find({ relations: ['user'], order: { createdAt: 'DESC' } }),
-      this.enterpriseRepo.find({ relations: ['user'], order: { createdAt: 'DESC' } }),
+      this.cooperativeRepo.find({
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
+      this.enterpriseRepo.find({
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      }),
     ]);
     return { cooperatives, enterprises };
   }
@@ -249,11 +379,17 @@ export class AdminService {
   async getSystemReportData() {
     const pagination = new PaginationDto();
     pagination.limit = 20;
-    const [stats, cooperativesEnterprises, violatingProducts] = await Promise.all([
-      this.getStats(),
-      this.getCooperativesAndEnterprises(),
-      this.getViolatingProducts(pagination),
-    ]);
-    return { stats, cooperativesEnterprises, violatingProducts, generatedAt: new Date() };
+    const [stats, cooperativesEnterprises, violatingProducts] =
+      await Promise.all([
+        this.getStats(),
+        this.getCooperativesAndEnterprises(),
+        this.getViolatingProducts(pagination),
+      ]);
+    return {
+      stats,
+      cooperativesEnterprises,
+      violatingProducts,
+      generatedAt: new Date(),
+    };
   }
 }

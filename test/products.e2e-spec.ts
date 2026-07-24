@@ -89,20 +89,31 @@ describe('Products REST contract (e2e)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    productsService.create.mockResolvedValue(makeProduct({ status: ProductStatus.DRAFT }));
+    productsService.create.mockResolvedValue(
+      makeProduct({ status: ProductStatus.DRAFT }),
+    );
     productsService.findAll.mockResolvedValue({
       data: [makeProduct()],
       total: 1,
     });
     productsService.findCategories.mockResolvedValue([makeCategory()]);
     productsService.getCategoryTree.mockResolvedValue([
-      makeCategory({ children: [makeCategory({ id: CATEGORY_ID.replace('7', '8'), parentId: CATEGORY_ID })] }),
+      makeCategory({
+        children: [
+          makeCategory({
+            id: CATEGORY_ID.replace('7', '8'),
+            parentId: CATEGORY_ID,
+          }),
+        ],
+      }),
     ]);
     productsService.findMine.mockResolvedValue({
       data: [makeProduct({ status: ProductStatus.DRAFT })],
       total: 1,
     });
-    productsService.findPendingCertifications.mockResolvedValue([makeCertification()]);
+    productsService.findPendingCertifications.mockResolvedValue([
+      makeCertification(),
+    ]);
     productsService.verifyCertification.mockResolvedValue(
       makeCertification({
         status: CertificationStatus.VERIFIED,
@@ -115,7 +126,11 @@ describe('Products REST contract (e2e)', () => {
       id: PRODUCT_ID,
       name: 'Xoai cat Hoa Loc',
       status: ProductStatus.ACTIVE,
-      seller: { id: SELLER_ID, phone: '0900000000', sellerType: SellerType.FARMER },
+      seller: {
+        id: SELLER_ID,
+        phone: '0900000000',
+        sellerType: SellerType.FARMER,
+      },
     });
     productsService.update.mockResolvedValue(makeProduct({ name: 'Ten moi' }));
     productsService.updateStatus.mockResolvedValue(
@@ -257,6 +272,7 @@ describe('Products REST contract (e2e)', () => {
     expect(productsService.verifyCertification).toHaveBeenCalledWith(
       CERT_ID,
       ADMIN_ID,
+      UserRole.ADMIN,
       { status: CertificationStatus.VERIFIED },
     );
   });
@@ -270,7 +286,10 @@ describe('Products REST contract (e2e)', () => {
       .expect(201);
 
     expect(response.body.data.productId).toBe(PRODUCT_ID);
-    expect(productsService.addToWishlist).toHaveBeenCalledWith(USER_ID, PRODUCT_ID);
+    expect(productsService.addToWishlist).toHaveBeenCalledWith(
+      USER_ID,
+      PRODUCT_ID,
+    );
   });
 
   it('GET /wishlist returns paginated wishlist contract', async () => {
@@ -313,7 +332,9 @@ function headerValue(req: Request, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function makeCategory(overrides: Partial<ProductCategoryModel> = {}): ProductCategoryModel {
+function makeCategory(
+  overrides: Partial<ProductCategoryModel> = {},
+): ProductCategoryModel {
   return {
     id: CATEGORY_ID,
     name: 'Trai cay',
@@ -378,7 +399,7 @@ function makeCertification(
     issuedBy: 'Co quan chung nhan',
     issuedDate: null,
     expiryDate: null,
-    documentUrl: 'https://example.test/cert.pdf',
+    storedFileId: '99999999-9999-4999-8999-999999999999',
     isVerified: false,
     status: CertificationStatus.PENDING,
     verifiedBy: null,

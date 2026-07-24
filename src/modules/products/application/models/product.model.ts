@@ -45,7 +45,7 @@ export interface ProductCertificationModel {
   issuedBy: string | null;
   issuedDate: Date | null;
   expiryDate: Date | null;
-  documentUrl: string | null;
+  storedFileId: string | null;
   isVerified: boolean;
   status: CertificationStatus;
   verifiedBy: string | null;

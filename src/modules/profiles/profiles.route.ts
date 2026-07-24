@@ -8,6 +8,7 @@ import { CooperativeProfile } from '../../database/entities/cooperative-profile.
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
 import { FptVisionRoute } from '../../shared/fpt-vision/fpt-vision.route';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FptVisionRoute } from '../../shared/fpt-vision/fpt-vision.route';
       SupplierProfile,
     ]),
     FptVisionRoute,
+    StorageModule,
   ],
   controllers: [ProfilesController, FarmPublicController],
   providers: [ProfilesService],

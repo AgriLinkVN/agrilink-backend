@@ -18,7 +18,7 @@ export interface CreateProductCertificationInput {
   issuedBy?: string;
   issuedDate?: string;
   expiryDate?: string;
-  documentUrl?: string;
+  storedFileId: string;
 }
 
 export interface CreateProductInput {
@@ -39,7 +39,6 @@ export interface CreateProductInput {
   harvestDate?: string;
   expiryDate?: string;
   images?: CreateProductImageInput[];
-  certifications?: CreateProductCertificationInput[];
 }
 
 export type UpdateProductInput = Partial<CreateProductInput>;

@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { CertType } from '../../common/enums';
 
 @Entity('quality_certificates')
@@ -27,8 +32,11 @@ export class QualityCertificate {
   @Column({ name: 'expiry_date', type: 'date', nullable: true })
   expiryDate: string | null;
 
-  @Column({ name: 'document_url', type: 'text', nullable: true })
+  @Column({ name: 'document_url', type: 'text', nullable: true, select: false })
   documentUrl: string | null;
+
+  @Column({ name: 'stored_file_id', type: 'uuid', nullable: true })
+  storedFileId: string | null;
 
   @Column({ length: 50, default: 'active' })
   status: string;
