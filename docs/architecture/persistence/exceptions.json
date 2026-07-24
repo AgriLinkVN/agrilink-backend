@@ -38,7 +38,13 @@
         "src/modules/users/infrastructure/database/seeds/user.seed.ts -> ../../../../../database/entities/user.entity",
         "src/modules/users/seeds/seller.seed.ts -> ../../../database/entities/user.entity",
         "src/modules/users/users.module.ts -> ../../database/entities/user.entity",
-        "src/modules/users/users.service.ts -> ../../database/entities/user.entity"
+        "src/modules/users/users.service.ts -> ../../database/entities/user.entity",
+        "src/modules/auth/application/ports/outbound/otp-sender.port.ts -> @database/entities/otp-verification.entity",
+        "src/modules/auth/application/ports/outbound/token-generator.port.ts -> @database/entities/refresh-token.entity",
+        "src/modules/auth/application/ports/outbound/user-manager.port.ts -> @database/entities/user.entity",
+        "src/modules/auth/application/use-cases/register.use-case.ts -> ../../../../database/entities/user.entity",
+        "src/modules/auth/infrastructure/adapters/legacy-users-module.adapter.ts -> @database/entities/user.entity",
+        "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts -> @modules/auth/presentation/strategies/jwt.strategy"
       ]
     },
     {
