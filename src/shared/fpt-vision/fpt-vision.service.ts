@@ -44,4 +44,19 @@ export class FptVisionService implements KycVisionPort {
       }, 2000);
     });
   }
+
+  async verifyCccd(imageUrl: string): Promise<Record<string, string>> {
+    this.logger.log(`Mock verifyCccd: ${imageUrl}`);
+    return { id: 'mock', name: '', dob: '', sex: '', nationality: '', home: '', address: '' };
+  }
+
+  async verifyCccdFull(frontUrl: string, backUrl: string): Promise<Record<string, string>> {
+    this.logger.log(`Mock verifyCccdFull: ${frontUrl}, ${backUrl}`);
+    return { id: 'mock', name: '', dob: '', sex: '', nationality: '', home: '', address: '' };
+  }
+
+  async verifyBrc(imageUrl: string): Promise<Record<string, string>> {
+    this.logger.log(`Mock verifyBrc: ${imageUrl}`);
+    return {};
+  }
 }
