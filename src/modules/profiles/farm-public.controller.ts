@@ -15,7 +15,7 @@ export class FarmPublicController {
   @ApiResponse({ status: 200, description: 'Farm profile' })
   @ApiResponse({ status: 404, description: 'Farm not found' })
   async getFarmPublic(@Param('userId', ParseUuidPipe) userId: string) {
-    const profile = await this.profilesService.getFarmerProfile(userId);
+    const profile = await this.profilesService.getPublicFarmerProfile(userId);
     if (!profile) throw new NotFoundException('Farm profile not found');
     return profile;
   }

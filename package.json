@@ -25,7 +25,11 @@
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.config.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
-    "storage:check-config": "ts-node -r tsconfig-paths/register src/scripts/check-storage-config.ts"
+    "storage:check-config": "ts-node -r tsconfig-paths/register src/scripts/check-storage-config.ts",
+    "storage:phase9:plan": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts plan",
+    "storage:phase9:migrate": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts apply",
+    "storage:phase9:finalize": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts finalize",
+    "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",

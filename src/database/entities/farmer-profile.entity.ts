@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('farmer_profiles')
@@ -13,11 +21,27 @@ export class FarmerProfile {
   @Column({ name: 'cccd_number', length: 12, unique: true })
   cccdNumber: string;
 
-  @Column({ name: 'cccd_front_url', type: 'text', nullable: true })
+  @Column({
+    name: 'cccd_front_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
   cccdFrontUrl: string | null;
 
-  @Column({ name: 'cccd_back_url', type: 'text', nullable: true })
-  cccdBackUrl: string;
+  @Column({
+    name: 'cccd_back_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
+  cccdBackUrl: string | null;
+
+  @Column({ name: 'cccd_front_file_id', type: 'uuid', nullable: true })
+  cccdFrontFileId: string | null;
+
+  @Column({ name: 'cccd_back_file_id', type: 'uuid', nullable: true })
+  cccdBackFileId: string | null;
 
   @Column({ name: 'residence_address', type: 'text', nullable: true })
   residenceAddress: string;
@@ -29,7 +53,7 @@ export class FarmerProfile {
   isKycVerified: boolean;
 
   @Column({ name: 'verified_by', type: 'uuid', nullable: true })
-  verifiedBy: string;
+  verifiedBy: string | null;
 
   @Column({ name: 'rejection_reason', type: 'text', nullable: true })
   rejectionReason: string | null;
@@ -40,17 +64,20 @@ export class FarmerProfile {
   @Column({ name: 'district_id', type: 'int', nullable: true })
   districtId: number | null;
 
-
   @Column({ type: 'text', nullable: true })
   bio: string | null;
 
-  @Column({ name: 'trust_score', type: 'decimal', precision: 3, scale: 2, default: 0 })
+  @Column({
+    name: 'trust_score',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    default: 0,
+  })
   trustScore: number;
 
   @Column({ name: 'total_sales', type: 'int', default: 0 })
   totalSales: number;
-
-
 
   @Column({ name: 'verified_at', type: 'timestamptz', nullable: true })
   verifiedAt: Date | null;

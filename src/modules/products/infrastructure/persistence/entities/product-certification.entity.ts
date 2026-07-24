@@ -1,5 +1,12 @@
 import { CertificationStatus, CertType } from '@common/enums';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Product } from './product.entity';
 
 @Entity('product_certifications')
@@ -25,8 +32,11 @@ export class ProductCertification {
   @Column({ name: 'expiry_date', nullable: true, type: 'date' })
   expiryDate: Date;
 
-  @Column({ name: 'document_url', nullable: true })
-  documentUrl: string;
+  @Column({ name: 'document_url', nullable: true, select: false })
+  documentUrl: string | null;
+
+  @Column({ name: 'stored_file_id', type: 'uuid', nullable: true })
+  storedFileId: string | null;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
@@ -51,7 +61,9 @@ export class ProductCertification {
   createdAt: Date;
 
   // ─── Relations ────────────────────────────────────────────────
-  @ManyToOne(() => Product, (product) => product.certifications, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, (product) => product.certifications, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'product_id' })
   product: Product;
 }

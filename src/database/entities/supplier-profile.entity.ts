@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { SupplierType } from '../../common/enums';
 
 @Entity('supplier_profiles')
@@ -27,14 +33,22 @@ export class SupplierProfile {
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 
-  @Column({ name: 'business_license_url', type: 'text', nullable: true })
-  businessLicenseUrl: string;
+  @Column({
+    name: 'business_license_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
+  businessLicenseUrl: string | null;
+
+  @Column({ name: 'business_license_file_id', type: 'uuid', nullable: true })
+  businessLicenseFileId: string | null;
 
   @Column({ name: 'verified_by', type: 'uuid', nullable: true })
-  verifiedBy: string;
+  verifiedBy: string | null;
 
   @Column({ name: 'rejection_reason', type: 'text', nullable: true })
-  rejectionReason: string;
+  rejectionReason: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

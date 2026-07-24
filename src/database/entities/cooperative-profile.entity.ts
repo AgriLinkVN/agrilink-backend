@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('cooperative_profiles')
@@ -19,10 +27,20 @@ export class CooperativeProfile {
   @Column({ name: 'tax_code', length: 20, unique: true })
   taxCode: string;
 
-  @Column({ name: 'cooperative_cert_url', type: 'text', nullable: true })
+  @Column({
+    name: 'cooperative_cert_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
   cooperativeCertUrl: string | null;
 
-  @Column({ name: 'business_license_url', type: 'text', nullable: true })
+  @Column({
+    name: 'business_license_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
   businessLicenseUrl: string | null;
 
   @Column({ name: 'representative_name', length: 255 })
@@ -34,14 +52,52 @@ export class CooperativeProfile {
   @Column({ name: 'representative_cccd', length: 12 })
   representativeCccd: string;
 
-  @Column({ name: 'representative_cccd_front_url', type: 'text', nullable: true })
-  representativeCccdFrontUrl: string;
+  @Column({
+    name: 'representative_cccd_front_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
+  representativeCccdFrontUrl: string | null;
 
-  @Column({ name: 'representative_cccd_back_url', type: 'text', nullable: true })
-  representativeCccdBackUrl: string;
+  @Column({
+    name: 'representative_cccd_back_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
+  representativeCccdBackUrl: string | null;
 
-  @Column({ name: 'members_list_url', type: 'text', nullable: true })
-  membersListUrl: string;
+  @Column({
+    name: 'members_list_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
+  membersListUrl: string | null;
+
+  @Column({ name: 'cooperative_cert_file_id', type: 'uuid', nullable: true })
+  cooperativeCertFileId: string | null;
+
+  @Column({ name: 'business_license_file_id', type: 'uuid', nullable: true })
+  businessLicenseFileId: string | null;
+
+  @Column({
+    name: 'representative_cccd_front_file_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  representativeCccdFrontFileId: string | null;
+
+  @Column({
+    name: 'representative_cccd_back_file_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  representativeCccdBackFileId: string | null;
+
+  @Column({ name: 'members_list_file_id', type: 'uuid', nullable: true })
+  membersListFileId: string | null;
 
   @Column({ type: 'text' })
   address: string;

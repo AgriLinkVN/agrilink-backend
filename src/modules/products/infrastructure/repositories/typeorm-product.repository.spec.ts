@@ -1,6 +1,4 @@
 import {
-  CertificationStatus,
-  CertType,
   FarmingType,
   ProductStatus,
   ProductUnit,
@@ -8,7 +6,6 @@ import {
 } from '@common/enums';
 import { Product } from '../persistence/entities/product.entity';
 import { ProductCategory } from '../persistence/entities/product-category.entity';
-import { ProductCertification } from '../persistence/entities/product-certification.entity';
 import { ProductImage } from '../persistence/entities/product-image.entity';
 import { Wishlist } from '../persistence/entities/wishlist.entity';
 import { TypeOrmProductRepository } from './typeorm-product.repository';
@@ -133,7 +130,7 @@ describe('TypeOrmProductRepository', () => {
     });
   });
 
-  it('creates a draft product and normalizes image/certification defaults transactionally', async () => {
+  it('creates a draft product and normalizes image defaults transactionally', async () => {
     const savedProduct = makeProduct({ status: ProductStatus.DRAFT });
     const manager = {
       create: jest.fn((_entity, value) => value),
@@ -145,21 +142,17 @@ describe('TypeOrmProductRepository', () => {
     };
     dataSource.transaction.mockImplementation(async (work) => work(manager));
 
-    const result = await repository.createAtomically(SELLER_ID, SellerType.FARMER, {
-      name: 'Xoai cat Hoa Loc',
-      pricePerUnit: 25000,
-      unit: ProductUnit.KG,
-      availableQuantity: 100,
-      images: [{ imageUrl: 'https://example.test/product.jpg' }],
-      certifications: [
-        {
-          certType: CertType.VIETGAP,
-          certNumber: 'VG-001',
-          issuedDate: '2026-06-01',
-          expiryDate: '2027-06-01',
-        },
-      ],
-    });
+    const result = await repository.createAtomically(
+      SELLER_ID,
+      SellerType.FARMER,
+      {
+        name: 'Xoai cat Hoa Loc',
+        pricePerUnit: 25000,
+        unit: ProductUnit.KG,
+        availableQuantity: 100,
+        images: [{ imageUrl: 'https://example.test/product.jpg' }],
+      },
+    );
 
     expect(result).toBe(savedProduct);
     expect(manager.create).toHaveBeenCalledWith(
@@ -170,29 +163,14 @@ describe('TypeOrmProductRepository', () => {
         status: ProductStatus.DRAFT,
       }),
     );
-    expect(manager.save).toHaveBeenCalledWith(
-      ProductImage,
-      [
-        expect.objectContaining({
-          productId: PRODUCT_ID,
-          imageUrl: 'https://example.test/product.jpg',
-          isPrimary: true,
-          sortOrder: 0,
-        }),
-      ],
-    );
-    expect(manager.save).toHaveBeenCalledWith(
-      ProductCertification,
-      [
-        expect.objectContaining({
-          productId: PRODUCT_ID,
-          certType: CertType.VIETGAP,
-          certNumber: 'VG-001',
-          isVerified: false,
-          status: CertificationStatus.PENDING,
-        }),
-      ],
-    );
+    expect(manager.save).toHaveBeenCalledWith(ProductImage, [
+      expect.objectContaining({
+        productId: PRODUCT_ID,
+        imageUrl: 'https://example.test/product.jpg',
+        isPrimary: true,
+        sortOrder: 0,
+      }),
+    ]);
   });
 
   it('propagates a child write failure so the product creation transaction rolls back', async () => {
@@ -200,7 +178,8 @@ describe('TypeOrmProductRepository', () => {
       create: jest.fn((_entity, value) => value),
       save: jest.fn(async (entity, value) => {
         if (entity === Product) return { ...value, id: PRODUCT_ID };
-        if (entity === ProductImage) throw new Error('image persistence failed');
+        if (entity === ProductImage)
+          throw new Error('image persistence failed');
         return value;
       }),
       findOneOrFail: jest.fn(),
@@ -239,7 +218,9 @@ describe('TypeOrmProductRepository', () => {
     wishlistRepo.createQueryBuilder.mockReturnValue(queryBuilder);
     wishlistRepo.findOne.mockResolvedValue(entry);
 
-    await expect(repository.addIfAbsent(USER_ID, PRODUCT_ID)).resolves.toBe(entry);
+    await expect(repository.addIfAbsent(USER_ID, PRODUCT_ID)).resolves.toBe(
+      entry,
+    );
     expect(queryBuilder.values).toHaveBeenCalledWith({
       userId: USER_ID,
       productId: PRODUCT_ID,
@@ -280,7 +261,10 @@ function createQueryBuilderMock<TEntity>(
   };
 
   Object.values(queryBuilder).forEach((method) => {
-    if (jest.isMockFunction(method) && method !== queryBuilder.getManyAndCount) {
+    if (
+      jest.isMockFunction(method) &&
+      method !== queryBuilder.getManyAndCount
+    ) {
       method.mockReturnValue(queryBuilder);
     }
   });
@@ -288,7 +272,9 @@ function createQueryBuilderMock<TEntity>(
   return queryBuilder;
 }
 
-function makeCategory(overrides: Partial<ProductCategory> = {}): ProductCategory {
+function makeCategory(
+  overrides: Partial<ProductCategory> = {},
+): ProductCategory {
   return {
     id: CATEGORY_ID,
     name: 'Trai cay',

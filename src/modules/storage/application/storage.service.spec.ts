@@ -1,39 +1,206 @@
+import {
+  StoredFileModel,
+  StoredFileRepositoryPort,
+} from './ports/outbound/stored-file-repository.port';
 import { StorageService } from './storage.service';
 
-describe('StorageService document paths', () => {
-  it('passes owner-scoped paths to the private storage provider', async () => {
-    const fileStorage = {
-      createUploadUrl: jest.fn().mockResolvedValue({ signedUrl: 'upload-url', path: 'users/user-1/docs/a.pdf' }),
-      upload: jest.fn(),
-      createDownloadUrl: jest.fn(),
-      exists: jest.fn(),
-      download: jest.fn(),
-      delete: jest.fn(),
-    };
-    const service = new StorageService({} as never, fileStorage, {} as never, {} as never, {} as never);
+const FILE_ID = '11111111-1111-4111-8111-111111111111';
 
-    await service.createFileUploadUrl('user-1', 'docs/a.pdf');
+function makeStoredFile(
+  overrides: Partial<StoredFileModel> = {},
+): StoredFileModel {
+  return {
+    id: FILE_ID,
+    ownerId: 'owner-1',
+    assetType: 'CERTIFICATION',
+    provider: 'SUPABASE',
+    visibility: 'PRIVATE',
+    status: 'QUARANTINED',
+    objectKey: 'development/owners/owner-1/CERTIFICATION/file.pdf',
+    originalName: 'file.pdf',
+    declaredMime: 'application/pdf',
+    sizeBytes: 20,
+    expiresAt: new Date(),
+    resourceType: null,
+    resourceId: null,
+    ...overrides,
+  };
+}
 
-    expect(fileStorage.createUploadUrl).toHaveBeenCalledWith('users/user-1/docs/a.pdf');
-  });
+function makeRepository(): jest.Mocked<StoredFileRepositoryPort> {
+  return {
+    create: jest.fn(),
+    findById: jest.fn(),
+    findByIdForOwner: jest.fn(),
+    findExpiredPending: jest.fn(),
+    findDeletionRetries: jest.fn(),
+    updateStatus: jest.fn(),
+    attachToResource: jest.fn(),
+    markDeletionRetry: jest.fn(),
+  };
+}
 
-  it('creates an owner-scoped private upload intent with a server-generated key', async () => {
-    const fileStorage = { createUploadUrl: jest.fn().mockResolvedValue({ signedUrl: 'upload-url', token: 'token' }), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), download: jest.fn(), delete: jest.fn() };
-    const repository = { create: jest.fn().mockImplementation(async (file) => file), findById: jest.fn(), findByIdForOwner: jest.fn(), findExpiredPending: jest.fn(), findDeletionRetries: jest.fn(), markDeletionRetry: jest.fn(), updateStatus: jest.fn() };
-    const service = new StorageService({} as never, fileStorage, repository, { environmentPrefix: 'development', uploadIntentTtlSeconds: 900 } as never, { recordAudit: jest.fn(), recordProviderMetric: jest.fn() });
+function makeService(
+  repository = makeRepository(),
+  fileStorageOverrides: Record<string, jest.Mock> = {},
+) {
+  const fileStorage = {
+    createUploadUrl: jest
+      .fn()
+      .mockResolvedValue({ signedUrl: 'upload-url', token: 'token' }),
+    upload: jest.fn(),
+    createDownloadUrl: jest.fn().mockResolvedValue({
+      path: 'development/owners/owner-1/CERTIFICATION/file.pdf',
+      signedUrl: 'download-url',
+      expiresIn: 300,
+    }),
+    exists: jest.fn(),
+    download: jest.fn(),
+    delete: jest.fn(),
+    ...fileStorageOverrides,
+  };
+  const service = new StorageService(
+    {} as never,
+    fileStorage,
+    repository,
+    {
+      environmentPrefix: 'development',
+      uploadIntentTtlSeconds: 900,
+    } as never,
+    { recordAudit: jest.fn(), recordProviderMetric: jest.fn() },
+  );
+  return { service, fileStorage, repository };
+}
 
-    const result = await service.createUploadIntent('owner-1', { assetType: 'KYC_IDENTITY', originalName: 'id-card.pdf', declaredMime: 'application/pdf', sizeBytes: 20 }, 'request-1');
+describe('StorageService private files', () => {
+  it('creates an owner-scoped upload intent with a server-generated key', async () => {
+    const { service, repository } = makeService();
+    repository.create.mockImplementation(async (file) => file);
+
+    const result = await service.createUploadIntent(
+      'owner-1',
+      {
+        assetType: 'KYC_IDENTITY',
+        originalName: 'id-card.pdf',
+        declaredMime: 'application/pdf',
+        sizeBytes: 20,
+      },
+      'request-1',
+    );
 
     expect(result.fileId).toBeDefined();
-    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ ownerId: 'owner-1', visibility: 'PRIVATE', status: 'PENDING', objectKey: expect.stringMatching(/^development\/owners\/owner-1\/KYC_IDENTITY\/.+\.pdf$/) }));
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ownerId: 'owner-1',
+        visibility: 'PRIVATE',
+        status: 'PENDING',
+        resourceId: null,
+        objectKey: expect.stringMatching(
+          /^development\/owners\/owner-1\/KYC_IDENTITY\/.+\.pdf$/,
+        ),
+      }),
+    );
   });
 
-  it('does not issue a download URL when the owner-scoped record is absent', async () => {
-    const fileStorage = { createUploadUrl: jest.fn(), upload: jest.fn(), createDownloadUrl: jest.fn(), exists: jest.fn(), download: jest.fn(), delete: jest.fn() };
-    const repository = { create: jest.fn(), findById: jest.fn(), findByIdForOwner: jest.fn().mockResolvedValue(null), findExpiredPending: jest.fn(), findDeletionRetries: jest.fn(), markDeletionRetry: jest.fn(), updateStatus: jest.fn() };
-    const service = new StorageService({} as never, fileStorage, repository, {} as never, { recordAudit: jest.fn(), recordProviderMetric: jest.fn() });
+  it('does not issue a URL when the owner-scoped record is absent', async () => {
+    const { service, repository, fileStorage } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(null);
 
-    await expect(service.createFileDownloadUrl('other-owner', 'file-1', 'request-1')).rejects.toThrow('Stored file not found');
+    await expect(
+      service.createFileDownloadUrl(
+        'other-owner',
+        FILE_ID,
+        'request-1',
+        'buyer',
+      ),
+    ).rejects.toThrow('Stored file not found');
     expect(fileStorage.createDownloadUrl).not.toHaveBeenCalled();
+  });
+
+  it('allows a reviewer to read a quarantined file without changing ownership', async () => {
+    const { service, repository, fileStorage } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(null);
+    repository.findById.mockResolvedValue(makeStoredFile());
+
+    await expect(
+      service.createFileDownloadUrl(
+        'reviewer-1',
+        FILE_ID,
+        'request-1',
+        'state_agency',
+      ),
+    ).resolves.toEqual({ signedUrl: 'download-url', expiresIn: 300 });
+    expect(fileStorage.createDownloadUrl).toHaveBeenCalledWith(
+      'development/owners/owner-1/CERTIFICATION/file.pdf',
+    );
+  });
+
+  it('does not allow an owner to download a quarantined file', async () => {
+    const { service, repository, fileStorage } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(makeStoredFile());
+
+    await expect(
+      service.createFileDownloadUrl('owner-1', FILE_ID, 'request-1', 'farmer'),
+    ).rejects.toThrow('File is not available');
+    expect(fileStorage.createDownloadUrl).not.toHaveBeenCalled();
+  });
+
+  it('attaches only a matching private file owned by the caller', async () => {
+    const { service, repository } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(makeStoredFile());
+    repository.attachToResource.mockResolvedValue(true);
+
+    await service.attachOwnedFile({
+      fileId: FILE_ID,
+      ownerId: 'owner-1',
+      assetType: 'CERTIFICATION',
+      resourceType: 'PRODUCT',
+      resourceId: 'product-1',
+    });
+
+    expect(repository.attachToResource).toHaveBeenCalledWith(
+      FILE_ID,
+      'owner-1',
+      'CERTIFICATION',
+      'PRODUCT',
+      'product-1',
+    );
+  });
+
+  it('rejects an attachment with the wrong private asset type', async () => {
+    const { service, repository } = makeService();
+    repository.findByIdForOwner.mockResolvedValue(makeStoredFile());
+
+    await expect(
+      service.attachOwnedFile({
+        fileId: FILE_ID,
+        ownerId: 'owner-1',
+        assetType: 'KYC_IDENTITY',
+        resourceType: 'FARMER_PROFILE',
+        resourceId: 'profile-1',
+      }),
+    ).rejects.toThrow('asset type');
+    expect(repository.attachToResource).not.toHaveBeenCalled();
+  });
+
+  it('returns owned private bytes to an internal KYC consumer', async () => {
+    const content = Buffer.from('private-content');
+    const { service, repository, fileStorage } = makeService(undefined, {
+      download: jest.fn().mockResolvedValue(content),
+    });
+    repository.findByIdForOwner.mockResolvedValue(
+      makeStoredFile({ assetType: 'KYC_IDENTITY' }),
+    );
+
+    await expect(
+      service.readOwnedFile({
+        fileId: FILE_ID,
+        ownerId: 'owner-1',
+        assetType: 'KYC_IDENTITY',
+      }),
+    ).resolves.toEqual(content);
+    expect(fileStorage.download).toHaveBeenCalledWith(
+      'development/owners/owner-1/CERTIFICATION/file.pdf',
+    );
   });
 });

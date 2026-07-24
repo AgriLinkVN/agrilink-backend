@@ -12,6 +12,7 @@ import {
   WishlistModel,
 } from './models/product.model';
 import {
+  InvalidProductCertificationFileError,
   InvalidProductCertificationVerificationError,
   ProductForbiddenError,
   ProductNotFoundError,
@@ -23,6 +24,7 @@ import {
   ProductWishlistRepositoryPort,
 } from './ports/outbound/product-repository.port';
 import {
+  AddProductCertificationUseCase,
   AddWishlistItemUseCase,
   ChangeProductStatusUseCase,
   CreateProductUseCase,
@@ -30,6 +32,7 @@ import {
   UpdateProductUseCase,
   VerifyProductCertificationUseCase,
 } from './use-cases/product.use-cases';
+import { StoredFileAccessPort } from '@modules/storage/application/ports/inbound/stored-file-access.port';
 
 const PRODUCT_ID = '11111111-1111-4111-8111-111111111111';
 const CERT_ID = '22222222-2222-4222-8222-222222222222';
@@ -79,6 +82,14 @@ function makeWishlistRepository(): jest.Mocked<ProductWishlistRepositoryPort> {
     remove: jest.fn(),
     getWishlist: jest.fn(),
     getWishlistedIds: jest.fn(),
+  };
+}
+
+function makeStoredFileAccess(): jest.Mocked<StoredFileAccessPort> {
+  return {
+    attachOwnedFile: jest.fn(),
+    readOwnedFile: jest.fn(),
+    reviewFile: jest.fn(),
   };
 }
 
@@ -138,7 +149,12 @@ describe('Product application use cases', () => {
     });
 
     await expect(
-      useCase.execute(PRODUCT_ID, SELLER_ID, UserRole.FARMER, ProductStatus.ACTIVE),
+      useCase.execute(
+        PRODUCT_ID,
+        SELLER_ID,
+        UserRole.FARMER,
+        ProductStatus.ACTIVE,
+      ),
     ).rejects.toThrow(ProductForbiddenError);
   });
 
@@ -161,15 +177,106 @@ describe('Product application use cases', () => {
 
   it('requires a rejection reason when rejecting a certification', async () => {
     const repository = makeCertificationRepository();
-    repository.findByIdWithProduct.mockResolvedValue(
-      { id: CERT_ID } as ProductCertificationModel,
+    repository.findByIdWithProduct.mockResolvedValue({
+      id: CERT_ID,
+    } as ProductCertificationModel);
+    const useCase = new VerifyProductCertificationUseCase(
+      repository,
+      makeStoredFileAccess(),
     );
-    const useCase = new VerifyProductCertificationUseCase(repository);
 
     await expect(
-      useCase.execute(CERT_ID, ADMIN_ID, { status: CertificationStatus.REJECTED }),
+      useCase.execute(CERT_ID, ADMIN_ID, UserRole.ADMIN, {
+        status: CertificationStatus.REJECTED,
+      }),
     ).rejects.toThrow(InvalidProductCertificationVerificationError);
     expect(repository.saveCertification).not.toHaveBeenCalled();
+  });
+
+  it('updates the private file after certification persistence succeeds', async () => {
+    const repository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    const certification = {
+      id: CERT_ID,
+      storedFileId: CERT_ID,
+      status: CertificationStatus.PENDING,
+      isVerified: false,
+      verifiedBy: null,
+      verifiedAt: null,
+      rejectionReason: null,
+    } as ProductCertificationModel;
+    repository.findByIdWithProduct.mockResolvedValue(certification);
+    repository.saveCertification.mockImplementation(async (saved) => saved);
+    const useCase = new VerifyProductCertificationUseCase(
+      repository,
+      storedFileAccess,
+    );
+
+    await useCase.execute(CERT_ID, ADMIN_ID, UserRole.STATE_AGENCY, {
+      status: CertificationStatus.VERIFIED,
+    });
+
+    expect(storedFileAccess.reviewFile).toHaveBeenCalledWith({
+      fileId: CERT_ID,
+      reviewerRole: UserRole.STATE_AGENCY,
+      approve: true,
+    });
+    expect(
+      repository.saveCertification.mock.invocationCallOrder[0],
+    ).toBeLessThan(storedFileAccess.reviewFile.mock.invocationCallOrder[0]);
+  });
+
+  it('attaches an owned private file before creating a certification', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    certificationRepository.addCertification.mockResolvedValue({
+      id: CERT_ID,
+      storedFileId: CERT_ID,
+    } as ProductCertificationModel);
+    const useCase = new AddProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await useCase.execute(PRODUCT_ID, SELLER_ID, {
+      certType: 'vietgap' as never,
+      storedFileId: CERT_ID,
+    });
+
+    expect(storedFileAccess.attachOwnedFile).toHaveBeenCalledWith({
+      fileId: CERT_ID,
+      ownerId: SELLER_ID,
+      assetType: 'CERTIFICATION',
+      resourceType: 'PRODUCT',
+      resourceId: PRODUCT_ID,
+    });
+    expect(certificationRepository.addCertification).toHaveBeenCalled();
+  });
+
+  it('does not create a certification when the private file is unauthorized', async () => {
+    const productRepository = makeProductRepository();
+    const certificationRepository = makeCertificationRepository();
+    const storedFileAccess = makeStoredFileAccess();
+    productRepository.findByIdWithRelations.mockResolvedValue(makeProduct());
+    storedFileAccess.attachOwnedFile.mockRejectedValue(
+      new Error('Stored file not found'),
+    );
+    const useCase = new AddProductCertificationUseCase(
+      productRepository,
+      certificationRepository,
+      storedFileAccess,
+    );
+
+    await expect(
+      useCase.execute(PRODUCT_ID, SELLER_ID, {
+        certType: 'vietgap' as never,
+        storedFileId: CERT_ID,
+      }),
+    ).rejects.toThrow(InvalidProductCertificationFileError);
+    expect(certificationRepository.addCertification).not.toHaveBeenCalled();
   });
 
   it('delegates duplicate-safe wishlist persistence to the atomic repository operation', async () => {
@@ -181,9 +288,14 @@ describe('Product application use cases', () => {
       productId: PRODUCT_ID,
       createdAt: new Date(),
     };
-    productRepository.findActiveById.mockResolvedValue(makeProduct({ status: ProductStatus.ACTIVE }));
+    productRepository.findActiveById.mockResolvedValue(
+      makeProduct({ status: ProductStatus.ACTIVE }),
+    );
     wishlistRepository.addIfAbsent.mockResolvedValue(existing);
-    const useCase = new AddWishlistItemUseCase(productRepository, wishlistRepository);
+    const useCase = new AddWishlistItemUseCase(
+      productRepository,
+      wishlistRepository,
+    );
 
     await expect(useCase.execute(USER_ID, PRODUCT_ID)).resolves.toBe(existing);
     expect(wishlistRepository.addIfAbsent).toHaveBeenCalledWith(
@@ -196,7 +308,10 @@ describe('Product application use cases', () => {
     const productRepository = makeProductRepository();
     const wishlistRepository = makeWishlistRepository();
     productRepository.findActiveById.mockResolvedValue(null);
-    const useCase = new AddWishlistItemUseCase(productRepository, wishlistRepository);
+    const useCase = new AddWishlistItemUseCase(
+      productRepository,
+      wishlistRepository,
+    );
 
     await expect(useCase.execute(USER_ID, PRODUCT_ID)).rejects.toThrow(
       WishlistProductUnavailableError,
@@ -223,9 +338,13 @@ describe('Product application use cases', () => {
   });
 
   it('maps a missing public detail projection to not found', async () => {
-    const useCase = new GetProductDetailUseCase({ findOne: jest.fn().mockResolvedValue(null) });
+    const useCase = new GetProductDetailUseCase({
+      findOne: jest.fn().mockResolvedValue(null),
+    });
 
-    await expect(useCase.execute(PRODUCT_ID)).rejects.toThrow(ProductNotFoundError);
+    await expect(useCase.execute(PRODUCT_ID)).rejects.toThrow(
+      ProductNotFoundError,
+    );
   });
 
   it('derives seller type from the authenticated seller role when JWT has no sellerType', async () => {
@@ -233,17 +352,12 @@ describe('Product application use cases', () => {
     repository.createAtomically.mockResolvedValue(makeProduct());
     const useCase = new CreateProductUseCase(repository);
 
-    await useCase.execute(
-      SELLER_ID,
-      undefined,
-      UserRole.COOPERATIVE,
-      {
-        name: 'Xoai cat Hoa Loc',
-        pricePerUnit: 25000,
-        unit: ProductUnit.KG,
-        availableQuantity: 10,
-      },
-    );
+    await useCase.execute(SELLER_ID, undefined, UserRole.COOPERATIVE, {
+      name: 'Xoai cat Hoa Loc',
+      pricePerUnit: 25000,
+      unit: ProductUnit.KG,
+      availableQuantity: 10,
+    });
 
     expect(repository.createAtomically).toHaveBeenCalledWith(
       SELLER_ID,

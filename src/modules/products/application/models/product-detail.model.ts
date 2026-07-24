@@ -44,7 +44,6 @@ export interface ProductDetailCertification {
   issuedBy: string | null;
   issuedDate: string | null;
   expiryDate: string | null;
-  documentUrl: string | null;
   isVerified: boolean;
   status: CertificationStatus;
   verifiedBy: string | null;

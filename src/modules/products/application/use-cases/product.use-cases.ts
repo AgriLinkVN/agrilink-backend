@@ -12,11 +12,16 @@ import {
   NotificationPublisherPort,
 } from '@modules/notifications/application/ports/inbound/notification-publisher.port';
 import {
+  InvalidProductCertificationFileError,
   ProductCertificationNotFoundError,
   ProductForbiddenError,
   ProductNotFoundError,
 } from '../../domain/errors/product-application.error';
 import { assertValidCertificationVerification } from '../../domain/policies/product-certification-verification.policy';
+import {
+  STORED_FILE_ACCESS,
+  StoredFileAccessPort,
+} from '@modules/storage/application/ports/inbound/stored-file-access.port';
 import { assertProductStatusTransition } from '../../domain/policies/product-status-transition.policy';
 import { resolveSellerType } from '../../domain/policies/seller-type.policy';
 import { assertWishlistProductIsAvailable } from '../../domain/policies/wishlist.policy';
@@ -70,7 +75,9 @@ function assertProductOwner(
   action: string,
 ): void {
   if (product.sellerId !== sellerId) {
-    throw new ProductForbiddenError(`Bạn không có quyền ${action} sản phẩm này`);
+    throw new ProductForbiddenError(
+      `Bạn không có quyền ${action} sản phẩm này`,
+    );
   }
 }
 
@@ -267,10 +274,17 @@ export class RemoveProductImageUseCase {
     private readonly productImageRepository: ProductImageRepositoryPort,
   ) {}
 
-  async execute(productId: string, imageId: string, sellerId: string): Promise<void> {
+  async execute(
+    productId: string,
+    imageId: string,
+    sellerId: string,
+  ): Promise<void> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'xóa ảnh của');
-    const removed = await this.productImageRepository.removeImageByProduct(productId, imageId);
+    const removed = await this.productImageRepository.removeImageByProduct(
+      productId,
+      imageId,
+    );
     if (!removed) {
       throw new ProductNotFoundError('Không tìm thấy ảnh');
     }
@@ -284,6 +298,8 @@ export class AddProductCertificationUseCase {
     private readonly productRepository: ProductRepositoryPort,
     @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
   async execute(
@@ -293,7 +309,23 @@ export class AddProductCertificationUseCase {
   ): Promise<ProductCertificationModel> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
-    return this.productCertificationRepository.addCertification(productId, input);
+    try {
+      await this.storedFileAccess.attachOwnedFile({
+        fileId: input.storedFileId,
+        ownerId: sellerId,
+        assetType: 'CERTIFICATION',
+        resourceType: 'PRODUCT',
+        resourceId: productId,
+      });
+    } catch {
+      throw new InvalidProductCertificationFileError(
+        'Tệp chứng nhận không hợp lệ hoặc không thuộc người bán',
+      );
+    }
+    return this.productCertificationRepository.addCertification(
+      productId,
+      input,
+    );
   }
 }
 
@@ -306,13 +338,18 @@ export class RemoveProductCertificationUseCase {
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
   ) {}
 
-  async execute(productId: string, certId: string, sellerId: string): Promise<void> {
+  async execute(
+    productId: string,
+    certId: string,
+    sellerId: string,
+  ): Promise<void> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'xóa chứng nhận của');
-    const removed = await this.productCertificationRepository.removeCertificationByProduct(
-      productId,
-      certId,
-    );
+    const removed =
+      await this.productCertificationRepository.removeCertificationByProduct(
+        productId,
+        certId,
+      );
     if (!removed) {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
@@ -336,14 +373,18 @@ export class VerifyProductCertificationUseCase {
   constructor(
     @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
   async execute(
     certId: string,
     adminId: string,
+    reviewerRole: UserRole,
     input: VerifyProductCertificationInput,
   ): Promise<ProductCertificationModel> {
-    const certification = await this.productCertificationRepository.findByIdWithProduct(certId);
+    const certification =
+      await this.productCertificationRepository.findByIdWithProduct(certId);
     if (!certification) {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
@@ -357,7 +398,18 @@ export class VerifyProductCertificationUseCase {
       input.status === CertificationStatus.REJECTED
         ? input.rejectionReason!.trim()
         : null;
-    return this.productCertificationRepository.saveCertification(certification);
+    const saved =
+      await this.productCertificationRepository.saveCertification(
+        certification,
+      );
+    if (saved.storedFileId) {
+      await this.storedFileAccess.reviewFile({
+        fileId: saved.storedFileId,
+        reviewerRole,
+        approve: input.status === CertificationStatus.VERIFIED,
+      });
+    }
+    return saved;
   }
 }
 
@@ -399,7 +451,12 @@ export class ListWishlistUseCase {
   execute(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ProductModel[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     return this.productWishlistRepository.getWishlist(userId, query);
   }
 }

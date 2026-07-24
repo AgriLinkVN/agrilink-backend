@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+} from 'class-validator';
 
 export class UpsertFarmerProfileDto {
   @ApiProperty({ example: '012345678912', description: '12-digit CCCD number' })
@@ -7,15 +14,13 @@ export class UpsertFarmerProfileDto {
   @Length(12, 12)
   cccdNumber: string;
 
-  @ApiProperty({ example: 'https://cloudinary.com/front.jpg' })
-  @IsString()
-  @IsNotEmpty()
-  cccdFrontUrl: string;
+  @ApiProperty({ format: 'uuid' })
+  @IsUUID()
+  cccdFrontFileId: string;
 
-  @ApiProperty({ example: 'https://cloudinary.com/back.jpg' })
-  @IsString()
-  @IsNotEmpty()
-  cccdBackUrl: string;
+  @ApiProperty({ format: 'uuid' })
+  @IsUUID()
+  cccdBackFileId: string;
 
   @ApiProperty({ example: '123 Nguyen Van Linh' })
   @IsString()

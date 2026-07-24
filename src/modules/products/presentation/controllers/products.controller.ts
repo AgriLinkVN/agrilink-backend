@@ -44,7 +44,7 @@ import {
 @ApiBearerAuth('access-token')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(private readonly productsService: ProductsService) {}
 
   private async execute<T>(operation: () => Promise<T> | T): Promise<T> {
     try {
@@ -77,7 +77,8 @@ export class ProductsController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Danh sách sản phẩm + filter (public)' })
-  findAll( @Query() filter: ProductFilterDto,
+  findAll(
+    @Query() filter: ProductFilterDto,
     @CurrentUser('sub') currentUserId?: string, // optional — guest không có
   ) {
     const input: ProductFilterInput = filter;
@@ -125,11 +126,17 @@ export class ProductsController {
   verifyCertification(
     @Param('certId', ParseUuidPipe) certId: string,
     @CurrentUser('sub') adminId: string,
+    @CurrentUser('role') reviewerRole: UserRole,
     @Body() dto: VerifyProductCertificationDto,
   ) {
     const input: VerifyProductCertificationInput = dto;
     return this.execute(() =>
-      this.productsService.verifyCertification(certId, adminId, input),
+      this.productsService.verifyCertification(
+        certId,
+        adminId,
+        reviewerRole,
+        input,
+      ),
     );
   }
 
@@ -163,7 +170,10 @@ export class ProductsController {
     UserRole.STATE_AGENCY,
   )
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock' })
+  @ApiOperation({
+    summary:
+      'Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock',
+  })
   updateStatus(
     @Param('id', ParseUuidPipe) id: string,
     @CurrentUser('sub') actorId: string,

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpsertB2bProfileDto {
   // Common
@@ -31,23 +31,23 @@ export class UpsertB2bProfileDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  representativeCccdFrontUrl?: string;
+  @IsUUID()
+  representativeCccdFrontFileId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  representativeCccdBackUrl?: string;
+  @IsUUID()
+  representativeCccdBackFileId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  cooperativeCertUrl?: string;
+  @IsUUID()
+  cooperativeCertFileId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  membersListUrl?: string;
+  @IsUUID()
+  membersListFileId?: string;
 
   // Enterprise / Supplier
   @ApiPropertyOptional()
@@ -57,6 +57,6 @@ export class UpsertB2bProfileDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  businessLicenseUrl?: string;
+  @IsUUID()
+  businessLicenseFileId?: string;
 }
