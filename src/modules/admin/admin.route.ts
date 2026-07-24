@@ -12,9 +12,11 @@ import { SupplierProfile } from '../../database/entities/supplier-profile.entity
 import { User } from '../../database/entities/user.entity';
 import { Product } from '../products/infrastructure/persistence/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
+    StorageModule,
     TypeOrmModule.forFeature([
       SystemConfig,
       AuditLog,

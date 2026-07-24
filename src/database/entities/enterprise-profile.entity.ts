@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('enterprise_profiles')
@@ -16,8 +24,16 @@ export class EnterpriseProfile {
   @Column({ name: 'tax_code', length: 20, unique: true })
   taxCode: string;
 
-  @Column({ name: 'business_license_url', type: 'text', nullable: true })
+  @Column({
+    name: 'business_license_url',
+    type: 'text',
+    nullable: true,
+    select: false,
+  })
   businessLicenseUrl: string | null;
+
+  @Column({ name: 'business_license_file_id', type: 'uuid', nullable: true })
+  businessLicenseFileId: string | null;
 
   @Column({ name: 'representative_name', length: 255 })
   representativeName: string;

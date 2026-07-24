@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { StorageService } from './application/storage.service';
@@ -15,9 +20,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoredFileEntity } from './infrastructure/persistence/stored-file.entity';
 import { TypeOrmStoredFileRepository } from './infrastructure/persistence/typeorm-stored-file.repository';
 import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file-repository.port';
+import { StorageCleanupService } from './application/storage-cleanup.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { STORAGE_OBSERVABILITY } from './application/ports/outbound/storage-observability.port';
+import { StorageObservabilityService } from './infrastructure/observability/storage-observability.service';
+import { STORED_FILE_ACCESS } from './application/ports/inbound/stored-file-access.port';
+import { RetiredStorageRouteTelemetryMiddleware } from './presentation/middleware/retired-storage-route-telemetry.middleware';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([StoredFileEntity])],
+  imports: [
+    ConfigModule,
+    ScheduleModule.forRoot(),
+    TypeOrmModule.forFeature([StoredFileEntity]),
+  ],
   controllers: [StorageController],
   providers: [
     {
@@ -27,10 +42,11 @@ import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file
     SupabaseClientProvider,
     CloudinaryProvider,
     TypeOrmStoredFileRepository,
- 
+
     // Services
     CloudinaryService,
     SupabaseStorageService,
+    StorageObservabilityService,
 
     // Bind token → implementation
     {
@@ -41,11 +57,27 @@ import { STORED_FILE_REPOSITORY } from './application/ports/outbound/stored-file
       provide: FILE_STORAGE,
       useExisting: SupabaseStorageService,
     },
-    { provide: STORED_FILE_REPOSITORY, useExisting: TypeOrmStoredFileRepository },
+    {
+      provide: STORED_FILE_REPOSITORY,
+      useExisting: TypeOrmStoredFileRepository,
+    },
+    {
+      provide: STORAGE_OBSERVABILITY,
+      useExisting: StorageObservabilityService,
+    },
+    { provide: STORED_FILE_ACCESS, useExisting: StorageService },
 
     StorageService,
+    StorageCleanupService,
     StorageThrottlerGuard,
+    RetiredStorageRouteTelemetryMiddleware,
   ],
-  exports: [StorageService],
+  exports: [STORED_FILE_ACCESS],
 })
-export class StorageModule {}
+export class StorageModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(RetiredStorageRouteTelemetryMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

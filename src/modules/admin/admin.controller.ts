@@ -1,5 +1,20 @@
-import { Body, Controller, Get, Param, Patch, Query, Res, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AdminService } from './admin.service';
 import { AdminReportService } from './admin-report.service';
@@ -9,6 +24,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../common/enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { VerifyProfileDto } from './dto/verify-profile.dto';
+import { StorageReviewerRole } from '../storage/application/ports/inbound/stored-file-access.port';
 
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
@@ -22,7 +38,9 @@ export class AdminController {
 
   @Get('stats')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
-  @ApiOperation({ summary: 'System-wide statistics for admin/state-agency dashboard' })
+  @ApiOperation({
+    summary: 'System-wide statistics for admin/state-agency dashboard',
+  })
   getStats() {
     return this.adminService.getStats();
   }
@@ -42,8 +60,15 @@ export class AdminController {
     @Param('profileId') profileId: string,
     @Body() dto: VerifyProfileDto,
     @CurrentUser('sub') adminId: string,
+    @CurrentUser('role') reviewerRole: StorageReviewerRole,
   ) {
-    return this.adminService.verifyProfile(type, profileId, dto, adminId);
+    return this.adminService.verifyProfile(
+      type,
+      profileId,
+      dto,
+      adminId,
+      reviewerRole,
+    );
   }
 
   @Get('system-configs')
@@ -74,8 +99,15 @@ export class AdminController {
   @Get('disputes')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
   @ApiOperation({ summary: 'List incident reports / disputes' })
-  @ApiQuery({ name: 'status', required: false, enum: ['open', 'in_progress', 'resolved'] })
-  getDisputes(@Query() pagination: PaginationDto, @Query('status') status?: string) {
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['open', 'in_progress', 'resolved'],
+  })
+  getDisputes(
+    @Query() pagination: PaginationDto,
+    @Query('status') status?: string,
+  ) {
     return this.adminService.getDisputes(pagination, status);
   }
 
@@ -99,7 +131,9 @@ export class AdminController {
 
   @Get('products/violating')
   @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
-  @ApiOperation({ summary: 'List suspended/rejected products (policy violations)' })
+  @ApiOperation({
+    summary: 'List suspended/rejected products (policy violations)',
+  })
   getViolatingProducts(@Query() pagination: PaginationDto) {
     return this.adminService.getViolatingProducts(pagination);
   }

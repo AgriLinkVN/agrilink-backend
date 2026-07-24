@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 import { CertificationStatus, CertType } from '@common/enums';
 
 export class CreateProductCertificationDto {
@@ -29,10 +36,13 @@ export class CreateProductCertificationDto {
   @IsDateString()
   expiryDate?: string;
 
-  @ApiPropertyOptional({ example: 'https://res.cloudinary.com/.../cert.pdf' })
-  @IsOptional()
-  @IsString()
-  documentUrl?: string;
+  @ApiProperty({
+    format: 'uuid',
+    description:
+      'Private CERTIFICATION file created through a storage upload intent',
+  })
+  @IsUUID()
+  storedFileId: string;
 }
 
 export class VerifyProductCertificationDto {
@@ -43,7 +53,9 @@ export class VerifyProductCertificationDto {
   @IsEnum(CertificationStatus)
   status: CertificationStatus;
 
-  @ApiPropertyOptional({ example: 'Thông tin chứng nhận không khớp hồ sơ tải lên' })
+  @ApiPropertyOptional({
+    example: 'Thông tin chứng nhận không khớp hồ sơ tải lên',
+  })
   @IsOptional()
   @IsString()
   rejectionReason?: string;

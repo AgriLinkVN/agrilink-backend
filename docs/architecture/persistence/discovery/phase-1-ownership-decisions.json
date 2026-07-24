@@ -1,0 +1,1474 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "status": "proposed override; Phase 0 registry is unchanged",
+  "decisions": [
+    {
+      "schema": "public",
+      "table": "ad_campaigns",
+      "capabilityOwner": "ads",
+      "runtimeOwner": "ads",
+      "writePaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "activeFlows": [
+        "AdsController"
+      ],
+      "currentMapping": [
+        "src/database/entities/ad-campaign.entity.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "ad_events",
+      "capabilityOwner": "ads",
+      "runtimeOwner": "ads",
+      "writePaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "activeFlows": [
+        "AdsController"
+      ],
+      "currentMapping": [
+        "src/database/entities/ad-event.entity.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "ad_packages",
+      "capabilityOwner": "ads",
+      "runtimeOwner": "ads",
+      "writePaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "activeFlows": [
+        "AdsController"
+      ],
+      "currentMapping": [
+        "src/database/entities/ad-package.entity.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "audit_logs",
+      "capabilityOwner": "audit",
+      "runtimeOwner": "admin",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController"
+      ],
+      "currentMapping": [
+        "src/database/entities/audit-log.entity.ts",
+        "src/modules/admin/entities/audit-log.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/admin/entities/audit-log.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "bulk_listing_contributions",
+      "capabilityOwner": "cooperatives",
+      "runtimeOwner": "cooperatives",
+      "writePaths": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "bulk_listings",
+      "capabilityOwner": "cooperatives",
+      "runtimeOwner": "cooperatives",
+      "writePaths": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "contracts",
+      "capabilityOwner": "contracts",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/contract.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/contract.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "conversations",
+      "capabilityOwner": "messaging",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/conversation.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/conversation.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_members",
+      "capabilityOwner": "cooperatives",
+      "runtimeOwner": "cooperatives",
+      "writePaths": [
+        "TypeOrmCooperativeMemberRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmCooperativeMemberRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_profiles",
+      "capabilityOwner": "profiles",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "currentMapping": [
+        "src/database/entities/cooperative-profile.entity.ts",
+        "src/modules/profiles/entities/cooperative-profile.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/cooperative-profile.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_province_references",
+      "capabilityOwner": "cooperatives",
+      "runtimeOwner": "cooperatives",
+      "writePaths": [
+        "TypeOrmCooperativeProvinceReferenceRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmCooperativeProvinceReferenceRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "disputes",
+      "capabilityOwner": "compliance",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/dispute.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/dispute.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "districts",
+      "capabilityOwner": "geography",
+      "runtimeOwner": "geography",
+      "writePaths": [],
+      "readPaths": [
+        "GeographyService (src/modules/geography/geography.service.ts)"
+      ],
+      "activeFlows": [
+        "GeographyController"
+      ],
+      "currentMapping": [
+        "src/database/entities/district.entity.ts",
+        "src/modules/geography/entities/district.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/geography/entities/district.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "enterprise_profiles",
+      "capabilityOwner": "profiles",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "currentMapping": [
+        "src/database/entities/enterprise-profile.entity.ts",
+        "src/modules/profiles/entities/enterprise-profile.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/enterprise-profile.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "farmer_profiles",
+      "capabilityOwner": "profiles",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "currentMapping": [
+        "src/database/entities/farmer-profile.entity.ts",
+        "src/modules/profiles/entities/farmer-profile.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/farmer-profile.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "forum_comments",
+      "capabilityOwner": "forum",
+      "runtimeOwner": "forum",
+      "writePaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "readPaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "activeFlows": [
+        "ForumController"
+      ],
+      "currentMapping": [
+        "src/modules/forum/entities/forum-comment.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-comment.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "forum_likes",
+      "capabilityOwner": "forum",
+      "runtimeOwner": "forum",
+      "writePaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "readPaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "activeFlows": [
+        "ForumController"
+      ],
+      "currentMapping": [
+        "src/modules/forum/entities/forum-like.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-like.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "forum_posts",
+      "capabilityOwner": "forum",
+      "runtimeOwner": "forum",
+      "writePaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "readPaths": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "activeFlows": [
+        "ForumController"
+      ],
+      "currentMapping": [
+        "src/modules/forum/entities/forum-post.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-post.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "harvest_schedules",
+      "capabilityOwner": "cooperatives",
+      "runtimeOwner": "cooperatives",
+      "writePaths": [
+        "TypeOrmHarvestScheduleRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmHarvestScheduleRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "incident_reports",
+      "capabilityOwner": "compliance",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController"
+      ],
+      "currentMapping": [
+        "src/database/entities/incident-report.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/incident-report.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "logistics_profiles",
+      "capabilityOwner": "logistics",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/logistics-profile.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/logistics-profile.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "market_prices",
+      "capabilityOwner": "market-prices",
+      "runtimeOwner": "market-prices",
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [
+        "MarketPricesController"
+      ],
+      "currentMapping": [
+        "src/database/entities/market-price.entity.ts",
+        "src/modules/market-prices/entities/market-price.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/market-prices/entities/market-price.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "messages",
+      "capabilityOwner": "messaging",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/message.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/message.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "capabilityOwner": "notifications",
+      "runtimeOwner": "notifications",
+      "writePaths": [
+        "TypeOrmNotificationRepository (src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmNotificationRepository (src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts)"
+      ],
+      "activeFlows": [
+        "NotificationsController"
+      ],
+      "currentMapping": [
+        "src/database/entities/notification.entity.ts",
+        "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "order_items",
+      "capabilityOwner": "orders",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/order-item.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/order-item.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "order_status_history",
+      "capabilityOwner": "orders",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/order-status-history.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/order-status-history.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "orders",
+      "capabilityOwner": "orders",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/order.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/order.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "otp_verifications",
+      "capabilityOwner": "auth",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "NodemailerOtpSenderAdapter (src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts)"
+      ],
+      "readPaths": [
+        "NodemailerOtpSenderAdapter (src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts)"
+      ],
+      "activeFlows": [
+        "AuthController"
+      ],
+      "currentMapping": [
+        "src/database/entities/otp-verification.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/otp-verification.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "capabilityOwner": "payments",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/payment.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/payment.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "product_categories",
+      "capabilityOwner": "products",
+      "runtimeOwner": "products",
+      "writePaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "activeFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "currentMapping": [
+        "src/database/entities/product-category.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "product_certifications",
+      "capabilityOwner": "products",
+      "runtimeOwner": "products",
+      "writePaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "activeFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "currentMapping": [
+        "src/database/entities/product-certification.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "product_images",
+      "capabilityOwner": "products",
+      "runtimeOwner": "products",
+      "writePaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "activeFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "currentMapping": [
+        "src/database/entities/product-image.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "product_wishlist",
+      "capabilityOwner": "products",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/product-wishlist.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/product-wishlist.entity.ts",
+      "baselineRecommendation": "rename-or-reconcile",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Deployed row counts, FKs and consumer contract are required."
+    },
+    {
+      "schema": "public",
+      "table": "products",
+      "capabilityOwner": "products",
+      "runtimeOwner": "products",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)",
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)",
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ProductsController",
+        "WishlistController",
+        "ReviewsController"
+      ],
+      "currentMapping": [
+        "src/database/entities/product.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "provinces",
+      "capabilityOwner": "geography",
+      "runtimeOwner": "geography",
+      "writePaths": [],
+      "readPaths": [
+        "GeographyService (src/modules/geography/geography.service.ts)"
+      ],
+      "activeFlows": [
+        "GeographyController"
+      ],
+      "currentMapping": [
+        "src/database/entities/province.entity.ts",
+        "src/modules/geography/entities/province.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/geography/entities/province.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "purchase_requests",
+      "capabilityOwner": "contracts",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/purchase-request.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/purchase-request.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "quality_certificates",
+      "capabilityOwner": "compliance",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/quality-certificate.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/quality-certificate.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "refresh_tokens",
+      "capabilityOwner": "auth",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "JwtTokenGeneratorAdapter (src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts)"
+      ],
+      "readPaths": [
+        "JwtTokenGeneratorAdapter (src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts)"
+      ],
+      "activeFlows": [
+        "AuthController"
+      ],
+      "currentMapping": [
+        "src/database/entities/refresh-token.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/refresh-token.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "reviews",
+      "capabilityOwner": "reviews",
+      "runtimeOwner": "reviews",
+      "writePaths": [
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "activeFlows": [
+        "ReviewsController"
+      ],
+      "currentMapping": [
+        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "shipment_tracking_events",
+      "capabilityOwner": "logistics",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/shipment-tracking-event.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/shipment-tracking-event.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "shipments",
+      "capabilityOwner": "logistics",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/shipment.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/shipment.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "stored_files",
+      "capabilityOwner": "storage",
+      "runtimeOwner": "storage",
+      "writePaths": [
+        "TypeOrmStoredFileRepository (src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmStoredFileRepository (src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts)"
+      ],
+      "activeFlows": [
+        "StorageController"
+      ],
+      "currentMapping": [
+        "src/modules/storage/infrastructure/persistence/stored-file.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "supplier_profiles",
+      "capabilityOwner": "profiles",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "currentMapping": [
+        "src/database/entities/supplier-profile.entity.ts",
+        "src/modules/profiles/entities/supplier-profile.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/supplier-profile.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "system_configs",
+      "capabilityOwner": "admin",
+      "runtimeOwner": "admin",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController"
+      ],
+      "currentMapping": [
+        "src/database/entities/system-config.entity.ts",
+        "src/modules/admin/entities/system-config.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/admin/entities/system-config.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "traceability_records",
+      "capabilityOwner": "traceability",
+      "runtimeOwner": "traceability",
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [
+        "TraceabilityController"
+      ],
+      "currentMapping": [
+        "src/database/entities/traceability-record.entity.ts",
+        "src/modules/traceability/entities/traceability-record.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/traceability/entities/traceability-record.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "user_addresses",
+      "capabilityOwner": "users",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [
+        "src/database/entities/user-address.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/user-address.entity.ts",
+      "baselineRecommendation": "exclude-until-owner-phase",
+      "confidence": "medium",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Inferred",
+        "Proposed"
+      ],
+      "blockedDecision": "Owner must prove API/write path, constraints and deployed data requirements."
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "capabilityOwner": "users",
+      "runtimeOwner": "database-central",
+      "writePaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "UsersService (src/modules/users/users.service.ts)"
+      ],
+      "readPaths": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "UsersService (src/modules/users/users.service.ts)"
+      ],
+      "activeFlows": [
+        "AdminController",
+        "ReviewsController",
+        "UsersController"
+      ],
+      "currentMapping": [
+        "src/database/entities/user.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/database/entities/user.entity.ts",
+      "baselineRecommendation": "include-with-compatibility",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "wishlists",
+      "capabilityOwner": "products",
+      "runtimeOwner": "products",
+      "writePaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "readPaths": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "activeFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "currentMapping": [
+        "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts"
+      ],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "baselineRecommendation": "include",
+      "confidence": "high",
+      "evidence": [
+        "runtime-module-graph.json",
+        "repository-usage-map.json",
+        "entity-runtime-usage.json"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": null
+    },
+    {
+      "schema": "public",
+      "table": "product_wishlists",
+      "capabilityOwner": "products",
+      "runtimeOwner": null,
+      "writePaths": [],
+      "readPaths": [],
+      "activeFlows": [],
+      "currentMapping": [],
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "baselineRecommendation": "rename-or-reconcile",
+      "confidence": "medium",
+      "evidence": [
+        "../postgresql-schema-verification.md"
+      ],
+      "evidenceClassification": [
+        "Observed",
+        "Proposed"
+      ],
+      "blockedDecision": "Local-only table needs deployed evidence and row reconciliation against public.wishlists."
+    }
+  ]
+}

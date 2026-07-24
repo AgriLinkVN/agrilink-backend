@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { CertificationStatus, CertType } from '../../common/enums';
 
 @Entity('product_certifications')
@@ -24,8 +29,11 @@ export class ProductCertification {
   @Column({ name: 'expires_date', type: 'date', nullable: true })
   expiresDate: string | null;
 
-  @Column({ name: 'document_url', type: 'text', nullable: true })
+  @Column({ name: 'document_url', type: 'text', nullable: true, select: false })
   documentUrl: string | null;
+
+  @Column({ name: 'stored_file_id', type: 'uuid', nullable: true })
+  storedFileId: string | null;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;

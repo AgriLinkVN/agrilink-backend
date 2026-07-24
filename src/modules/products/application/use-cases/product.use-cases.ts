@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 
 import {
   CertificationStatus,
@@ -12,11 +13,22 @@ import {
   NotificationPublisherPort,
 } from '@modules/notifications/application/ports/inbound/notification-publisher.port';
 import {
+  InvalidProductCertificationFileError,
+  ProductCertificationConsistencyError,
   ProductCertificationNotFoundError,
   ProductForbiddenError,
   ProductNotFoundError,
 } from '../../domain/errors/product-application.error';
 import { assertValidCertificationVerification } from '../../domain/policies/product-certification-verification.policy';
+import {
+  STORED_FILE_ACCESS,
+  StorageReviewerRole,
+  StoredFileAccessPort,
+} from '@modules/storage/application/ports/inbound/stored-file-access.port';
+import {
+  InvalidStoredFileTransitionError,
+  StoredFileNotFoundError,
+} from '@modules/storage/application/storage-file.errors';
 import { assertProductStatusTransition } from '../../domain/policies/product-status-transition.policy';
 import { resolveSellerType } from '../../domain/policies/seller-type.policy';
 import { assertWishlistProductIsAvailable } from '../../domain/policies/wishlist.policy';
@@ -70,8 +82,17 @@ function assertProductOwner(
   action: string,
 ): void {
   if (product.sellerId !== sellerId) {
-    throw new ProductForbiddenError(`Bạn không có quyền ${action} sản phẩm này`);
+    throw new ProductForbiddenError(
+      `Bạn không có quyền ${action} sản phẩm này`,
+    );
   }
+}
+
+function isInvalidPrivateDocument(error: unknown): boolean {
+  return (
+    error instanceof StoredFileNotFoundError ||
+    error instanceof InvalidStoredFileTransitionError
+  );
 }
 
 @Injectable()
@@ -267,10 +288,17 @@ export class RemoveProductImageUseCase {
     private readonly productImageRepository: ProductImageRepositoryPort,
   ) {}
 
-  async execute(productId: string, imageId: string, sellerId: string): Promise<void> {
+  async execute(
+    productId: string,
+    imageId: string,
+    sellerId: string,
+  ): Promise<void> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'xóa ảnh của');
-    const removed = await this.productImageRepository.removeImageByProduct(productId, imageId);
+    const removed = await this.productImageRepository.removeImageByProduct(
+      productId,
+      imageId,
+    );
     if (!removed) {
       throw new ProductNotFoundError('Không tìm thấy ảnh');
     }
@@ -284,6 +312,8 @@ export class AddProductCertificationUseCase {
     private readonly productRepository: ProductRepositoryPort,
     @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
   async execute(
@@ -293,7 +323,42 @@ export class AddProductCertificationUseCase {
   ): Promise<ProductCertificationModel> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'thêm chứng nhận cho');
-    return this.productCertificationRepository.addCertification(productId, input);
+    try {
+      await this.storedFileAccess.attachOwnedFile({
+        fileId: input.storedFileId,
+        ownerId: sellerId,
+        assetType: 'CERTIFICATION',
+        resourceType: 'PRODUCT',
+        resourceId: productId,
+      });
+    } catch (error) {
+      if (isInvalidPrivateDocument(error)) {
+        throw new InvalidProductCertificationFileError(
+          'Tệp chứng nhận không hợp lệ hoặc không thuộc người bán',
+        );
+      }
+      throw error;
+    }
+    try {
+      return await this.productCertificationRepository.addCertification(
+        productId,
+        input,
+      );
+    } catch (error) {
+      try {
+        await this.storedFileAccess.detachOwnedFile({
+          fileId: input.storedFileId,
+          ownerId: sellerId,
+          resourceType: 'PRODUCT',
+          resourceId: productId,
+        });
+      } catch {
+        throw new ProductCertificationConsistencyError(
+          'Không thể hoàn tác liên kết tệp chứng nhận',
+        );
+      }
+      throw error;
+    }
   }
 }
 
@@ -304,17 +369,42 @@ export class RemoveProductCertificationUseCase {
     private readonly productRepository: ProductRepositoryPort,
     @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
-  async execute(productId: string, certId: string, sellerId: string): Promise<void> {
+  async execute(
+    productId: string,
+    certId: string,
+    sellerId: string,
+  ): Promise<void> {
     const product = await findProductOrFail(this.productRepository, productId);
     assertProductOwner(product, sellerId, 'xóa chứng nhận của');
-    const removed = await this.productCertificationRepository.removeCertificationByProduct(
-      productId,
-      certId,
-    );
+    const certification =
+      await this.productCertificationRepository.findByIdWithProduct(certId);
+    if (!certification || certification.productId !== productId) {
+      throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
+    }
+    const removed =
+      await this.productCertificationRepository.removeCertificationByProduct(
+        productId,
+        certId,
+      );
     if (!removed) {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
+    }
+    if (certification.storedFileId) {
+      try {
+        await this.storedFileAccess.retireOwnedFile({
+          fileId: certification.storedFileId,
+          ownerId: sellerId,
+          correlationId: randomUUID(),
+        });
+      } catch {
+        throw new ProductCertificationConsistencyError(
+          'Chứng nhận đã xóa nhưng tệp riêng tư cần được đối soát',
+        );
+      }
     }
   }
 }
@@ -336,19 +426,30 @@ export class VerifyProductCertificationUseCase {
   constructor(
     @Inject(PRODUCT_CERTIFICATION_REPOSITORY)
     private readonly productCertificationRepository: ProductCertificationRepositoryPort,
+    @Inject(STORED_FILE_ACCESS)
+    private readonly storedFileAccess: StoredFileAccessPort,
   ) {}
 
   async execute(
     certId: string,
     adminId: string,
+    reviewerRole: StorageReviewerRole,
     input: VerifyProductCertificationInput,
   ): Promise<ProductCertificationModel> {
-    const certification = await this.productCertificationRepository.findByIdWithProduct(certId);
+    const certification =
+      await this.productCertificationRepository.findByIdWithProduct(certId);
     if (!certification) {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
     assertValidCertificationVerification(input);
 
+    const previousState = {
+      status: certification.status,
+      isVerified: certification.isVerified,
+      verifiedBy: certification.verifiedBy,
+      verifiedAt: certification.verifiedAt,
+      rejectionReason: certification.rejectionReason,
+    };
     certification.status = input.status;
     certification.isVerified = input.status === CertificationStatus.VERIFIED;
     certification.verifiedBy = adminId;
@@ -357,7 +458,32 @@ export class VerifyProductCertificationUseCase {
       input.status === CertificationStatus.REJECTED
         ? input.rejectionReason!.trim()
         : null;
-    return this.productCertificationRepository.saveCertification(certification);
+    const saved =
+      await this.productCertificationRepository.saveCertification(
+        certification,
+      );
+    try {
+      if (saved.storedFileId) {
+        await this.storedFileAccess.reviewFile({
+          fileId: saved.storedFileId,
+          reviewerRole,
+          approve: input.status === CertificationStatus.VERIFIED,
+        });
+      }
+    } catch (error) {
+      Object.assign(certification, previousState);
+      try {
+        await this.productCertificationRepository.saveCertification(
+          certification,
+        );
+      } catch {
+        throw new ProductCertificationConsistencyError(
+          'Không thể hoàn tác trạng thái chứng nhận sau lỗi Storage',
+        );
+      }
+      throw error;
+    }
+    return saved;
   }
 }
 
@@ -399,7 +525,12 @@ export class ListWishlistUseCase {
   execute(
     userId: string,
     query: WishlistQueryInput,
-  ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ProductModel[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     return this.productWishlistRepository.getWishlist(userId, query);
   }
 }

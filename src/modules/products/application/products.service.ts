@@ -8,11 +8,8 @@ import {
   VerifyProductCertificationInput,
   WishlistQueryInput,
 } from './models/product-input.model';
-import {
-  ProductStatus,
-  SellerType,
-  UserRole,
-} from '@common/enums';
+import { ProductStatus, SellerType, UserRole } from '@common/enums';
+import { StorageReviewerRole } from '@modules/storage/application/ports/inbound/stored-file-access.port';
 import {
   AddProductCertificationUseCase,
   AddProductImageUseCase,
@@ -57,7 +54,7 @@ export class ProductsService {
     private readonly listWishlistedProductIdsUseCase: ListWishlistedProductIdsUseCase,
     private readonly listProductCategoriesUseCase: ListProductCategoriesUseCase,
     private readonly getProductCategoryTreeUseCase: GetProductCategoryTreeUseCase,
-  ) { }
+  ) {}
 
   // ─── Categories ───────────────────────────────────────────────
 
@@ -84,17 +81,11 @@ export class ProductsService {
 
   // ─── Find All + Filter ────────────────────────────────────────
 
-  findAll(
-    filter: ProductFilterInput,
-    currentUserId?: string,
-  ) {
+  findAll(filter: ProductFilterInput, currentUserId?: string) {
     return this.listPublicProductsUseCase.execute(filter, currentUserId);
   }
 
-  findMine(
-    sellerId: string,
-    filter: ProductFilterInput,
-  ) {
+  findMine(sellerId: string, filter: ProductFilterInput) {
     return this.listSellerProductsUseCase.execute(sellerId, filter);
   }
 
@@ -161,7 +152,11 @@ export class ProductsService {
     sellerId: string,
     dto: CreateProductCertificationInput,
   ) {
-    return this.addProductCertificationUseCase.execute(productId, sellerId, dto);
+    return this.addProductCertificationUseCase.execute(
+      productId,
+      sellerId,
+      dto,
+    );
   }
 
   findPendingCertifications() {
@@ -171,9 +166,15 @@ export class ProductsService {
   verifyCertification(
     certId: string,
     adminId: string,
+    reviewerRole: StorageReviewerRole,
     dto: VerifyProductCertificationInput,
   ) {
-    return this.verifyProductCertificationUseCase.execute(certId, adminId, dto);
+    return this.verifyProductCertificationUseCase.execute(
+      certId,
+      adminId,
+      reviewerRole,
+      dto,
+    );
   }
 
   removeCertification(productId: string, certId: string, sellerId: string) {
@@ -194,15 +195,11 @@ export class ProductsService {
     return this.removeWishlistItemUseCase.execute(userId, productId);
   }
 
-  getWishlist(
-    userId: string,
-    query: WishlistQueryInput,
-  ) {
+  getWishlist(userId: string, query: WishlistQueryInput) {
     return this.listWishlistUseCase.execute(userId, query);
   }
 
   getWishlistedIds(userId: string) {
     return this.listWishlistedProductIdsUseCase.execute(userId);
   }
-
 }

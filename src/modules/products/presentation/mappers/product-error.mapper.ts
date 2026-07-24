@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  InvalidProductCertificationFileError,
   InvalidProductCertificationVerificationError,
   InvalidProductStatusTransitionError,
   ProductCertificationNotFoundError,
@@ -25,7 +26,8 @@ export function mapProductApplicationError(error: unknown): never {
   }
   if (
     error instanceof InvalidProductStatusTransitionError ||
-    error instanceof InvalidProductCertificationVerificationError
+    error instanceof InvalidProductCertificationVerificationError ||
+    error instanceof InvalidProductCertificationFileError
   ) {
     throw new BadRequestException(error.message);
   }

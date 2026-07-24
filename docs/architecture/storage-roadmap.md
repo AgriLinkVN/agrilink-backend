@@ -7,6 +7,13 @@ module. It is intentionally explicit so an execution agent with limited
 reasoning can complete one phase without inventing architecture or silently
 changing scope.
 
+Related consumer roadmap:
+
+- `p3-cooperative-execution-roadmap.md` governs the P3 cooperative, bulk
+  listing, harvest, and report flows. P3 must follow this Storage roadmap but
+  does not introduce a new storage asset type. Generated CSV/XLSX reports are
+  streamed and are not persisted by default.
+
 Read these documents in order:
 
 1. This roadmap.
@@ -379,6 +386,10 @@ In scope:
 - Backfill metadata for retained provider objects.
 - Migrate KYC/business documents away from public Cloudinary delivery.
 - Update consumers to file IDs and intent completion.
+- Verify P3 public cooperative/bulk-listing responses never expose KYC,
+  business-license, certification, provider-key, or signed-URL fields.
+- Verify P3 generated CSV/XLSX reports remain ephemeral streamed responses and
+  are not added to a provider without a reviewed asset-policy/ADR change.
 - Add deprecation telemetry, then remove legacy routes after zero usage.
 - Document feature flag, rollback, and production verification.
 

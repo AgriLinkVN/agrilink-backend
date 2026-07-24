@@ -13,6 +13,10 @@ export class InvalidProductStatusTransitionError extends ProductApplicationError
 
 export class ProductCertificationNotFoundError extends ProductApplicationError {}
 
+export class InvalidProductCertificationFileError extends ProductApplicationError {}
+
+export class ProductCertificationConsistencyError extends ProductApplicationError {}
+
 export class InvalidProductCertificationVerificationError extends ProductApplicationError {}
 
 export class WishlistProductUnavailableError extends ProductApplicationError {}

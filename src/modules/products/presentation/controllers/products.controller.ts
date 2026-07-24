@@ -20,6 +20,7 @@ import {
 import { Public } from '@common/decorators/public.decorator';
 import { ParseUuidPipe } from '@common/pipes/parse-uuid.pipe';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { StorageReviewerRole } from '@modules/storage/application/ports/inbound/stored-file-access.port';
 import { ProductsService } from '@modules/products/application/products.service';
 import { CreateProductDto } from '../schemas/create-product.dto';
 import { ProductFilterDto } from '../schemas/product-filter.dto';
@@ -44,7 +45,7 @@ import {
 @ApiBearerAuth('access-token')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(private readonly productsService: ProductsService) {}
 
   private async execute<T>(operation: () => Promise<T> | T): Promise<T> {
     try {
@@ -77,7 +78,8 @@ export class ProductsController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Danh sách sản phẩm + filter (public)' })
-  findAll( @Query() filter: ProductFilterDto,
+  findAll(
+    @Query() filter: ProductFilterDto,
     @CurrentUser('sub') currentUserId?: string, // optional — guest không có
   ) {
     const input: ProductFilterInput = filter;
@@ -125,11 +127,17 @@ export class ProductsController {
   verifyCertification(
     @Param('certId', ParseUuidPipe) certId: string,
     @CurrentUser('sub') adminId: string,
+    @CurrentUser('role') reviewerRole: StorageReviewerRole,
     @Body() dto: VerifyProductCertificationDto,
   ) {
     const input: VerifyProductCertificationInput = dto;
     return this.execute(() =>
-      this.productsService.verifyCertification(certId, adminId, input),
+      this.productsService.verifyCertification(
+        certId,
+        adminId,
+        reviewerRole,
+        input,
+      ),
     );
   }
 
@@ -163,7 +171,10 @@ export class ProductsController {
     UserRole.STATE_AGENCY,
   )
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock' })
+  @ApiOperation({
+    summary:
+      'Đổi trạng thái sản phẩm theo flow draft → pending → active → out_of_stock',
+  })
   updateStatus(
     @Param('id', ParseUuidPipe) id: string,
     @CurrentUser('sub') actorId: string,

@@ -1,4 +1,4 @@
-import { CertType, FarmingType, ProductUnit } from '../../../../common/enums';
+import { FarmingType, ProductUnit } from '../../../../common/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
@@ -33,39 +33,6 @@ export class CreateProductImageDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
-}
-
-export class CreateProductCertificationInputDto {
-  @ApiProperty({ enum: CertType, example: CertType.VIETGAP })
-  @IsEnum(CertType)
-  certType: CertType;
-
-  @ApiPropertyOptional({ example: 'VG-2026-001234' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  certNumber?: string;
-
-  @ApiPropertyOptional({ example: 'Chi cục Quản lý chất lượng nông sản' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  issuedBy?: string;
-
-  @ApiPropertyOptional({ example: '2026-06-01' })
-  @IsOptional()
-  @IsDateString()
-  issuedDate?: string;
-
-  @ApiPropertyOptional({ example: '2027-06-01' })
-  @IsOptional()
-  @IsDateString()
-  expiryDate?: string;
-
-  @ApiPropertyOptional({ example: 'https://res.cloudinary.com/.../cert.pdf' })
-  @IsOptional()
-  @IsString()
-  documentUrl?: string;
 }
 
 export class CreateProductDto {
@@ -135,7 +102,7 @@ export class CreateProductDto {
   @IsLatitude()
   farmLatitude?: number;
 
-  @ApiPropertyOptional({ example: 108.0500, description: 'Kinh do nong trai' })
+  @ApiPropertyOptional({ example: 108.05, description: 'Kinh do nong trai' })
   @IsOptional()
   @IsLongitude()
   farmLongitude?: number;
@@ -156,11 +123,4 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => CreateProductImageDto)
   images?: CreateProductImageDto[];
-
-  @ApiPropertyOptional({ type: [CreateProductCertificationInputDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateProductCertificationInputDto)
-  certifications?: CreateProductCertificationInputDto[];
 }
