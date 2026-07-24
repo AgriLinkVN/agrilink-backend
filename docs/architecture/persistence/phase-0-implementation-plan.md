@@ -32,9 +32,12 @@ npm test -- --runInBand
 git diff --check
 ```
 
-PostgreSQL metadata collection is intentionally not claimed when port 5432 is
-unavailable. Phase 1 must run the schema-truth collector against a reviewed
-database snapshot.
+The initial Phase 0 run did not claim PostgreSQL metadata because port 5432 was
+unavailable. The post-merge verification is now recorded in
+`postgresql-schema-verification.md`: the local snapshot has 33 public tables,
+no migration ledger, and the clean migration chain fails at migration one.
+This evidence is an input to Phase 1 and does not alter Phase 0 ownership
+decisions.
 
 ## Commit Breakdown
 
@@ -62,4 +65,5 @@ docs(persistence): establish phase 0 ownership contract
 - Existing forbidden edges are exact and expiring.
 - New mappings/edges and expired exceptions fail the architecture gate.
 - Roadmap reflects the missing migration bootstrap and profile schema evidence.
-- Phase 0 PR is open against `develop`; no later phase has started.
+- Phase 0 PR was merged into `develop`; the schema verification follow-up does
+  not move entities or implement Phase 1 runtime changes.
