@@ -14,6 +14,8 @@ export class StoredFileEntity {
   @Column({ name: 'original_name' }) originalName: string;
   @Column({ nullable: true }) extension: string | null;
   @Column({ name: 'declared_mime' }) declaredMime: string;
+  @Column({ name: 'detected_mime', nullable: true }) detectedMime: string | null;
+  @Column({ name: 'checksum_sha256', nullable: true }) checksumSha256: string | null;
   @Column({ name: 'size_bytes', type: 'bigint' }) sizeBytes: string;
   @Column({ name: 'expires_at', type: 'timestamptz' }) expiresAt: Date;
   @Column({ name: 'resource_type', nullable: true }) resourceType: string | null;

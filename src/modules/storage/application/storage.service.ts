@@ -18,7 +18,8 @@ import {
 } from '../domain/interfaces/file-storage.service.interface';
 import { CLOUDINARY_FOLDERS } from '../infrastructure/cloudinary/cloudinary.config';
 import { buildOwnedStoragePath } from './storage-upload.policy';
-import { StoredFileNotFoundError, UploadNotCompletedError } from './storage-file.errors';
+import { InvalidStoredFileTransitionError, StoredFileNotFoundError, UnauthorizedStoredFileReviewError, UploadNotCompletedError } from './storage-file.errors';
+import { validatePrivateContent } from './content-validation.policy';
 
 @Injectable()
 export class StorageService {
@@ -109,12 +110,13 @@ export class StorageService {
     const file = await this.requireOwnedFile(id, ownerId);
     if (file.status !== 'PENDING') return file;
     if (!(await this.fileStorage.exists(file.objectKey))) throw new UploadNotCompletedError('Upload has not completed');
-    return this.storedFiles.updateStatus(id, ownerId, 'UPLOADED');
+    const content = await validatePrivateContent(await this.fileStorage.download(file.objectKey));
+    return this.storedFiles.updateStatus(id, ownerId, 'QUARANTINED', content);
   }
 
   async createFileDownloadUrl(ownerId: string, id: string) {
     const file = await this.requireOwnedFile(id, ownerId);
-    if (file.status === 'DELETED') throw new Error('File is deleted');
+    if (file.status !== 'ACTIVE') throw new Error('File is not available');
     return this.fileStorage.createDownloadUrl(file.objectKey);
   }
 
@@ -122,6 +124,14 @@ export class StorageService {
     const file = await this.requireOwnedFile(id, ownerId);
     await this.fileStorage.delete(file.objectKey);
     return this.storedFiles.updateStatus(id, ownerId, 'DELETED');
+  }
+
+  async reviewStoredFile(id: string, reviewerRole: string, approve: boolean) {
+    if (reviewerRole !== 'admin' && reviewerRole !== 'state_agency') throw new UnauthorizedStoredFileReviewError('Reviewer role is required');
+    const file = await this.storedFiles.findById(id);
+    if (!file) throw new StoredFileNotFoundError('Stored file not found');
+    if (file.status !== 'QUARANTINED') throw new InvalidStoredFileTransitionError('Only quarantined files can be reviewed');
+    return this.storedFiles.updateStatus(file.id, file.ownerId, approve ? 'ACTIVE' : 'FAILED');
   }
 
   private async requireOwnedFile(id: string, ownerId: string): Promise<StoredFileModel> {
