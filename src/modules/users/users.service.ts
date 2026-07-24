@@ -26,6 +26,11 @@ export class UsersService {
     return this.usersRepository.findOneBy({ phone });
   }
 
+  /** Find a user by email */
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ email });
+  }
+
   /** Find a user by Firebase UID */
   async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
     return this.usersRepository.findOneBy({ firebaseUid });

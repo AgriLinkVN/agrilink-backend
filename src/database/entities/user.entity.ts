@@ -14,14 +14,14 @@ export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ unique: true, length: 15 })
-  phone: string;
+  @Column({ unique: true, length: 15, nullable: true })
+  phone: string | null;
 
   @Column({ name: "firebase_uid", unique: true, nullable: true, length: 128 })
   firebaseUid: string | null;
 
-  @Column({ unique: true, nullable: true, length: 255 })
-  email: string | null;
+  @Column({ unique: true, length: 255 })
+  email: string;
 
   @Column({ name: "password_hash", type: "text" })
   passwordHash: string;

@@ -7,18 +7,18 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { UserRole } from '../../../common/enums';
+import { UserRole } from '../../../../common/enums';
 
 export class RegisterDto {
-  @ApiProperty({ example: '+84901234567', description: 'Vietnamese phone number' })
+  @ApiPropertyOptional({ example: '+84901234567', description: 'Vietnamese phone number' })
+  @IsOptional()
   @IsString()
   @Matches(/^\+84[0-9]{9}$/, { message: 'Phone must be a valid Vietnamese number (+84xxxxxxxxx)' })
-  phone: string;
+  phone?: string;
 
-  @ApiPropertyOptional({ example: 'user@example.com' })
-  @IsOptional()
+  @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email?: string;
+  email: string;
 
   @ApiProperty({ example: 'Str0ngP@ss!', minLength: 6 })
   @IsString()

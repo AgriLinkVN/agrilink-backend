@@ -15,21 +15,38 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
-import { AuthService } from "./auth.service";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-import { SendOtpDto, VerifyOtpDto } from "./dto/send-otp.dto";
-import { FirebaseSyncDto } from "./dto/firebase-sync.dto";
-import { Public } from "../../common/decorators/public.decorator";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { FirebaseAuthGuard } from "../../common/guards/firebase-auth.guard";
+import { RegisterDto } from "../dto/register.dto";
+import { LoginDto } from "../dto/login.dto";
+import { SendOtpDto, VerifyOtpDto } from "../dto/send-otp.dto";
+import { FirebaseSyncDto } from "../dto/firebase-sync.dto";
+import { Public } from "../../../../common/decorators/public.decorator";
+import { CurrentUser } from "../../../../common/decorators/current-user.decorator";
+import { FirebaseAuthGuard } from "../../../../common/guards/firebase-auth.guard";
 import { Response, Request } from "express";
 import { DecodedIdToken } from "firebase-admin/auth";
+
+import { RegisterUseCase } from "../../application/use-cases/register.use-case";
+import { LoginUseCase } from "../../application/use-cases/login.use-case";
+import { LoginOtpUseCase } from "../../application/use-cases/login-otp.use-case";
+import { SyncFirebaseUserUseCase } from "../../application/use-cases/sync-firebase-user.use-case";
+import { RefreshTokenUseCase } from "../../application/use-cases/refresh-token.use-case";
+import { LogoutUseCase } from "../../application/use-cases/logout.use-case";
+import { SendOtpUseCase } from "../../application/use-cases/send-otp.use-case";
+import { VerifyOtpUseCase } from "../../application/use-cases/verify-otp.use-case";
 
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly loginOtpUseCase: LoginOtpUseCase,
+    private readonly syncFirebaseUserUseCase: SyncFirebaseUserUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly sendOtpUseCase: SendOtpUseCase,
+    private readonly verifyOtpUseCase: VerifyOtpUseCase,
+  ) {}
 
   @Public()
   @Post("register")
@@ -41,7 +58,7 @@ export class AuthController {
     description: "Validation error or phone already taken",
   })
   register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+    return this.registerUseCase.execute(dto);
   }
 
   @Public()
@@ -57,7 +74,7 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.login(dto);
+    const tokens = await this.loginUseCase.execute(dto);
 
     // Set refresh token in httpOnly cookie
     res.cookie("refreshToken", tokens.refreshToken, {
@@ -83,7 +100,7 @@ export class AuthController {
     @Body() dto: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.loginWithOtp(dto);
+    const tokens = await this.loginOtpUseCase.execute(dto);
 
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
@@ -111,7 +128,7 @@ export class AuthController {
     @CurrentUser() firebaseUser: DecodedIdToken,
     @Body() dto: FirebaseSyncDto,
   ) {
-    const tokens = await this.authService.syncFirebaseUser(firebaseUser, dto);
+    const tokens = await this.syncFirebaseUserUseCase.execute(firebaseUser, dto);
     return { accessToken: tokens.accessToken };
   }
 
@@ -129,7 +146,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies?.refreshToken;
-    const tokens = await this.authService.refreshTokens({ refreshToken });
+    const tokens = await this.refreshTokenUseCase.execute({ refreshToken });
 
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
@@ -150,7 +167,7 @@ export class AuthController {
     @CurrentUser("sub") userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.logout(userId);
+    await this.logoutUseCase.execute(userId);
     res.clearCookie("refreshToken");
   }
 
@@ -160,7 +177,7 @@ export class AuthController {
   @ApiOperation({ summary: "Send OTP code via SMS or email" })
   @ApiResponse({ status: 200, description: "OTP sent" })
   sendOtp(@Body() dto: SendOtpDto) {
-    return this.authService.sendOtp(dto);
+    return this.sendOtpUseCase.execute(dto);
   }
 
   @Public()
@@ -170,6 +187,6 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "OTP verified" })
   @ApiResponse({ status: 400, description: "Invalid or expired OTP" })
   verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+    return this.verifyOtpUseCase.execute(dto);
   }
 }

@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
-import { OtpPurpose, OtpType } from '../../../common/enums';
+import { IsEnum, IsString, IsEmail } from 'class-validator';
+import { OtpPurpose, OtpType } from '../../../../common/enums';
 
 export class SendOtpDto {
-  @ApiProperty({ example: '+84901234567' })
-  @IsString()
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
   target: string;
 
   @ApiProperty({ enum: OtpType, example: OtpType.SMS })
@@ -17,8 +17,8 @@ export class SendOtpDto {
 }
 
 export class VerifyOtpDto {
-  @ApiProperty({ example: '+84901234567' })
-  @IsString()
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
   target: string;
 
   @ApiProperty({ example: '123456' })

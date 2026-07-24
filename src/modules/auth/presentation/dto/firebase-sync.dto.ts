@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEmail, IsIn, IsOptional, IsString } from "class-validator";
-import { UserRole } from "../../../common/enums";
+import { UserRole } from "../../../../common/enums";
 
 export class FirebaseSyncDto {
   @ApiPropertyOptional({
