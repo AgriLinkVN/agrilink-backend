@@ -7,12 +7,16 @@ import {
   Req,
   Res,
   UseGuards,
+  UseFilters,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
 import { RegisterDto } from "../dto/register.dto";
@@ -33,8 +37,10 @@ import { RefreshTokenUseCase } from "../../application/use-cases/refresh-token.u
 import { LogoutUseCase } from "../../application/use-cases/logout.use-case";
 import { SendOtpUseCase } from "../../application/use-cases/send-otp.use-case";
 import { VerifyOtpUseCase } from "../../application/use-cases/verify-otp.use-case";
+import { LoginExceptionFilter } from "../filters/login-exception.filter";
 
 @ApiTags("Auth")
+@ApiExtraModels(LoginDto)
 @Controller("auth")
 export class AuthController {
   constructor(
@@ -64,11 +70,26 @@ export class AuthController {
   @Public()
   @Post("login")
   @HttpCode(HttpStatus.OK)
+  @UseFilters(LoginExceptionFilter)
   @ApiOperation({
     summary:
-      "Login with phone and password — returns access token, sets refresh cookie",
+      "Login with email or phone and password — returns access token, sets refresh cookie",
+  })
+  @ApiBody({
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(LoginDto) },
+        {
+          oneOf: [{ required: ["email"] }, { required: ["phone"] }],
+        },
+      ],
+    },
   })
   @ApiResponse({ status: 200, description: "Login successful" })
+  @ApiResponse({
+    status: 400,
+    description: "Exactly one valid email or phone is required",
+  })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
   async login(
     @Body() dto: LoginDto,

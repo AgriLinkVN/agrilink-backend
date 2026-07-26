@@ -1,7 +1,18 @@
 export class InvalidCredentialsError extends Error {
-  constructor(message: string = "Mật khẩu không chính xác") {
+  constructor(
+    message: string = "Email, số điện thoại hoặc mật khẩu không chính xác",
+  ) {
     super(message);
     this.name = "InvalidCredentialsError";
+  }
+}
+
+export class InvalidLoginIdentifierError extends Error {
+  constructor(
+    message: string = "Cần cung cấp chính xác một email hoặc số điện thoại",
+  ) {
+    super(message);
+    this.name = "InvalidLoginIdentifierError";
   }
 }
 
