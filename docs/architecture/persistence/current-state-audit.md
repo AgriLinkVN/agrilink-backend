@@ -69,12 +69,12 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 
 | Tables | Canonical owner | Status | Phase | Risk |
 | --- | --- | --- | --- | --- |
-| `ad_campaigns`, `ad_events`, `ad_packages` | ads | canonical | 3 | low |
-| `audit_logs` | admin | canonical | 1 | medium |
-| `system_configs` | admin | canonical | 1 | low |
+| `ad_campaigns`, `ad_events`, `ad_packages` | ads | canonical | 2 | low |
+| `audit_logs` | admin | canonical | 2 | medium |
+| `system_configs` | admin | canonical | 2 | low |
 | `districts`, `provinces` | geography | canonical | 2 | low |
 | `market_prices` | market-prices | deferred duplicate | 2 | high |
-| `notifications` | notifications | canonical | 1 | low |
+| `notifications` | notifications | canonical | 2 | low |
 | `users`, `user_addresses` | users | central legacy | 3 | critical |
 | `refresh_tokens`, `otp_verifications` | auth | central legacy | 3 | high |
 | four role profile tables | profiles | duplicate | 4 | critical |
