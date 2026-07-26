@@ -8,7 +8,7 @@ PostgreSQL verification source commit:
 
 The initial audit was source-only. A later read-only verification against the
 local PostgreSQL 16.14 Docker database is recorded in
-`postgresql-schema-verification.md`. It found 33 public tables, no migration
+`phases/phase-00/evidence/postgresql-schema-verification.md`. It found 33 public tables, no migration
 ledger, and a migration chain that fails on an empty disposable database at
 its first migration. These observations describe the local snapshot only, not
 production.
@@ -97,7 +97,7 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 
 Local-live observations supplement this source comparison. Exact columns,
 constraints, indexes, enums, and limitations are recorded in
-`postgresql-schema-verification.md`; deployed-schema match remains unverified.
+`phases/phase-00/evidence/postgresql-schema-verification.md`; deployed-schema match remains unverified.
 
 | Physical table | Material differences | Migration evidence | Recommendation |
 | --- | --- | --- | --- |

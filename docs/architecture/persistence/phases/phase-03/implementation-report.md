@@ -11,7 +11,8 @@
 
 ## B. Evidence Inventory
 
-The deterministic machine-readable inventory is `phase-3-evidence.json`.
+The deterministic machine-readable inventory is
+`evidence/users-auth-evidence.json`.
 Local PostgreSQL observations are read-only fixture evidence, not production
 truth.
 

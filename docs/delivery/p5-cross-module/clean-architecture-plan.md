@@ -31,7 +31,7 @@ Practical compromise for this project:
 ## Phase Plan
 
 Remaining-work handoff for Phase 5 onward:
-`docs/p5-remaining-work-handoff.md`.
+`remaining-work-handoff.md`.
 
 ### Phase 1 - Notification Contract And Ports
 
@@ -182,7 +182,7 @@ Acceptance:
 
 ## P2 Product Architecture Reference
 
-Product core is now accepted as `TRUE` for the backend Clean Architecture scope. The completed audit and acceptance evidence are in `docs/p2-product-final-acceptance.md`.
+Product core is now accepted as `TRUE` for the backend Clean Architecture scope. The completed audit and acceptance evidence are in `../p2-products/final-acceptance.md`.
 
 Storage/upload remains a separate `PARTIAL` boundary, and deferred deployment items remain outside that Product-core acceptance. Do not use this P5 plan as the source of truth for P2 work.
 

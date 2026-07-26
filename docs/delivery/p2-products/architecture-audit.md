@@ -341,7 +341,7 @@ Status: Complete
 
 Deliverables:
 
-- Added `docs/p2-product-final-acceptance.md` with a Product-core acceptance decision and verification evidence.
+- Added `final-acceptance.md` with a Product-core acceptance decision and verification evidence.
 - Marked accepted Product-core backend tasks as architecture `TRUE` after Phase 8 boundary checks and Product tests passed.
 - Kept Storage/upload `PARTIAL` and deploy items `FALSE` until their own conditions are met.
 
@@ -352,4 +352,4 @@ Acceptance:
 
 ## Recommended Immediate Next Step
 
-No additional Product-core architecture phase is required. Use `docs/p2-product-final-acceptance.md` as the acceptance record; handle Storage and deployment in their dedicated scopes.
+No additional Product-core architecture phase is required. Use `final-acceptance.md` as the acceptance record; handle Storage and deployment in their dedicated scopes.

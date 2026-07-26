@@ -9,7 +9,7 @@ changing scope.
 
 Related consumer roadmap:
 
-- `p3-cooperative-execution-roadmap.md` governs the P3 cooperative, bulk
+- `../../delivery/p3-cooperatives/execution-roadmap.md` governs the P3 cooperative, bulk
   listing, harvest, and report flows. P3 must follow this Storage roadmap but
   does not introduce a new storage asset type. Generated CSV/XLSX reports are
   streamed and are not persisted by default.
@@ -17,9 +17,9 @@ Related consumer roadmap:
 Read these documents in order:
 
 1. This roadmap.
-2. `storage-policy.md`.
-3. `adr/0001-storage-provider-and-access-policy.md`.
-4. `clean-architecture-rules.md`.
+2. `policy.md`.
+3. `../adr/0001-storage-provider-and-access-policy.md`.
+4. `../clean-architecture-rules.md`.
 
 If code, a task description, or another document conflicts with the first three
 documents, stop and report the conflict. Do not choose a new provider, widen
@@ -259,7 +259,7 @@ Goal: replace raw paths in new APIs with owned file records.
 In scope:
 
 - Add a `stored_files` persistence entity and migration with the fields defined
-  by `storage-policy.md`.
+  by `policy.md`.
 - Add an outbound metadata repository port and TypeORM adapter.
 - Implement server-generated file IDs and provider keys.
 - Implement create-intent, complete, signed-download, and delete use cases.

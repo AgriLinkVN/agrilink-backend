@@ -19,11 +19,11 @@ module, or reporting a task as done merely because UI or unmerged code exists.
 Read these documents in order:
 
 1. This roadmap.
-2. `clean-architecture-rules.md`.
-3. `storage-roadmap.md`.
-4. `storage-policy.md`.
-5. `adr/0001-storage-provider-and-access-policy.md`.
-6. `../ci-quality-gates.md`.
+2. `../../architecture/clean-architecture-rules.md`.
+3. `../../architecture/storage/roadmap.md`.
+4. `../../architecture/storage/policy.md`.
+5. `../../architecture/adr/0001-storage-provider-and-access-policy.md`.
+6. `../../operations/ci-quality-gates.md`.
 
 For frontend work, also read `AGENTS.md` in the frontend repository and the
 relevant versioned Next.js documentation under `node_modules/next/dist/docs/`.
@@ -885,7 +885,7 @@ Use this prompt verbatim for one phase at a time:
 
 ```text
 Execute only Phase <N> of
-docs/architecture/p3-cooperative-execution-roadmap.md.
+docs/delivery/p3-cooperatives/execution-roadmap.md.
 
 Before editing:
 1. Read the entire roadmap and every document in its required read order.

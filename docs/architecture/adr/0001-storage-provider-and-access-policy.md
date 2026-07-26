@@ -65,7 +65,7 @@ short-lived private handle; they are never made public to satisfy OCR.
 ## Implementation Sequence
 
 The authoritative implementation sequence, branch names, gates, non-goals, and
-verification commands are defined in `../storage-roadmap.md`. An execution agent
+verification commands are defined in `../storage/roadmap.md`. An execution agent
 must complete one phase and stop after opening its pull request. The next phase
 cannot begin until that pull request is merged into `develop`.
 

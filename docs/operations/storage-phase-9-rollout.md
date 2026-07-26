@@ -56,7 +56,7 @@ has completed.
 3. PostgreSQL backup and restore have been tested.
 4. `DB_SYNCHRONIZE=false`; production schema changes are migration-only.
 5. Supabase bucket is private and provider MIME/size controls match
-   `storage-policy.md`.
+   `../architecture/storage/policy.md`.
 6. `SUPABASE_SERVICE_KEY` is available only to the backend/operator shell.
 7. Cloudinary access is available to an authorized operator who can identify
    exact legacy assets without parsing public IDs from URLs.
