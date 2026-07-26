@@ -4,10 +4,7 @@ import { CooperativeProfile } from "./entities/cooperative-profile.entity";
 import { EnterpriseProfile } from "./entities/enterprise-profile.entity";
 import { FarmerProfile } from "./entities/farmer-profile.entity";
 import { IncidentReport } from "./entities/incident-report.entity";
-import { OtpVerification } from "./entities/otp-verification.entity";
-import { RefreshToken } from "./entities/refresh-token.entity";
 import { SupplierProfile } from "./entities/supplier-profile.entity";
-import { User } from "./entities/user.entity";
 import { AuditLog } from "../modules/admin/entities/audit-log.entity";
 import { SystemConfig } from "../modules/admin/entities/system-config.entity";
 import { AdCampaign } from "../modules/ads/infrastructure/persistence/entities/ad-campaign.entity";
@@ -33,6 +30,9 @@ import { Wishlist } from "../modules/products/infrastructure/persistence/entitie
 import { Review } from "../modules/reviews/infrastructure/persistence/entities/review.entity";
 import { StoredFileEntity } from "../modules/storage/infrastructure/persistence/stored-file.entity";
 import { TraceabilityRecord } from "../modules/traceability/entities/traceability-record.entity";
+import { OtpVerification } from "../modules/auth/infrastructure/persistence/entities/otp-verification.entity";
+import { RefreshToken } from "../modules/auth/infrastructure/persistence/entities/refresh-token.entity";
+import { User } from "../modules/users/infrastructure/persistence/entities/user.entity";
 
 export interface RegisteredEntity {
   readonly key: `public.${string}`;

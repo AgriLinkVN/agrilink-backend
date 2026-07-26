@@ -45,18 +45,10 @@ export class SendOtpUseCase {
       expiresAt,
     });
 
-    console.log(`\n======================================================`);
-    console.log(`[DEV MODE] MÃ OTP CỦA EMAIL ${dto.target} LÀ: ${otpCode}`);
-    console.log(`======================================================\n`);
-
     if (dto.type === "email") {
-      const success = await this.otpSender.sendEmail(dto.target, otpCode);
-      if (!success) {
-        console.warn(`[OTP] MailService returned false for ${dto.target}, but we saved the OTP.`);
-        console.log(`[Dev Fallback] Use this OTP to login: ${otpCode}`);
-      }
+      await this.otpSender.sendEmail(dto.target, otpCode);
     } else {
-      console.log(`[Mock SMS] Sent OTP ${otpCode} to ${dto.target}`);
+      await this.otpSender.sendSms(dto.target, otpCode);
     }
   }
 }

@@ -4,54 +4,86 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { User } from "../../database/entities/user.entity";
+import { In, Repository } from "typeorm";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { UserRole } from "../../common/enums";
+import { UserRole, UserStatus } from "../../common/enums";
+import {
+  CreateUserAccount,
+  SafeUserAccount,
+  UpdateUserAccount,
+  UserAccount,
+  UserPage,
+  UserStatusChangeResult,
+  UserSummary,
+} from "./domain/models/user-account";
+import { UserIdentityReader } from "./application/ports/user-identity-reader.port";
+import { UserAccountManager } from "./application/ports/user-account-manager.port";
+import {
+  UserAdminReader,
+  UserStatusManager,
+} from "./application/ports/user-admin.port";
+import { User } from "./infrastructure/persistence/entities/user.entity";
 
 @Injectable()
-export class UsersService {
+export class UsersService
+  implements
+    UserIdentityReader,
+    UserAccountManager,
+    UserAdminReader,
+    UserStatusManager
+{
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
 
   /** Find a user by their UUID — returns null if not found */
-  async findById(id: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
+  async findById(id: string): Promise<UserAccount | null> {
+    return this.toAccountOrNull(await this.usersRepository.findOneBy({ id }));
   }
 
   /** Find a user by phone number */
-  async findByPhone(phone: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ phone });
+  async findByPhone(phone: string): Promise<UserAccount | null> {
+    return this.toAccountOrNull(
+      await this.usersRepository.findOneBy({ phone }),
+    );
   }
 
   /** Find a user by email */
-  async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ email });
+  async findByEmail(email: string): Promise<UserAccount | null> {
+    return this.toAccountOrNull(
+      await this.usersRepository.findOneBy({ email }),
+    );
   }
 
   /** Find a user by Firebase UID */
-  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ firebaseUid });
+  async findByFirebaseUid(firebaseUid: string): Promise<UserAccount | null> {
+    return this.toAccountOrNull(
+      await this.usersRepository.findOneBy({ firebaseUid }),
+    );
   }
 
   /** Return the authenticated user's own profile (strips sensitive fields) */
-  async getMe(userId: string): Promise<Partial<User>> {
+  async getMe(userId: string): Promise<SafeUserAccount> {
     const user = await this.findById(userId);
     if (!user) throw new NotFoundException("User not found");
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
+    return this.toSafeAccount(user);
   }
 
   /** Update the authenticated user's own profile */
-  async updateMe(userId: string, dto: UpdateUserDto): Promise<Partial<User>> {
+  async updateMe(
+    userId: string,
+    dto: UpdateUserDto,
+  ): Promise<SafeUserAccount> {
     await this.usersRepository.update(userId, dto);
     return this.getMe(userId);
   }
 
   /** Mobile onboarding role selection. Never allows privileged roles. */
-  async updateMyRole(userId: string, role: UserRole): Promise<Partial<User>> {
+  async updateMyRole(
+    userId: string,
+    role: UserRole,
+  ): Promise<SafeUserAccount> {
     if (![UserRole.FARMER, UserRole.SUPPLIER, UserRole.BUYER].includes(role)) {
       throw new BadRequestException(
         "Role is not allowed for mobile onboarding",
@@ -63,18 +95,109 @@ export class UsersService {
   }
 
   /** Internal method to update system fields */
-  async updateInternal(userId: string, data: Partial<User>): Promise<void> {
+  async updateInternal(
+    userId: string,
+    data: UpdateUserAccount,
+  ): Promise<void> {
     await this.usersRepository.update(userId, data);
   }
 
   /** Admin: get any user by id */
-  async adminGetUser(id: string): Promise<User | null> {
+  async adminGetUser(id: string): Promise<UserAccount | null> {
     return this.findById(id);
   }
 
   /** Create a new user */
-  async create(userData: Partial<User>): Promise<User> {
+  async create(userData: CreateUserAccount): Promise<UserAccount> {
     const user = this.usersRepository.create(userData);
-    return this.usersRepository.save(user);
+    return this.toAccount(await this.usersRepository.save(user));
+  }
+
+  async countAll(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
+  async countByStatus(status: UserStatus): Promise<number> {
+    return this.usersRepository.count({ where: { status } });
+  }
+
+  async findSummariesByIds(ids: string[]): Promise<UserSummary[]> {
+    if (ids.length === 0) return [];
+    const users = await this.usersRepository.find({
+      select: { id: true, fullName: true },
+      where: { id: In(ids) },
+    });
+    return users.map(({ id, fullName }) => ({ id, fullName }));
+  }
+
+  async list(skip: number, take: number): Promise<UserPage> {
+    const [users, total] = await this.usersRepository.findAndCount({
+      order: { createdAt: "DESC" },
+      skip,
+      take,
+    });
+    return {
+      data: users.map((user) => this.toSafeAccount(this.toAccount(user))),
+      total,
+    };
+  }
+
+  async changeStatus(
+    userId: string,
+    status: UserStatus,
+  ): Promise<UserStatusChangeResult> {
+    return this.usersRepository.manager.transaction(async (manager) => {
+      const repository = manager.getRepository(User);
+      const user = await repository.findOne({
+        where: { id: userId },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!user) return { outcome: "not-found" };
+      if (user.role === UserRole.ADMIN) {
+        return { outcome: "protected-admin" };
+      }
+
+      const previousStatus = user.status;
+      if (previousStatus !== status) {
+        await repository.update(userId, { status });
+      }
+      return {
+        outcome: "updated",
+        userId,
+        previousStatus,
+        status,
+        account: this.toSafeAccount(
+          this.toAccount({ ...user, status }),
+        ),
+      };
+    });
+  }
+
+  private toAccountOrNull(user: User | null): UserAccount | null {
+    return user ? this.toAccount(user) : null;
+  }
+
+  private toAccount(user: User): UserAccount {
+    return {
+      id: user.id,
+      phone: user.phone,
+      firebaseUid: user.firebaseUid,
+      email: user.email ?? null,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      status: user.status,
+      avatarUrl: user.avatarUrl,
+      fullName: user.fullName,
+      isPhoneVerified: user.isPhoneVerified,
+      isEmailVerified: user.isEmailVerified,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  private toSafeAccount(user: UserAccount): SafeUserAccount {
+    const { passwordHash: _, ...safeUser } = user;
+    return safeUser;
   }
 }

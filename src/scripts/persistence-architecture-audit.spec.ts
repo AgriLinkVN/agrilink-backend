@@ -12,11 +12,11 @@ describe('Persistence architecture Phase 0 baseline', () => {
       viewMappings: 0,
       physicalTables: 48,
       duplicateTables: 10,
-      centralMappings: 29,
-      moduleMappings: 29,
-      centralImportEdges: 35,
+      centralMappings: 25,
+      moduleMappings: 33,
+      centralImportEdges: 19,
       crossModuleInfrastructureEdges: 3,
-      foreignForFeatureRegistrations: 9,
+      foreignForFeatureRegistrations: 7,
     });
   });
 

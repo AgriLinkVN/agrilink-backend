@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -14,7 +14,6 @@ import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
-import { User } from '../../database/entities/user.entity';
 import { Product } from '../products/infrastructure/persistence/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
 import { ProductStatus, UserRole, UserStatus } from '../../common/enums';
@@ -23,6 +22,16 @@ import {
   StorageReviewerRole,
   StoredFileAccessPort,
 } from '../storage/application/ports/inbound/stored-file-access.port';
+import {
+  USER_ADMIN_READER,
+  USER_STATUS_MANAGER,
+  UserAdminReader,
+  UserStatusManager,
+} from '../users/application/ports/user-admin.port';
+import {
+  AUTH_SESSION_REVOCATION,
+  AuthSessionRevocationPort,
+} from '../auth/application/ports/inbound/auth-session-revocation.port';
 
 class ProfileReviewConsistencyError extends Error {}
 
@@ -41,8 +50,12 @@ export class AdminService {
     private readonly enterpriseRepo: Repository<EnterpriseProfile>,
     @InjectRepository(SupplierProfile)
     private readonly supplierRepo: Repository<SupplierProfile>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    @Inject(USER_ADMIN_READER)
+    private readonly userAdminReader: UserAdminReader,
+    @Inject(USER_STATUS_MANAGER)
+    private readonly userStatusManager: UserStatusManager,
+    @Inject(AUTH_SESSION_REVOCATION)
+    private readonly authSessionRevocation: AuthSessionRevocationPort,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
     @InjectRepository(IncidentReport)
@@ -63,8 +76,8 @@ export class AdminService {
       pendingProducts,
       openDisputes,
     ] = await Promise.all([
-      this.userRepo.count(),
-      this.userRepo.count({ where: { status: UserStatus.ACTIVE } }),
+      this.userAdminReader.countAll(),
+      this.userAdminReader.countByStatus(UserStatus.ACTIVE),
       this.farmerRepo.count({ where: { isKycVerified: false } }),
       this.cooperativeRepo.count({ where: { isVerified: false } }),
       this.enterpriseRepo.count({ where: { isVerified: false } }),
@@ -133,7 +146,7 @@ export class AdminService {
     if (suppliers.length > 0) {
       const supplierUserIds = [...new Set(suppliers.map(s => s.userId).filter(Boolean))] as string[];
       const supplierUsers = supplierUserIds.length > 0
-        ? await this.userRepo.findBy({ id: In(supplierUserIds) })
+        ? await this.userAdminReader.findSummariesByIds(supplierUserIds)
         : [];
       const userById = new Map(supplierUsers.map(u => [u.id, u]));
       for (const s of suppliers) {
@@ -337,7 +350,9 @@ export class AdminService {
       relations: ['images', 'certifications'],
     });
     if (!product) throw new NotFoundException('Product not found');
-    const sellers = await this.userRepo.findByIds([product.sellerId]);
+    const sellers = await this.userAdminReader.findSummariesByIds([
+      product.sellerId,
+    ]);
     return { ...product, seller: sellers[0] ? { fullName: sellers[0].fullName } : null };
   }
 
@@ -396,7 +411,7 @@ export class AdminService {
     const sellerIds = [...new Set(products.map((p) => p.sellerId))];
     if (sellerIds.length === 0) return products;
 
-    const sellers = await this.userRepo.findByIds(sellerIds);
+    const sellers = await this.userAdminReader.findSummariesByIds(sellerIds);
     const sellerById = new Map(sellers.map((s) => [s.id, s]));
 
     return products.map((p) => ({
@@ -410,33 +425,37 @@ export class AdminService {
   // ─── User management ──────────────────────────────────────────────
 
   async getUsers(pagination: PaginationDto) {
-    const [data, total] = await this.userRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip: pagination.skip,
-      take: pagination.limit ?? 20,
-    });
-    return { data: data.map(({ passwordHash: _, ...u }) => u), total };
+    return this.userAdminReader.list(
+      pagination.skip,
+      pagination.limit ?? 20,
+    );
   }
 
   async toggleUserStatus(id: string, adminId: string, status: UserStatus) {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.role === UserRole.ADMIN) throw new BadRequestException('Cannot modify admin users');
+    const result = await this.userStatusManager.changeStatus(id, status);
+    if (result.outcome === 'not-found') {
+      throw new NotFoundException('User not found');
+    }
+    if (result.outcome === 'protected-admin') {
+      throw new BadRequestException('Cannot modify admin users');
+    }
 
-    const previousStatus = user.status;
-    user.status = status;
-    await this.userRepo.save(user);
+    if (status !== UserStatus.ACTIVE) {
+      await this.authSessionRevocation.revokeAllForUser(id);
+    }
 
-    await this.createAuditLog({
-      userId: adminId,
-      action: status === UserStatus.ACTIVE ? 'USER_UNLOCKED' : 'USER_LOCKED',
-      entityType: 'User',
-      entityId: id,
-      changes: { previousStatus, status },
-    });
+    if (result.previousStatus !== status) {
+      await this.createAuditLog({
+        userId: adminId,
+        action:
+          status === UserStatus.ACTIVE ? 'USER_UNLOCKED' : 'USER_LOCKED',
+        entityType: 'User',
+        entityId: id,
+        changes: { previousStatus: result.previousStatus, status },
+      });
+    }
 
-    const { passwordHash: _, ...safeUser } = user;
-    return safeUser;
+    return result.account;
   }
 
   /** All verified cooperatives and enterprises — state agency oversight list */

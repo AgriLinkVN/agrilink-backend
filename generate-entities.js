@@ -8,125 +8,11 @@ if (!fs.existsSync(entitiesDir)) {
 }
 
 const entities = {
-  'user.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, OneToMany } from 'typeorm';
-import { UserRole, UserStatus } from '../../common/enums';
-
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ unique: true, length: 15 })
-  phone: string;
-
-  @Column({ unique: true, nullable: true, length: 255 })
-  email: string | null;
-
-  @Column({ name: 'password_hash', type: 'text' })
-  passwordHash: string;
-
-  @Column({ type: 'enum', enum: UserRole })
-  role: UserRole;
-
-  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.PENDING_VERIFICATION })
-  status: UserStatus;
-
-  @Column({ name: 'avatar_url', type: 'text', nullable: true })
-  avatarUrl: string | null;
-
-  @Column({ name: 'full_name', length: 255, nullable: true })
-  fullName: string | null;
-
-  @Column({ name: 'is_phone_verified', default: false })
-  isPhoneVerified: boolean;
-
-  @Column({ name: 'is_email_verified', default: false })
-  isEmailVerified: boolean;
-
-  @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
-  lastLoginAt: Date | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
-}
+  'user.entity.ts': `export { User } from '../../modules/users/infrastructure/persistence/entities/user.entity';
 `,
-  'otp-verification.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { OtpType, OtpPurpose } from '../../common/enums';
-import { User } from './user.entity';
-
-@Entity('otp_verifications')
-export class OtpVerification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId: string | null;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column({ nullable: true, length: 15 })
-  phone: string | null;
-
-  @Column({ nullable: true, length: 255 })
-  email: string | null;
-
-  @Column({ name: 'otp_code', length: 6 })
-  otpCode: string;
-
-  @Column({ type: 'enum', enum: OtpType })
-  type: OtpType;
-
-  @Column({ type: 'enum', enum: OtpPurpose })
-  purpose: OtpPurpose;
-
-  @Column({ name: 'is_used', default: false })
-  isUsed: boolean;
-
-  @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt: Date;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'otp-verification.entity.ts': `export { OtpVerification } from '../../modules/auth/infrastructure/persistence/entities/otp-verification.entity';
 `,
-  'refresh-token.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './user.entity';
-
-@Entity('refresh_tokens')
-export class RefreshToken {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column({ name: 'token_hash', type: 'text', unique: true })
-  tokenHash: string;
-
-  @Column({ name: 'device_info', type: 'text', nullable: true })
-  deviceInfo: string | null;
-
-  @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ipAddress: string | null;
-
-  @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt: Date;
-
-  @Column({ name: 'revoked_at', type: 'timestamptz', nullable: true })
-  revokedAt: Date | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'refresh-token.entity.ts': `export { RefreshToken } from '../../modules/auth/infrastructure/persistence/entities/refresh-token.entity';
 `,
   'farmer-profile.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
@@ -379,54 +265,7 @@ export class LogisticsProfile {
   updatedAt: Date;
 }
 `,
-  'user-address.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './user.entity';
-
-@Entity('user_addresses')
-export class UserAddress {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column({ length: 100, nullable: true })
-  label: string | null;
-
-  @Column({ name: 'full_name', length: 255 })
-  fullName: string;
-
-  @Column({ length: 15 })
-  phone: string;
-
-  @Column({ name: 'address_line', type: 'text' })
-  addressLine: string;
-
-  @Column({ name: 'province_id', type: 'int', nullable: true })
-  provinceId: number | null;
-
-  @Column({ name: 'district_id', type: 'int', nullable: true })
-  districtId: number | null;
-
-  @Column({ length: 255, nullable: true })
-  ward: string | null;
-
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
-  latitude: number | null;
-
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
-  longitude: number | null;
-
-  @Column({ name: 'is_default', default: false })
-  isDefault: boolean;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'user-address.entity.ts': `export { UserAddress } from '../../modules/users/infrastructure/persistence/entities/user-address.entity';
 `,
   'province.entity.ts': `export { Province } from '../../modules/geography/entities/province.entity';
 `,

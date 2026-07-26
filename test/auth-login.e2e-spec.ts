@@ -78,9 +78,9 @@ describe('Auth login REST contract (e2e)', () => {
   const tokenGenerator: jest.Mocked<ITokenGeneratorPort> = {
     generateTokens: jest.fn(),
     verifyRefreshToken: jest.fn(),
-    findRefreshToken: jest.fn(),
-    revokeRefreshToken: jest.fn(),
+    rotateRefreshToken: jest.fn(),
     revokeAllUserTokens: jest.fn(),
+    purgeRetiredTokens: jest.fn(),
   };
 
   beforeAll(async () => {

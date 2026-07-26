@@ -11,6 +11,7 @@ import {
   normalizeVietnamesePhone,
 } from '../../domain/services/phone-normalizer';
 import { LoginDto } from '../../presentation/dto/login.dto';
+import { canAuthenticate } from '../../domain/services/account-access.policy';
 
 const INVALID_CREDENTIALS_MESSAGE =
   'Email, số điện thoại hoặc mật khẩu không chính xác';
@@ -35,7 +36,7 @@ export class LoginUseCase {
         ? await this.userManager.findByEmail(dto.email)
         : await this.findUserByPhone(dto.phone);
 
-    if (!user) {
+    if (!user || !canAuthenticate(user.status)) {
       throw new InvalidCredentialsError(INVALID_CREDENTIALS_MESSAGE);
     }
 

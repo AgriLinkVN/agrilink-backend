@@ -12,17 +12,16 @@ export class VerifyOtpUseCase {
   ) {}
 
   async execute(dto: VerifyOtpDto): Promise<void> {
-    const otp = await this.otpSender.findValidOtp(dto.target, dto.code, dto.purpose);
+    const otp = await this.otpSender.consumeValidOtp(
+      dto.target,
+      dto.code,
+      dto.purpose,
+      new Date(),
+    );
 
     if (!otp) {
-      throw new InvalidOtpError("Invalid OTP");
+      throw new InvalidOtpError("Invalid or expired OTP");
     }
-
-    if (otp.expiresAt < new Date()) {
-      throw new InvalidOtpError("OTP expired");
-    }
-
-    await this.otpSender.markAsUsed(otp);
 
     if (dto.purpose === "register") {
       const user = await this.userManager.findByEmail(dto.target);

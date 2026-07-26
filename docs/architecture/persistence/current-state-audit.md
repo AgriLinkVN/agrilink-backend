@@ -45,18 +45,18 @@ runtime/CLI/test schema parity.
 | `@ViewEntity` mappings | 0 |
 | Physical `(schema, table)` keys | 48 |
 | Duplicate writable physical tables | 10 |
-| Central mappings under `src/database/entities` | 29 |
-| Module-local mappings | 29 |
+| Central mappings under `src/database/entities` | 25 |
+| Module-local mappings | 33 |
 | Runtime-only mappings versus CLI central glob | 25 |
 | CLI-only mappings versus runtime `forFeature` set | 29 |
 | TypeORM relations | 26 |
 | Eager relations | 0 |
 | ORM cascade options | 2 |
 | `ON DELETE CASCADE` relation options | 12 |
-| Imports from central entity folder inside modules | 30 |
+| Imports from central entity folder inside modules | 19 |
 | Reviews imports of Products infrastructure | 3 |
-| Foreign `forFeature` registrations | 10 |
-| Writable repository infrastructure exports | 1 (`UsersModule`) |
+| Foreign `forFeature` registrations | 7 |
+| Writable repository infrastructure exports | 0 |
 
 Runtime uses `autoLoadEntities: true` and feature `forFeature` registrations.
 CLI uses only `src/database/entities/**/*.entity.ts`. The standalone seed uses
@@ -75,8 +75,9 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 | `districts`, `provinces` | geography | canonical | 2 | low |
 | `market_prices` | market-prices | deferred duplicate | 2 | high |
 | `notifications` | notifications | canonical | 2 | low |
-| `users`, `user_addresses` | users | central legacy | 3 | critical |
-| `refresh_tokens`, `otp_verifications` | auth | central legacy | 3 | high |
+| `users` | users | canonical | 3 | critical |
+| `user_addresses` | users | deferred outside baseline/runtime | 3 | medium |
+| `refresh_tokens`, `otp_verifications` | auth | canonical | 3 | high |
 | four role profile tables | profiles | duplicate | 4 | critical |
 | product/category/image/certification | products | duplicate | 5 | high-critical |
 | `wishlists`, legacy `product_wishlist` | products, provisional | split tables | 5 | high |
@@ -133,12 +134,11 @@ migration. The canonical district foreign key retains `ON DELETE CASCADE`.
 
 Observed forbidden edges:
 
-- Admin directly registers and injects four Profiles mappings, User, Product,
-  and IncidentReport. AuditLog is now Admin-owned.
-- Reviews registers User and Product and injects Product's writable repository.
+- Admin directly registers and injects four Profiles mappings, Product, and
+  IncidentReport. User access now uses typed Users/Auth ports.
+- Reviews registers Product and injects Product's writable repository.
 - Review persistence has `ManyToOne` relations to User and Product.
-- Users exports `TypeOrmModule`, allowing consumers to inject the User
-  repository without a capability contract.
+- Users exports typed identity, account, admin-query, and status ports only.
 - Product runtime mappings use cascade persistence for images and
   certifications. These are intra-module but require explicit retention tests.
 - No production domain/application file imports TypeORM. One Storage migration
@@ -149,6 +149,25 @@ Observed forbidden edges:
 Potential N+1 cannot be proven statically. Admin's aggregate repository access
 and Products repository raw cross-table queries are priority baselines in
 Phase 1.
+
+## Phase 3 Ownership Decisions
+
+`public.users`, `public.refresh_tokens`, and `public.otp_verifications` now
+have one capability-owned writable mapping each. Their central files are
+decorator-free compatibility re-exports. Auth persistence uses scalar user IDs
+and private string-target metadata only to retain the reviewed PostgreSQL
+foreign keys without importing Users infrastructure.
+
+`public.user_addresses` is `USER_ADDRESSES_DEFERRED`: it is absent from the
+26-table baseline and local 33-table snapshot, and has no mounted API, runtime
+registration, repository consumer, or active business flow. No table or
+migration was added.
+
+New registration still requires email. Read-only local evidence classifies the
+two email-null rows as legacy canonical-phone identities, one Firebase-linked
+and one phone/password. They remain an existing-environment reconciliation
+blocker and were not modified. Phone-first registration and anonymization are
+not claimed.
 
 ## TypeORM Composition Report
 

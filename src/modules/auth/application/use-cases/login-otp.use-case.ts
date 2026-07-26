@@ -4,6 +4,7 @@ import { TOKEN_GENERATOR_PORT, ITokenGeneratorPort, TokenPair } from '../ports/o
 import { UserNotFoundError } from '../../domain/errors/auth.errors';
 import { VerifyOtpDto } from '../../presentation/dto/send-otp.dto';
 import { VerifyOtpUseCase } from './verify-otp.use-case';
+import { canAuthenticate } from '../../domain/services/account-access.policy';
 
 @Injectable()
 export class LoginOtpUseCase {
@@ -17,7 +18,7 @@ export class LoginOtpUseCase {
     await this.verifyOtpUseCase.execute(dto);
 
     const user = await this.userManager.findByEmail(dto.target);
-    if (!user) {
+    if (!user || !canAuthenticate(user.status)) {
       throw new UserNotFoundError("User not found");
     }
 
