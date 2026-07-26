@@ -67,7 +67,6 @@
       "phase": "4-5",
       "expiresAt": "2027-06-30",
       "registrations": [
-        "src/modules/admin/admin.route.ts:AuditLog",
         "src/modules/admin/admin.route.ts:FarmerProfile",
         "src/modules/admin/admin.route.ts:CooperativeProfile",
         "src/modules/admin/admin.route.ts:EnterpriseProfile",

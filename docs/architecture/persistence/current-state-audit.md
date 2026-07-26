@@ -21,8 +21,9 @@ parity, and phased retirement all address observed code.
 
 Three assumptions needed correction:
 
-1. The old `68 / 40 / 21` baseline is stale. Current source has 66 writable
-   mappings, 37 central mappings, and 18 duplicate physical tables.
+1. The old `68 / 40 / 21` baseline is stale. After Phase 2 consolidation,
+   current source has 58 writable mappings, 29 central mappings, and 10
+   duplicate physical tables.
 2. Phase 1 cannot merely unify DataSources. The repository has no bootstrap
    migration for most tables, so a clean migration chain cannot create the
    current schema.
@@ -39,12 +40,12 @@ runtime/CLI/test schema parity.
 
 | Metric | Observed |
 | --- | ---: |
-| TypeScript files containing writable `@Entity` | 66 |
-| Writable `@Entity` mappings | 66 |
+| TypeScript files containing writable `@Entity` | 58 |
+| Writable `@Entity` mappings | 58 |
 | `@ViewEntity` mappings | 0 |
 | Physical `(schema, table)` keys | 48 |
-| Duplicate writable physical tables | 18 |
-| Central mappings under `src/database/entities` | 37 |
+| Duplicate writable physical tables | 10 |
+| Central mappings under `src/database/entities` | 29 |
 | Module-local mappings | 29 |
 | Runtime-only mappings versus CLI central glob | 25 |
 | CLI-only mappings versus runtime `forFeature` set | 29 |
@@ -68,12 +69,12 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 
 | Tables | Canonical owner | Status | Phase | Risk |
 | --- | --- | --- | --- | --- |
-| `ad_campaigns`, `ad_events`, `ad_packages` | ads | duplicate | 2 | medium-high |
-| `audit_logs` | audit | duplicate | 2 | high |
-| `system_configs` | admin | duplicate | 2 | medium |
-| `districts`, `provinces` | geography | duplicate | 2 | medium |
-| `market_prices` | market-prices | duplicate | 2 | high |
-| `notifications` | notifications | duplicate | 2 | medium |
+| `ad_campaigns`, `ad_events`, `ad_packages` | ads | canonical | 3 | low |
+| `audit_logs` | admin | canonical | 1 | medium |
+| `system_configs` | admin | canonical | 1 | low |
+| `districts`, `provinces` | geography | canonical | 2 | low |
+| `market_prices` | market-prices | deferred duplicate | 2 | high |
+| `notifications` | notifications | canonical | 1 | low |
 | `users`, `user_addresses` | users | central legacy | 3 | critical |
 | `refresh_tokens`, `otp_verifications` | auth | central legacy | 3 | high |
 | four role profile tables | profiles | duplicate | 4 | critical |
@@ -99,23 +100,15 @@ constraints, indexes, enums, and limitations are recorded in
 
 | Physical table | Material differences | Migration evidence | Recommendation |
 | --- | --- | --- | --- |
-| `ad_campaigns` | module adds relations and `updated_at` | no table bootstrap | module mapping candidate; inspect price/timestamps |
-| `ad_events` | varchar vs enum event type; module campaign relation | no bootstrap | module candidate; migration likely required if DB is varchar |
-| `ad_packages` | decimal `(15,2)` vs numeric `(12,2)`; `type` property differs; timestamps | no bootstrap | DB inspection mandatory; high-risk precision decision |
-| `audit_logs` | central `old_data/new_data`; admin `method/path/changes` | no bootstrap | define canonical audit contract before consolidation |
 | `cooperative_profiles` | central KYC/verification/file IDs; local public-profile fields | Phase 9 targets central columns | preserve central schema, move it into Profiles; retire local mapping |
-| `districts` | module adds `name_en`; delete behavior differs | no bootstrap | module candidate; verify FK before choosing delete behavior |
 | `enterprise_profiles` | central verification/license fields; local website/geography fields | Phase 9 targets central file ID | merge schema only after live diff; central is current runtime contract |
 | `farmer_profiles` | central KYC/trust/sales; local farm/public fields | Phase 9 targets central KYC file IDs | central runtime schema is base; decide whether local fields are real |
 | `market_prices` | central min/max/avg; local one price/product/reporting model | no bootstrap | likely two concepts sharing one table; redesign/migration required |
-| `notifications` | body nullable only centrally; user UUID explicit centrally | enum migrations target same table | module repository is runtime owner; reconcile nullability |
 | `product_categories` | module adds description/timestamps/children | no bootstrap | module candidate; verify live columns |
 | `product_certifications` | `expires_date` vs `expiry_date`; module relation; file IDs | Phase 9 and verification migrations target table | module candidate but rename/date semantics require live inspection |
 | `product_images` | central `url`; module `image_url` plus scalar `product_id` | no bootstrap | runtime module mapping candidate; migration may be needed |
 | `products` | `price/stock_quantity` vs `price_per_unit/available_quantity`; seller relation differs | review migration assumes `seller_id` | module runtime candidate; critical live-schema diff required |
-| `provinces` | central `is_key_agri`; module name/lat/lng/slug | map migration adds lat/lng/slug | module mapping better matches migration history |
 | `supplier_profiles` | central verification/license; local public fields | Phase 9 targets central file ID | preserve central runtime schema and merge only proven live fields |
-| `system_configs` | central key-based shape; admin adds generated ID/timestamps | no bootstrap | inspect primary key and actual consumers before choosing |
 | `traceability_records` | two incompatible trace models and date names | no bootstrap | treat as schema redesign, not a class move |
 
 `product_wishlist` and `wishlists` are not decorator duplicates because they are
@@ -124,12 +117,24 @@ third spelling, `product_wishlists`, while source declares singular
 `product_wishlist`. They are a semantic and naming conflict requiring deployed
 row/consumer inventory before retirement or merge.
 
+## Phase 2 Consolidation Decisions
+
+`public.provinces` and `public.districts` now have one writable mapping each,
+owned by Geography. The central files are decorator-free compatibility
+re-exports.
+
+A repository-wide usage audit and read-only local catalog query found no
+active consumer or deployed column for `provinces.is_key_agri`,
+`provinces.created_at`, or `provinces.updated_at`. These fields are
+`LEGACY_ONLY`; they were not restored to the canonical mapping and require no
+migration. The canonical district foreign key retains `ON DELETE CASCADE`.
+
 ## Dependency Boundary Report
 
 Observed forbidden edges:
 
 - Admin directly registers and injects four Profiles mappings, User, Product,
-  IncidentReport, and AuditLog.
+  and IncidentReport. AuditLog is now Admin-owned.
 - Reviews registers User and Product and injects Product's writable repository.
 - Review persistence has `ManyToOne` relations to User and Product.
 - Users exports `TypeOrmModule`, allowing consumers to inject the User

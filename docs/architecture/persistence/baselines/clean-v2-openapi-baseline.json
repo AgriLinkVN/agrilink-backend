@@ -1,7 +1,7 @@
 {
-  "fingerprint": "16dfdb72f5f489def07b41be7cb1d48c9017cb61409ee7812d685f4eacfc7c4b",
-  "pathCount": 84,
-  "operationCount": 95,
+  "fingerprint": "5637fed8d1ae886ea9cb8fabc5b9f7813454990c5f52ac5c5cded8fcb0a0157f",
+  "pathCount": 88,
+  "operationCount": 99,
   "snapshot": {
     "paths": {
       "/api/v1": {
@@ -14,7 +14,9 @@
               "description": ""
             }
           },
-          "tags": ["Health"]
+          "tags": [
+            "Health"
+          ]
         }
       },
       "/api/v1/auth/register": {
@@ -40,20 +42,40 @@
               "description": "Validation error or phone already taken"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/login": {
         "post": {
           "operationId": "AuthController_login",
-          "summary": "Login with phone and password — returns access token, sets refresh cookie",
+          "summary": "Login with email or phone and password — returns access token, sets refresh cookie",
           "parameters": [],
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LoginDto"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/LoginDto"
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "required": [
+                            "email"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "phone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -62,11 +84,16 @@
             "200": {
               "description": "Login successful"
             },
+            "400": {
+              "description": "Exactly one valid email or phone is required"
+            },
             "401": {
               "description": "Invalid credentials"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/login-otp": {
@@ -92,7 +119,9 @@
               "description": "Invalid OTP"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/sync": {
@@ -118,7 +147,9 @@
               "description": "Invalid Firebase ID token"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/refresh": {
@@ -134,7 +165,9 @@
               "description": "Refresh token invalid or expired"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/logout": {
@@ -147,7 +180,9 @@
               "description": "Logged out successfully"
             }
           },
-          "tags": ["Auth"],
+          "tags": [
+            "Auth"
+          ],
           "security": [
             {
               "access-token": []
@@ -175,7 +210,9 @@
               "description": "OTP sent"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/auth/verify-otp": {
@@ -201,7 +238,9 @@
               "description": "Invalid or expired OTP"
             }
           },
-          "tags": ["Auth"]
+          "tags": [
+            "Auth"
+          ]
         }
       },
       "/api/v1/users/me": {
@@ -214,7 +253,9 @@
               "description": "Current user profile"
             }
           },
-          "tags": ["Users"],
+          "tags": [
+            "Users"
+          ],
           "security": [
             {
               "access-token": []
@@ -240,7 +281,9 @@
               "description": "Profile updated"
             }
           },
-          "tags": ["Users"],
+          "tags": [
+            "Users"
+          ],
           "security": [
             {
               "access-token": []
@@ -268,7 +311,9 @@
               "description": "Role updated"
             }
           },
-          "tags": ["Users"],
+          "tags": [
+            "Users"
+          ],
           "security": [
             {
               "access-token": []
@@ -298,7 +343,9 @@
               "description": "User not found"
             }
           },
-          "tags": ["Users"],
+          "tags": [
+            "Users"
+          ],
           "security": [
             {
               "access-token": []
@@ -326,7 +373,9 @@
               "description": "Farmer profile saved"
             }
           },
-          "tags": ["Profiles"],
+          "tags": [
+            "Profiles"
+          ],
           "security": [
             {
               "access-token": []
@@ -354,7 +403,9 @@
               "description": ""
             }
           },
-          "tags": ["Profiles"],
+          "tags": [
+            "Profiles"
+          ],
           "security": [
             {
               "access-token": []
@@ -384,7 +435,9 @@
               "description": "Farm not found"
             }
           },
-          "tags": ["Farm"]
+          "tags": [
+            "Farm"
+          ]
         }
       },
       "/api/v1/storage/uploads/intents": {
@@ -415,7 +468,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/storage/uploads/{id}/complete": {
@@ -444,7 +499,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/storage/files/{id}/download-url": {
@@ -473,7 +530,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/storage/files/{id}": {
@@ -502,7 +561,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/storage/files/{id}/review": {
@@ -533,7 +594,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/storage/images/upload": {
@@ -567,7 +630,9 @@
               "description": ""
             }
           },
-          "tags": ["Storage"]
+          "tags": [
+            "Storage"
+          ]
         }
       },
       "/api/v1/geography/provinces": {
@@ -580,7 +645,9 @@
               "description": "Array of provinces"
             }
           },
-          "tags": ["Geography"]
+          "tags": [
+            "Geography"
+          ]
         }
       },
       "/api/v1/geography/provinces/{id}/districts": {
@@ -602,7 +669,9 @@
               "description": "Array of districts"
             }
           },
-          "tags": ["Geography"]
+          "tags": [
+            "Geography"
+          ]
         }
       },
       "/api/v1/products": {
@@ -625,7 +694,9 @@
               "description": "Tạo thành công"
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -686,7 +757,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             },
@@ -720,7 +794,12 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["organic", "traditional", "vietgap", "globalgap"],
+                "enum": [
+                  "organic",
+                  "traditional",
+                  "vietgap",
+                  "globalgap"
+                ],
                 "type": "string"
               }
             },
@@ -782,7 +861,10 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -792,7 +874,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -810,7 +894,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -828,7 +914,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -888,7 +976,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             },
@@ -922,7 +1013,12 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["organic", "traditional", "vietgap", "globalgap"],
+                "enum": [
+                  "organic",
+                  "traditional",
+                  "vietgap",
+                  "globalgap"
+                ],
                 "type": "string"
               }
             },
@@ -984,7 +1080,10 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -994,7 +1093,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1015,7 +1116,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1055,7 +1158,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1085,7 +1190,9 @@
               "description": "Không tìm thấy"
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1120,7 +1227,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1148,7 +1257,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1188,7 +1299,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1218,7 +1331,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1256,7 +1371,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1296,7 +1413,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1334,7 +1453,9 @@
               "description": ""
             }
           },
-          "tags": ["Products"],
+          "tags": [
+            "Products"
+          ],
           "security": [
             {
               "access-token": []
@@ -1368,7 +1489,9 @@
               "description": "Sản phẩm không tồn tại hoặc không hoạt động"
             }
           },
-          "tags": ["wishlist"],
+          "tags": [
+            "wishlist"
+          ],
           "security": [
             {
               "access-token": []
@@ -1394,7 +1517,9 @@
               "description": "Đã xóa thành công (idempotent)"
             }
           },
-          "tags": ["wishlist"],
+          "tags": [
+            "wishlist"
+          ],
           "security": [
             {
               "access-token": []
@@ -1447,7 +1572,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -1457,7 +1585,9 @@
               "description": "Trả về danh sách sản phẩm yêu thích kèm thông tin phân trang"
             }
           },
-          "tags": ["wishlist"],
+          "tags": [
+            "wishlist"
+          ],
           "security": [
             {
               "access-token": []
@@ -1475,7 +1605,9 @@
               "description": "Mảng string chứa IDs của các sản phẩm"
             }
           },
-          "tags": ["wishlist"],
+          "tags": [
+            "wishlist"
+          ],
           "security": [
             {
               "access-token": []
@@ -1528,7 +1660,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -1538,7 +1673,9 @@
               "description": "Paginated notifications"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1565,7 +1702,9 @@
               "description": "Unread notifications"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1583,7 +1722,9 @@
               "description": "Unread notification count"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1610,7 +1751,9 @@
               "description": "Notification marked as read"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1628,7 +1771,9 @@
               "description": "All notifications marked as read"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1646,7 +1791,9 @@
               "description": "All notifications marked as read"
             }
           },
-          "tags": ["Notifications"],
+          "tags": [
+            "Notifications"
+          ],
           "security": [
             {
               "access-token": []
@@ -1699,7 +1846,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             },
@@ -1732,7 +1882,14 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+                "enum": [
+                  "kg",
+                  "ton",
+                  "box",
+                  "bunch",
+                  "liter",
+                  "piece"
+                ],
                 "type": "string"
               }
             },
@@ -1760,7 +1917,9 @@
               "description": "Paginated market prices"
             }
           },
-          "tags": ["Market Prices"]
+          "tags": [
+            "Market Prices"
+          ]
         },
         "post": {
           "operationId": "MarketPricesController_create",
@@ -1781,7 +1940,9 @@
               "description": "Market price recorded"
             }
           },
-          "tags": ["Market Prices"],
+          "tags": [
+            "Market Prices"
+          ],
           "security": [
             {
               "access-token": []
@@ -1812,7 +1973,9 @@
               "description": "QR code not found"
             }
           },
-          "tags": ["Traceability"]
+          "tags": [
+            "Traceability"
+          ]
         }
       },
       "/api/v1/trace/product/{productId}": {
@@ -1834,7 +1997,9 @@
               "description": ""
             }
           },
-          "tags": ["Traceability"]
+          "tags": [
+            "Traceability"
+          ]
         }
       },
       "/api/v1/trace": {
@@ -1857,7 +2022,9 @@
               "description": "Traceability record created"
             }
           },
-          "tags": ["Traceability"],
+          "tags": [
+            "Traceability"
+          ],
           "security": [
             {
               "access-token": []
@@ -1884,7 +2051,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -1912,7 +2081,9 @@
               "description": "Đã đánh giá hoặc review không hợp lệ"
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -1930,7 +2101,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -1967,7 +2140,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -1985,7 +2160,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -2022,7 +2199,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -2049,7 +2228,9 @@
               "description": ""
             }
           },
-          "tags": ["Reviews"],
+          "tags": [
+            "Reviews"
+          ],
           "security": [
             {
               "access-token": []
@@ -2067,7 +2248,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2085,7 +2268,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2113,7 +2298,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2141,7 +2328,9 @@
               "description": "Chiến dịch chờ duyệt"
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2157,7 +2346,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2184,7 +2375,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2211,7 +2404,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2238,7 +2433,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2256,7 +2453,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2283,7 +2482,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2310,7 +2511,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2347,7 +2550,9 @@
               "description": ""
             }
           },
-          "tags": ["Ads"],
+          "tags": [
+            "Ads"
+          ],
           "security": [
             {
               "access-token": []
@@ -2365,7 +2570,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2383,7 +2590,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2428,7 +2637,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2446,7 +2657,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2473,7 +2686,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2526,7 +2741,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -2536,7 +2754,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2589,7 +2809,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             },
@@ -2598,7 +2821,11 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["open", "in_progress", "resolved"],
+                "enum": [
+                  "open",
+                  "in_progress",
+                  "resolved"
+                ],
                 "type": "string"
               }
             }
@@ -2608,7 +2835,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2635,7 +2864,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2688,7 +2919,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -2698,7 +2932,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2751,7 +2987,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -2761,7 +3000,67 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/products/{id}": {
+        "get": {
+          "operationId": "AdminController_getProductDetail",
+          "summary": "Get product detail with images and certifications",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Admin"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/products/{id}/status": {
+        "patch": {
+          "operationId": "AdminController_updateProductStatus",
+          "summary": "Approve, reject, or suspend a product",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2779,7 +3078,109 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/users": {
+        "get": {
+          "operationId": "AdminController_getUsers",
+          "summary": "List all users (paginated)",
+          "parameters": [
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number (1-based)",
+              "schema": {
+                "minimum": 1,
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field (e.g. createdAt, price)",
+              "schema": {
+                "example": "createdAt",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortOrder",
+              "required": false,
+              "in": "query",
+              "description": "Sort direction",
+              "schema": {
+                "default": "DESC",
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Admin"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/admin/users/{id}/status": {
+        "patch": {
+          "operationId": "AdminController_toggleUserStatus",
+          "summary": "Lock or unlock a user account",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User status updated"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          },
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2797,7 +3198,9 @@
               "description": ""
             }
           },
-          "tags": ["Admin"],
+          "tags": [
+            "Admin"
+          ],
           "security": [
             {
               "access-token": []
@@ -2850,7 +3253,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             },
@@ -2859,7 +3265,11 @@
               "required": false,
               "in": "query",
               "schema": {
-                "enum": ["technical", "market", "experience"],
+                "enum": [
+                  "technical",
+                  "market",
+                  "experience"
+                ],
                 "type": "string"
               }
             },
@@ -2877,7 +3287,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"]
+          "tags": [
+            "Forum"
+          ]
         },
         "post": {
           "operationId": "ForumController_createPost",
@@ -2898,7 +3310,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -2925,7 +3339,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"]
+          "tags": [
+            "Forum"
+          ]
         },
         "patch": {
           "operationId": "ForumController_updatePost",
@@ -2955,7 +3371,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -2980,7 +3398,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -3007,7 +3427,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -3068,7 +3490,10 @@
               "description": "Sort direction",
               "schema": {
                 "default": "DESC",
-                "enum": ["ASC", "DESC"],
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
                 "type": "string"
               }
             }
@@ -3078,7 +3503,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"]
+          "tags": [
+            "Forum"
+          ]
         },
         "post": {
           "operationId": "ForumController_addComment",
@@ -3108,7 +3535,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -3135,7 +3564,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -3162,7 +3593,9 @@
               "description": ""
             }
           },
-          "tags": ["Forum"],
+          "tags": [
+            "Forum"
+          ],
           "security": [
             {
               "access-token": []
@@ -3182,6 +3615,28 @@
         }
       },
       "schemas": {
+        "LoginDto": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "example": "user@example.com",
+              "description": "Registered email address. Provide exactly one of email or phone."
+            },
+            "phone": {
+              "type": "string",
+              "example": "+84901234567",
+              "description": "Vietnamese phone linked to the account. Provide exactly one of phone or email."
+            },
+            "password": {
+              "type": "string",
+              "example": "Str0ngP@ss!"
+            }
+          },
+          "required": [
+            "password"
+          ]
+        },
         "RegisterDto": {
           "type": "object",
           "properties": {
@@ -3218,22 +3673,11 @@
               "example": "Nguyen Van A"
             }
           },
-          "required": ["email", "password", "role"]
-        },
-        "LoginDto": {
-          "type": "object",
-          "properties": {
-            "email": {
-              "type": "string",
-              "example": "user@example.com",
-              "description": "Registered email address"
-            },
-            "password": {
-              "type": "string",
-              "example": "Str0ngP@ss!"
-            }
-          },
-          "required": ["email", "password"]
+          "required": [
+            "email",
+            "password",
+            "role"
+          ]
         },
         "VerifyOtpDto": {
           "type": "object",
@@ -3248,18 +3692,30 @@
             },
             "purpose": {
               "type": "string",
-              "enum": ["register", "login", "reset_password"],
+              "enum": [
+                "register",
+                "login",
+                "reset_password"
+              ],
               "example": "register"
             }
           },
-          "required": ["target", "code", "purpose"]
+          "required": [
+            "target",
+            "code",
+            "purpose"
+          ]
         },
         "FirebaseSyncDto": {
           "type": "object",
           "properties": {
             "role": {
               "type": "string",
-              "enum": ["farmer", "supplier", "buyer"]
+              "enum": [
+                "farmer",
+                "supplier",
+                "buyer"
+              ]
             },
             "fullName": {
               "type": "string",
@@ -3280,16 +3736,27 @@
             },
             "type": {
               "type": "string",
-              "enum": ["sms", "email"],
+              "enum": [
+                "sms",
+                "email"
+              ],
               "example": "sms"
             },
             "purpose": {
               "type": "string",
-              "enum": ["register", "login", "reset_password"],
+              "enum": [
+                "register",
+                "login",
+                "reset_password"
+              ],
               "example": "register"
             }
           },
-          "required": ["target", "type", "purpose"]
+          "required": [
+            "target",
+            "type",
+            "purpose"
+          ]
         },
         "UpdateUserDto": {
           "type": "object",
@@ -3313,10 +3780,16 @@
           "properties": {
             "role": {
               "type": "string",
-              "enum": ["farmer", "supplier", "buyer"]
+              "enum": [
+                "farmer",
+                "supplier",
+                "buyer"
+              ]
             }
           },
-          "required": ["role"]
+          "required": [
+            "role"
+          ]
         },
         "UpsertFarmerProfileDto": {
           "type": "object",
@@ -3424,7 +3897,9 @@
               "example": 0
             }
           },
-          "required": ["imageUrl"]
+          "required": [
+            "imageUrl"
+          ]
         },
         "CreateProductDto": {
           "type": "object",
@@ -3456,7 +3931,14 @@
             },
             "unit": {
               "type": "string",
-              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "enum": [
+                "kg",
+                "ton",
+                "box",
+                "bunch",
+                "liter",
+                "piece"
+              ],
               "example": "kg"
             },
             "availableQuantity": {
@@ -3469,7 +3951,12 @@
             },
             "farmingType": {
               "type": "string",
-              "enum": ["organic", "traditional", "vietgap", "globalgap"]
+              "enum": [
+                "organic",
+                "traditional",
+                "vietgap",
+                "globalgap"
+              ]
             },
             "provinceId": {
               "type": "string"
@@ -3502,14 +3989,22 @@
               }
             }
           },
-          "required": ["name", "pricePerUnit", "unit", "availableQuantity"]
+          "required": [
+            "name",
+            "pricePerUnit",
+            "unit",
+            "availableQuantity"
+          ]
         },
         "VerifyProductCertificationDto": {
           "type": "object",
           "properties": {
             "status": {
               "type": "string",
-              "enum": ["verified", "rejected"],
+              "enum": [
+                "verified",
+                "rejected"
+              ],
               "example": "verified"
             },
             "rejectionReason": {
@@ -3517,7 +4012,9 @@
               "example": "Thông tin chứng nhận không khớp hồ sơ tải lên"
             }
           },
-          "required": ["status"]
+          "required": [
+            "status"
+          ]
         },
         "UpdateProductDto": {
           "type": "object",
@@ -3549,7 +4046,14 @@
             },
             "unit": {
               "type": "string",
-              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "enum": [
+                "kg",
+                "ton",
+                "box",
+                "bunch",
+                "liter",
+                "piece"
+              ],
               "example": "kg"
             },
             "availableQuantity": {
@@ -3562,7 +4066,12 @@
             },
             "farmingType": {
               "type": "string",
-              "enum": ["organic", "traditional", "vietgap", "globalgap"]
+              "enum": [
+                "organic",
+                "traditional",
+                "vietgap",
+                "globalgap"
+              ]
             },
             "provinceId": {
               "type": "string"
@@ -3601,18 +4110,30 @@
           "properties": {
             "status": {
               "type": "string",
-              "enum": ["pending_approval", "active", "out_of_stock"],
+              "enum": [
+                "pending_approval",
+                "active",
+                "out_of_stock"
+              ],
               "example": "pending_approval"
             }
           },
-          "required": ["status"]
+          "required": [
+            "status"
+          ]
         },
         "CreateProductCertificationDto": {
           "type": "object",
           "properties": {
             "certType": {
               "type": "string",
-              "enum": ["vietgap", "organic", "globalgap", "ocop", "other"],
+              "enum": [
+                "vietgap",
+                "organic",
+                "globalgap",
+                "ocop",
+                "other"
+              ],
               "example": "vietgap"
             },
             "certNumber": {
@@ -3637,7 +4158,10 @@
               "description": "Private CERTIFICATION file created through a storage upload intent"
             }
           },
-          "required": ["certType", "storedFileId"]
+          "required": [
+            "certType",
+            "storedFileId"
+          ]
         },
         "CreateMarketPriceDto": {
           "type": "object",
@@ -3658,7 +4182,14 @@
             },
             "unit": {
               "type": "string",
-              "enum": ["kg", "ton", "box", "bunch", "liter", "piece"],
+              "enum": [
+                "kg",
+                "ton",
+                "box",
+                "bunch",
+                "liter",
+                "piece"
+              ],
               "example": "kg"
             },
             "source": {
@@ -3670,7 +4201,12 @@
               "example": "2026-05-27"
             }
           },
-          "required": ["productName", "pricePerUnit", "unit", "priceDate"]
+          "required": [
+            "productName",
+            "pricePerUnit",
+            "unit",
+            "priceDate"
+          ]
         },
         "CreateTraceabilityDto": {
           "type": "object",
@@ -3710,7 +4246,9 @@
               "type": "string"
             }
           },
-          "required": ["productId"]
+          "required": [
+            "productId"
+          ]
         },
         "CreateReviewDto": {
           "type": "object",
@@ -3736,7 +4274,10 @@
               }
             }
           },
-          "required": ["productId", "rating"]
+          "required": [
+            "productId",
+            "rating"
+          ]
         },
         "ReplyReviewDto": {
           "type": "object",
@@ -3747,7 +4288,9 @@
               "maxLength": 500
             }
           },
-          "required": ["reply"]
+          "required": [
+            "reply"
+          ]
         },
         "HideReviewDto": {
           "type": "object",
@@ -3758,7 +4301,9 @@
               "maxLength": 300
             }
           },
-          "required": ["reason"]
+          "required": [
+            "reason"
+          ]
         },
         "TrackAdEventDto": {
           "type": "object",
@@ -3768,10 +4313,16 @@
             },
             "eventType": {
               "type": "string",
-              "enum": ["impression", "click"]
+              "enum": [
+                "impression",
+                "click"
+              ]
             }
           },
-          "required": ["campaignId", "eventType"]
+          "required": [
+            "campaignId",
+            "eventType"
+          ]
         },
         "CreateAdCampaignDto": {
           "type": "object",
@@ -3801,7 +4352,11 @@
               }
             }
           },
-          "required": ["title", "packageId", "imageUrl"]
+          "required": [
+            "title",
+            "packageId",
+            "imageUrl"
+          ]
         },
         "RejectAdCampaignDto": {
           "type": "object",
@@ -3811,7 +4366,9 @@
               "description": "Lý do từ chối hiển thị cho supplier"
             }
           },
-          "required": ["reason"]
+          "required": [
+            "reason"
+          ]
         },
         "VerifyProfileDto": {
           "type": "object",
@@ -3825,7 +4382,9 @@
               "description": "Required if isApproved is false"
             }
           },
-          "required": ["isApproved"]
+          "required": [
+            "isApproved"
+          ]
         },
         "CreatePostDto": {
           "type": "object",
@@ -3838,7 +4397,11 @@
             },
             "category": {
               "type": "string",
-              "enum": ["technical", "market", "experience"]
+              "enum": [
+                "technical",
+                "market",
+                "experience"
+              ]
             },
             "imageUrls": {
               "type": "array",
@@ -3847,7 +4410,11 @@
               }
             }
           },
-          "required": ["title", "content", "category"]
+          "required": [
+            "title",
+            "content",
+            "category"
+          ]
         },
         "UpdatePostDto": {
           "type": "object",
@@ -3860,7 +4427,11 @@
             },
             "category": {
               "type": "string",
-              "enum": ["technical", "market", "experience"]
+              "enum": [
+                "technical",
+                "market",
+                "experience"
+              ]
             },
             "imageUrls": {
               "type": "array",
@@ -3877,7 +4448,9 @@
               "type": "string"
             }
           },
-          "required": ["content"]
+          "required": [
+            "content"
+          ]
         }
       }
     }
