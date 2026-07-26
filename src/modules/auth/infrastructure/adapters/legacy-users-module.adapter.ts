@@ -11,6 +11,10 @@ export class LegacyUsersModuleAdapter implements IUserManagerPort {
     return this.usersService.findByEmail(email);
   }
 
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.usersService.findByPhone(phone);
+  }
+
   async findByFirebaseUid(uid: string): Promise<User | null> {
     return this.usersService.findByFirebaseUid(uid);
   }
