@@ -13,18 +13,12 @@
         "src/modules/admin/admin.route.ts -> ../../database/entities/cooperative-profile.entity",
         "src/modules/admin/admin.route.ts -> ../../database/entities/enterprise-profile.entity",
         "src/modules/admin/admin.route.ts -> ../../database/entities/supplier-profile.entity",
-        "src/modules/admin/admin.route.ts -> ../../database/entities/user.entity",
         "src/modules/admin/admin.route.ts -> ../../database/entities/incident-report.entity",
         "src/modules/admin/admin.service.ts -> ../../database/entities/farmer-profile.entity",
         "src/modules/admin/admin.service.ts -> ../../database/entities/cooperative-profile.entity",
         "src/modules/admin/admin.service.ts -> ../../database/entities/enterprise-profile.entity",
         "src/modules/admin/admin.service.ts -> ../../database/entities/supplier-profile.entity",
-        "src/modules/admin/admin.service.ts -> ../../database/entities/user.entity",
         "src/modules/admin/admin.service.ts -> ../../database/entities/incident-report.entity",
-        "src/modules/auth/auth.module.ts -> ../../database/entities/refresh-token.entity",
-        "src/modules/auth/auth.module.ts -> ../../database/entities/otp-verification.entity",
-        "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts -> ../../../../database/entities/refresh-token.entity",
-        "src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts -> ../../../../database/entities/otp-verification.entity",
         "src/modules/profiles/profiles.route.ts -> ../../database/entities/farmer-profile.entity",
         "src/modules/profiles/profiles.route.ts -> ../../database/entities/cooperative-profile.entity",
         "src/modules/profiles/profiles.route.ts -> ../../database/entities/enterprise-profile.entity",
@@ -34,16 +28,7 @@
         "src/modules/profiles/profiles.service.ts -> ../../database/entities/enterprise-profile.entity",
         "src/modules/profiles/profiles.service.ts -> ../../database/entities/supplier-profile.entity",
         "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts -> @database/entities/user.entity",
-        "src/modules/reviews/reviews.module.ts -> @database/entities/user.entity",
-        "src/modules/users/infrastructure/database/seeds/user.seed.ts -> ../../../../../database/entities/user.entity",
-        "src/modules/users/seeds/seller.seed.ts -> ../../../database/entities/user.entity",
-        "src/modules/users/users.module.ts -> ../../database/entities/user.entity",
-        "src/modules/users/users.service.ts -> ../../database/entities/user.entity",
-        "src/modules/auth/application/ports/outbound/otp-sender.port.ts -> @database/entities/otp-verification.entity",
-        "src/modules/auth/application/ports/outbound/token-generator.port.ts -> @database/entities/refresh-token.entity",
-        "src/modules/auth/application/ports/outbound/user-manager.port.ts -> @database/entities/user.entity",
-        "src/modules/auth/application/use-cases/register.use-case.ts -> ../../../../database/entities/user.entity",
-        "src/modules/auth/infrastructure/adapters/legacy-users-module.adapter.ts -> @database/entities/user.entity"
+        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts -> @database/entities/user.entity"
       ]
     },
     {
@@ -71,21 +56,10 @@
         "src/modules/admin/admin.route.ts:CooperativeProfile",
         "src/modules/admin/admin.route.ts:EnterpriseProfile",
         "src/modules/admin/admin.route.ts:SupplierProfile",
-        "src/modules/admin/admin.route.ts:User",
         "src/modules/admin/admin.route.ts:Product",
         "src/modules/admin/admin.route.ts:IncidentReport",
-        "src/modules/reviews/reviews.module.ts:Product",
-        "src/modules/reviews/reviews.module.ts:User"
+        "src/modules/reviews/reviews.module.ts:Product"
       ]
-    },
-    {
-      "id": "users-exports-typeorm-module",
-      "exceptionType": "repository-infrastructure-export",
-      "owner": "users",
-      "reason": "UsersModule exports TypeOrmModule and can leak writable User repository access.",
-      "phase": "3",
-      "expiresAt": "2027-03-31",
-      "files": ["src/modules/users/users.module.ts"]
     },
     {
       "id": "unsafe-database-boolean-parsing",

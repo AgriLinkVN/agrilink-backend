@@ -8,8 +8,6 @@ import { JwtRefreshStrategy } from "./presentation/strategies/jwt-refresh.strate
 import { jwtConfig } from "../../config/jwt.config";
 import { UsersModule } from "../users/users.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { RefreshToken } from "../../database/entities/refresh-token.entity";
-import { OtpVerification } from "../../database/entities/otp-verification.entity";
 import { HttpModule } from "@nestjs/axios";
 import { SmsRoute } from "../../shared/sms/sms.route";
 import { FirebaseModule } from "../../shared/firebase/firebase.module";
@@ -37,6 +35,9 @@ import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.use-c
 import { LogoutUseCase } from "./application/use-cases/logout.use-case";
 import { SendOtpUseCase } from "./application/use-cases/send-otp.use-case";
 import { VerifyOtpUseCase } from "./application/use-cases/verify-otp.use-case";
+import { RefreshToken } from './infrastructure/persistence/entities/refresh-token.entity';
+import { OtpVerification } from './infrastructure/persistence/entities/otp-verification.entity';
+import { AUTH_SESSION_REVOCATION } from './application/ports/inbound/auth-session-revocation.port';
 
 @Module({
   imports: [
@@ -61,13 +62,18 @@ import { VerifyOtpUseCase } from "./application/use-cases/verify-otp.use-case";
     FirebaseAuthGuard,
 
     // Adapters
+    JwtTokenGeneratorAdapter,
     {
       provide: USER_MANAGER_PORT,
       useClass: LegacyUsersModuleAdapter,
     },
     {
       provide: TOKEN_GENERATOR_PORT,
-      useClass: JwtTokenGeneratorAdapter,
+      useExisting: JwtTokenGeneratorAdapter,
+    },
+    {
+      provide: AUTH_SESSION_REVOCATION,
+      useExisting: JwtTokenGeneratorAdapter,
     },
     {
       provide: OTP_SENDER_PORT,
@@ -88,6 +94,6 @@ import { VerifyOtpUseCase } from "./application/use-cases/verify-otp.use-case";
     SendOtpUseCase,
     VerifyOtpUseCase,
   ],
-  exports: [JwtModule],
+  exports: [JwtModule, AUTH_SESSION_REVOCATION],
 })
 export class AuthModule {}

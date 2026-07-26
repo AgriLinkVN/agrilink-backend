@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@database/entities/user.entity';
 import { Product } from '@modules/products/infrastructure/persistence/entities/product.entity';
 import {
   CreateProductReviewUseCase,
@@ -18,7 +17,7 @@ import { TypeOrmReviewsRepository } from './infrastructure/persistence/repositor
 import { ReviewsController } from './presentation/controllers/reviews.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, Product, User])],
+  imports: [TypeOrmModule.forFeature([Review, Product])],
   controllers: [ReviewsController],
   providers: [
     TypeOrmReviewsRepository,

@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../../../../../database/entities/user.entity';
+import { User } from '../../persistence/entities/user.entity';
 import { UserRole, UserStatus } from '@common/enums';
 
 export async function seedUsers(dataSource: DataSource): Promise<void> {
@@ -15,7 +15,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
 
   const usersData = [
     {
-      phone: '0901111099',
+      phone: '+84901111099',
       email: 'admin@agrilink.vn',
       passwordHash,
       role: UserRole.ADMIN,
@@ -25,7 +25,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111001',
+      phone: '+84901111001',
       email: 'farmer@agrilink.vn',
       passwordHash,
       role: UserRole.FARMER,
@@ -35,7 +35,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111002',
+      phone: '+84901111002',
       email: 'cooperative@agrilink.vn',
       passwordHash,
       role: UserRole.COOPERATIVE,
@@ -45,7 +45,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111003',
+      phone: '+84901111003',
       email: 'buyer@agrilink.vn',
       passwordHash,
       role: UserRole.BUYER,
@@ -55,7 +55,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111004',
+      phone: '+84901111004',
       email: 'enterprise@agrilink.vn',
       passwordHash,
       role: UserRole.ENTERPRISE,
@@ -65,7 +65,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111005',
+      phone: '+84901111005',
       email: 'supplier@agrilink.vn',
       passwordHash,
       role: UserRole.SUPPLIER,
@@ -75,7 +75,7 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
       isEmailVerified: true,
     },
     {
-      phone: '0901111007',
+      phone: '+84901111007',
       email: 'logistics@agrilink.vn',
       passwordHash,
       role: UserRole.LOGISTICS,
@@ -87,7 +87,9 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   ];
 
   for (const userData of usersData) {
-    const existing = await repo.findOne({ where: { phone: userData.phone } });
+    const existing = await repo.findOne({
+      where: [{ phone: userData.phone }, { email: userData.email }],
+    });
     if (!existing) {
       await repo.save(repo.create(userData));
     } else {

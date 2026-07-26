@@ -1,33 +1,55 @@
-import { Injectable } from "@nestjs/common";
-import { UsersService } from "../../../users/users.service";
-import { IUserManagerPort } from "../../application/ports/outbound/user-manager.port";
-import type { User } from "@database/entities/user.entity";
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  USER_ACCOUNT_MANAGER,
+  UserAccountManager,
+} from '../../../users/application/ports/user-account-manager.port';
+import {
+  USER_IDENTITY_READER,
+  UserIdentityReader,
+} from '../../../users/application/ports/user-identity-reader.port';
+import {
+  AuthUserAccount,
+  CreateAuthUser,
+  IUserManagerPort,
+  UpdateAuthUser,
+} from '../../application/ports/outbound/user-manager.port';
 
 @Injectable()
 export class LegacyUsersModuleAdapter implements IUserManagerPort {
-  constructor(private readonly usersService: UsersService) {}
+  static readonly retirementPhase = 4;
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.usersService.findByEmail(email);
+  constructor(
+    @Inject(USER_IDENTITY_READER)
+    private readonly identityReader: UserIdentityReader,
+    @Inject(USER_ACCOUNT_MANAGER)
+    private readonly accountManager: UserAccountManager,
+  ) {}
+
+  async findByEmail(email: string): Promise<AuthUserAccount | null> {
+    return this.identityReader.findByEmail(email);
   }
 
-  async findByPhone(phone: string): Promise<User | null> {
-    return this.usersService.findByPhone(phone);
+  async findByPhone(phone: string): Promise<AuthUserAccount | null> {
+    return this.identityReader.findByPhone(phone);
   }
 
-  async findByFirebaseUid(uid: string): Promise<User | null> {
-    return this.usersService.findByFirebaseUid(uid);
+  async findByFirebaseUid(uid: string): Promise<AuthUserAccount | null> {
+    return this.identityReader.findByFirebaseUid(uid);
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.usersService.findById(id);
+  async findById(id: string): Promise<AuthUserAccount | null> {
+    return this.identityReader.findById(id);
   }
 
-  async create(userData: Partial<User>): Promise<User> {
-    return this.usersService.create(userData);
+  async create(userData: CreateAuthUser): Promise<AuthUserAccount> {
+    return this.accountManager.create(userData);
   }
 
-  async updateInternal(id: string, updateData: Partial<User>): Promise<void> {
-    return this.usersService.updateInternal(id, updateData);
+  async updateInternal(
+    id: string,
+    updateData: UpdateAuthUser,
+  ): Promise<void> {
+    return this.accountManager.updateInternal(id, updateData);
   }
 }

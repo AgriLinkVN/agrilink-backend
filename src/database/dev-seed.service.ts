@@ -3,13 +3,12 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { User } from './entities/user.entity';
+import { User } from '../modules/users/infrastructure/persistence/entities/user.entity';
 import { FarmerProfile } from './entities/farmer-profile.entity';
 import { CooperativeProfile } from './entities/cooperative-profile.entity';
 import { EnterpriseProfile } from './entities/enterprise-profile.entity';
 import { SupplierProfile } from './entities/supplier-profile.entity';
 import { LogisticsProfile } from './entities/logistics-profile.entity';
-import { UserAddress } from './entities/user-address.entity';
 import { Product } from '../modules/products/infrastructure/persistence/entities/product.entity';
 import { ProductImage } from '../modules/products/infrastructure/persistence/entities/product-image.entity';
 import { ProductCategory } from '../modules/products/infrastructure/persistence/entities/product-category.entity';

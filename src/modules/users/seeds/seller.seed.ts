@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { UserRole, UserStatus } from '../../../common/enums';
-import { User } from '../../../database/entities/user.entity';
+import { User } from '../infrastructure/persistence/entities/user.entity';
 
 export interface SeededSellers {
   farmer: User;
@@ -17,24 +17,27 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
 
   const existing = await repo.find({
     where: [
-      { phone: '0900000001' },
-      { phone: '0900000002' },
-      { phone: '0900000003' },
+      { phone: '+84900000001' },
+      { phone: '+84900000002' },
+      { phone: '+84900000003' },
+      { email: 'farmer.demo@agrilink.vn' },
+      { email: 'coop.demo@agrilink.vn' },
+      { email: 'supplier.demo@agrilink.vn' },
     ],
   });
 
   if (existing.length === 3) {
     console.log('✅ Demo sellers đã được seed trước đó — bỏ qua');
     return {
-      farmer: existing.find((u) => u.phone === '0900000001')!,
-      cooperative: existing.find((u) => u.phone === '0900000002')!,
-      supplier: existing.find((u) => u.phone === '0900000003')!,
+      farmer: existing.find((u) => u.email === 'farmer.demo@agrilink.vn')!,
+      cooperative: existing.find((u) => u.email === 'coop.demo@agrilink.vn')!,
+      supplier: existing.find((u) => u.email === 'supplier.demo@agrilink.vn')!,
     };
   }
 
   const [farmer, cooperative, supplier] = await repo.save([
     {
-      phone: '0900000001',
+      phone: '+84900000001',
       email: 'farmer.demo@agrilink.vn',
       passwordHash,
       role: UserRole.FARMER,
@@ -44,7 +47,7 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
       isEmailVerified: true,
     },
     {
-      phone: '0900000002',
+      phone: '+84900000002',
       email: 'coop.demo@agrilink.vn',
       passwordHash,
       role: UserRole.COOPERATIVE,
@@ -54,7 +57,7 @@ export async function seedSellers(dataSource: DataSource): Promise<SeededSellers
       isEmailVerified: true,
     },
     {
-      phone: '0900000003',
+      phone: '+84900000003',
       email: 'supplier.demo@agrilink.vn',
       passwordHash,
       role: UserRole.SUPPLIER,

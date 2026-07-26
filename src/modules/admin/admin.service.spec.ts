@@ -49,6 +49,8 @@ describe('AdminService profile review consistency', () => {
       unusedRepository as never,
       unusedRepository as never,
       unusedRepository as never,
+      unusedRepository as never,
+      unusedRepository as never,
       storedFileAccess,
     );
 

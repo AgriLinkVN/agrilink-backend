@@ -5,21 +5,27 @@
 This change implements phone login for accounts that already have a phone
 stored in `users.phone` (Scope A). It does not claim phone-first registration.
 
-Phone-first registration remains deferred because:
+Persistence Phase 3 formally keeps phone-first registration deferred because:
 
 - `users.email` is non-nullable in the canonical schema.
 - `RegisterDto` still requires email.
 - `RegisterUseCase` does not persist phone.
-- Changing those contracts belongs with the Users/Auth ownership work planned
-  for Persistence Phase 3.
+- The protected local snapshot contains legacy phone/Firebase identities, but
+  that evidence does not approve a new phone-only registration contract.
 
 No entity, database migration, persistence baseline, token contract, or
 registration behavior changes in this patch.
 
 Existing records and legacy seed fixtures that store `0`-prefixed numbers are
-not rewritten by this patch. Phone login is guaranteed for accounts whose
-stored phone already uses the canonical format. Data normalization and seed
-ownership remain deferred to Persistence Phase 3.
+not rewritten. Phone login is guaranteed for accounts whose stored phone
+already uses the canonical format. Phase 3 changes new seed fixtures to the
+canonical format without mutating `agrilink_db`.
+
+Phase 3 read-only reconciliation found two local users with null email. Both
+have canonical phone and password identities; one is Firebase-linked and
+active, while one is a pending phone/password account. They remain legacy
+reconciliation records. Canonical v2 and new registration continue to require
+email, and no placeholder email is generated.
 
 ## Phone Contract
 

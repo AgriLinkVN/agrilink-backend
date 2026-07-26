@@ -20,17 +20,13 @@ export class RefreshTokenUseCase {
     }
 
     const tokenHash = crypto.createHash("sha256").update(dto.refreshToken).digest("hex");
-    const storedToken = await this.tokenGenerator.findRefreshToken(tokenHash, payload.sub);
-
-    if (!storedToken) {
-      throw new InvalidTokenError("Refresh token not found");
-    }
-
-    if (storedToken.revokedAt || storedToken.expiresAt < new Date()) {
+    const tokens = await this.tokenGenerator.rotateRefreshToken(
+      tokenHash,
+      payload.sub,
+    );
+    if (!tokens) {
       throw new InvalidTokenError("Refresh token revoked or expired");
     }
-
-    await this.tokenGenerator.revokeRefreshToken(storedToken.id);
-    return this.tokenGenerator.generateTokens(payload.sub);
+    return tokens;
   }
 }

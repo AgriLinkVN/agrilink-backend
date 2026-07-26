@@ -1,8 +1,6 @@
-import { UserRole, UserStatus } from '../../../../../common/enums';
+import { UserRole, UserStatus } from '../../../../common/enums';
 
-export const USER_MANAGER_PORT = Symbol('USER_MANAGER_PORT');
-
-export interface AuthUserAccount {
+export interface UserAccount {
   id: string;
   phone: string | null;
   firebaseUid: string | null;
@@ -19,35 +17,52 @@ export interface AuthUserAccount {
   updatedAt: Date;
 }
 
-export interface CreateAuthUser {
+export type SafeUserAccount = Omit<UserAccount, 'passwordHash'>;
+
+export interface CreateUserAccount {
   phone?: string | null;
   firebaseUid?: string | null;
   email: string;
   passwordHash: string;
   role: UserRole;
   status?: UserStatus;
+  avatarUrl?: string | null;
   fullName?: string | null;
   isPhoneVerified?: boolean;
   isEmailVerified?: boolean;
   lastLoginAt?: Date | null;
 }
 
-export interface UpdateAuthUser {
+export interface UpdateUserAccount {
   phone?: string | null;
   firebaseUid?: string | null;
   email?: string;
+  role?: UserRole;
   status?: UserStatus;
+  avatarUrl?: string | null;
   fullName?: string | null;
   isPhoneVerified?: boolean;
   isEmailVerified?: boolean;
   lastLoginAt?: Date | null;
 }
 
-export interface IUserManagerPort {
-  findByEmail(email: string): Promise<AuthUserAccount | null>;
-  findByPhone(phone: string): Promise<AuthUserAccount | null>;
-  findByFirebaseUid(uid: string): Promise<AuthUserAccount | null>;
-  findById(id: string): Promise<AuthUserAccount | null>;
-  create(userData: CreateAuthUser): Promise<AuthUserAccount>;
-  updateInternal(id: string, updateData: UpdateAuthUser): Promise<void>;
+export interface UserSummary {
+  id: string;
+  fullName: string | null;
 }
+
+export interface UserPage {
+  data: SafeUserAccount[];
+  total: number;
+}
+
+export type UserStatusChangeResult =
+  | { outcome: 'not-found' }
+  | { outcome: 'protected-admin' }
+  | {
+      outcome: 'updated';
+      userId: string;
+      previousStatus: UserStatus;
+      status: UserStatus;
+      account: SafeUserAccount;
+    };

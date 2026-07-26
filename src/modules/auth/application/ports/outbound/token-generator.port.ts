@@ -1,5 +1,4 @@
 import type { JwtPayload } from './jwt-payload.type';
-import type { RefreshToken } from '@database/entities/refresh-token.entity';
 
 export const TOKEN_GENERATOR_PORT = Symbol('TOKEN_GENERATOR_PORT');
 
@@ -11,7 +10,10 @@ export interface TokenPair {
 export interface ITokenGeneratorPort {
   generateTokens(userId: string): Promise<TokenPair>;
   verifyRefreshToken(token: string): Promise<JwtPayload>;
-  findRefreshToken(tokenHash: string, userId: string): Promise<RefreshToken | null>;
-  revokeRefreshToken(tokenId: string): Promise<void>;
+  rotateRefreshToken(
+    tokenHash: string,
+    userId: string,
+  ): Promise<TokenPair | null>;
   revokeAllUserTokens(userId: string): Promise<void>;
+  purgeRetiredTokens(cutoff: Date, now: Date): Promise<number>;
 }

@@ -9,14 +9,17 @@ import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
 import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
 import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
 import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
-import { User } from '../../database/entities/user.entity';
 import { Product } from '../products/infrastructure/persistence/entities/product.entity';
 import { IncidentReport } from '../../database/entities/incident-report.entity';
 import { StorageModule } from '../storage/storage.module';
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     StorageModule,
+    UsersModule,
+    AuthModule,
     TypeOrmModule.forFeature([
       SystemConfig,
       AuditLog,
@@ -24,7 +27,6 @@ import { StorageModule } from '../storage/storage.module';
       CooperativeProfile,
       EnterpriseProfile,
       SupplierProfile,
-      User,
       Product,
       IncidentReport,
     ]),

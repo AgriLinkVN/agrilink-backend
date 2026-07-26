@@ -89,6 +89,12 @@ Implementation contract:
 - Rollback: ports coexist with legacy service for one phase.
 - Gate: no outside writable User/Auth repository access.
 - Risk: critical. Dependency: Phase 2.
+- Result: Users owns the canonical `users` mapping and typed account ports;
+  Auth owns canonical refresh-token and OTP mappings, atomic rotation/consume,
+  revoke-all, and retention. `UsersModule` no longer exports TypeORM. Admin
+  uses Users/Auth ports and Reviews no longer registers User. User Addresses
+  and phone-first registration are evidence-based deferred decisions. No
+  physical migration is required.
 
 ## Phase 4: Profiles And Admin Read Model
 

@@ -1,5 +1,4 @@
 import { UserRole, UserStatus } from '../../../../common/enums';
-import { User } from '../../../../database/entities/user.entity';
 import {
   InvalidCredentialsError,
   InvalidLoginIdentifierError,
@@ -9,7 +8,10 @@ import {
   ITokenGeneratorPort,
   TokenPair,
 } from '../ports/outbound/token-generator.port';
-import { IUserManagerPort } from '../ports/outbound/user-manager.port';
+import {
+  AuthUserAccount,
+  IUserManagerPort,
+} from '../ports/outbound/user-manager.port';
 import { LoginUseCase } from './login.use-case';
 
 const USER_ID = '11111111-1111-4111-8111-111111111111';
@@ -20,7 +22,7 @@ const TOKENS: TokenPair = {
 const INVALID_CREDENTIALS =
   'Email, số điện thoại hoặc mật khẩu không chính xác';
 
-function makeUser(): User {
+function makeUser(): AuthUserAccount {
   return {
     id: USER_ID,
     phone: '+84901234567',
@@ -55,9 +57,9 @@ describe('LoginUseCase', () => {
   const tokenGenerator: jest.Mocked<ITokenGeneratorPort> = {
     generateTokens: jest.fn(),
     verifyRefreshToken: jest.fn(),
-    findRefreshToken: jest.fn(),
-    revokeRefreshToken: jest.fn(),
+    rotateRefreshToken: jest.fn(),
     revokeAllUserTokens: jest.fn(),
+    purgeRetiredTokens: jest.fn(),
   };
   const useCase = new LoginUseCase(
     userManager,
@@ -131,6 +133,36 @@ describe('LoginUseCase', () => {
     });
 
     expect(tokenGenerator.generateTokens).not.toHaveBeenCalled();
+  });
+
+  it('rejects a locked account without issuing tokens', async () => {
+    userManager.findByEmail.mockResolvedValue({
+      ...makeUser(),
+      status: UserStatus.LOCKED,
+    });
+
+    await expect(
+      useCase.execute({
+        email: 'user@example.com',
+        password: 'Str0ngP@ss!',
+      }),
+    ).rejects.toBeInstanceOf(InvalidCredentialsError);
+    expect(passwordHasher.compare).not.toHaveBeenCalled();
+    expect(tokenGenerator.generateTokens).not.toHaveBeenCalled();
+  });
+
+  it('preserves pending-verification login semantics', async () => {
+    userManager.findByEmail.mockResolvedValue({
+      ...makeUser(),
+      status: UserStatus.PENDING_VERIFICATION,
+    });
+
+    await expect(
+      useCase.execute({
+        email: 'user@example.com',
+        password: 'Str0ngP@ss!',
+      }),
+    ).resolves.toEqual(TOKENS);
   });
 
   it('updates lastLoginAt before generating tokens', async () => {
