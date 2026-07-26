@@ -68,11 +68,16 @@ Implementation contract:
 - Branch: `refactor/persistence-phase-2-low-risk-entities`
 - Scope: Ads, Geography, Notifications, SystemConfig/Audit ownership,
   MarketPrices only if Phase 1 schema proves safe.
+- Geography preserves canonical baseline fields and fields with active runtime
+  or deployed-schema evidence. Legacy-only fields must not be restored merely
+  because they occur in a duplicate entity.
 - Tests: per-table repository, API, schema parity and query-count regression.
 - Migration: only for proven physical schema differences.
 - Rollback: compatibility re-export and registry switch per table.
 - Gate: no scoped duplicate mapping or new legacy import.
 - Risk: medium-high. Dependency: Phase 1.
+- Result: Geography, Notifications, Ads, System Config, and Audit Logs have one
+  canonical owner mapping. Market Prices remains deferred outside baseline v2.
 
 ## Phase 3: Users And Auth
 

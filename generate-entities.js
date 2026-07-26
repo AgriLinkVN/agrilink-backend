@@ -428,48 +428,9 @@ export class UserAddress {
   createdAt: Date;
 }
 `,
-  'province.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { Region } from '../../common/enums';
-
-@Entity('provinces')
-export class Province {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ length: 100 })
-  name: string;
-
-  @Column({ length: 10, unique: true })
-  code: string;
-
-  @Column({ type: 'enum', enum: Region })
-  region: Region;
-
-  @Column({ name: 'is_key_agri', default: false })
-  isKeyAgri: boolean;
-}
+  'province.entity.ts': `export { Province } from '../../modules/geography/entities/province.entity';
 `,
-  'district.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Province } from './province.entity';
-
-@Entity('districts')
-export class District {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ name: 'province_id', type: 'int' })
-  provinceId: number;
-
-  @ManyToOne(() => Province)
-  @JoinColumn({ name: 'province_id' })
-  province: Province;
-
-  @Column({ length: 100 })
-  name: string;
-
-  @Column({ length: 10, unique: true })
-  code: string;
-}
+  'district.entity.ts': `export { District } from '../../modules/geography/entities/district.entity';
 `,
   'product-category.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
@@ -1386,148 +1347,15 @@ export class Message {
   createdAt: Date;
 }
 `,
-  'notification.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { NotifType } from '../../common/enums';
-
-@Entity('notifications')
-export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
-
-  @Column({ type: 'enum', enum: NotifType })
-  type: NotifType;
-
-  @Column({ length: 255 })
-  title: string;
-
-  @Column({ type: 'text', nullable: true })
-  body: string | null;
-
-  @Column({ type: 'jsonb', nullable: true })
-  data: Record<string, any> | null;
-
-  @Column({ name: 'is_read', default: false })
-  isRead: boolean;
-
-  @Column({ name: 'read_at', type: 'timestamptz', nullable: true })
-  readAt: Date | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'notification.entity.ts': `export {
+  NotificationOrmEntity as Notification,
+} from '../../modules/notifications/infrastructure/persistence/notification.orm-entity';
 `,
-  'ad-package.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { AdType } from '../../common/enums';
-
-@Entity('ad_packages')
-export class AdPackage {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ length: 100 })
-  name: string;
-
-  @Column({ type: 'enum', enum: AdType })
-  type: AdType;
-
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
-  price: number;
-
-  @Column({ name: 'duration_days', type: 'int' })
-  durationDays: number;
-
-  @Column({ name: 'max_impressions', type: 'int', nullable: true })
-  maxImpressions: number | null;
-
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @Column({ name: 'is_active', default: true })
-  isActive: boolean;
-}
+  'ad-package.entity.ts': `export { AdPackage } from '../../modules/ads/infrastructure/persistence/entities/ad-package.entity';
 `,
-  'ad-campaign.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { AdStatus } from '../../common/enums';
-
-@Entity('ad_campaigns')
-export class AdCampaign {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'supplier_id', type: 'uuid' })
-  supplierId: string;
-
-  @Column({ name: 'package_id', type: 'int' })
-  packageId: number;
-
-  @Column({ length: 255 })
-  title: string;
-
-  @Column({ name: 'image_url', type: 'text' })
-  imageUrl: string;
-
-  @Column({ name: 'link_url', type: 'text', nullable: true })
-  linkUrl: string | null;
-
-  @Column({ name: 'target_provinces', type: 'int', array: true, default: [] })
-  targetProvinces: number[];
-
-  @Column({ type: 'enum', enum: AdStatus, default: AdStatus.PENDING_APPROVAL })
-  status: AdStatus;
-
-  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
-  approvedBy: string | null;
-
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
-  approvedAt: Date | null;
-
-  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
-  rejectionReason: string | null;
-
-  @Column({ name: 'start_date', type: 'date', nullable: true })
-  startDate: string | null;
-
-  @Column({ name: 'end_date', type: 'date', nullable: true })
-  endDate: string | null;
-
-  @Column({ name: 'total_impressions', type: 'int', default: 0 })
-  totalImpressions: number;
-
-  @Column({ name: 'total_clicks', type: 'int', default: 0 })
-  totalClicks: number;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'ad-campaign.entity.ts': `export { AdCampaign } from '../../modules/ads/infrastructure/persistence/entities/ad-campaign.entity';
 `,
-  'ad-event.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-
-@Entity('ad_events')
-export class AdEvent {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'campaign_id', type: 'uuid' })
-  campaignId: string;
-
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId: string | null;
-
-  @Column({ name: 'event_type', length: 10 })
-  eventType: string;
-
-  @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ipAddress: string | null;
-
-  @Column({ name: 'user_agent', type: 'text', nullable: true })
-  userAgent: string | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'ad-event.entity.ts': `export { AdEvent } from '../../modules/ads/infrastructure/persistence/entities/ad-event.entity';
 `,
   'quality-certificate.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { CertType } from '../../common/enums';
@@ -1610,57 +1438,9 @@ export class Dispute {
   createdAt: Date;
 }
 `,
-  'system-config.entity.ts': `import { Entity, PrimaryColumn, Column, UpdateDateColumn } from 'typeorm';
-
-@Entity('system_configs')
-export class SystemConfig {
-  @PrimaryColumn({ length: 100 })
-  key: string;
-
-  @Column({ type: 'jsonb' })
-  value: Record<string, any>;
-
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
-  updatedBy: string | null;
-
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
-}
+  'system-config.entity.ts': `export { SystemConfig } from '../../modules/admin/entities/system-config.entity';
 `,
-  'audit-log.entity.ts': `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-
-@Entity('audit_logs')
-export class AuditLog {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId: string | null;
-
-  @Column({ length: 100 })
-  action: string;
-
-  @Column({ name: 'entity_type', length: 100, nullable: true })
-  entityType: string | null;
-
-  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
-  entityId: string | null;
-
-  @Column({ name: 'old_data', type: 'jsonb', nullable: true })
-  oldData: Record<string, any> | null;
-
-  @Column({ name: 'new_data', type: 'jsonb', nullable: true })
-  newData: Record<string, any> | null;
-
-  @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ipAddress: string | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
-}
+  'audit-log.entity.ts': `export { AuditLog } from '../../modules/admin/entities/audit-log.entity';
 `,
 };
 

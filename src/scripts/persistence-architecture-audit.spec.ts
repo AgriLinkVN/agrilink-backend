@@ -8,15 +8,15 @@ describe('Persistence architecture Phase 0 baseline', () => {
 
     expect(result.violations).toEqual([]);
     expect(result.summary).toEqual({
-      writableMappings: 66,
+      writableMappings: 58,
       viewMappings: 0,
       physicalTables: 48,
-      duplicateTables: 18,
-      centralMappings: 37,
+      duplicateTables: 10,
+      centralMappings: 29,
       moduleMappings: 29,
       centralImportEdges: 35,
       crossModuleInfrastructureEdges: 3,
-      foreignForFeatureRegistrations: 10,
+      foreignForFeatureRegistrations: 9,
     });
   });
 

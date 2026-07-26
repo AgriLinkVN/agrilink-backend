@@ -3,6 +3,15 @@ import { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 import { DataSource, Logger } from "typeorm";
+import { AuditLog } from "../../modules/admin/entities/audit-log.entity";
+import { SystemConfig } from "../../modules/admin/entities/system-config.entity";
+import { AdCampaign } from "../../modules/ads/infrastructure/persistence/entities/ad-campaign.entity";
+import { AdEvent } from "../../modules/ads/infrastructure/persistence/entities/ad-event.entity";
+import { AdPackage } from "../../modules/ads/infrastructure/persistence/entities/ad-package.entity";
+import { TypeOrmAdsRepository } from "../../modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository";
+import { District } from "../../modules/geography/entities/district.entity";
+import { Province } from "../../modules/geography/entities/province.entity";
+import { GeographyService } from "../../modules/geography/geography.service";
 import { NotificationOrmEntity } from "../../modules/notifications/infrastructure/persistence/notification.orm-entity";
 import { TypeOrmNotificationRepository } from "../../modules/notifications/infrastructure/repositories/typeorm-notification.repository";
 import { ProductCategory } from "../../modules/products/infrastructure/persistence/entities/product-category.entity";
@@ -81,6 +90,15 @@ export async function captureRuntimeBaseline(
   const notifications = new TypeOrmNotificationRepository(
     dataSource.getRepository(NotificationOrmEntity),
   );
+  const geography = new GeographyService(
+    dataSource.getRepository(Province),
+    dataSource.getRepository(District),
+  );
+  const ads = new TypeOrmAdsRepository(
+    dataSource.getRepository(AdPackage),
+    dataSource.getRepository(AdCampaign),
+    dataSource.getRepository(AdEvent),
+  );
   const profiles = createProfilesService(dataSource);
 
   const queryCounts: Record<string, number> = {};
@@ -119,6 +137,30 @@ export async function captureRuntimeBaseline(
     "notification-list",
     queryCounts,
     () => notifications.findAll(USER_ID, { page: 1, limit: 20 }),
+  );
+  await countQueries(counter, "geography-province-list", queryCounts, () =>
+    geography.findAllProvinces(),
+  );
+  await countQueries(counter, "geography-district-list", queryCounts, () =>
+    geography.findDistrictsByProvince(
+      "60000000-0000-4000-8000-000000000001",
+    ),
+  );
+  await countQueries(counter, "ads-package-list", queryCounts, () =>
+    ads.findActivePackages(),
+  );
+  await countQueries(counter, "ads-banner-list", queryCounts, () =>
+    ads.findActiveBanners(),
+  );
+  await countQueries(counter, "system-config-list", queryCounts, () =>
+    dataSource.getRepository(SystemConfig).find({ order: { key: "ASC" } }),
+  );
+  await countQueries(counter, "audit-log-list", queryCounts, () =>
+    dataSource.getRepository(AuditLog).findAndCount({
+      order: { createdAt: "DESC" },
+      skip: 0,
+      take: 20,
+    }),
   );
   const wishlistWrites = await Promise.all([
     products.addIfAbsent(USER_ID, PRODUCT_ID),
@@ -329,6 +371,17 @@ async function seedRuntimeFixture(dataSource: DataSource): Promise<void> {
         INSERT INTO system_configs (id, key, value)
         VALUES ('a0000000-0000-4000-8000-000000000001', 'phase1', 'enabled')
       `,
+    );
+    await manager.query(
+      `
+        INSERT INTO audit_logs
+          (id, user_id, action, entity_type, entity_id, changes)
+        VALUES
+          ('a1000000-0000-4000-8000-000000000001', $1, 'PHASE2_READ',
+           'SystemConfig', 'a0000000-0000-4000-8000-000000000001',
+           '{"before": null, "after": {"value": "enabled"}}'::jsonb)
+      `,
+      [USER_ID],
     );
     await manager.query(
       `

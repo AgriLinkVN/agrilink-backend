@@ -624,14 +624,14 @@ export class DevSeedService {
     const logs = [
       { userId: adminId, action: 'USER_LOGIN', entityType: 'User', createdAt: new Date('2026-07-23T08:00:00Z') },
       { userId: adminId, action: 'PRODUCT_APPROVED', entityType: 'Product', createdAt: new Date('2026-07-23T08:30:00Z') },
-      { userId: stateAgencyId, action: 'PRODUCT_SUSPENDED', entityType: 'Product', oldData: { status: 'active' }, newData: { status: 'suspended', reason: 'Hàng không rõ nguồn gốc' }, createdAt: new Date('2026-07-22T14:00:00Z') },
+      { userId: stateAgencyId, action: 'PRODUCT_SUSPENDED', entityType: 'Product', changes: { before: { status: 'active' }, after: { status: 'suspended', reason: 'Hàng không rõ nguồn gốc' } }, createdAt: new Date('2026-07-22T14:00:00Z') },
       { userId: adminId, action: 'AD_APPROVED', entityType: 'AdCampaign', createdAt: new Date('2026-07-21T10:00:00Z') },
       { userId: stateAgencyId, action: 'CERTIFICATION_VERIFIED', entityType: 'ProductCertification', createdAt: new Date('2026-07-20T09:15:00Z') },
       { userId: adminId, action: 'USER_REGISTERED', entityType: 'User', createdAt: new Date('2026-07-19T16:00:00Z') },
-      { userId: adminId, action: 'SYSTEM_CONFIG_UPDATED', entityType: 'SystemConfig', oldData: { feature_forum: false }, newData: { feature_forum: true }, createdAt: new Date('2026-07-18T11:00:00Z') },
+      { userId: adminId, action: 'SYSTEM_CONFIG_UPDATED', entityType: 'SystemConfig', changes: { before: { feature_forum: false }, after: { feature_forum: true } }, createdAt: new Date('2026-07-18T11:00:00Z') },
     ];
     for (const log of logs) {
-      await repo.save(log as any);
+      await repo.save(log);
     }
   }
 
