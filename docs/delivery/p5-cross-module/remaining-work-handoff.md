@@ -9,7 +9,7 @@ and their contracts across backend and frontend.
 Read these documents before changing code:
 
 1. `docs/architecture/clean-architecture-rules.md`
-2. `docs/p5-clean-architecture-plan.md`
+2. `clean-architecture-plan.md`
 3. This handoff document.
 
 ## Current Baseline

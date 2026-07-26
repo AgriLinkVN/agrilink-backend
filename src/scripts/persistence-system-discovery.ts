@@ -1312,7 +1312,9 @@ function writeArchitectureDecisions(
       "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
     baselineRecommendation: "rename-or-reconcile",
     confidence: "medium",
-    evidence: ["../postgresql-schema-verification.md"],
+    evidence: [
+      "../phases/phase-00/evidence/postgresql-schema-verification.md",
+    ],
     evidenceClassification: ["Observed", "Proposed"],
     blockedDecision:
       "Local-only table needs deployed evidence and row reconciliation against public.wishlists.",

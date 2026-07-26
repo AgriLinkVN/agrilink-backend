@@ -114,7 +114,7 @@ reviews
 ```
 
 The baseline must use the runtime mapping candidate recorded in
-`baseline-inclusion-matrix.json`, then apply reviewed compatibility constraints:
+`../../../discovery/baseline-inclusion-matrix.json`, then apply reviewed compatibility constraints:
 
 - Profile legacy URL columns and Storage file-ID columns coexist.
 - Product certifications retain `document_url` and `stored_file_id`.

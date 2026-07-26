@@ -4,11 +4,11 @@
 
 - ADR 0002: ownership and persistence boundaries.
 - ADR 0003: transaction coordinator, saga, and outbox.
-- `entity-ownership.json`: canonical table registry and phase assignment.
-- `exceptions.json`: exact legacy edges, registration gaps, expiry, and API
+- `../../entity-ownership.json`: canonical table registry and phase assignment.
+- `../../exceptions.json`: exact legacy edges, registration gaps, expiry, and API
   whitelist.
-- `current-state-audit.md`: source-backed findings and PostgreSQL limitations.
-- `roadmap.md`: executable Phase 0-9 sequence.
+- `../../current-state-audit.md`: source-backed findings and PostgreSQL limitations.
+- `../../roadmap.md`: executable Phase 0-9 sequence.
 - `src/scripts/persistence-architecture-audit.ts`: AST inventory/check command.
 - `src/scripts/persistence-architecture-audit.spec.ts`: regression gate.
 
@@ -34,7 +34,7 @@ git diff --check
 
 The initial Phase 0 run did not claim PostgreSQL metadata because port 5432 was
 unavailable. The post-merge verification is now recorded in
-`postgresql-schema-verification.md`: the local snapshot has 33 public tables,
+`evidence/postgresql-schema-verification.md`: the local snapshot has 33 public tables,
 no migration ledger, and the clean migration chain fails at migration one.
 This evidence is an input to Phase 1 and does not alter Phase 0 ownership
 decisions.

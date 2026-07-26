@@ -55,4 +55,4 @@ npm run test:e2e -- products --runInBand
 
 - Storage/upload architecture remains `PARTIAL`; handle it in a dedicated Storage refactor rather than coupling it to Product acceptance.
 - P2 frontend work is assessed in the frontend repository and is intentionally not claimed here.
-- Deploy tasks I2-10, I3-8, and I4-8 remain `FALSE` until real environment secrets, a deploy target, and the smoke-test checklist in `p2-deploy-readiness.md` are available.
+- Deploy tasks I2-10, I3-8, and I4-8 remain `FALSE` until real environment secrets, a deploy target, and the smoke-test checklist in `../../operations/product-deploy-readiness.md` are available.

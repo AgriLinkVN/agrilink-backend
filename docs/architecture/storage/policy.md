@@ -5,7 +5,7 @@
 Accepted when the pull request containing this document is merged into
 `develop`. This policy describes the target contract; legacy endpoints remain
 supported only through the controlled migration described in
-`storage-roadmap.md`.
+`roadmap.md`.
 
 ## Goals
 

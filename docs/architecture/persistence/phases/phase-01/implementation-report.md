@@ -18,7 +18,7 @@ The catalog is authoritative for v2. Raw TypeORM zero-diff is not claimed.
 ## B. Compatibility Objects
 
 The exact machine definitions are in
-`typeorm-compatibility-manifest.json`. Definitions retain column type and
+`../../typeorm-compatibility-manifest.json`. Definitions retain column type and
 nullability, FK columns/reference/delete rules, index definitions/predicates
 and check expressions.
 
@@ -67,7 +67,7 @@ not use substring or broad regular-expression filtering.
 ## E. Remaining Environment Work
 
 The read-only local fixture report is
-`baselines/local-agrilink-db-reconciliation.json`.
+`../../baselines/local-agrilink-db-reconciliation.json`.
 
 - Database: `agrilink_db`, PostgreSQL 16.14.
 - Classification: `reconciliation-required`.

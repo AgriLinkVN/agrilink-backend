@@ -32,7 +32,8 @@ Track `ready to merge`, `merged`, and `deployed` separately.
 - Verified input: the local live database has 33 tables and no ledger; all 11
   migrations load through a guarded DataSource, but a clean database fails at
   migration one because `provinces` is absent. The production glob also loads a
-  migration spec file. See `postgresql-schema-verification.md`.
+  migration spec file. See
+  `phases/phase-00/evidence/postgresql-schema-verification.md`.
 - Key correction: implement a reviewed v2 baseline lineage for new databases
   and fingerprint-gated ledger onboarding/reconciliation for existing
   environments. Do not append a baseline after the failing legacy chain and do

@@ -1462,7 +1462,7 @@
       "baselineRecommendation": "rename-or-reconcile",
       "confidence": "medium",
       "evidence": [
-        "../postgresql-schema-verification.md"
+        "../phases/phase-00/evidence/postgresql-schema-verification.md"
       ],
       "evidenceClassification": [
         "Observed",
