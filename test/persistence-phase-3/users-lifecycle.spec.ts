@@ -102,8 +102,6 @@ describe('Persistence Phase 3 Users lifecycle', () => {
       {} as never,
       {} as never,
       {} as never,
-      {} as never,
-      {} as never,
       userStatusManager,
       sessionRevocation,
       {} as never,

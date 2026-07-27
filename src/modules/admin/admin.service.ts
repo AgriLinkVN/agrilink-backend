@@ -1,37 +1,49 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
-import { SystemConfig } from './entities/system-config.entity';
-import { AuditLog } from './entities/audit-log.entity';
-import { PaginationDto } from '../../common/dto/pagination.dto';
-import { VerifyProfileDto } from './dto/verify-profile.dto';
-import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
-import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
-import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
-import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
-import { Product } from '../products/infrastructure/persistence/entities/product.entity';
-import { IncidentReport } from '../../database/entities/incident-report.entity';
-import { ProductStatus, UserRole, UserStatus } from '../../common/enums';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { createHash } from "crypto";
+import { Repository } from "typeorm";
+import { SystemConfig } from "./entities/system-config.entity";
+import { AuditLog } from "./entities/audit-log.entity";
+import { PaginationDto } from "../../common/dto/pagination.dto";
+import { VerifyProfileDto } from "./dto/verify-profile.dto";
+import { Product } from "../products/infrastructure/persistence/entities/product.entity";
+import { IncidentReport } from "../../database/entities/incident-report.entity";
+import { ProductStatus, UserRole, UserStatus } from "../../common/enums";
 import {
   STORED_FILE_ACCESS,
   StorageReviewerRole,
   StoredFileAccessPort,
-} from '../storage/application/ports/inbound/stored-file-access.port';
+} from "../storage/application/ports/inbound/stored-file-access.port";
 import {
   USER_ADMIN_READER,
   USER_STATUS_MANAGER,
   UserAdminReader,
   UserStatusManager,
-} from '../users/application/ports/user-admin.port';
+} from "../users/application/ports/user-admin.port";
 import {
   AUTH_SESSION_REVOCATION,
   AuthSessionRevocationPort,
-} from '../auth/application/ports/inbound/auth-session-revocation.port';
+} from "../auth/application/ports/inbound/auth-session-revocation.port";
+import {
+  PROFILE_VERIFICATION_MANAGER,
+  PROFILE_VERIFICATION_READER,
+  ProfileVerificationManager,
+  ProfileVerificationReader,
+  ProfileVerificationTransition,
+} from "../profiles/application/ports/inbound/profile-verification.port";
+import {
+  InvalidProfileTypeError,
+  ProfileNotFoundError,
+  ProfileRejectionReasonRequiredError,
+  ProfileVerificationConflictError,
+} from "../profiles/application/errors/profile-verification.errors";
+import { UserSummary } from "../users/domain/models/user-account";
 
 class ProfileReviewConsistencyError extends Error {}
 
@@ -42,14 +54,10 @@ export class AdminService {
     private readonly configRepo: Repository<SystemConfig>,
     @InjectRepository(AuditLog)
     private readonly auditRepo: Repository<AuditLog>,
-    @InjectRepository(FarmerProfile)
-    private readonly farmerRepo: Repository<FarmerProfile>,
-    @InjectRepository(CooperativeProfile)
-    private readonly cooperativeRepo: Repository<CooperativeProfile>,
-    @InjectRepository(EnterpriseProfile)
-    private readonly enterpriseRepo: Repository<EnterpriseProfile>,
-    @InjectRepository(SupplierProfile)
-    private readonly supplierRepo: Repository<SupplierProfile>,
+    @Inject(PROFILE_VERIFICATION_READER)
+    private readonly profileVerificationReader: ProfileVerificationReader,
+    @Inject(PROFILE_VERIFICATION_MANAGER)
+    private readonly profileVerificationManager: ProfileVerificationManager,
     @Inject(USER_ADMIN_READER)
     private readonly userAdminReader: UserAdminReader,
     @Inject(USER_STATUS_MANAGER)
@@ -68,97 +76,55 @@ export class AdminService {
     const [
       totalUsers,
       activeUsers,
-      pendingFarmers,
-      pendingCooperatives,
-      pendingEnterprises,
-      pendingSuppliers,
+      profileStats,
       totalProducts,
       pendingProducts,
       openDisputes,
     ] = await Promise.all([
       this.userAdminReader.countAll(),
       this.userAdminReader.countByStatus(UserStatus.ACTIVE),
-      this.farmerRepo.count({ where: { isKycVerified: false } }),
-      this.cooperativeRepo.count({ where: { isVerified: false } }),
-      this.enterpriseRepo.count({ where: { isVerified: false } }),
-      this.supplierRepo.count({ where: { isVerified: false } }),
+      this.profileVerificationReader.getVerificationStats(
+        new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      ),
       this.productRepo.count(),
       this.productRepo.count({
         where: { status: ProductStatus.PENDING_APPROVAL },
       }),
-      this.incidentRepo.count({ where: { status: 'open' } }),
+      this.incidentRepo.count({ where: { status: "open" } }),
     ]);
-
-    // Certifications issued this month — count verified profiles updated this month
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const certificationsThisMonth = await this.cooperativeRepo
-      .createQueryBuilder('cp')
-      .where('cp.is_verified = true')
-      .andWhere('cp.verified_at >= :monthStart', { monthStart })
-      .getCount();
 
     return {
       totalUsers,
       activeUsers,
       pendingProfiles: {
-        farmer: pendingFarmers,
-        cooperative: pendingCooperatives,
-        enterprise: pendingEnterprises,
-        supplier: pendingSuppliers,
-        total:
-          pendingFarmers +
-          pendingCooperatives +
-          pendingEnterprises +
-          pendingSuppliers,
+        farmer: profileStats.farmer,
+        cooperative: profileStats.cooperative,
+        enterprise: profileStats.enterprise,
+        supplier: profileStats.supplier,
+        total: profileStats.total,
       },
       totalProducts,
       pendingProducts,
       openDisputes,
-      certificationsThisMonth,
+      certificationsThisMonth: profileStats.certificationsThisMonth,
     };
   }
 
   async getPendingProfiles() {
-    const [farmers, cooperatives, enterprises, suppliers] = await Promise.all([
-      this.farmerRepo.find({
-        where: { isKycVerified: false, rejectionReason: IsNull() },
-        relations: ['user'],
-        order: { createdAt: 'DESC' },
-      }),
-      this.cooperativeRepo.find({
-        where: { isVerified: false, rejectionReason: IsNull() },
-        relations: ['user'],
-        order: { createdAt: 'DESC' },
-      }),
-      this.enterpriseRepo.find({
-        where: { isVerified: false, rejectionReason: IsNull() },
-        relations: ['user'],
-        order: { createdAt: 'DESC' },
-      }),
-      this.supplierRepo.find({
-        where: { isVerified: false, rejectionReason: IsNull() },
-        order: { createdAt: 'DESC' },
-      }),
+    const queues =
+      await this.profileVerificationReader.listPendingVerificationProfiles();
+    const userById = await this.loadProfileUsers([
+      ...queues.farmer,
+      ...queues.cooperative,
+      ...queues.enterprise,
+      ...queues.supplier,
     ]);
 
-    // Attach user info for suppliers (no relation, uses userId column)
-    if (suppliers.length > 0) {
-      const supplierUserIds = [...new Set(suppliers.map(s => s.userId).filter(Boolean))] as string[];
-      const supplierUsers = supplierUserIds.length > 0
-        ? await this.userAdminReader.findSummariesByIds(supplierUserIds)
-        : [];
-      const userById = new Map(supplierUsers.map(u => [u.id, u]));
-      for (const s of suppliers) {
-        (s as unknown as Record<string, unknown>).user = userById.get(s.userId) ?? null;
-      }
-    }
-
     return {
-      farmer: farmers,
-      cooperative: cooperatives,
-      enterprise: enterprises,
-      supplier: suppliers,
+      farmer: this.attachProfileUsers(queues.farmer, userById),
+      cooperative: this.attachProfileUsers(queues.cooperative, userById),
+      enterprise: this.attachProfileUsers(queues.enterprise, userById),
+      supplier: this.attachProfileUsers(queues.supplier, userById),
     };
   }
 
@@ -169,47 +135,24 @@ export class AdminService {
     adminId: string,
     reviewerRole: StorageReviewerRole,
   ) {
-    let repo: Repository<any>;
-    let isVerifiedField = 'isVerified';
-
-    switch (type) {
-      case 'farmer':
-        repo = this.farmerRepo;
-        isVerifiedField = 'isKycVerified';
-        break;
-      case 'cooperative':
-        repo = this.cooperativeRepo;
-        break;
-      case 'enterprise':
-        repo = this.enterpriseRepo;
-        break;
-      case 'supplier':
-        repo = this.supplierRepo;
-        break;
-      default:
-        throw new BadRequestException('Invalid profile type');
+    let transition: ProfileVerificationTransition;
+    try {
+      transition = await this.profileVerificationManager.transitionVerification(
+        {
+          profileType: this.toProfileType(type),
+          profileId,
+          reviewerId: adminId,
+          approve: dto.isApproved,
+          rejectionReason: dto.rejectionReason,
+        },
+      );
+    } catch (error) {
+      this.rethrowProfileVerificationError(error);
     }
 
-    const profile = await repo.findOne({ where: { id: profileId } });
-    if (!profile) throw new NotFoundException('Profile not found');
-
-    const previousState = {
-      [isVerifiedField]: profile[isVerifiedField],
-      verifiedBy: profile.verifiedBy,
-      verifiedAt: profile.verifiedAt,
-      rejectionReason: profile.rejectionReason,
-    };
-    profile[isVerifiedField] = dto.isApproved;
-    profile.verifiedBy = adminId;
-    profile.verifiedAt = dto.isApproved ? new Date() : null;
-    profile.rejectionReason = dto.isApproved
-      ? null
-      : (dto.rejectionReason ?? null);
-
-    await repo.save(profile);
     const transitionedFileIds: string[] = [];
     try {
-      for (const fileId of this.getProfileStoredFileIds(profile)) {
+      for (const { fileId } of transition.documentReferences) {
         const changed = await this.storedFileAccess.reviewFile({
           fileId,
           reviewerRole,
@@ -226,55 +169,113 @@ export class AdminService {
           }),
         ),
       );
-      Object.assign(profile, previousState);
-      let profileCompensationFailed = false;
-      try {
-        await repo.save(profile);
-      } catch {
-        profileCompensationFailed = true;
-      }
+      const profileRestored =
+        await this.profileVerificationManager.restorePendingVerification(
+          transition,
+        );
       if (
-        profileCompensationFailed ||
-        storageCompensation.some((result) => result.status === 'rejected')
+        !profileRestored ||
+        storageCompensation.some((result) => result.status === "rejected")
       ) {
         throw new ProfileReviewConsistencyError(
-          'Profile review compensation failed and requires reconciliation',
+          "Profile review compensation failed and requires reconciliation",
         );
       }
       throw error;
     }
 
-    await this.createAuditLog({
-      userId: adminId,
-      action: dto.isApproved ? 'PROFILE_APPROVED' : 'PROFILE_REJECTED',
-      entityType: type,
-      entityId: profileId,
+    await this.writeVerificationAudit(transition);
+
+    return { success: true, profile: transition.profile };
+  }
+
+  private toProfileType(type: string) {
+    if (
+      type === "farmer" ||
+      type === "cooperative" ||
+      type === "enterprise" ||
+      type === "supplier"
+    ) {
+      return type;
+    }
+    throw new BadRequestException("Invalid profile type");
+  }
+
+  private rethrowProfileVerificationError(error: unknown): never {
+    if (
+      error instanceof InvalidProfileTypeError ||
+      error instanceof ProfileRejectionReasonRequiredError
+    ) {
+      throw new BadRequestException(error.message);
+    }
+    if (error instanceof ProfileNotFoundError) {
+      throw new NotFoundException(error.message);
+    }
+    if (error instanceof ProfileVerificationConflictError) {
+      throw new ConflictException(error.message);
+    }
+    throw error;
+  }
+
+  private async writeVerificationAudit(
+    transition: ProfileVerificationTransition,
+  ): Promise<void> {
+    const id = this.verificationAuditId(transition);
+    const audit = this.auditRepo.create({
+      id,
+      userId: transition.reviewerId,
+      action:
+        transition.afterStatus === "approved"
+          ? "PROFILE_APPROVED"
+          : "PROFILE_REJECTED",
+      entityType: transition.profileType,
+      entityId: transition.profileId,
       changes: {
-        isApproved: dto.isApproved,
-        rejectionReason: dto.rejectionReason,
+        beforeStatus: transition.beforeStatus,
+        afterStatus: transition.afterStatus,
+        rejectionReason: transition.rejectionReason,
+        transitionedAt: transition.transitionedAt.toISOString(),
       },
     });
 
-    return { success: true, profile };
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await this.auditRepo.upsert(audit, ["id"]);
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw new ProfileReviewConsistencyError(
+      `Profile status committed but idempotent audit retry failed: ${
+        lastError instanceof Error ? lastError.name : "unknown error"
+      }`,
+    );
   }
 
-  private getProfileStoredFileIds(profile: Record<string, unknown>): string[] {
-    const fields = [
-      'cccdFrontFileId',
-      'cccdBackFileId',
-      'cooperativeCertFileId',
-      'businessLicenseFileId',
-      'representativeCccdFrontFileId',
-      'representativeCccdBackFileId',
-      'membersListFileId',
-    ];
-    return fields
-      .map((field) => profile[field])
-      .filter((value): value is string => typeof value === 'string');
+  private verificationAuditId(
+    transition: ProfileVerificationTransition,
+  ): string {
+    const value = [
+      transition.profileType,
+      transition.profileId,
+      transition.afterStatus,
+      transition.reviewerId,
+      transition.transitionedAt.toISOString(),
+    ].join(":");
+    const hex = createHash("sha256").update(value).digest("hex").slice(0, 32);
+    return [
+      hex.slice(0, 8),
+      hex.slice(8, 12),
+      hex.slice(12, 16),
+      hex.slice(16, 20),
+      hex.slice(20),
+    ].join("-");
   }
 
   async getSystemConfigs(): Promise<SystemConfig[]> {
-    return this.configRepo.find({ order: { key: 'ASC' } });
+    return this.configRepo.find({ order: { key: "ASC" } });
   }
 
   async updateSystemConfig(
@@ -292,8 +293,8 @@ export class AdminService {
     const saved = await this.configRepo.save(config);
     await this.createAuditLog({
       userId: updatedBy,
-      action: 'SYSTEM_CONFIG_UPDATE',
-      entityType: 'SystemConfig',
+      action: "SYSTEM_CONFIG_UPDATE",
+      entityType: "SystemConfig",
       entityId: saved.id,
       changes: { key, value },
     });
@@ -304,7 +305,7 @@ export class AdminService {
     pagination: PaginationDto,
   ): Promise<{ data: AuditLog[]; total: number }> {
     const [data, total] = await this.auditRepo.findAndCount({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       skip: pagination.skip,
       take: pagination.limit ?? 20,
     });
@@ -316,9 +317,9 @@ export class AdminService {
     status?: string,
   ): Promise<{ data: IncidentReport[]; total: number }> {
     const qb = this.incidentRepo
-      .createQueryBuilder('ir')
-      .orderBy('ir.created_at', 'DESC');
-    if (status) qb.where('ir.status = :status', { status });
+      .createQueryBuilder("ir")
+      .orderBy("ir.created_at", "DESC");
+    if (status) qb.where("ir.status = :status", { status });
     qb.skip(pagination.skip).take(pagination.limit ?? 20);
     const [data, total] = await qb.getManyAndCount();
     return { data, total };
@@ -330,14 +331,14 @@ export class AdminService {
     adminId: string,
   ): Promise<IncidentReport> {
     const report = await this.incidentRepo.findOne({ where: { id } });
-    if (!report) throw new NotFoundException('Incident report not found');
+    if (!report) throw new NotFoundException("Incident report not found");
     report.status = status;
-    if (status === 'resolved') report.resolvedAt = new Date();
+    if (status === "resolved") report.resolvedAt = new Date();
     const saved = await this.incidentRepo.save(report);
     await this.createAuditLog({
       userId: adminId,
-      action: 'DISPUTE_STATUS_UPDATE',
-      entityType: 'IncidentReport',
+      action: "DISPUTE_STATUS_UPDATE",
+      entityType: "IncidentReport",
       entityId: id,
       changes: { status },
     });
@@ -347,19 +348,22 @@ export class AdminService {
   async getProductDetail(id: string) {
     const product = await this.productRepo.findOne({
       where: { id },
-      relations: ['images', 'certifications'],
+      relations: ["images", "certifications"],
     });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException("Product not found");
     const sellers = await this.userAdminReader.findSummariesByIds([
       product.sellerId,
     ]);
-    return { ...product, seller: sellers[0] ? { fullName: sellers[0].fullName } : null };
+    return {
+      ...product,
+      seller: sellers[0] ? { fullName: sellers[0].fullName } : null,
+    };
   }
 
   async getPendingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
       where: { status: ProductStatus.PENDING_APPROVAL },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       skip: pagination.skip,
       take: pagination.limit ?? 20,
     });
@@ -373,22 +377,29 @@ export class AdminService {
     adminId: string,
   ) {
     const product = await this.productRepo.findOne({ where: { id } });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException("Product not found");
 
-    const validStatuses = [ProductStatus.ACTIVE, ProductStatus.REJECTED, ProductStatus.SUSPENDED];
+    const validStatuses = [
+      ProductStatus.ACTIVE,
+      ProductStatus.REJECTED,
+      ProductStatus.SUSPENDED,
+    ];
     if (!validStatuses.includes(status as ProductStatus)) {
-      throw new BadRequestException('Invalid status. Allowed: active, rejected, suspended');
+      throw new BadRequestException(
+        "Invalid status. Allowed: active, rejected, suspended",
+      );
     }
 
     const previousStatus = product.status;
     product.status = status as ProductStatus;
-    product.rejectionReason = status === ProductStatus.REJECTED ? (reason ?? null) : null;
+    product.rejectionReason =
+      status === ProductStatus.REJECTED ? (reason ?? null) : null;
     await this.productRepo.save(product);
 
     await this.createAuditLog({
       userId: adminId,
-      action: 'PRODUCT_STATUS_UPDATE',
-      entityType: 'Product',
+      action: "PRODUCT_STATUS_UPDATE",
+      entityType: "Product",
       entityId: id,
       changes: { previousStatus, status, reason },
     });
@@ -399,8 +410,8 @@ export class AdminService {
   /** Products suspended/rejected for policy violations — state agency oversight view */
   async getViolatingProducts(pagination: PaginationDto) {
     const [data, total] = await this.productRepo.findAndCount({
-      where: [{ status: 'suspended' as any }, { status: 'rejected' as any }],
-      order: { updatedAt: 'DESC' },
+      where: [{ status: "suspended" as any }, { status: "rejected" as any }],
+      order: { updatedAt: "DESC" },
       skip: pagination.skip,
       take: pagination.limit ?? 20,
     });
@@ -425,19 +436,16 @@ export class AdminService {
   // ─── User management ──────────────────────────────────────────────
 
   async getUsers(pagination: PaginationDto) {
-    return this.userAdminReader.list(
-      pagination.skip,
-      pagination.limit ?? 20,
-    );
+    return this.userAdminReader.list(pagination.skip, pagination.limit ?? 20);
   }
 
   async toggleUserStatus(id: string, adminId: string, status: UserStatus) {
     const result = await this.userStatusManager.changeStatus(id, status);
-    if (result.outcome === 'not-found') {
-      throw new NotFoundException('User not found');
+    if (result.outcome === "not-found") {
+      throw new NotFoundException("User not found");
     }
-    if (result.outcome === 'protected-admin') {
-      throw new BadRequestException('Cannot modify admin users');
+    if (result.outcome === "protected-admin") {
+      throw new BadRequestException("Cannot modify admin users");
     }
 
     if (status !== UserStatus.ACTIVE) {
@@ -447,9 +455,8 @@ export class AdminService {
     if (result.previousStatus !== status) {
       await this.createAuditLog({
         userId: adminId,
-        action:
-          status === UserStatus.ACTIVE ? 'USER_UNLOCKED' : 'USER_LOCKED',
-        entityType: 'User',
+        action: status === UserStatus.ACTIVE ? "USER_UNLOCKED" : "USER_LOCKED",
+        entityType: "User",
         entityId: id,
         changes: { previousStatus: result.previousStatus, status },
       });
@@ -460,17 +467,46 @@ export class AdminService {
 
   /** All verified cooperatives and enterprises — state agency oversight list */
   async getCooperativesAndEnterprises() {
-    const [cooperatives, enterprises] = await Promise.all([
-      this.cooperativeRepo.find({
-        relations: ['user'],
-        order: { createdAt: 'DESC' },
-      }),
-      this.enterpriseRepo.find({
-        relations: ['user'],
-        order: { createdAt: 'DESC' },
-      }),
+    const organizations =
+      await this.profileVerificationReader.listOrganizations();
+    const userById = await this.loadProfileUsers([
+      ...organizations.cooperatives,
+      ...organizations.enterprises,
     ]);
-    return { cooperatives, enterprises };
+    return {
+      cooperatives: this.attachProfileUsers(
+        organizations.cooperatives,
+        userById,
+      ),
+      enterprises: this.attachProfileUsers(organizations.enterprises, userById),
+    };
+  }
+
+  private async loadProfileUsers<T extends { userId: string | null }>(
+    profiles: T[],
+  ): Promise<Map<string, UserSummary>> {
+    const userIds = [
+      ...new Set(
+        profiles
+          .map(({ userId }) => userId)
+          .filter((userId): userId is string => !!userId),
+      ),
+    ];
+    const users =
+      userIds.length > 0
+        ? await this.userAdminReader.findSummariesByIds(userIds)
+        : [];
+    return new Map(users.map((user) => [user.id, user]));
+  }
+
+  private attachProfileUsers<T extends { userId: string | null }>(
+    profiles: T[],
+    userById: Map<string, UserSummary>,
+  ): Array<T & { user: UserSummary | null }> {
+    return profiles.map((profile) => ({
+      ...profile,
+      user: profile.userId ? (userById.get(profile.userId) ?? null) : null,
+    }));
   }
 
   async createAuditLog(data: Partial<AuditLog>): Promise<AuditLog> {
