@@ -21,8 +21,8 @@ parity, and phased retirement all address observed code.
 
 Three assumptions needed correction:
 
-1. The old `68 / 40 / 21` baseline is stale. After Phase 2 consolidation,
-   current source has 58 writable mappings, 29 central mappings, and 10
+1. The old `68 / 40 / 21` baseline is stale. After Phase 4 consolidation,
+   current source has 54 writable mappings, 21 central mappings, and 6
    duplicate physical tables.
 2. Phase 1 cannot merely unify DataSources. The repository has no bootstrap
    migration for most tables, so a clean migration chain cannot create the
@@ -38,25 +38,25 @@ runtime/CLI/test schema parity.
 
 ## Inventory
 
-| Metric | Observed |
-| --- | ---: |
-| TypeScript files containing writable `@Entity` | 58 |
-| Writable `@Entity` mappings | 58 |
-| `@ViewEntity` mappings | 0 |
-| Physical `(schema, table)` keys | 48 |
-| Duplicate writable physical tables | 10 |
-| Central mappings under `src/database/entities` | 25 |
-| Module-local mappings | 33 |
-| Runtime-only mappings versus CLI central glob | 25 |
-| CLI-only mappings versus runtime `forFeature` set | 29 |
-| TypeORM relations | 26 |
-| Eager relations | 0 |
-| ORM cascade options | 2 |
-| `ON DELETE CASCADE` relation options | 12 |
-| Imports from central entity folder inside modules | 19 |
-| Reviews imports of Products infrastructure | 3 |
-| Foreign `forFeature` registrations | 7 |
-| Writable repository infrastructure exports | 0 |
+| Metric                                            | Observed |
+| ------------------------------------------------- | -------: |
+| TypeScript files containing writable `@Entity`    |       54 |
+| Writable `@Entity` mappings                       |       54 |
+| `@ViewEntity` mappings                            |        0 |
+| Physical `(schema, table)` keys                   |       48 |
+| Duplicate writable physical tables                |        6 |
+| Central mappings under `src/database/entities`    |       21 |
+| Module-local mappings                             |       33 |
+| Runtime-only mappings versus CLI central glob     |       25 |
+| CLI-only mappings versus runtime `forFeature` set |       29 |
+| TypeORM relations                                 |       34 |
+| Eager relations                                   |        0 |
+| ORM cascade options                               |        2 |
+| `ON DELETE CASCADE` relation options              |       11 |
+| Imports from central entity folder inside modules |        3 |
+| Reviews imports of Products infrastructure        |        3 |
+| Foreign `forFeature` registrations                |        3 |
+| Writable repository infrastructure exports        |        0 |
 
 Runtime uses `autoLoadEntities: true` and feature `forFeature` registrations.
 CLI uses only `src/database/entities/**/*.entity.ts`. The standalone seed uses
@@ -67,31 +67,31 @@ different metadata sets.
 
 The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 
-| Tables | Canonical owner | Status | Phase | Risk |
-| --- | --- | --- | --- | --- |
-| `ad_campaigns`, `ad_events`, `ad_packages` | ads | canonical | 2 | low |
-| `audit_logs` | admin | canonical | 2 | medium |
-| `system_configs` | admin | canonical | 2 | low |
-| `districts`, `provinces` | geography | canonical | 2 | low |
-| `market_prices` | market-prices | deferred duplicate | 2 | high |
-| `notifications` | notifications | canonical | 2 | low |
-| `users` | users | canonical | 3 | critical |
-| `user_addresses` | users | deferred outside baseline/runtime | 3 | medium |
-| `refresh_tokens`, `otp_verifications` | auth | canonical | 3 | high |
-| four role profile tables | profiles | duplicate | 4 | critical |
-| product/category/image/certification | products | duplicate | 5 | high-critical |
-| `wishlists`, legacy `product_wishlist` | products, provisional | split tables | 5 | high |
-| `reviews` | reviews | canonical with foreign ORM relations | 5 | high |
-| order tables | orders | central legacy | 6 | critical |
-| `payments` | payments | central legacy | 6 | critical |
-| `contracts`, `purchase_requests` | contracts | central legacy | 6 | high |
-| logistics tables/profile | logistics | central legacy | 7A | high |
-| conversations/messages | messaging | central legacy | 7A | medium |
-| disputes/incidents/certificates | compliance | central legacy | 7B | high |
-| `traceability_records` | traceability | duplicate | 7B | critical |
-| cooperative persistence tables | cooperatives | canonical | complete | low |
-| forum tables | forum | canonical | complete | low |
-| `stored_files` | storage | canonical | complete | low |
+| Tables                                     | Canonical owner       | Status                               | Phase    | Risk          |
+| ------------------------------------------ | --------------------- | ------------------------------------ | -------- | ------------- |
+| `ad_campaigns`, `ad_events`, `ad_packages` | ads                   | canonical                            | 2        | low           |
+| `audit_logs`                               | admin                 | canonical                            | 2        | medium        |
+| `system_configs`                           | admin                 | canonical                            | 2        | low           |
+| `districts`, `provinces`                   | geography             | canonical                            | 2        | low           |
+| `market_prices`                            | market-prices         | deferred duplicate                   | 2        | high          |
+| `notifications`                            | notifications         | canonical                            | 2        | low           |
+| `users`                                    | users                 | canonical                            | 3        | critical      |
+| `user_addresses`                           | users                 | deferred outside baseline/runtime    | 3        | medium        |
+| `refresh_tokens`, `otp_verifications`      | auth                  | canonical                            | 3        | high          |
+| four role profile tables                   | profiles              | canonical                            | 4        | critical      |
+| product/category/image/certification       | products              | duplicate                            | 5        | high-critical |
+| `wishlists`, legacy `product_wishlist`     | products, provisional | split tables                         | 5        | high          |
+| `reviews`                                  | reviews               | canonical with foreign ORM relations | 5        | high          |
+| order tables                               | orders                | central legacy                       | 6        | critical      |
+| `payments`                                 | payments              | central legacy                       | 6        | critical      |
+| `contracts`, `purchase_requests`           | contracts             | central legacy                       | 6        | high          |
+| logistics tables/profile                   | logistics             | central legacy                       | 7A       | high          |
+| conversations/messages                     | messaging             | central legacy                       | 7A       | medium        |
+| disputes/incidents/certificates            | compliance            | central legacy                       | 7B       | high          |
+| `traceability_records`                     | traceability          | duplicate                            | 7B       | critical      |
+| cooperative persistence tables             | cooperatives          | canonical                            | complete | low           |
+| forum tables                               | forum                 | canonical                            | complete | low           |
+| `stored_files`                             | storage               | canonical                            | complete | low           |
 
 ## Duplicate Conflict Report
 
@@ -99,18 +99,18 @@ Local-live observations supplement this source comparison. Exact columns,
 constraints, indexes, enums, and limitations are recorded in
 `phases/phase-00/evidence/postgresql-schema-verification.md`; deployed-schema match remains unverified.
 
-| Physical table | Material differences | Migration evidence | Recommendation |
-| --- | --- | --- | --- |
-| `cooperative_profiles` | central KYC/verification/file IDs; local public-profile fields | Phase 9 targets central columns | preserve central schema, move it into Profiles; retire local mapping |
-| `enterprise_profiles` | central verification/license fields; local website/geography fields | Phase 9 targets central file ID | merge schema only after live diff; central is current runtime contract |
-| `farmer_profiles` | central KYC/trust/sales; local farm/public fields | Phase 9 targets central KYC file IDs | central runtime schema is base; decide whether local fields are real |
-| `market_prices` | central min/max/avg; local one price/product/reporting model | no bootstrap | likely two concepts sharing one table; redesign/migration required |
-| `product_categories` | module adds description/timestamps/children | no bootstrap | module candidate; verify live columns |
-| `product_certifications` | `expires_date` vs `expiry_date`; module relation; file IDs | Phase 9 and verification migrations target table | module candidate but rename/date semantics require live inspection |
-| `product_images` | central `url`; module `image_url` plus scalar `product_id` | no bootstrap | runtime module mapping candidate; migration may be needed |
-| `products` | `price/stock_quantity` vs `price_per_unit/available_quantity`; seller relation differs | review migration assumes `seller_id` | module runtime candidate; critical live-schema diff required |
-| `supplier_profiles` | central verification/license; local public fields | Phase 9 targets central file ID | preserve central runtime schema and merge only proven live fields |
-| `traceability_records` | two incompatible trace models and date names | no bootstrap | treat as schema redesign, not a class move |
+| Physical table           | Material differences                                                                   | Migration evidence                                                     | Recommendation                                                     |
+| ------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `cooperative_profiles`   | canonical KYC/verification/file IDs; retired local public-profile fields               | baseline v2 includes Storage fields and `member_count`                 | consolidated in Profiles; local-only fields excluded               |
+| `enterprise_profiles`    | canonical verification/license fields; retired local website/geography fields          | baseline v2 includes license file ID                                   | consolidated in Profiles; local-only fields excluded               |
+| `farmer_profiles`        | canonical KYC/trust/sales plus baseline farm fields                                    | baseline v2 includes KYC file IDs, `farm_name`, and `experience_years` | consolidated in Profiles                                           |
+| `market_prices`          | central min/max/avg; local one price/product/reporting model                           | no bootstrap                                                           | likely two concepts sharing one table; redesign/migration required |
+| `product_categories`     | module adds description/timestamps/children                                            | no bootstrap                                                           | module candidate; verify live columns                              |
+| `product_certifications` | `expires_date` vs `expiry_date`; module relation; file IDs                             | Phase 9 and verification migrations target table                       | module candidate but rename/date semantics require live inspection |
+| `product_images`         | central `url`; module `image_url` plus scalar `product_id`                             | no bootstrap                                                           | runtime module mapping candidate; migration may be needed          |
+| `products`               | `price/stock_quantity` vs `price_per_unit/available_quantity`; seller relation differs | review migration assumes `seller_id`                                   | module runtime candidate; critical live-schema diff required       |
+| `supplier_profiles`      | canonical verification/license; retired local public fields                            | baseline v2 includes user and license file FKs                         | consolidated in Profiles with scalar user ID                       |
+| `traceability_records`   | two incompatible trace models and date names                                           | no bootstrap                                                           | treat as schema redesign, not a class move                         |
 
 `product_wishlist` and `wishlists` are not decorator duplicates because they are
 different physical tables. The local live database contains `wishlists` plus a
@@ -134,8 +134,9 @@ migration. The canonical district foreign key retains `ON DELETE CASCADE`.
 
 Observed forbidden edges:
 
-- Admin directly registers and injects four Profiles mappings, Product, and
-  IncidentReport. User access now uses typed Users/Auth ports.
+- Admin uses typed Profiles and Users ports for profile queues and
+  verification. Its remaining foreign registrations are Product and
+  IncidentReport.
 - Reviews registers Product and injects Product's writable repository.
 - Review persistence has `ManyToOne` relations to User and Product.
 - Users exports typed identity, account, admin-query, and status ports only.
@@ -149,6 +150,24 @@ Observed forbidden edges:
 Potential N+1 cannot be proven statically. Admin's aggregate repository access
 and Products repository raw cross-table queries are priority baselines in
 Phase 1.
+
+## Phase 4 Ownership Decisions
+
+The four role profile tables now have one writable mapping each under Profiles
+infrastructure. Both old central paths and the incompatible Profiles-local
+paths are decorator-free re-exports. The canonical classes represent all 22
+profile objects previously deferred in the TypeORM compatibility manifest:
+three baseline columns, ten foreign keys, and nine indexes.
+
+Admin registers no profile entity and injects no profile repository. Pending
+queues, organization reads, statistics, and verification transitions use typed
+Profiles ports. All role profiles expose scalar `userId` to the internal read
+model, and Admin resolves user summaries with one batched Users query.
+
+Verification uses the existing boolean and rejection-reason fields. Only
+pending rows can transition, and a conditional update gives concurrent
+reviewers one winner. Public farm output excludes KYC numbers, file IDs,
+reviewer metadata, and rejection evidence. Migration decision: `NONE`.
 
 ## Phase 3 Ownership Decisions
 
@@ -171,19 +190,19 @@ not claimed.
 
 ## TypeORM Composition Report
 
-| Concern | Observed state |
-| --- | --- |
-| Runtime source | `autoLoadEntities` plus feature `forFeature` |
-| CLI source | central entity glob only |
-| Seed source | partial explicit list, `synchronize: true` |
-| Integration source | per-test ad hoc DataSources |
-| Schema parity source | absent |
-| Migration scripts | point at config factory and do not forward DataSource flags correctly |
-| Migration glob | loads a `*.spec.ts` file and fails with `describe is not defined` |
-| `DB_SYNCHRONIZE` | CLI parses string safely; Nest config generic does not coerce |
-| `DB_LOGGING` | same Nest string-coercion risk |
-| Production sync guard | absent |
-| Migration bootstrap | absent for most of 48 tables |
+| Concern               | Observed state                                                        |
+| --------------------- | --------------------------------------------------------------------- |
+| Runtime source        | `autoLoadEntities` plus feature `forFeature`                          |
+| CLI source            | central entity glob only                                              |
+| Seed source           | partial explicit list, `synchronize: true`                            |
+| Integration source    | per-test ad hoc DataSources                                           |
+| Schema parity source  | absent                                                                |
+| Migration scripts     | point at config factory and do not forward DataSource flags correctly |
+| Migration glob        | loads a `*.spec.ts` file and fails with `describe is not defined`     |
+| `DB_SYNCHRONIZE`      | CLI parses string safely; Nest config generic does not coerce         |
+| `DB_LOGGING`          | same Nest string-coercion risk                                        |
+| Production sync guard | absent                                                                |
+| Migration bootstrap   | absent for most of 48 tables                                          |
 
 The current migration chain cannot be treated as the source of truth for a
 fresh database. On `agrilink_migration_test`, all 11 migrations loaded but the

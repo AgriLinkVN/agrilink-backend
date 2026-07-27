@@ -20,6 +20,7 @@
     "test:persistence-phase-1": "jest --config ./test/jest-persistence-phase-1.json --runInBand",
     "test:persistence-phase-2": "jest --config ./test/jest-persistence-phase-2.json --runInBand",
     "test:persistence-phase-3": "jest --config ./test/jest-persistence-phase-3.json --runInBand",
+    "test:persistence-phase-4": "jest --config ./test/jest-persistence-phase-4.json --runInBand",
     "test:storage": "jest --testPathPattern=src/modules/storage",
     "test:storage:e2e": "jest --config ./test/jest-e2e.json --testPathPattern=storage.e2e-spec.ts",
     "test:storage:contract": "jest --testPathPattern=supabase-storage.contract.spec.ts",

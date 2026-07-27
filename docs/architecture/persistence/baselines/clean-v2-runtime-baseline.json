@@ -20,7 +20,7 @@
   "queryCounts": {
     "product-list": 2,
     "product-detail": 5,
-    "profile-public-read": 2,
+    "profile-public-read": 1,
     "admin-profile-persistence-queue": 4,
     "review-list": 3,
     "notification-list": 1,
@@ -31,7 +31,5 @@
     "system-config-list": 1,
     "audit-log-list": 1
   },
-  "knownLimitations": {
-    "adminPendingProfilesSupplierUserRelation": "AdminService relation hydration is deferred to persistence Phase 4; Phase 1 verifies the four underlying queues without changing business metadata."
-  }
+  "knownLimitations": {}
 }

@@ -1,80 +1,72 @@
-import { UserRole } from '@common/enums';
-import { AdminService } from './admin.service';
+import { UserRole } from "@common/enums";
+import { AdminService } from "./admin.service";
 
-const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
-const PROFILE_ID = '22222222-2222-4222-8222-222222222222';
-const FRONT_FILE_ID = '33333333-3333-4333-8333-333333333333';
-const BACK_FILE_ID = '44444444-4444-4444-8444-444444444444';
+const ADMIN_ID = "11111111-1111-4111-8111-111111111111";
+const PROFILE_ID = "22222222-2222-4222-8222-222222222222";
+const FRONT_FILE_ID = "33333333-3333-4333-8333-333333333333";
+const BACK_FILE_ID = "44444444-4444-4444-8444-444444444444";
 
-function repository() {
-  return {
-    findOne: jest.fn(),
-    save: jest.fn(async (value) => value),
-  };
-}
-
-describe('AdminService profile review consistency', () => {
-  it('restores changed files and profile state when a later review fails', async () => {
-    const auditRepository = repository();
-    const farmerRepository = repository();
-    const profile = {
-      id: PROFILE_ID,
-      isKycVerified: false,
-      verifiedBy: null,
-      verifiedAt: null,
-      rejectionReason: 'previous reason',
-      cccdFrontFileId: FRONT_FILE_ID,
-      cccdBackFileId: BACK_FILE_ID,
+describe("AdminService profile review consistency", () => {
+  it("restores changed files and the conditional profile transition when review fails", async () => {
+    const auditRepository = {
+      create: jest.fn((value) => value),
+      upsert: jest.fn(),
     };
-    farmerRepository.findOne.mockResolvedValue(profile);
+    const transition = {
+      profileType: "farmer" as const,
+      profileId: PROFILE_ID,
+      reviewerId: ADMIN_ID,
+      beforeStatus: "pending" as const,
+      afterStatus: "approved" as const,
+      rejectionReason: null,
+      transitionedAt: new Date("2026-07-26T00:00:00Z"),
+      documentReferences: [
+        { fileId: FRONT_FILE_ID, assetType: "KYC_IDENTITY" as const },
+        { fileId: BACK_FILE_ID, assetType: "KYC_IDENTITY" as const },
+      ],
+      profile: { id: PROFILE_ID },
+    };
+    const profileManager = {
+      transitionVerification: jest.fn().mockResolvedValue(transition),
+      restorePendingVerification: jest.fn().mockResolvedValue(true),
+    };
     const storedFileAccess = {
-      attachOwnedFile: jest.fn(),
-      detachOwnedFile: jest.fn(),
-      readOwnedFile: jest.fn(),
       reviewFile: jest
         .fn()
         .mockResolvedValueOnce(true)
-        .mockRejectedValueOnce(new Error('storage unavailable')),
+        .mockRejectedValueOnce(new Error("storage unavailable")),
       restoreReviewedFile: jest.fn().mockResolvedValue(undefined),
-      retireOwnedFile: jest.fn(),
     };
-    const unusedRepository = repository();
     const service = new AdminService(
-      unusedRepository as never,
+      {} as never,
       auditRepository as never,
-      farmerRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      unusedRepository as never,
-      storedFileAccess,
+      {} as never,
+      profileManager as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      storedFileAccess as never,
     );
 
     await expect(
       service.verifyProfile(
-        'farmer',
+        "farmer",
         PROFILE_ID,
         { isApproved: true },
         ADMIN_ID,
         UserRole.STATE_AGENCY,
       ),
-    ).rejects.toThrow('storage unavailable');
+    ).rejects.toThrow("storage unavailable");
 
     expect(storedFileAccess.restoreReviewedFile).toHaveBeenCalledWith({
       fileId: FRONT_FILE_ID,
       reviewerRole: UserRole.STATE_AGENCY,
     });
-    expect(farmerRepository.save).toHaveBeenCalledTimes(2);
-    expect(profile).toMatchObject({
-      isKycVerified: false,
-      verifiedBy: null,
-      verifiedAt: null,
-      rejectionReason: 'previous reason',
-    });
-    expect(auditRepository.save).not.toHaveBeenCalled();
+    expect(profileManager.restorePendingVerification).toHaveBeenCalledWith(
+      transition,
+    );
+    expect(auditRepository.upsert).not.toHaveBeenCalled();
   });
 });

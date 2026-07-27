@@ -25,10 +25,10 @@ import { Review } from "../../modules/reviews/infrastructure/persistence/entitie
 import { TypeOrmReviewsRepository } from "../../modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository";
 import { StoredFileAccessPort } from "../../modules/storage/application/ports/inbound/stored-file-access.port";
 import { StoredFileEntity } from "../../modules/storage/infrastructure/persistence/stored-file.entity";
-import { CooperativeProfile } from "../entities/cooperative-profile.entity";
-import { EnterpriseProfile } from "../entities/enterprise-profile.entity";
-import { FarmerProfile } from "../entities/farmer-profile.entity";
-import { SupplierProfile } from "../entities/supplier-profile.entity";
+import { CooperativeProfile } from "../../modules/profiles/infrastructure/persistence/entities/cooperative-profile.entity";
+import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
+import { FarmerProfile } from "../../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity";
+import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
 
 const USER_ID = "10000000-0000-4000-8000-000000000001";
 const PRODUCT_ID = "20000000-0000-4000-8000-000000000001";
@@ -142,9 +142,7 @@ export async function captureRuntimeBaseline(
     geography.findAllProvinces(),
   );
   await countQueries(counter, "geography-district-list", queryCounts, () =>
-    geography.findDistrictsByProvince(
-      "60000000-0000-4000-8000-000000000001",
-    ),
+    geography.findDistrictsByProvince("60000000-0000-4000-8000-000000000001"),
   );
   await countQueries(counter, "ads-package-list", queryCounts, () =>
     ads.findActivePackages(),
@@ -198,10 +196,7 @@ export async function captureRuntimeBaseline(
       traceabilityExcluded: smokeCounts.traceability_records === 0,
     },
     queryCounts,
-    knownLimitations: {
-      adminPendingProfilesSupplierUserRelation:
-        "AdminService relation hydration is deferred to persistence Phase 4; Phase 1 verifies the four underlying queues without changing business metadata.",
-    },
+    knownLimitations: {},
   };
 }
 
@@ -402,7 +397,12 @@ function createProfilesService(dataSource: DataSource): ProfilesService {
     dataSource.getRepository(CooperativeProfile),
     dataSource.getRepository(EnterpriseProfile),
     dataSource.getRepository(SupplierProfile),
-    { verifyCccdImage: async () => true, verifyCccd: async () => ({} as Record<string, string>), verifyCccdFull: async () => ({} as Record<string, string>), verifyBrc: async () => ({} as Record<string, string>) },
+    {
+      verifyCccdImage: async () => true,
+      verifyCccd: async () => ({}) as Record<string, string>,
+      verifyCccdFull: async () => ({}) as Record<string, string>,
+      verifyBrc: async () => ({}) as Record<string, string>,
+    },
     fakeStoredFileAccess(),
   );
 }

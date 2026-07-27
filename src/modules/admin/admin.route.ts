@@ -1,35 +1,24 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AdminController } from './admin.controller';
-import { AdminService } from './admin.service';
-import { AdminReportService } from './admin-report.service';
-import { SystemConfig } from './entities/system-config.entity';
-import { AuditLog } from './entities/audit-log.entity';
-import { FarmerProfile } from '../../database/entities/farmer-profile.entity';
-import { CooperativeProfile } from '../../database/entities/cooperative-profile.entity';
-import { EnterpriseProfile } from '../../database/entities/enterprise-profile.entity';
-import { SupplierProfile } from '../../database/entities/supplier-profile.entity';
-import { Product } from '../products/infrastructure/persistence/entities/product.entity';
-import { IncidentReport } from '../../database/entities/incident-report.entity';
-import { StorageModule } from '../storage/storage.module';
-import { AuthModule } from '../auth/auth.module';
-import { UsersModule } from '../users/users.module';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AdminController } from "./admin.controller";
+import { AdminService } from "./admin.service";
+import { AdminReportService } from "./admin-report.service";
+import { SystemConfig } from "./entities/system-config.entity";
+import { AuditLog } from "./entities/audit-log.entity";
+import { Product } from "../products/infrastructure/persistence/entities/product.entity";
+import { IncidentReport } from "../../database/entities/incident-report.entity";
+import { StorageModule } from "../storage/storage.module";
+import { AuthModule } from "../auth/auth.module";
+import { UsersModule } from "../users/users.module";
+import { ProfilesRoute } from "../profiles/profiles.route";
 
 @Module({
   imports: [
     StorageModule,
     UsersModule,
     AuthModule,
-    TypeOrmModule.forFeature([
-      SystemConfig,
-      AuditLog,
-      FarmerProfile,
-      CooperativeProfile,
-      EnterpriseProfile,
-      SupplierProfile,
-      Product,
-      IncidentReport,
-    ]),
+    ProfilesRoute,
+    TypeOrmModule.forFeature([SystemConfig, AuditLog, Product, IncidentReport]),
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminReportService],

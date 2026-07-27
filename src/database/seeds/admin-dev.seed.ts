@@ -11,10 +11,10 @@
  */
 import { DataSource } from "typeorm";
 import { User } from "../entities/user.entity";
-import { FarmerProfile } from "../entities/farmer-profile.entity";
-import { CooperativeProfile } from "../entities/cooperative-profile.entity";
-import { EnterpriseProfile } from "../entities/enterprise-profile.entity";
-import { SupplierProfile } from "../entities/supplier-profile.entity";
+import { FarmerProfile } from "../../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity";
+import { CooperativeProfile } from "../../modules/profiles/infrastructure/persistence/entities/cooperative-profile.entity";
+import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
+import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
 import { Product } from "../../modules/products/infrastructure/persistence/entities/product.entity";
 import { UserRole, UserStatus, ProductStatus, SellerType, ProductUnit, FarmingType } from "../../common/enums";
 import * as bcrypt from "bcryptjs";
@@ -56,35 +56,35 @@ export async function seedAdminDevData(ds: DataSource): Promise<void> {
 
   // ─── Farmer profiles (CCCD chờ KYC) ────────────────────────────
   const farmerProfiles = [
-    { user: { id: users["hung.nv@farm.vn"].id }, cccdNumber: "079202012345", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-hung.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-hung.jpg", residenceAddress: "Ấp Bắc, xã Hòa Hưng, huyện Cái Bè", ward: "Xã Hòa Hưng", provinceId: 1, districtId: 101, isKycVerified: false },
-    { user: { id: users["mai.lt@farm.vn"].id }, cccdNumber: "079202154321", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-mai.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-mai.jpg", residenceAddress: "Thôn 3, xã Lộc An, TP Bảo Lộc", ward: "Xã Lộc An", provinceId: 2, districtId: 201, isKycVerified: false },
-    { user: { id: users["tuan.pq@farm.vn"].id }, cccdNumber: "079202198765", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-tuan.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-tuan.jpg", residenceAddress: "Xóm 5, xã Hải Hậu, huyện Hải Hậu", ward: "Xã Hải Hậu", provinceId: 3, districtId: 301, isKycVerified: false },
+    { userId: users["hung.nv@farm.vn"].id, cccdNumber: "079202012345", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-hung.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-hung.jpg", residenceAddress: "Ấp Bắc, xã Hòa Hưng, huyện Cái Bè", ward: "Xã Hòa Hưng", provinceId: 1, districtId: 101, isKycVerified: false },
+    { userId: users["mai.lt@farm.vn"].id, cccdNumber: "079202154321", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-mai.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-mai.jpg", residenceAddress: "Thôn 3, xã Lộc An, TP Bảo Lộc", ward: "Xã Lộc An", provinceId: 2, districtId: 201, isKycVerified: false },
+    { userId: users["tuan.pq@farm.vn"].id, cccdNumber: "079202198765", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-tuan.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-tuan.jpg", residenceAddress: "Xóm 5, xã Hải Hậu, huyện Hải Hậu", ward: "Xã Hải Hậu", provinceId: 3, districtId: 301, isKycVerified: false },
   ];
 
   for (const fp of farmerProfiles) {
-    const exist = await farmerRepo.findOne({ where: { user: { id: fp.user.id } } });
+    const exist = await farmerRepo.findOne({ where: { userId: fp.userId } });
     if (!exist) await farmerRepo.save(farmerRepo.create(fp));
   }
 
   // ─── Cooperative profiles (chờ duyệt HTX) ──────────────────────
   const coopProfiles = [
-    { user: { id: users["htx.dalat@coop.vn"].id }, cooperativeName: "HTX Rau Sạch Đà Lạt", businessLicenseNumber: "GPKD-68H8-001", taxCode: "5800123456", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-dalat.jpg", representativeName: "Trần Văn Minh", representativePhone: "0988123456", representativeCccd: "068202012345", address: "45 Nguyễn Văn Cừ, Phường 1, TP Đà Lạt, Lâm Đồng", provinceId: 2, isVerified: false },
-    { user: { id: users["htx.tiengiang@coop.vn"].id }, cooperativeName: "HTX Trái Cây Tiền Giang", businessLicenseNumber: "GPKD-82T5-002", taxCode: "1200987654", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-tiengiang.jpg", representativeName: "Phạm Thị Lan", representativePhone: "0988123457", representativeCccd: "082202065432", address: "12 Lê Lợi, Phường 4, TP Mỹ Tho, Tiền Giang", provinceId: 1, isVerified: false },
+    { userId: users["htx.dalat@coop.vn"].id, cooperativeName: "HTX Rau Sạch Đà Lạt", businessLicenseNumber: "GPKD-68H8-001", taxCode: "5800123456", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-dalat.jpg", representativeName: "Trần Văn Minh", representativePhone: "0988123456", representativeCccd: "068202012345", address: "45 Nguyễn Văn Cừ, Phường 1, TP Đà Lạt, Lâm Đồng", provinceId: 2, isVerified: false },
+    { userId: users["htx.tiengiang@coop.vn"].id, cooperativeName: "HTX Trái Cây Tiền Giang", businessLicenseNumber: "GPKD-82T5-002", taxCode: "1200987654", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-tiengiang.jpg", representativeName: "Phạm Thị Lan", representativePhone: "0988123457", representativeCccd: "082202065432", address: "12 Lê Lợi, Phường 4, TP Mỹ Tho, Tiền Giang", provinceId: 1, isVerified: false },
   ];
 
   for (const cp of coopProfiles) {
-    const exist = await coopRepo.findOne({ where: { user: { id: cp.user.id } } });
+    const exist = await coopRepo.findOne({ where: { userId: cp.userId } });
     if (!exist) await coopRepo.save(coopRepo.create(cp));
   }
 
   // ─── Enterprise profiles (chờ duyệt DN) ────────────────────────
   const enterpriseProfiles = [
-    { user: { id: users["xnk.mekong@ent.vn"].id }, companyName: "Công ty TNHH XNK Nông Sản Mekong", taxCode: "0312345678", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-mekong.jpg", representativeName: "Nguyễn Hoàng Nam", representativePhone: "0977123456", address: "88 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP Hồ Chí Minh", provinceId: 3, isVerified: false },
-    { user: { id: users["agri.tech@ent.vn"].id }, companyName: "Công ty CP Công Nghệ Nông Nghiệp Xanh", taxCode: "0102765432", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-agritech.jpg", representativeName: "Đỗ Thanh Hà", representativePhone: "0977123457", address: "Tầng 5, Tòa nhà TechnoPark, Cầu Giấy, Hà Nội", provinceId: 3, isVerified: false },
+    { userId: users["xnk.mekong@ent.vn"].id, companyName: "Công ty TNHH XNK Nông Sản Mekong", taxCode: "0312345678", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-mekong.jpg", representativeName: "Nguyễn Hoàng Nam", representativePhone: "0977123456", address: "88 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP Hồ Chí Minh", provinceId: 3, isVerified: false },
+    { userId: users["agri.tech@ent.vn"].id, companyName: "Công ty CP Công Nghệ Nông Nghiệp Xanh", taxCode: "0102765432", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-agritech.jpg", representativeName: "Đỗ Thanh Hà", representativePhone: "0977123457", address: "Tầng 5, Tòa nhà TechnoPark, Cầu Giấy, Hà Nội", provinceId: 3, isVerified: false },
   ];
 
   for (const ep of enterpriseProfiles) {
-    const exist = await enterpriseRepo.findOne({ where: { user: { id: ep.user.id } } });
+    const exist = await enterpriseRepo.findOne({ where: { userId: ep.userId } });
     if (!exist) await enterpriseRepo.save(enterpriseRepo.create(ep));
   }
 

@@ -4,10 +4,10 @@ import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
 import { User } from '../modules/users/infrastructure/persistence/entities/user.entity';
-import { FarmerProfile } from './entities/farmer-profile.entity';
-import { CooperativeProfile } from './entities/cooperative-profile.entity';
-import { EnterpriseProfile } from './entities/enterprise-profile.entity';
-import { SupplierProfile } from './entities/supplier-profile.entity';
+import { FarmerProfile } from '../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity';
+import { CooperativeProfile } from '../modules/profiles/infrastructure/persistence/entities/cooperative-profile.entity';
+import { EnterpriseProfile } from '../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity';
+import { SupplierProfile } from '../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity';
 import { LogisticsProfile } from './entities/logistics-profile.entity';
 import { Product } from '../modules/products/infrastructure/persistence/entities/product.entity';
 import { ProductImage } from '../modules/products/infrastructure/persistence/entities/product-image.entity';
@@ -192,10 +192,10 @@ export class DevSeedService {
     switch (type) {
       case 'farmer': {
         const repo = this.ds.getRepository(FarmerProfile);
-        const existing = await repo.findOne({ where: { user: { id: user.id } } });
+        const existing = await repo.findOne({ where: { userId: user.id } });
         if (!existing) {
           await repo.save(repo.create({
-            user,
+            userId: user.id,
             cccdNumber: '079201012345',
             cccdFrontUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=CCCD+Mat+truoc',
             cccdBackUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=CCCD+Mat+sau',
@@ -214,10 +214,10 @@ export class DevSeedService {
       }
       case 'cooperative': {
         const repo = this.ds.getRepository(CooperativeProfile);
-        const existing = await repo.findOne({ where: { user: { id: user.id } } });
+        const existing = await repo.findOne({ where: { userId: user.id } });
         if (!existing) {
           await repo.save(repo.create({
-            user,
+            userId: user.id,
             cooperativeName: user.fullName!,
             businessLicenseNumber: '1801234567',
             taxCode: '1801234567',
@@ -241,10 +241,10 @@ export class DevSeedService {
       }
       case 'enterprise': {
         const repo = this.ds.getRepository(EnterpriseProfile);
-        const existing = await repo.findOne({ where: { user: { id: user.id } } });
+        const existing = await repo.findOne({ where: { userId: user.id } });
         if (!existing) {
           await repo.save(repo.create({
-            user,
+            userId: user.id,
             companyName: user.fullName!,
             taxCode: '0101234568',
             businessLicenseUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=DKKD+Doanh+nghiep',

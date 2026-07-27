@@ -30,8 +30,8 @@ describe("TypeORM compatibility parity", () => {
       new Date("2026-07-24T00:00:00Z"),
     );
     expect(result).toMatchObject({
-      rawDiffCount: 28,
-      reviewedCompatibilityCount: 28,
+      rawDiffCount: 6,
+      reviewedCompatibilityCount: 6,
       unexpected: [],
       staleManifestEntries: [],
       catalogMismatches: [],

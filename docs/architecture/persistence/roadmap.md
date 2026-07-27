@@ -109,6 +109,11 @@ Implementation contract:
 - Rollback: compatibility import plus old query adapter.
 - Gate: Admin registers no User/Profile writable entity.
 - Risk: critical. Dependency: Phase 3.
+- Result: Profiles owns one canonical mapping for each role profile table,
+  typed verification read/command capabilities, scalar user references, and
+  conditional one-winner transitions. Admin registers and injects no Profile
+  entity. Supplier and all other queues use one batched Users lookup. The
+  profile compatibility manifest debt is retired without a migration.
 
 ## Phase 5: Products, Wishlist, Certifications And Reviews
 
