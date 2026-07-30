@@ -21,8 +21,8 @@ parity, and phased retirement all address observed code.
 
 Three assumptions needed correction:
 
-1. The old `68 / 40 / 21` baseline is stale. After Phase 4 consolidation,
-   current source has 54 writable mappings, 21 central mappings, and 6
+1. The old `68 / 40 / 21` baseline is stale. After Phase 5 consolidation,
+   current source has 49 writable mappings, 16 central mappings, and 2
    duplicate physical tables.
 2. Phase 1 cannot merely unify DataSources. The repository has no bootstrap
    migration for most tables, so a clean migration chain cannot create the
@@ -31,37 +31,27 @@ Three assumptions needed correction:
    Runtime uses the central classes, and those contain the KYC, verification,
    and Storage Phase 9 file-ID fields missing from module-local mappings.
 
-Phase 0 is merged and contains documentation/test artifacts only. Local schema
-evidence now supports a hybrid baseline/onboarding strategy. Entity movement
-remains blocked until Phase 1 implements that strategy and establishes
-runtime/CLI/test schema parity.
+Phases 0 through 4 are merged. Phase 5 now consolidates Product ownership and
+the Reviews boundary on top of the guarded v2 baseline/onboarding strategy.
+The protected local schema still requires reconciliation before any apply
+operation, but it no longer blocks source ownership consolidation.
 
 ## Inventory
 
 | Metric                                            | Observed |
 | ------------------------------------------------- | -------: |
-| TypeScript files containing writable `@Entity`    |       54 |
-| Writable `@Entity` mappings                       |       54 |
-| `@ViewEntity` mappings                            |        0 |
-| Physical `(schema, table)` keys                   |       48 |
-| Duplicate writable physical tables                |        6 |
-| Central mappings under `src/database/entities`    |       21 |
-| Module-local mappings                             |       33 |
-| Runtime-only mappings versus CLI central glob     |       25 |
-| CLI-only mappings versus runtime `forFeature` set |       29 |
-| TypeORM relations                                 |       34 |
-| Eager relations                                   |        0 |
-| ORM cascade options                               |        2 |
-| `ON DELETE CASCADE` relation options              |       11 |
-| Imports from central entity folder inside modules |        3 |
-| Reviews imports of Products infrastructure        |        3 |
-| Foreign `forFeature` registrations                |        3 |
-| Writable repository infrastructure exports        |        0 |
+| Writable `@Entity` mappings                    | 49 |
+| `@ViewEntity` mappings                         |  0 |
+| Physical `(schema, table)` keys                | 47 |
+| Duplicate writable physical tables             |  2 |
+| Central mappings under `src/database/entities` | 16 |
+| Module-local mappings                          | 33 |
+| Central import edges                           |  2 |
+| Cross-module infrastructure edges              |  0 |
+| Foreign `forFeature` registrations             |  1 |
 
-Runtime uses `autoLoadEntities: true` and feature `forFeature` registrations.
-CLI uses only `src/database/entities/**/*.entity.ts`. The standalone seed uses
-seven explicitly listed entities and `synchronize: true`. These are three
-different metadata sets.
+Runtime, CLI, and persistence tests use the explicit entity registry. The
+legacy standalone seed remains a separately tracked Phase 8 exception.
 
 ## Ownership Matrix
 
@@ -79,9 +69,9 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 | `user_addresses`                           | users                 | deferred outside baseline/runtime    | 3        | medium        |
 | `refresh_tokens`, `otp_verifications`      | auth                  | canonical                            | 3        | high          |
 | four role profile tables                   | profiles              | canonical                            | 4        | critical      |
-| product/category/image/certification       | products              | duplicate                            | 5        | high-critical |
-| `wishlists`, legacy `product_wishlist`     | products, provisional | split tables                         | 5        | high          |
-| `reviews`                                  | reviews               | canonical with foreign ORM relations | 5        | high          |
+| product/category/image/certification       | products              | canonical                            | 5        | high-critical |
+| `wishlists`, legacy wishlist candidates    | products              | canonical plus reconciliation blocker | 5       | high          |
+| `reviews`                                  | reviews               | canonical scalar boundary             | 5       | high          |
 | order tables                               | orders                | central legacy                       | 6        | critical      |
 | `payments`                                 | payments              | central legacy                       | 6        | critical      |
 | `contracts`, `purchase_requests`           | contracts             | central legacy                       | 6        | high          |
@@ -105,10 +95,10 @@ constraints, indexes, enums, and limitations are recorded in
 | `enterprise_profiles`    | canonical verification/license fields; retired local website/geography fields          | baseline v2 includes license file ID                                   | consolidated in Profiles; local-only fields excluded               |
 | `farmer_profiles`        | canonical KYC/trust/sales plus baseline farm fields                                    | baseline v2 includes KYC file IDs, `farm_name`, and `experience_years` | consolidated in Profiles                                           |
 | `market_prices`          | central min/max/avg; local one price/product/reporting model                           | no bootstrap                                                           | likely two concepts sharing one table; redesign/migration required |
-| `product_categories`     | module adds description/timestamps/children                                            | no bootstrap                                                           | module candidate; verify live columns                              |
-| `product_certifications` | `expires_date` vs `expiry_date`; module relation; file IDs                             | Phase 9 and verification migrations target table                       | module candidate but rename/date semantics require live inspection |
-| `product_images`         | central `url`; module `image_url` plus scalar `product_id`                             | no bootstrap                                                           | runtime module mapping candidate; migration may be needed          |
-| `products`               | `price/stock_quantity` vs `price_per_unit/available_quantity`; seller relation differs | review migration assumes `seller_id`                                   | module runtime candidate; critical live-schema diff required       |
+| `product_categories`     | retired central declaration differed from canonical runtime/baseline                   | canonical baseline v2                                                   | consolidated under Products; no migration                          |
+| `product_certifications` | retired central declaration used incompatible date and document fields                 | baseline includes legacy URL plus StoredFile ID                         | consolidated under Products; compatibility metadata completed      |
+| `product_images`         | retired central declaration used `url`; canonical runtime uses `image_url`              | canonical baseline v2                                                   | consolidated under Products; no migration                          |
+| `products`               | retired central declaration used incompatible price/stock semantics                    | canonical baseline v2 and active runtime select Products-local mapping  | consolidated under Products; no migration                          |
 | `supplier_profiles`      | canonical verification/license; retired local public fields                            | baseline v2 includes user and license file FKs                         | consolidated in Profiles with scalar user ID                       |
 | `traceability_records`   | two incompatible trace models and date names                                           | no bootstrap                                                           | treat as schema redesign, not a class move                         |
 
@@ -134,11 +124,12 @@ migration. The canonical district foreign key retains `ON DELETE CASCADE`.
 
 Observed forbidden edges:
 
-- Admin uses typed Profiles and Users ports for profile queues and
-  verification. Its remaining foreign registrations are Product and
-  IncidentReport.
-- Reviews registers Product and injects Product's writable repository.
-- Review persistence has `ManyToOne` relations to User and Product.
+- Admin uses typed Profiles, Users, and Products ports. Its only remaining
+  foreign registration is IncidentReport.
+- Reviews imports no Product/User persistence, registers neither foreign
+  entity, and injects neither foreign repository.
+- Review persistence exposes scalar Product/User IDs. Private string-target
+  metadata preserves reviewed foreign keys without infrastructure imports.
 - Users exports typed identity, account, admin-query, and status ports only.
 - Product runtime mappings use cascade persistence for images and
   certifications. These are intra-module but require explicit retention tests.
@@ -147,9 +138,29 @@ Observed forbidden edges:
   corrected later.
 - No eager ORM relation was found.
 
-Potential N+1 cannot be proven statically. Admin's aggregate repository access
-and Products repository raw cross-table queries are priority baselines in
-Phase 1.
+Clean-v2 runtime capture and focused Phase 5 tests cover the scoped query
+boundaries. Product list/detail remain at 2/5 queries, Review list is reduced
+from 3 to 2, and Review enrichment performs at most one Products and one Users
+lookup independent of result size.
+
+## Phase 5 Ownership Decisions
+
+Products now owns one writable mapping for `products`, `product_categories`,
+`product_images`, `product_certifications`, and `wishlists`. The five central
+Product-related files are decorator-free compatibility re-exports, and the
+generator preserves that state.
+
+Canonical baseline v2 and active runtime select `public.wishlists`. The
+protected local reconciliation snapshot also records `product_wishlists`, but
+there is no deployed row inventory. Its lineage remains
+`WISHLIST_SCHEMA_RECONCILIATION_REQUIRED`; Phase 5 performs no rename, copy,
+drop, dual-read, or dual-write.
+
+Reviews owns `reviews` with scalar identifiers and typed Products/Users
+eligibility and summary ports. List enrichment performs at most one Products
+and one Users batch lookup. Admin uses typed Products read and conditional
+moderation ports. Certification verification and Product moderation use
+conditional one-winner updates. Migration decision: `NONE`.
 
 ## Phase 4 Ownership Decisions
 
@@ -192,24 +203,18 @@ not claimed.
 
 | Concern               | Observed state                                                        |
 | --------------------- | --------------------------------------------------------------------- |
-| Runtime source        | `autoLoadEntities` plus feature `forFeature`                          |
-| CLI source            | central entity glob only                                              |
-| Seed source           | partial explicit list, `synchronize: true`                            |
-| Integration source    | per-test ad hoc DataSources                                           |
-| Schema parity source  | absent                                                                |
-| Migration scripts     | point at config factory and do not forward DataSource flags correctly |
-| Migration glob        | loads a `*.spec.ts` file and fails with `describe is not defined`     |
-| `DB_SYNCHRONIZE`      | CLI parses string safely; Nest config generic does not coerce         |
-| `DB_LOGGING`          | same Nest string-coercion risk                                        |
-| Production sync guard | absent                                                                |
-| Migration bootstrap   | absent for most of 48 tables                                          |
+| Runtime source        | explicit runtime entity registry                                      |
+| CLI source            | same explicit entity registry and v2 migration registry               |
+| Seed source           | legacy partial list, tracked for Phase 8                              |
+| Integration source    | shared test entity registry plus focused fixtures                     |
+| Schema parity source  | canonical v2 catalog and clean-v2 verifier                            |
+| Migration scripts     | guarded TypeORM DataSource using v2 lineage                           |
+| `DB_SYNCHRONIZE`      | parsed explicitly and forced off for migration CLI                    |
+| Production sync guard | enforced by shared DataSource options                                 |
+| Migration bootstrap   | canonical baseline v2, 26 tables                                      |
 
-The current migration chain cannot be treated as the source of truth for a
-fresh database. On `agrilink_migration_test`, all 11 migrations loaded but the
-first failed because `public.provinces` did not exist. The transaction rolled
-back with zero ledger rows and zero business tables. Phase 1 must establish a
-new reviewed baseline lineage plus controlled existing-environment onboarding,
-without rewriting historical migrations.
+Historical migrations remain legacy evidence. New schema work uses the
+guarded v2 lineage and does not rewrite the merged baseline migration.
 
 ## Open Questions
 

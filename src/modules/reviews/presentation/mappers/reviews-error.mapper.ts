@@ -4,6 +4,7 @@ import {
   ProductForReviewNotFoundError,
   ReviewAlreadyExistsError,
   ReviewNotFoundError,
+  ReviewerNotEligibleError,
 } from '../../application/errors/reviews-application.error';
 import {
   ReviewOwnershipError,
@@ -17,7 +18,10 @@ export function mapReviewsApplicationError(error: unknown): never {
   if (error instanceof ReviewAlreadyExistsError || error instanceof ReviewStateError) {
     throw new ConflictException(error.message);
   }
-  if (error instanceof ReviewOwnershipError) {
+  if (
+    error instanceof ReviewOwnershipError ||
+    error instanceof ReviewerNotEligibleError
+  ) {
     throw new ForbiddenException(error.message);
   }
   throw error;

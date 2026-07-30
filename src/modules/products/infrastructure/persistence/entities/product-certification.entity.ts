@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -35,8 +36,16 @@ export class ProductCertification {
   @Column({ name: 'document_url', nullable: true, select: false })
   documentUrl: string | null;
 
+  @Index('IDX_product_certifications_stored_file_id')
   @Column({ name: 'stored_file_id', type: 'uuid', nullable: true })
   storedFileId: string | null;
+
+  @ManyToOne('StoredFileEntity', { nullable: true, onDelete: 'NO ACTION' })
+  @JoinColumn({
+    name: 'stored_file_id',
+    foreignKeyConstraintName: 'FK_product_certifications_stored_file',
+  })
+  private storedFileReference?: unknown;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;

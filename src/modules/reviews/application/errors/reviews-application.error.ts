@@ -18,3 +18,10 @@ export class ReviewAlreadyExistsError extends Error {
     this.name = 'ReviewAlreadyExistsError';
   }
 }
+
+export class ReviewerNotEligibleError extends Error {
+  constructor() {
+    super('Reviewer account is not active');
+    this.name = 'ReviewerNotEligibleError';
+  }
+}

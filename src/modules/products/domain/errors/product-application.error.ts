@@ -19,4 +19,6 @@ export class ProductCertificationConsistencyError extends ProductApplicationErro
 
 export class InvalidProductCertificationVerificationError extends ProductApplicationError {}
 
+export class ProductCertificationVerificationConflictError extends ProductApplicationError {}
+
 export class WishlistProductUnavailableError extends ProductApplicationError {}

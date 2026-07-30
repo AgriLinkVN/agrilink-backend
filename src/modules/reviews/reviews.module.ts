@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Product } from '@modules/products/infrastructure/persistence/entities/product.entity';
+import { ProductsModule } from '@modules/products/products.module';
+import { UsersModule } from '@modules/users/users.module';
 import {
   CreateProductReviewUseCase,
   HideReviewUseCase,
@@ -15,12 +16,14 @@ import { REVIEWS_REPOSITORY } from './application/ports/outbound/reviews-reposit
 import { Review } from './infrastructure/persistence/entities/review.entity';
 import { TypeOrmReviewsRepository } from './infrastructure/persistence/repositories/typeorm-reviews.repository';
 import { ReviewsController } from './presentation/controllers/reviews.controller';
+import { ReviewReadModelService } from './application/services/review-read-model.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, Product])],
+  imports: [ProductsModule, UsersModule, TypeOrmModule.forFeature([Review])],
   controllers: [ReviewsController],
   providers: [
     TypeOrmReviewsRepository,
+    ReviewReadModelService,
     ListPublicProductReviewsUseCase,
     CreateProductReviewUseCase,
     ListSellerReviewsUseCase,

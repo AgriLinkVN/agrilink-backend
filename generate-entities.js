@@ -1079,6 +1079,22 @@ export class Dispute {
 `,
 };
 
+const phase5CompatibilityEntities = {
+  'product.entity.ts': `export { Product } from '../../modules/products/infrastructure/persistence/entities/product.entity';
+`,
+  'product-category.entity.ts': `export { ProductCategory } from '../../modules/products/infrastructure/persistence/entities/product-category.entity';
+`,
+  'product-image.entity.ts': `export { ProductImage } from '../../modules/products/infrastructure/persistence/entities/product-image.entity';
+`,
+  'product-certification.entity.ts': `export { ProductCertification } from '../../modules/products/infrastructure/persistence/entities/product-certification.entity';
+`,
+  'product-wishlist.entity.ts': `export { Wishlist as ProductWishlist } from '../../modules/products/infrastructure/persistence/entities/wishlist.entity';
+`,
+  'review.entity.ts': `export { Review } from '../../modules/reviews/infrastructure/persistence/entities/review.entity';
+`,
+};
+Object.assign(entities, phase5CompatibilityEntities);
+
 for (const [filename, content] of Object.entries(entities)) {
   fs.writeFileSync(path.join(entitiesDir, filename), content, 'utf8');
 }

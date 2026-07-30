@@ -139,7 +139,6 @@ describe("Persistence Phase 4 ownership boundaries", () => {
     );
     expect(ownership).toContain('"table":"products","owner":"products"');
     expect(ownership).toContain('"table":"reviews","owner":"reviews"');
-    expect(read("src/modules/reviews/reviews.module.ts")).toContain("Product");
   });
 });
 

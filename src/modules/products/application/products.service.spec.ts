@@ -74,6 +74,8 @@ function makeCertificationRepository(): jest.Mocked<ProductCertificationReposito
     findPending: jest.fn(),
     findByIdWithProduct: jest.fn(),
     saveCertification: jest.fn(),
+    transitionCertification: jest.fn(),
+    restoreCertificationTransition: jest.fn(),
     removeCertificationByProduct: jest.fn(),
   };
 }
@@ -212,7 +214,12 @@ describe('Product application use cases', () => {
       rejectionReason: null,
     } as ProductCertificationModel;
     repository.findByIdWithProduct.mockResolvedValue(certification);
-    repository.saveCertification.mockImplementation(async (saved) => saved);
+    repository.transitionCertification.mockImplementation(
+      async (_id, _expected, transition) => ({
+        ...certification,
+        ...transition,
+      }),
+    );
     const useCase = new VerifyProductCertificationUseCase(
       repository,
       storedFileAccess,
@@ -228,7 +235,7 @@ describe('Product application use cases', () => {
       approve: true,
     });
     expect(
-      repository.saveCertification.mock.invocationCallOrder[0],
+      repository.transitionCertification.mock.invocationCallOrder[0],
     ).toBeLessThan(storedFileAccess.reviewFile.mock.invocationCallOrder[0]);
   });
 
@@ -375,9 +382,14 @@ describe('Product application use cases', () => {
       rejectionReason: null,
     } as ProductCertificationModel;
     repository.findByIdWithProduct.mockResolvedValue(certification);
-    repository.saveCertification.mockImplementation(async (saved) => ({
-      ...saved,
-    }));
+    repository.transitionCertification.mockResolvedValue({
+      ...certification,
+      status: CertificationStatus.VERIFIED,
+      isVerified: true,
+      verifiedBy: ADMIN_ID,
+      verifiedAt: new Date(),
+    });
+    repository.restoreCertificationTransition.mockResolvedValue(true);
     storedFileAccess.reviewFile.mockRejectedValue(
       new Error('storage unavailable'),
     );
@@ -392,8 +404,14 @@ describe('Product application use cases', () => {
       }),
     ).rejects.toThrow('storage unavailable');
 
-    expect(repository.saveCertification).toHaveBeenCalledTimes(2);
-    expect(repository.saveCertification).toHaveBeenLastCalledWith(
+    expect(repository.transitionCertification).toHaveBeenCalledTimes(1);
+    expect(repository.restoreCertificationTransition).toHaveBeenCalledWith(
+      CERT_ID,
+      expect.objectContaining({
+        status: CertificationStatus.VERIFIED,
+        verifiedBy: ADMIN_ID,
+        verifiedAt: expect.any(Date),
+      }),
       expect.objectContaining({
         status: CertificationStatus.PENDING,
         isVerified: false,
