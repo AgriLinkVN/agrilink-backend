@@ -7,7 +7,7 @@ import { JwtPayload } from '../../application/ports/outbound/jwt-payload.type';
 
 /**
  * Validates refresh tokens.
- * Expects the refresh token in the request body (field: refreshToken).
+ * Expects the refresh token in the HttpOnly refreshToken cookie.
  * The strategy name 'jwt-refresh' is used with @UseGuards(AuthGuard('jwt-refresh')).
  */
 @Injectable()

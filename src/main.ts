@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
@@ -11,6 +11,10 @@ import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
 import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
 import { DevSeedService } from './database/dev-seed.service';
+import {
+  buildCorsOptions,
+  parseCorsOrigins,
+} from './config/http-security.config';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -22,10 +26,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('APP_PORT', 3000);
-  const corsOrigins = configService
-    .get<string>('CORS_ORIGINS', 'http://localhost:3000')
-    .split(',')
-    .map((o) => o.trim());
+  const corsOrigins = parseCorsOrigins(
+    configService.get<string>('CORS_ORIGINS'),
+  );
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
@@ -34,11 +37,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // CORS
-  app.enableCors({
-    origin: corsOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  });
+  app.enableCors(buildCorsOptions(corsOrigins));
 
   // Global validation pipe
   app.useGlobalPipes(

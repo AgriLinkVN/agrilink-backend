@@ -38,6 +38,11 @@ import { LogoutUseCase } from "../../application/use-cases/logout.use-case";
 import { SendOtpUseCase } from "../../application/use-cases/send-otp.use-case";
 import { VerifyOtpUseCase } from "../../application/use-cases/verify-otp.use-case";
 import { LoginExceptionFilter } from "../filters/login-exception.filter";
+import { TrustedOriginGuard } from "../../../../common/guards/trusted-origin.guard";
+import {
+  clearRefreshTokenCookie,
+  setRefreshTokenCookie,
+} from "../http/refresh-token-cookie.policy";
 
 @ApiTags("Auth")
 @ApiExtraModels(LoginDto)
@@ -71,6 +76,7 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @UseFilters(LoginExceptionFilter)
+  @UseGuards(TrustedOriginGuard)
   @ApiOperation({
     summary:
       "Login with email or phone and password — returns access token, sets refresh cookie",
@@ -97,13 +103,7 @@ export class AuthController {
   ) {
     const tokens = await this.loginUseCase.execute(dto);
 
-    // Set refresh token in httpOnly cookie
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, tokens.refreshToken);
 
     return { accessToken: tokens.accessToken };
   }
@@ -111,6 +111,7 @@ export class AuthController {
   @Public()
   @Post("login-otp")
   @HttpCode(HttpStatus.OK)
+  @UseGuards(TrustedOriginGuard)
   @ApiOperation({
     summary:
       "Login with phone and OTP — returns access token, sets refresh cookie",
@@ -123,12 +124,7 @@ export class AuthController {
   ) {
     const tokens = await this.loginOtpUseCase.execute(dto);
 
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, tokens.refreshToken);
 
     return { accessToken: tokens.accessToken };
   }
@@ -156,7 +152,7 @@ export class AuthController {
   @Public()
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard("jwt-refresh"))
+  @UseGuards(TrustedOriginGuard, AuthGuard("jwt-refresh"))
   @ApiOperation({
     summary: "Exchange a valid refresh token cookie for a new token pair",
   })
@@ -169,18 +165,14 @@ export class AuthController {
     const refreshToken = req.cookies?.refreshToken;
     const tokens = await this.refreshTokenUseCase.execute({ refreshToken });
 
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, tokens.refreshToken);
 
     return { accessToken: tokens.accessToken };
   }
 
   @Post("logout")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(TrustedOriginGuard)
   @ApiBearerAuth("access-token")
   @ApiOperation({ summary: "Revoke refresh token and log out" })
   @ApiResponse({ status: 204, description: "Logged out successfully" })
@@ -189,7 +181,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.logoutUseCase.execute(userId);
-    res.clearCookie("refreshToken");
+    clearRefreshTokenCookie(res);
   }
 
   @Public()
