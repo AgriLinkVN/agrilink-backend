@@ -20,6 +20,17 @@ jobs:
     name: Lint, test, and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: agrilink_test
+      DB_SYNCHRONIZE: "false"
+      DB_LOGGING: "false"
+      PRODUCT_DEV_SEED: "false"
+      PRODUCT_DEV_SEED_RESET: "false"
     services:
       postgres:
         image: postgres:16-alpine
