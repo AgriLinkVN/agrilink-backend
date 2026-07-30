@@ -6,7 +6,7 @@ export interface ReviewUserModel {
 
 export interface ReviewProductModel {
   id: string;
-  name: string;
+  name: string | null;
 }
 
 export interface ReviewModel {
@@ -52,12 +52,6 @@ export interface CreateReviewInput {
   rating: number;
   comment: string | null;
   images: string[];
-}
-
-export interface ProductReviewContext {
-  id: string;
-  sellerId: string;
-  name: string;
 }
 
 export interface ReviewPagination {

@@ -17,10 +17,19 @@ import {
   PRODUCT_CERTIFICATION_REPOSITORY,
   PRODUCT_DETAIL_QUERY,
   PRODUCT_IMAGE_REPOSITORY,
+  PRODUCT_ADMIN_QUERY,
+  PRODUCT_MODERATION_REPOSITORY,
   PRODUCT_REPOSITORY,
+  PRODUCT_REVIEW_QUERY,
   PRODUCT_SEED_REPOSITORY,
   PRODUCT_WISHLIST_REPOSITORY,
 } from './application/ports/outbound/product-repository.port';
+import {
+  PRODUCT_ADMIN_READER,
+  PRODUCT_MODERATION_MANAGER,
+} from './application/ports/inbound/product-admin.port';
+import { PRODUCT_REVIEW_READER } from './application/ports/inbound/product-review.port';
+import { ProductBoundaryService } from './application/services/product-boundary.service';
 import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
 import { ProductDevelopmentSeedService } from './infrastructure/database/seeds/product-development-seed.service';
 import {
@@ -62,6 +71,7 @@ import {
     TypeOrmProductRepository,
     ProductDevelopmentSeedService,
     ProductsService,
+    ProductBoundaryService,
     CreateProductUseCase,
     ListPublicProductsUseCase,
     GetProductDetailUseCase,
@@ -98,6 +108,23 @@ import {
       useExisting: TypeOrmProductRepository,
     },
     { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_REVIEW_QUERY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_ADMIN_QUERY, useExisting: TypeOrmProductRepository },
+    {
+      provide: PRODUCT_MODERATION_REPOSITORY,
+      useExisting: TypeOrmProductRepository,
+    },
+    { provide: PRODUCT_REVIEW_READER, useExisting: ProductBoundaryService },
+    { provide: PRODUCT_ADMIN_READER, useExisting: ProductBoundaryService },
+    {
+      provide: PRODUCT_MODERATION_MANAGER,
+      useExisting: ProductBoundaryService,
+    },
+  ],
+  exports: [
+    PRODUCT_REVIEW_READER,
+    PRODUCT_ADMIN_READER,
+    PRODUCT_MODERATION_MANAGER,
   ],
 })
 export class ProductsModule {}

@@ -126,6 +126,12 @@ Implementation contract:
 - Rollback: dual-read only when documented; no dual-write without reconciliation.
 - Gate: Reviews imports no Product/User persistence.
 - Risk: critical. Dependency: Phase 4.
+- Result: Products owns one canonical mapping for Product, Category, Image,
+  Certification, and Wishlist. Reviews uses scalar Product/User IDs plus typed,
+  batched capability ports; Admin uses typed Product read/moderation ports.
+  Wishlist code remains on canonical `wishlists`, while physical legacy-table
+  reconciliation is explicitly blocked on deployed row evidence. No migration,
+  rename, copy, dual-read, or dual-write was introduced.
 
 ## Phase 6: Commerce And Transaction Boundaries
 

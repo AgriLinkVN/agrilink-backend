@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 
-import { Product } from '@modules/products/infrastructure/persistence/entities/product.entity';
 import {
   AdminReviewFilter,
   CreateReviewInput,
-  ProductReviewContext,
   PublicReviewListResult,
   RatingStatsModel,
   ReviewListResult,
@@ -22,19 +20,7 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
   constructor(
     @InjectRepository(Review)
     private readonly reviews: Repository<Review>,
-    @InjectRepository(Product)
-    private readonly products: Repository<Product>,
   ) {}
-
-  async findProductContext(productId: string): Promise<ProductReviewContext | null> {
-    const product = await this.products.findOne({
-      where: { id: productId },
-      select: { id: true, sellerId: true, name: true },
-    });
-    return product
-      ? { id: product.id, sellerId: product.sellerId, name: product.name }
-      : null;
-  }
 
   async createIfAbsent(input: CreateReviewInput): Promise<ReviewModel | null> {
     const review = this.reviews.create({
@@ -61,7 +47,6 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
   async findById(id: string): Promise<ReviewModel | null> {
     const review = await this.reviews.findOne({
       where: { id },
-      relations: { reviewer: true, product: true },
     });
     return review ? this.toModel(review) : null;
   }
@@ -71,15 +56,17 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
     pagination: ReviewPagination,
   ): Promise<PublicReviewListResult> {
     const { page, limit } = this.normalizePagination(pagination, 10);
-    const [reviews, total] = await this.reviews.findAndCount({
-      where: { productId, isHidden: false },
-      relations: { reviewer: true },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const { reviews, total } = await this.findPage(
+      this.reviews
+        .createQueryBuilder('review')
+        .where('review.product_id = :productId', { productId })
+        .andWhere('review.is_hidden = false')
+        .orderBy('review.created_at', 'DESC'),
+      page,
+      limit,
+    );
     return {
-      data: reviews.map((review) => this.toModel(review, true)),
+      data: reviews.map((review) => this.toModel(review)),
       total,
       page,
       limit,
@@ -94,8 +81,6 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
     const { page, limit } = this.normalizePagination(filter, 20);
     const query = this.reviews
       .createQueryBuilder('review')
-      .leftJoinAndSelect('review.reviewer', 'reviewer')
-      .leftJoinAndSelect('review.product', 'product')
       .where('review.reviewee_id = :sellerId', { sellerId })
       .andWhere('review.is_hidden = false')
       .orderBy('review.created_at', 'DESC')
@@ -109,7 +94,7 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
       query.andWhere('review.seller_reply IS NULL');
     }
 
-    const [reviews, total] = await query.getManyAndCount();
+    const { reviews, total } = await this.findPage(query, page, limit);
     return { data: reviews.map((review) => this.toModel(review)), total, page, limit };
   }
 
@@ -117,8 +102,6 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
     const { page, limit } = this.normalizePagination(filter, 20);
     const query = this.reviews
       .createQueryBuilder('review')
-      .leftJoinAndSelect('review.reviewer', 'reviewer')
-      .leftJoinAndSelect('review.product', 'product')
       .orderBy('review.created_at', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -127,7 +110,7 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
       query.where('review.is_hidden = :isHidden', { isHidden: filter.isHidden });
     }
 
-    const [reviews, total] = await query.getManyAndCount();
+    const { reviews, total } = await this.findPage(query, page, limit);
     return { data: reviews.map((review) => this.toModel(review)), total, page, limit };
   }
 
@@ -198,7 +181,26 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
     };
   }
 
-  private toModel(review: Review, maskReviewer = false): ReviewModel {
+  private async findPage(
+    query: ReturnType<Repository<Review>['createQueryBuilder']>,
+    page: number,
+    limit: number,
+  ): Promise<{ reviews: Review[]; total: number }> {
+    const { entities, raw } = await query
+      .addSelect('COUNT(*) OVER()', '__total')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawAndEntities();
+    return {
+      reviews: entities,
+      total:
+        raw.length > 0
+          ? Number(raw[0].__total)
+          : await query.clone().getCount(),
+    };
+  }
+
+  private toModel(review: Review): ReviewModel {
     return {
       id: review.id,
       reviewerId: review.reviewerId,
@@ -214,18 +216,6 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
       hiddenReason: review.hiddenReason,
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
-      reviewer: review.reviewer
-        ? {
-            id: review.reviewer.id,
-            fullName: maskReviewer
-              ? maskName(review.reviewer.fullName)
-              : review.reviewer.fullName,
-            avatarUrl: review.reviewer.avatarUrl,
-          }
-        : null,
-      product: review.product
-        ? { id: review.product.id, name: review.product.name }
-        : null,
     };
   }
 
@@ -237,14 +227,4 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
       (error as { code?: string }).code === '23505'
     );
   }
-}
-
-function maskName(fullName: string | null): string {
-  if (!fullName?.trim()) {
-    return 'Người dùng';
-  }
-  const parts = fullName.trim().split(/\s+/);
-  return parts.length === 1
-    ? `${parts[0].charAt(0)}***`
-    : `${parts[0]} ${parts.at(-1)?.charAt(0) ?? ''}***`;
 }

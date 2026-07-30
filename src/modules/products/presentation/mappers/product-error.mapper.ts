@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +9,7 @@ import {
   InvalidProductCertificationVerificationError,
   InvalidProductStatusTransitionError,
   ProductCertificationNotFoundError,
+  ProductCertificationVerificationConflictError,
   ProductForbiddenError,
   ProductNotFoundError,
   WishlistProductUnavailableError,
@@ -23,6 +25,9 @@ export function mapProductApplicationError(error: unknown): never {
   }
   if (error instanceof ProductForbiddenError) {
     throw new ForbiddenException(error.message);
+  }
+  if (error instanceof ProductCertificationVerificationConflictError) {
+    throw new ConflictException(error.message);
   }
   if (
     error instanceof InvalidProductStatusTransitionError ||

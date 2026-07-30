@@ -8,6 +8,7 @@
 | [0004](0004-canonical-schema-baseline-and-onboarding.md)    | Canonical Schema Baseline And Onboarding    | Accepted | Persistence              |
 | [0005](0005-users-auth-identity-and-lifecycle.md)           | Users And Auth Identity And Lifecycle       | Accepted | Users/Auth               |
 | [0006](0006-profiles-verification-and-admin-read-model.md)  | Profiles Verification And Admin Read Model  | Accepted | Profiles/Admin           |
+| [0007](0007-products-wishlist-certifications-and-reviews.md) | Products, Wishlist, Certifications And Reviews | Accepted | Products/Reviews       |
 
 ADRs remain independent from phase reports because their decisions continue
 to apply after the originating phase is complete.

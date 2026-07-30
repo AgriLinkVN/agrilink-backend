@@ -8,6 +8,7 @@ import {
   USER_STATUS_MANAGER,
 } from './application/ports/user-admin.port';
 import { USER_IDENTITY_READER } from './application/ports/user-identity-reader.port';
+import { USER_REVIEW_READER } from './application/ports/user-review.port';
 import { User } from './infrastructure/persistence/entities/user.entity';
 
 @Module({
@@ -19,12 +20,14 @@ import { User } from './infrastructure/persistence/entities/user.entity';
     { provide: USER_ACCOUNT_MANAGER, useExisting: UsersService },
     { provide: USER_ADMIN_READER, useExisting: UsersService },
     { provide: USER_STATUS_MANAGER, useExisting: UsersService },
+    { provide: USER_REVIEW_READER, useExisting: UsersService },
   ],
   exports: [
     USER_IDENTITY_READER,
     USER_ACCOUNT_MANAGER,
     USER_ADMIN_READER,
     USER_STATUS_MANAGER,
+    USER_REVIEW_READER,
   ],
 })
 export class UsersModule {}

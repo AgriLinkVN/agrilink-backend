@@ -10,6 +10,13 @@ export class Wishlist {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({
+    name: 'user_id',
+    foreignKeyConstraintName: 'FK_wishlists_user',
+  })
+  private userReference?: unknown;
+
   @Column({ name: 'product_id', type: 'uuid' })
   productId: string;
 

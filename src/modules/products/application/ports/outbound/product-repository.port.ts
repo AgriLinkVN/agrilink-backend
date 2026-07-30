@@ -1,4 +1,4 @@
-import { SellerType } from '@common/enums';
+import { ProductStatus, SellerType } from '@common/enums';
 import {
   CreateProductCertificationInput,
   CreateProductInput,
@@ -24,6 +24,11 @@ export const PRODUCT_CERTIFICATION_REPOSITORY = Symbol(
 );
 export const PRODUCT_WISHLIST_REPOSITORY = Symbol('PRODUCT_WISHLIST_REPOSITORY');
 export const PRODUCT_SEED_REPOSITORY = Symbol('PRODUCT_SEED_REPOSITORY');
+export const PRODUCT_REVIEW_QUERY = Symbol('PRODUCT_REVIEW_QUERY');
+export const PRODUCT_ADMIN_QUERY = Symbol('PRODUCT_ADMIN_QUERY');
+export const PRODUCT_MODERATION_REPOSITORY = Symbol(
+  'PRODUCT_MODERATION_REPOSITORY',
+);
 
 export interface ProductRepositoryPort {
   createAtomically(
@@ -76,6 +81,33 @@ export interface ProductCertificationRepositoryPort {
   saveCertification(
     certification: ProductCertificationModel,
   ): Promise<ProductCertificationModel>;
+  transitionCertification(
+    certificationId: string,
+    expectedStatus: ProductCertificationModel['status'],
+    transition: Pick<
+      ProductCertificationModel,
+      | 'status'
+      | 'isVerified'
+      | 'verifiedBy'
+      | 'verifiedAt'
+      | 'rejectionReason'
+    >,
+  ): Promise<ProductCertificationModel | null>;
+  restoreCertificationTransition(
+    certificationId: string,
+    transitionedState: Pick<
+      ProductCertificationModel,
+      'status' | 'verifiedBy' | 'verifiedAt'
+    >,
+    previousState: Pick<
+      ProductCertificationModel,
+      | 'status'
+      | 'isVerified'
+      | 'verifiedBy'
+      | 'verifiedAt'
+      | 'rejectionReason'
+    >,
+  ): Promise<boolean>;
   removeCertificationByProduct(
     productId: string,
     certId: string,
@@ -105,4 +137,34 @@ export interface ProductSeedRepositoryPort {
     products: ProductModel[],
     imageUrl: string,
   ): Promise<void>;
+}
+
+export interface ProductReviewQueryPort {
+  findReviewContext(
+    productId: string,
+  ): Promise<{ id: string; sellerId: string; name: string | null } | null>;
+  findReviewSummariesByIds(
+    ids: string[],
+  ): Promise<Array<{ id: string; name: string | null }>>;
+}
+
+export interface ProductAdminQueryPort {
+  countAllProducts(): Promise<number>;
+  countProductsByStatus(status: ProductStatus): Promise<number>;
+  findAdminProduct(id: string): Promise<ProductModel | null>;
+  findAdminProductsByStatuses(
+    statuses: ProductStatus[],
+    skip: number,
+    take: number,
+    orderBy: 'createdAt' | 'updatedAt',
+  ): Promise<{ data: ProductModel[]; total: number }>;
+}
+
+export interface ProductModerationRepositoryPort {
+  updateStatusConditionally(
+    id: string,
+    expectedStatus: ProductStatus,
+    status: ProductStatus,
+    rejectionReason: string | null,
+  ): Promise<ProductModel | null>;
 }

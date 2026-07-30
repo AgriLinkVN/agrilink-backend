@@ -1,7 +1,8 @@
 # Persistence Phase 4: Profiles And Admin Read Model
 
-- Status: Complete, awaiting merge
+- Status: Complete
 - Source PR: #84
+- Merge commit: `72cfd645087efd1f9aa24a0d0c8f111810e1765c`
 - Source develop commit:
   `a6571ac846aab53171b5e940f061d5bc5e811e13`
 - Scope: `farmer_profiles`, `cooperative_profiles`,

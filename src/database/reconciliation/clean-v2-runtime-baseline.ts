@@ -83,10 +83,7 @@ export async function captureRuntimeBaseline(
     dataSource.getRepository(Wishlist),
     dataSource,
   );
-  const reviews = new TypeOrmReviewsRepository(
-    dataSource.getRepository(Review),
-    dataSource.getRepository(Product),
-  );
+  const reviews = new TypeOrmReviewsRepository(dataSource.getRepository(Review));
   const notifications = new TypeOrmNotificationRepository(
     dataSource.getRepository(NotificationOrmEntity),
   );

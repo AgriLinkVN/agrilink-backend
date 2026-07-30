@@ -1,7 +1,6 @@
 import {
   AdminReviewFilter,
   CreateReviewInput,
-  ProductReviewContext,
   PublicReviewListResult,
   ReviewListResult,
   ReviewModel,
@@ -12,7 +11,6 @@ import {
 export const REVIEWS_REPOSITORY = Symbol('REVIEWS_REPOSITORY');
 
 export interface ReviewsRepositoryPort {
-  findProductContext(productId: string): Promise<ProductReviewContext | null>;
   createIfAbsent(input: CreateReviewInput): Promise<ReviewModel | null>;
   findById(id: string): Promise<ReviewModel | null>;
   findPublicByProduct(

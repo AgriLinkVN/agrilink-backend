@@ -12,9 +12,15 @@ import { SystemConfig } from "./entities/system-config.entity";
 import { AuditLog } from "./entities/audit-log.entity";
 import { PaginationDto } from "../../common/dto/pagination.dto";
 import { VerifyProfileDto } from "./dto/verify-profile.dto";
-import { Product } from "../products/infrastructure/persistence/entities/product.entity";
 import { IncidentReport } from "../../database/entities/incident-report.entity";
-import { ProductStatus, UserRole, UserStatus } from "../../common/enums";
+import { UserRole, UserStatus } from "../../common/enums";
+import {
+  PRODUCT_ADMIN_READER,
+  PRODUCT_MODERATION_MANAGER,
+  ProductAdminReader,
+  ProductModerationManager,
+} from "../products/application/ports/inbound/product-admin.port";
+import { ProductModel } from "../products/application/models/product.model";
 import {
   STORED_FILE_ACCESS,
   StorageReviewerRole,
@@ -64,8 +70,10 @@ export class AdminService {
     private readonly userStatusManager: UserStatusManager,
     @Inject(AUTH_SESSION_REVOCATION)
     private readonly authSessionRevocation: AuthSessionRevocationPort,
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
+    @Inject(PRODUCT_ADMIN_READER)
+    private readonly productAdminReader: ProductAdminReader,
+    @Inject(PRODUCT_MODERATION_MANAGER)
+    private readonly productModerationManager: ProductModerationManager,
     @InjectRepository(IncidentReport)
     private readonly incidentRepo: Repository<IncidentReport>,
     @Inject(STORED_FILE_ACCESS)
@@ -86,10 +94,8 @@ export class AdminService {
       this.profileVerificationReader.getVerificationStats(
         new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       ),
-      this.productRepo.count(),
-      this.productRepo.count({
-        where: { status: ProductStatus.PENDING_APPROVAL },
-      }),
+      this.productAdminReader.countAll(),
+      this.productAdminReader.countPending(),
       this.incidentRepo.count({ where: { status: "open" } }),
     ]);
 
@@ -346,10 +352,7 @@ export class AdminService {
   }
 
   async getProductDetail(id: string) {
-    const product = await this.productRepo.findOne({
-      where: { id },
-      relations: ["images", "certifications"],
-    });
+    const product = await this.productAdminReader.findDetail(id);
     if (!product) throw new NotFoundException("Product not found");
     const sellers = await this.userAdminReader.findSummariesByIds([
       product.sellerId,
@@ -361,12 +364,10 @@ export class AdminService {
   }
 
   async getPendingProducts(pagination: PaginationDto) {
-    const [data, total] = await this.productRepo.findAndCount({
-      where: { status: ProductStatus.PENDING_APPROVAL },
-      order: { createdAt: "DESC" },
-      skip: pagination.skip,
-      take: pagination.limit ?? 20,
-    });
+    const { data, total } = await this.productAdminReader.listPending(
+      pagination.skip,
+      pagination.limit ?? 20,
+    );
     return { data: await this.attachSellers(data), total };
   }
 
@@ -376,49 +377,50 @@ export class AdminService {
     reason: string,
     adminId: string,
   ) {
-    const product = await this.productRepo.findOne({ where: { id } });
-    if (!product) throw new NotFoundException("Product not found");
-
-    const validStatuses = [
-      ProductStatus.ACTIVE,
-      ProductStatus.REJECTED,
-      ProductStatus.SUSPENDED,
-    ];
-    if (!validStatuses.includes(status as ProductStatus)) {
+    const transition = await this.productModerationManager.moderate(
+      id,
+      status,
+      reason ?? null,
+    );
+    if (transition.outcome === "invalid-target") {
       throw new BadRequestException(
         "Invalid status. Allowed: active, rejected, suspended",
       );
     }
-
-    const previousStatus = product.status;
-    product.status = status as ProductStatus;
-    product.rejectionReason =
-      status === ProductStatus.REJECTED ? (reason ?? null) : null;
-    await this.productRepo.save(product);
+    if (transition.outcome === "not-found") {
+      throw new NotFoundException("Product not found");
+    }
+    if (transition.outcome === "conflict") {
+      throw new ConflictException(
+        "Product status changed while it was being reviewed",
+      );
+    }
 
     await this.createAuditLog({
       userId: adminId,
       action: "PRODUCT_STATUS_UPDATE",
       entityType: "Product",
       entityId: id,
-      changes: { previousStatus, status, reason },
+      changes: {
+        previousStatus: transition.previousStatus,
+        status: transition.product.status,
+        reason,
+      },
     });
 
-    return product;
+    return transition.product;
   }
 
   /** Products suspended/rejected for policy violations — state agency oversight view */
   async getViolatingProducts(pagination: PaginationDto) {
-    const [data, total] = await this.productRepo.findAndCount({
-      where: [{ status: "suspended" as any }, { status: "rejected" as any }],
-      order: { updatedAt: "DESC" },
-      skip: pagination.skip,
-      take: pagination.limit ?? 20,
-    });
+    const { data, total } = await this.productAdminReader.listViolating(
+      pagination.skip,
+      pagination.limit ?? 20,
+    );
     return { data: await this.attachSellers(data), total };
   }
 
-  private async attachSellers(products: Product[]) {
+  private async attachSellers(products: ProductModel[]) {
     const sellerIds = [...new Set(products.map((p) => p.sellerId))];
     if (sellerIds.length === 0) return products;
 

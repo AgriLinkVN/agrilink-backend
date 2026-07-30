@@ -3,66 +3,6 @@
   "entries": [
     {
       "schema": "public",
-      "table": "product_certifications",
-      "objectType": "foreign-key",
-      "objectName": "FK_product_certifications_stored_file",
-      "owner": "products",
-      "deferredPhase": "5",
-      "expectedDefinition": "{\"columns\":[\"stored_file_id\"],\"definition\":\"FOREIGN KEY (stored_file_id) REFERENCES stored_files(id)\",\"referencedSchema\":\"public\",\"referencedTable\":\"stored_files\",\"referencedColumns\":[\"id\"],\"onUpdate\":\"NO ACTION\",\"onDelete\":\"NO ACTION\",\"deferrable\":false,\"initiallyDeferred\":false}",
-      "reason": "Required by baseline v2 but not yet represented by current entity metadata",
-      "expiresAt": "2027-12-31",
-      "source": "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts"
-    },
-    {
-      "schema": "public",
-      "table": "wishlists",
-      "objectType": "foreign-key",
-      "objectName": "FK_wishlists_user",
-      "owner": "products",
-      "deferredPhase": "5",
-      "expectedDefinition": "{\"columns\":[\"user_id\"],\"definition\":\"FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\",\"referencedSchema\":\"public\",\"referencedTable\":\"users\",\"referencedColumns\":[\"id\"],\"onUpdate\":\"NO ACTION\",\"onDelete\":\"CASCADE\",\"deferrable\":false,\"initiallyDeferred\":false}",
-      "reason": "Required by baseline v2 but not yet represented by current entity metadata",
-      "expiresAt": "2027-12-31",
-      "source": "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts"
-    },
-    {
-      "schema": "public",
-      "table": "product_certifications",
-      "objectType": "index",
-      "objectName": "IDX_product_certifications_stored_file_id",
-      "owner": "products",
-      "deferredPhase": "5",
-      "expectedDefinition": "{\"unique\":false,\"primary\":false,\"method\":\"btree\",\"definition\":\"CREATE INDEX \\\"IDX_product_certifications_stored_file_id\\\" ON product_certifications USING btree (stored_file_id)\",\"predicate\":null}",
-      "reason": "Required by baseline v2 but not yet represented by current entity metadata",
-      "expiresAt": "2027-12-31",
-      "source": "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts"
-    },
-    {
-      "schema": "public",
-      "table": "reviews",
-      "objectType": "index",
-      "objectName": "IDX_reviews_reviewer_product_unique",
-      "owner": "reviews",
-      "deferredPhase": "5",
-      "expectedDefinition": "{\"unique\":true,\"primary\":false,\"method\":\"btree\",\"definition\":\"CREATE UNIQUE INDEX \\\"IDX_reviews_reviewer_product_unique\\\" ON reviews USING btree (reviewer_id, product_id) WHERE product_id IS NOT NULL\",\"predicate\":\"product_id IS NOT NULL\"}",
-      "reason": "Required by baseline v2 but not yet represented by current entity metadata",
-      "expiresAt": "2027-12-31",
-      "source": "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts"
-    },
-    {
-      "schema": "public",
-      "table": "reviews",
-      "objectType": "check-constraint",
-      "objectName": "CHK_reviews_rating_range",
-      "owner": "reviews",
-      "deferredPhase": "5",
-      "expectedDefinition": "{\"columns\":[\"rating\"],\"definition\":\"CHECK (rating >= 1 AND rating <= 5)\",\"referencedSchema\":null,\"referencedTable\":null,\"referencedColumns\":[],\"onUpdate\":null,\"onDelete\":null,\"deferrable\":false,\"initiallyDeferred\":false}",
-      "reason": "Required by baseline v2 but not yet represented by current entity metadata",
-      "expiresAt": "2027-12-31",
-      "source": "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts"
-    },
-    {
-      "schema": "public",
       "table": "stored_files",
       "objectType": "check-constraint",
       "objectName": "CHK_stored_files_status",

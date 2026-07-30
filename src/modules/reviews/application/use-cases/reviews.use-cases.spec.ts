@@ -2,6 +2,7 @@ import {
   ProductForReviewNotFoundError,
   ReviewAlreadyExistsError,
   ReviewNotFoundError,
+  ReviewerNotEligibleError,
 } from '../errors/reviews-application.error';
 import { ReviewsRepositoryPort } from '../ports/outbound/reviews-repository.port';
 import {
@@ -15,6 +16,7 @@ import {
   ReviewOwnershipError,
   ReviewStateError,
 } from '../../domain/errors/review-domain.error';
+import { UserStatus } from '@common/enums';
 
 const REVIEW_ID = '11111111-1111-4111-8111-111111111111';
 const PRODUCT_ID = '22222222-2222-4222-8222-222222222222';
@@ -44,7 +46,6 @@ function makeReview(overrides = {}) {
 
 function createRepository(): jest.Mocked<ReviewsRepositoryPort> {
   return {
-    findProductContext: jest.fn(),
     createIfAbsent: jest.fn(),
     findById: jest.fn(),
     findPublicByProduct: jest.fn(),
@@ -52,6 +53,30 @@ function createRepository(): jest.Mocked<ReviewsRepositoryPort> {
     findForModeration: jest.fn(),
     saveReplyIfUnreplied: jest.fn(),
     setVisibility: jest.fn(),
+  };
+}
+
+function createReadModel() {
+  return {
+    compose: jest.fn(async (reviews) => reviews),
+    composeOne: jest.fn(async (review) => review),
+  };
+}
+
+function createProducts() {
+  return {
+    findReviewContext: jest.fn(),
+    findReviewSummariesByIds: jest.fn().mockResolvedValue([]),
+  };
+}
+
+function createUsers() {
+  return {
+    findReviewEligibility: jest.fn().mockResolvedValue({
+      id: BUYER_ID,
+      status: UserStatus.ACTIVE,
+    }),
+    findReviewSummariesByIds: jest.fn().mockResolvedValue([]),
   };
 }
 
@@ -65,7 +90,10 @@ describe('Reviews use cases', () => {
       limit: 10,
       stats: { avg: 5, total: 1, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 1 } },
     });
-    const useCase = new ListPublicProductReviewsUseCase(repository);
+    const useCase = new ListPublicProductReviewsUseCase(
+      repository,
+      createReadModel() as never,
+    );
 
     await expect(useCase.execute(PRODUCT_ID, { page: 1, limit: 10 })).resolves.toMatchObject({
       total: 1,
@@ -74,13 +102,19 @@ describe('Reviews use cases', () => {
 
   it('creates one review using the product seller as reviewee', async () => {
     const repository = createRepository();
-    repository.findProductContext.mockResolvedValue({
+    const products = createProducts();
+    const users = createUsers();
+    products.findReviewContext.mockResolvedValue({
       id: PRODUCT_ID,
       sellerId: SELLER_ID,
       name: 'Xoài cát',
     });
     repository.createIfAbsent.mockResolvedValue(makeReview());
-    const useCase = new CreateProductReviewUseCase(repository);
+    const useCase = new CreateProductReviewUseCase(
+      repository,
+      products,
+      users,
+    );
 
     await expect(
       useCase.execute(BUYER_ID, {
@@ -97,14 +131,20 @@ describe('Reviews use cases', () => {
 
   it('rejects missing products, self reviews, and duplicate reviews', async () => {
     const repository = createRepository();
-    const useCase = new CreateProductReviewUseCase(repository);
+    const products = createProducts();
+    const users = createUsers();
+    const useCase = new CreateProductReviewUseCase(
+      repository,
+      products,
+      users,
+    );
 
-    repository.findProductContext.mockResolvedValueOnce(null);
+    products.findReviewContext.mockResolvedValueOnce(null);
     await expect(
       useCase.execute(BUYER_ID, { productId: PRODUCT_ID, rating: 5, comment: null, images: [] }),
     ).rejects.toThrow(ProductForReviewNotFoundError);
 
-    repository.findProductContext.mockResolvedValueOnce({
+    products.findReviewContext.mockResolvedValueOnce({
       id: PRODUCT_ID,
       sellerId: BUYER_ID,
       name: 'Xoài cát',
@@ -113,7 +153,7 @@ describe('Reviews use cases', () => {
       useCase.execute(BUYER_ID, { productId: PRODUCT_ID, rating: 5, comment: null, images: [] }),
     ).rejects.toThrow(ReviewOwnershipError);
 
-    repository.findProductContext.mockResolvedValueOnce({
+    products.findReviewContext.mockResolvedValueOnce({
       id: PRODUCT_ID,
       sellerId: SELLER_ID,
       name: 'Xoài cát',
@@ -124,13 +164,57 @@ describe('Reviews use cases', () => {
     ).rejects.toThrow(ReviewAlreadyExistsError);
   });
 
+  it('rejects reviewers that are missing or not active', async () => {
+    const repository = createRepository();
+    const products = createProducts();
+    const users = createUsers();
+    products.findReviewContext.mockResolvedValue({
+      id: PRODUCT_ID,
+      sellerId: SELLER_ID,
+      name: 'Xoài cát',
+    });
+    const useCase = new CreateProductReviewUseCase(
+      repository,
+      products,
+      users,
+    );
+
+    users.findReviewEligibility.mockResolvedValueOnce(null);
+    await expect(
+      useCase.execute(BUYER_ID, {
+        productId: PRODUCT_ID,
+        rating: 5,
+        comment: null,
+        images: [],
+      }),
+    ).rejects.toThrow(ReviewerNotEligibleError);
+
+    users.findReviewEligibility.mockResolvedValueOnce({
+      id: BUYER_ID,
+      status: UserStatus.LOCKED,
+    });
+    await expect(
+      useCase.execute(BUYER_ID, {
+        productId: PRODUCT_ID,
+        rating: 5,
+        comment: null,
+        images: [],
+      }),
+    ).rejects.toThrow(ReviewerNotEligibleError);
+
+    expect(repository.createIfAbsent).not.toHaveBeenCalled();
+  });
+
   it('only lets the reviewee save the first reply', async () => {
     const repository = createRepository();
     repository.findById.mockResolvedValue(makeReview());
     repository.saveReplyIfUnreplied.mockResolvedValue(
       makeReview({ sellerReply: 'Cảm ơn bạn', sellerReplyAt: new Date() }),
     );
-    const useCase = new ReplyToReviewUseCase(repository);
+    const useCase = new ReplyToReviewUseCase(
+      repository,
+      createReadModel() as never,
+    );
 
     await expect(useCase.execute(REVIEW_ID, SELLER_ID, '  Cảm ơn bạn  ')).resolves.toMatchObject({
       sellerReply: 'Cảm ơn bạn',
@@ -156,7 +240,10 @@ describe('Reviews use cases', () => {
     const repository = createRepository();
     repository.findById.mockResolvedValue(makeReview());
     repository.setVisibility.mockResolvedValue(makeReview({ isHidden: true }));
-    const hide = new HideReviewUseCase(repository);
+    const hide = new HideReviewUseCase(
+      repository,
+      createReadModel() as never,
+    );
 
     await expect(hide.execute(REVIEW_ID, OTHER_SELLER_ID, 'Nội dung vi phạm')).resolves.toMatchObject({
       isHidden: true,
@@ -175,7 +262,10 @@ describe('Reviews use cases', () => {
       ReviewStateError,
     );
 
-    const unhide = new UnhideReviewUseCase(repository);
+    const unhide = new UnhideReviewUseCase(
+      repository,
+      createReadModel() as never,
+    );
     repository.setVisibility.mockResolvedValue(makeReview({ isHidden: false }));
     await expect(unhide.execute(REVIEW_ID)).resolves.toMatchObject({ isHidden: false });
 

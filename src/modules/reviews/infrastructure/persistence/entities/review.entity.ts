@@ -1,17 +1,21 @@
 import {
   Column,
+  Check,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { User } from '@database/entities/user.entity';
-import { Product } from '@modules/products/infrastructure/persistence/entities/product.entity';
-
 @Entity('reviews')
+@Check('CHK_reviews_rating_range', '"rating" >= 1 AND "rating" <= 5')
+@Index('IDX_reviews_reviewer_product_unique', ['reviewerId', 'productId'], {
+  unique: true,
+  where: '"product_id" IS NOT NULL',
+})
 export class Review {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,11 +26,19 @@ export class Review {
   @Column({ name: 'reviewer_id', type: 'uuid' })
   reviewerId: string;
 
+  @ManyToOne('User', { nullable: false, onDelete: 'NO ACTION' })
+  @JoinColumn({ name: 'reviewer_id' })
+  private reviewerReference?: unknown;
+
   @Column({ name: 'reviewee_id', type: 'uuid', nullable: true })
   revieweeId: string | null;
 
   @Column({ name: 'product_id', type: 'uuid', nullable: true })
   productId: string | null;
+
+  @ManyToOne('Product', { nullable: true, onDelete: 'NO ACTION' })
+  @JoinColumn({ name: 'product_id' })
+  private productReference?: unknown;
 
   @Column({ type: 'smallint' })
   rating: number;
@@ -64,11 +76,4 @@ export class Review {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'reviewer_id' })
-  reviewer?: User;
-
-  @ManyToOne(() => Product, { nullable: true })
-  @JoinColumn({ name: 'product_id' })
-  product?: Product | null;
 }

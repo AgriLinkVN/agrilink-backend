@@ -22,6 +22,7 @@ import {
   UserAdminReader,
   UserStatusManager,
 } from "./application/ports/user-admin.port";
+import { UserReviewReader } from "./application/ports/user-review.port";
 import { User } from "./infrastructure/persistence/entities/user.entity";
 
 @Injectable()
@@ -30,7 +31,8 @@ export class UsersService
     UserIdentityReader,
     UserAccountManager,
     UserAdminReader,
-    UserStatusManager
+    UserStatusManager,
+    UserReviewReader
 {
   constructor(
     @InjectRepository(User)
@@ -128,6 +130,27 @@ export class UsersService
       where: { id: In(ids) },
     });
     return users.map(({ id, fullName }) => ({ id, fullName }));
+  }
+
+  async findReviewEligibility(
+    userId: string,
+  ): Promise<{ id: string; status: UserStatus } | null> {
+    return this.usersRepository.findOne({
+      where: { id: userId },
+      select: { id: true, status: true },
+    });
+  }
+
+  async findReviewSummariesByIds(
+    ids: string[],
+  ): Promise<
+    Array<{ id: string; fullName: string | null; avatarUrl: string | null }>
+  > {
+    if (ids.length === 0) return [];
+    return this.usersRepository.find({
+      where: { id: In(ids) },
+      select: { id: true, fullName: true, avatarUrl: true },
+    });
   }
 
   async list(skip: number, take: number): Promise<UserPage> {

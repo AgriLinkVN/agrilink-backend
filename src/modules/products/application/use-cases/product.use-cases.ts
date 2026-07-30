@@ -16,6 +16,7 @@ import {
   InvalidProductCertificationFileError,
   ProductCertificationConsistencyError,
   ProductCertificationNotFoundError,
+  ProductCertificationVerificationConflictError,
   ProductForbiddenError,
   ProductNotFoundError,
 } from '../../domain/errors/product-application.error';
@@ -442,6 +443,11 @@ export class VerifyProductCertificationUseCase {
       throw new ProductCertificationNotFoundError('Không tìm thấy chứng nhận');
     }
     assertValidCertificationVerification(input);
+    if (certification.status !== CertificationStatus.PENDING) {
+      throw new ProductCertificationVerificationConflictError(
+        'Chứng nhận đã được reviewer khác xử lý',
+      );
+    }
 
     const previousState = {
       status: certification.status,
@@ -450,18 +456,27 @@ export class VerifyProductCertificationUseCase {
       verifiedAt: certification.verifiedAt,
       rejectionReason: certification.rejectionReason,
     };
-    certification.status = input.status;
-    certification.isVerified = input.status === CertificationStatus.VERIFIED;
-    certification.verifiedBy = adminId;
-    certification.verifiedAt = new Date();
-    certification.rejectionReason =
-      input.status === CertificationStatus.REJECTED
-        ? input.rejectionReason!.trim()
-        : null;
+    const transitionedState = {
+      status: input.status,
+      isVerified: input.status === CertificationStatus.VERIFIED,
+      verifiedBy: adminId,
+      verifiedAt: new Date(),
+      rejectionReason:
+        input.status === CertificationStatus.REJECTED
+          ? input.rejectionReason!.trim()
+          : null,
+    };
     const saved =
-      await this.productCertificationRepository.saveCertification(
-        certification,
+      await this.productCertificationRepository.transitionCertification(
+        certId,
+        certification.status,
+        transitionedState,
       );
+    if (!saved) {
+      throw new ProductCertificationVerificationConflictError(
+        'Chứng nhận đã được reviewer khác xử lý',
+      );
+    }
     try {
       if (saved.storedFileId) {
         await this.storedFileAccess.reviewFile({
@@ -471,11 +486,16 @@ export class VerifyProductCertificationUseCase {
         });
       }
     } catch (error) {
-      Object.assign(certification, previousState);
       try {
-        await this.productCertificationRepository.saveCertification(
-          certification,
-        );
+        const restored =
+          await this.productCertificationRepository.restoreCertificationTransition(
+            certId,
+            transitionedState,
+            previousState,
+          );
+        if (!restored) {
+          throw new Error('conditional restore lost');
+        }
       } catch {
         throw new ProductCertificationConsistencyError(
           'Không thể hoàn tác trạng thái chứng nhận sau lỗi Storage',

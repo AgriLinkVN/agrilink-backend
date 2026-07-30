@@ -5,8 +5,8 @@ import { AdminService } from "./admin.service";
 import { AdminReportService } from "./admin-report.service";
 import { SystemConfig } from "./entities/system-config.entity";
 import { AuditLog } from "./entities/audit-log.entity";
-import { Product } from "../products/infrastructure/persistence/entities/product.entity";
 import { IncidentReport } from "../../database/entities/incident-report.entity";
+import { ProductsModule } from "../products/products.module";
 import { StorageModule } from "../storage/storage.module";
 import { AuthModule } from "../auth/auth.module";
 import { UsersModule } from "../users/users.module";
@@ -18,7 +18,8 @@ import { ProfilesRoute } from "../profiles/profiles.route";
     UsersModule,
     AuthModule,
     ProfilesRoute,
-    TypeOrmModule.forFeature([SystemConfig, AuditLog, Product, IncidentReport]),
+    ProductsModule,
+    TypeOrmModule.forFeature([SystemConfig, AuditLog, IncidentReport]),
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminReportService],

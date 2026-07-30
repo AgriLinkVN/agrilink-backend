@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 
 import { CertificationStatus, ProductStatus, SellerType } from '@common/enums';
 import {
@@ -28,7 +28,10 @@ import {
   ProductCertificationRepositoryPort,
   ProductDetailQueryPort,
   ProductImageRepositoryPort,
+  ProductAdminQueryPort,
+  ProductModerationRepositoryPort,
   ProductRepositoryPort,
+  ProductReviewQueryPort,
   ProductSeedRepositoryPort,
   ProductWishlistRepositoryPort,
 } from '../../application/ports/outbound/product-repository.port';
@@ -49,7 +52,10 @@ export class TypeOrmProductRepository
     ProductImageRepositoryPort,
     ProductCertificationRepositoryPort,
     ProductWishlistRepositoryPort,
-    ProductSeedRepositoryPort
+    ProductSeedRepositoryPort,
+    ProductReviewQueryPort,
+    ProductAdminQueryPort,
+    ProductModerationRepositoryPort
 {
   constructor(
     @InjectRepository(Product)
@@ -290,6 +296,66 @@ export class TypeOrmProductRepository
     return this.productRepo.save(product as Product);
   }
 
+  async findReviewContext(
+    productId: string,
+  ): Promise<{ id: string; sellerId: string; name: string | null } | null> {
+    return this.productRepo.findOne({
+      where: { id: productId },
+      select: { id: true, sellerId: true, name: true },
+    });
+  }
+
+  async findReviewSummariesByIds(
+    ids: string[],
+  ): Promise<Array<{ id: string; name: string | null }>> {
+    if (ids.length === 0) return [];
+    return this.productRepo.find({
+      where: { id: In(ids) },
+      select: { id: true, name: true },
+    });
+  }
+
+  countAllProducts(): Promise<number> {
+    return this.productRepo.count();
+  }
+
+  countProductsByStatus(status: ProductStatus): Promise<number> {
+    return this.productRepo.count({ where: { status } });
+  }
+
+  findAdminProduct(id: string): Promise<ProductModel | null> {
+    return this.findByIdWithRelations(id);
+  }
+
+  async findAdminProductsByStatuses(
+    statuses: ProductStatus[],
+    skip: number,
+    take: number,
+    orderBy: 'createdAt' | 'updatedAt',
+  ): Promise<{ data: ProductModel[]; total: number }> {
+    const [data, total] = await this.productRepo.findAndCount({
+      where: { status: In(statuses) },
+      relations: ['images', 'certifications'],
+      order: { [orderBy]: 'DESC' },
+      skip,
+      take,
+    });
+    return { data, total };
+  }
+
+  async updateStatusConditionally(
+    id: string,
+    expectedStatus: ProductStatus,
+    status: ProductStatus,
+    rejectionReason: string | null,
+  ): Promise<ProductModel | null> {
+    const result = await this.productRepo.update(
+      { id, status: expectedStatus },
+      { status, rejectionReason },
+    );
+    return result.affected === 1 ? this.findByIdWithRelations(id) : null;
+  }
+
   async findOne(id: string): Promise<ProductDetailResponse | null> {
     const product = await this.findByIdWithRelations(id);
     if (!product) return null;
@@ -378,6 +444,54 @@ export class TypeOrmProductRepository
     certification: ProductCertificationModel,
   ): Promise<ProductCertificationModel> {
     return this.certRepo.save(certification as ProductCertification);
+  }
+
+  async transitionCertification(
+    certificationId: string,
+    expectedStatus: CertificationStatus,
+    transition: Pick<
+      ProductCertificationModel,
+      | 'status'
+      | 'isVerified'
+      | 'verifiedBy'
+      | 'verifiedAt'
+      | 'rejectionReason'
+    >,
+  ): Promise<ProductCertificationModel | null> {
+    const result = await this.certRepo.update(
+      { id: certificationId, status: expectedStatus },
+      transition,
+    );
+    return result.affected === 1
+      ? this.findByIdWithProduct(certificationId)
+      : null;
+  }
+
+  async restoreCertificationTransition(
+    certificationId: string,
+    transitionedState: Pick<
+      ProductCertificationModel,
+      'status' | 'verifiedBy' | 'verifiedAt'
+    >,
+    previousState: Pick<
+      ProductCertificationModel,
+      | 'status'
+      | 'isVerified'
+      | 'verifiedBy'
+      | 'verifiedAt'
+      | 'rejectionReason'
+    >,
+  ): Promise<boolean> {
+    const result = await this.certRepo.update(
+      {
+        id: certificationId,
+        status: transitionedState.status,
+        verifiedBy: transitionedState.verifiedBy,
+        verifiedAt: transitionedState.verifiedAt,
+      },
+      previousState,
+    );
+    return result.affected === 1;
   }
 
   async removeCertificationByProduct(

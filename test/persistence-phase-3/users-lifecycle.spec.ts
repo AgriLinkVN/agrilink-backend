@@ -107,6 +107,7 @@ describe('Persistence Phase 3 Users lifecycle', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
     );
 
     await expect(

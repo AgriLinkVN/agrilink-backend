@@ -10,35 +10,18 @@
       "expiresAt": "2027-12-31",
       "edges": [
         "src/modules/admin/admin.route.ts -> ../../database/entities/incident-report.entity",
-        "src/modules/admin/admin.service.ts -> ../../database/entities/incident-report.entity",
-        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts -> @database/entities/user.entity",
-        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts -> @database/entities/user.entity"
-      ]
-    },
-    {
-      "id": "reviews-product-infrastructure-import",
-      "exceptionType": "cross-module-infrastructure-import",
-      "owner": "reviews",
-      "reason": "Reviews directly maps and queries Product persistence until Phase 5 ports replace it.",
-      "phase": "5",
-      "expiresAt": "2027-06-30",
-      "edges": [
-        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts -> @modules/products/infrastructure/persistence/entities/product.entity",
-        "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts -> @modules/products/infrastructure/persistence/entities/product.entity",
-        "src/modules/reviews/reviews.module.ts -> @modules/products/infrastructure/persistence/entities/product.entity"
+        "src/modules/admin/admin.service.ts -> ../../database/entities/incident-report.entity"
       ]
     },
     {
       "id": "foreign-for-feature-registration",
       "exceptionType": "foreign-entity-registration",
-      "owner": "admin-and-reviews",
-      "reason": "Admin and Reviews still register Product or Incident entities owned by other capabilities.",
-      "phase": "5-7B",
+      "owner": "admin",
+      "reason": "Admin still registers IncidentReport until the Compliance ownership phase.",
+      "phase": "7B",
       "expiresAt": "2027-06-30",
       "registrations": [
-        "src/modules/admin/admin.route.ts:Product",
-        "src/modules/admin/admin.route.ts:IncidentReport",
-        "src/modules/reviews/reviews.module.ts:Product"
+        "src/modules/admin/admin.route.ts:IncidentReport"
       ]
     },
     {
