@@ -14,6 +14,7 @@ export const databaseConfig = (
   createDataSourceOptions(
     {
       NODE_ENV: configService.get("NODE_ENV"),
+      DATABASE_URL: configService.get("DATABASE_URL"),
       DB_HOST: configService.get("DB_HOST"),
       DB_PORT: configService.get("DB_PORT"),
       DB_NAME: configService.get("DB_NAME"),

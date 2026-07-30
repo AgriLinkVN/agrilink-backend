@@ -16,8 +16,7 @@ import {
 import { assertDisposableDatabaseTarget } from "./reconciliation/database-target.guard";
 import { V2_MIGRATIONS } from "./migration-registry";
 
-function assertV2Target(): void {
-  const database = process.env.DB_NAME ?? "agrilink_db";
+function assertV2Target(database: string): void {
   if (
     parseEnvBoolean(
       process.env.PERSISTENCE_V2_TARGET_ACKNOWLEDGED,
@@ -53,7 +52,7 @@ console.info(
 
 class GuardedV2DataSource extends DataSource {
   override async initialize(): Promise<this> {
-    assertV2Target();
+    assertV2Target(String(this.options.database ?? ""));
     const initialized = await super.initialize();
     excludeDeferredEntitiesFromSchemaBuild(initialized);
     return initialized;

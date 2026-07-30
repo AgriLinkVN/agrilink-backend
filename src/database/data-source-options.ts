@@ -17,13 +17,21 @@ export function createDataSourceOptions(
   composition: DataSourceComposition,
 ): DataSourceOptions {
   const parsed = parseDatabaseEnvironment(env);
+  const connection = parsed.databaseUrl
+    ? {
+        url: parsed.databaseUrl,
+        database: parsed.database,
+      }
+    : {
+        host: parsed.host,
+        port: parsed.port,
+        username: parsed.username,
+        password: parsed.password,
+        database: parsed.database,
+      };
   return {
     type: "postgres",
-    host: parsed.host,
-    port: parsed.port,
-    username: parsed.username,
-    password: parsed.password,
-    database: parsed.database,
+    ...connection,
     schema: parsed.schema,
     entities: [...composition.entities] as DataSourceOptions["entities"],
     migrations: [...(composition.migrations ?? [])],

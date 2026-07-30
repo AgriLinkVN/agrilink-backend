@@ -63,7 +63,10 @@ describe("Persistence Phase 1 registry and configuration", () => {
   it("never enables synchronize and does not expose secrets in target logs", () => {
     const options = createDataSourceOptions(
       {
+        DB_HOST: "localhost",
+        DB_PORT: "5433",
         DB_NAME: "phase_1_test",
+        DB_USER: "phase_1_user",
         DB_PASS: "do-not-log",
         DB_SYNCHRONIZE: "false",
       },
