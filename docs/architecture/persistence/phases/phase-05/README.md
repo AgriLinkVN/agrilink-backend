@@ -1,7 +1,8 @@
 # Persistence Phase 5: Products, Wishlist, Certifications And Reviews
 
-- Status: Complete, awaiting pull request
-- Source PR: pending
+- Status: Complete, awaiting merge
+- Source PR: #85
+- Implementation commit: `7d59e0e`
 - Source develop commit:
   `72cfd645087efd1f9aa24a0d0c8f111810e1765c`
 - Scope: `products`, `product_categories`, `product_images`,
