@@ -1,0 +1,647 @@
+{
+  "version": 1,
+  "capturedAt": "2026-07-30",
+  "source": {
+    "branch": "refactor/persistence-phase-6-commerce",
+    "developCommit": "b9013935bab4eb62caf9a0fa281ef8c576835537",
+    "phase5PullRequest": 85,
+    "phase5MergeCommit": "b9013935bab4eb62caf9a0fa281ef8c576835537"
+  },
+  "classifications": {
+    "sourceEvidence": "Directly observed in the current source tree.",
+    "canonicalBaselineEvidence": "Recorded in the accepted clean-v2 catalog and inclusion matrix.",
+    "protectedDatabaseEvidence": "Read-only observation from local agrilink_db; not production truth.",
+    "deployedEvidence": "Not supplied for the Commerce scope.",
+    "inference": "Conclusion derived from observed evidence and explicitly labelled.",
+    "approvedDecision": "Decision already accepted by an ADR or the persistence roadmap."
+  },
+  "protectedDatabase": {
+    "database": "agrilink_db",
+    "readOnly": true,
+    "serverVersion": "16.14",
+    "publicTableCount": 33,
+    "migrationLedgers": [],
+    "catalogFingerprint": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "normalizedSchemaSha256": "27e4002e8de242c55b19cfc0de175caf437cffbce62bf202c4e7ce78d787be0f",
+    "normalization": "pg_dump --schema-only --no-owner --no-privileges; comments, psql restrict markers, blank lines and trailing whitespace removed",
+    "commerceTablesPresent": [],
+    "operationTablesPresent": [],
+    "candidateOperationTablesChecked": [
+      "outbox_events",
+      "commerce_outbox",
+      "operation_keys",
+      "idempotency_keys",
+      "payment_callbacks",
+      "payment_webhooks",
+      "payment_transactions",
+      "contract_events",
+      "order_events"
+    ],
+    "commerceRowCounts": "NOT_APPLICABLE_TABLES_ABSENT",
+    "statusDistributions": "NOT_APPLICABLE_TABLES_ABSENT",
+    "duplicateOperationReferences": "NOT_APPLICABLE_TABLES_ABSENT",
+    "orphanForeignKeys": "NOT_APPLICABLE_TABLES_ABSENT",
+    "evidenceType": "protectedDatabaseEvidence"
+  },
+  "runtimeInventory": {
+    "mountedModules": [],
+    "mountedCommerceEndpoints": [],
+    "repositoryConsumers": [],
+    "forFeatureConsumers": [],
+    "crossModuleEntityImports": [],
+    "transactionCoordinators": [],
+    "providerAdapters": [],
+    "callbacksOrWebhooks": [],
+    "operationKeyImplementations": [],
+    "outboxImplementations": [],
+    "commerceSeeds": [],
+    "reviewPurchaseEligibility": {
+      "implemented": false,
+      "currentBehavior": "Reviews persists isVerifiedPurchase as false and has no Commerce eligibility reader.",
+      "decision": "DEFERRED_REQUIREMENT_NOT_APPROVED"
+    },
+    "evidenceType": "sourceEvidence"
+  },
+  "tables": [
+    {
+      "table": "orders",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/order.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "order_code varchar(30) not null unique",
+        "buyer_id uuid not null",
+        "seller_id uuid not null",
+        "status enum not null default pending",
+        "subtotal numeric(15,2) not null",
+        "shipping_fee numeric(15,2) not null default 0",
+        "platform_fee numeric(15,2) not null default 0",
+        "total_amount numeric(15,2) not null",
+        "payment_method enum null",
+        "payment_status enum not null default unpaid",
+        "shipping_address_id uuid null",
+        "shipping_address_snapshot jsonb null",
+        "logistics_id uuid null",
+        "note text null",
+        "cancelled_reason text null",
+        "confirmed_at timestamptz null",
+        "shipped_at timestamptz null",
+        "delivered_at timestamptz null",
+        "cancelled_at timestamptz null",
+        "created_at timestamptz not null",
+        "updated_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "deleteBehavior": "No source FK; roadmap requires commercial-record retention.",
+      "uniqueConstraints": [
+        "order_code"
+      ],
+      "checkConstraints": [],
+      "indexes": [
+        "implicit unique order_code only"
+      ],
+      "stateFields": {
+        "statusValues": [
+          "pending",
+          "confirmed",
+          "preparing",
+          "handed_to_logistics",
+          "shipping",
+          "delivered",
+          "cancelled",
+          "disputed"
+        ],
+        "initial": "pending",
+        "allowedTransitions": "UNVERIFIED",
+        "terminalStates": "UNVERIFIED"
+      },
+      "monetaryPrecision": {
+        "subtotal": "numeric(15,2)",
+        "shippingFee": "numeric(15,2)",
+        "platformFee": "numeric(15,2)",
+        "totalAmount": "numeric(15,2)",
+        "applicationType": "number",
+        "roundingRule": "UNVERIFIED"
+      },
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [
+        "order_code is unique but is not an approved operation-key contract"
+      ],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "orders",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_ACTIVE_CONTRACT_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    },
+    {
+      "table": "order_items",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/order-item.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "order_id relation column not null",
+        "product_id uuid null",
+        "product_snapshot jsonb not null",
+        "quantity numeric(10,2) not null",
+        "unit_price numeric(15,2) not null",
+        "total_price numeric(15,2) not null",
+        "created_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "order_id -> orders.id ON DELETE CASCADE declared only by the dormant mapping"
+      ],
+      "deleteBehavior": "CASCADE from order in source; Product has no relation and cannot cascade.",
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "stateFields": {},
+      "monetaryPrecision": {
+        "quantity": "numeric(10,2)",
+        "unitPrice": "numeric(15,2)",
+        "totalPrice": "numeric(15,2)",
+        "applicationType": "number",
+        "roundingRule": "UNVERIFIED"
+      },
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "orders",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_ACTIVE_CONTRACT_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    },
+    {
+      "table": "order_status_history",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/order-status-history.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "order_id uuid not null",
+        "status enum not null",
+        "note text null",
+        "changed_by uuid null",
+        "created_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "deleteBehavior": "No source FK; roadmap requires retained audit history.",
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "stateFields": {
+        "statusValues": "OrderStatus values",
+        "fromStatus": "MISSING",
+        "operationKey": "MISSING"
+      },
+      "monetaryPrecision": {},
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "orders",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_ACTIVE_CONTRACT_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    },
+    {
+      "table": "payments",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/payment.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "order_id uuid not null",
+        "amount numeric(15,2) not null",
+        "method enum not null",
+        "status enum not null default unpaid",
+        "external_txn_id varchar(255) null",
+        "payment_gateway varchar(50) null",
+        "gateway_response jsonb null",
+        "paid_at timestamptz null",
+        "created_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "deleteBehavior": "No source FK; roadmap requires retained payment ledger.",
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "stateFields": {
+        "statusValues": [
+          "unpaid",
+          "paid",
+          "refunded",
+          "partially_refunded"
+        ],
+        "initial": "unpaid",
+        "allowedTransitions": "UNVERIFIED",
+        "terminalStates": "UNVERIFIED"
+      },
+      "monetaryPrecision": {
+        "amount": "numeric(15,2)",
+        "applicationType": "number",
+        "roundingRule": "UNVERIFIED",
+        "providerMinorUnitConversion": "NOT_IMPLEMENTED"
+      },
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [
+        "payment_gateway nullable",
+        "external_txn_id nullable and not unique"
+      ],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_PROVIDER_REFERENCES",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "payments",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_PROVIDER_CONTRACT_CURRENCY_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    },
+    {
+      "table": "contracts",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/contract.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "contract_code varchar(50) not null unique",
+        "buyer_id uuid not null",
+        "seller_id uuid not null",
+        "bulk_listing_id uuid null",
+        "product_category_id int null",
+        "quantity numeric(15,2) not null",
+        "unit enum not null",
+        "unit_price numeric(15,2) not null",
+        "total_value numeric(15,2) not null",
+        "quality_standards text null",
+        "delivery_deadline date null",
+        "payment_terms text null",
+        "status enum not null default draft",
+        "buyer_signed_at timestamptz null",
+        "seller_signed_at timestamptz null",
+        "content_url text null",
+        "created_at timestamptz not null",
+        "updated_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "deleteBehavior": "No source FK; roadmap requires retained commercial record.",
+      "uniqueConstraints": [
+        "contract_code"
+      ],
+      "checkConstraints": [],
+      "indexes": [
+        "implicit unique contract_code only"
+      ],
+      "stateFields": {
+        "statusValues": [
+          "draft",
+          "negotiating",
+          "pending_signature",
+          "active",
+          "completed",
+          "cancelled",
+          "disputed"
+        ],
+        "initial": "draft",
+        "allowedTransitions": "UNVERIFIED",
+        "terminalStates": "UNVERIFIED"
+      },
+      "monetaryPrecision": {
+        "quantity": "numeric(15,2)",
+        "unitPrice": "numeric(15,2)",
+        "totalValue": "numeric(15,2)",
+        "applicationType": "number",
+        "roundingRule": "UNVERIFIED"
+      },
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [
+        "contract_code is unique but source-operation semantics are unverified"
+      ],
+      "schemaConflicts": [
+        "product_category_id is int in the legacy declaration while canonical ProductCategory.id is uuid"
+      ],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "contracts",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_CANONICAL_ID_TYPES_STATE_MACHINE_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    },
+    {
+      "table": "purchase_requests",
+      "physicalTable": false,
+      "entityMappings": [
+        "src/database/entities/purchase-request.entity.ts"
+      ],
+      "runtimeRegistration": false,
+      "cliRegistry": false,
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "columns": [
+        "id uuid generated",
+        "enterprise_id uuid not null",
+        "category_id int null",
+        "quantity_needed numeric(15,2) not null",
+        "unit enum not null",
+        "quality_standard text null",
+        "farming_type enum null",
+        "province_id int null",
+        "deadline date null",
+        "status varchar(50) not null default open",
+        "created_at timestamptz not null",
+        "updated_at timestamptz not null"
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "deleteBehavior": "No source FK; roadmap requires retained procurement record.",
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "stateFields": {
+        "statusValues": [
+          "open"
+        ],
+        "allowedTransitions": "UNVERIFIED_FREE_TEXT_COLUMN",
+        "terminalStates": "UNVERIFIED"
+      },
+      "monetaryPrecision": {
+        "quantityNeeded": "numeric(15,2)",
+        "targetPrice": "MISSING",
+        "applicationType": "number",
+        "roundingRule": "UNVERIFIED"
+      },
+      "currencyFields": [],
+      "operationOrProviderReferenceFields": [],
+      "schemaConflicts": [
+        "category_id is int in the legacy declaration while canonical ProductCategory.id is uuid",
+        "province_id is int in the legacy declaration while canonical Province.id is uuid"
+      ],
+      "migrationHistory": [],
+      "seedOwnership": "NONE",
+      "protectedDbExistence": false,
+      "protectedDbRowCount": "NOT_APPLICABLE",
+      "duplicateBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "orphanBlockers": "UNVERIFIED_DEPLOYED_ENVIRONMENT",
+      "baselineInclusion": false,
+      "baselineGroup": "C",
+      "recommendedOwner": "contracts",
+      "confidence": {
+        "ownership": "high",
+        "schema": "low",
+        "runtimeActivity": "high"
+      },
+      "migrationDecision": "NONE_BLOCKED_PENDING_CANONICAL_ID_TYPES_STATE_MACHINE_AND_DEPLOYED_EVIDENCE",
+      "classification": "DEAD_OR_UNMOUNTED"
+    }
+  ],
+  "workflows": [
+    {
+      "workflowName": "create order",
+      "entryPoint": null,
+      "participatingCapabilities": [],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "NONE_WORKFLOW_UNMOUNTED",
+      "failureWindows": [
+        "Cannot assess without an implemented use case."
+      ],
+      "retryBehavior": "UNDEFINED",
+      "idempotencySource": "UNDEFINED",
+      "concurrencyRisk": "CRITICAL_IF_IMPLEMENTED",
+      "selectedCoordinationMode": "UNDETERMINED_BLOCKED"
+    },
+    {
+      "workflowName": "transition order status and append history",
+      "entryPoint": null,
+      "participatingCapabilities": [],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "NONE_WORKFLOW_UNMOUNTED",
+      "failureWindows": [
+        "Allowed transitions, actor policy and terminal states are not defined."
+      ],
+      "retryBehavior": "UNDEFINED",
+      "idempotencySource": "UNDEFINED",
+      "concurrencyRisk": "CRITICAL_IF_IMPLEMENTED",
+      "selectedCoordinationMode": "UNDETERMINED_BLOCKED"
+    },
+    {
+      "workflowName": "initiate payment",
+      "entryPoint": null,
+      "participatingCapabilities": [],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "NONE_WORKFLOW_UNMOUNTED",
+      "failureWindows": [
+        "No provider contract, currency rule, signature verifier or reconciliation path exists."
+      ],
+      "retryBehavior": "UNDEFINED",
+      "idempotencySource": "UNDEFINED",
+      "concurrencyRisk": "CRITICAL_IF_IMPLEMENTED",
+      "selectedCoordinationMode": "UNDETERMINED_BLOCKED"
+    },
+    {
+      "workflowName": "process payment callback",
+      "entryPoint": null,
+      "participatingCapabilities": [],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "NONE_WORKFLOW_UNMOUNTED",
+      "failureWindows": [
+        "No callback identity, amount/currency comparison or terminal conflict rule exists."
+      ],
+      "retryBehavior": "UNDEFINED",
+      "idempotencySource": "UNDEFINED",
+      "concurrencyRisk": "CRITICAL_IF_IMPLEMENTED",
+      "selectedCoordinationMode": "UNDETERMINED_BLOCKED"
+    },
+    {
+      "workflowName": "accept purchase request and create contract",
+      "entryPoint": null,
+      "participatingCapabilities": [],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "NONE_WORKFLOW_UNMOUNTED",
+      "failureWindows": [
+        "Purchase-request transitions, authorization and source-to-contract cardinality are undefined."
+      ],
+      "retryBehavior": "UNDEFINED",
+      "idempotencySource": "UNDEFINED",
+      "concurrencyRisk": "CRITICAL_IF_IMPLEMENTED",
+      "selectedCoordinationMode": "UNDETERMINED_BLOCKED"
+    },
+    {
+      "workflowName": "purchase-completed review eligibility",
+      "entryPoint": null,
+      "participatingCapabilities": [
+        "reviews"
+      ],
+      "databaseWrites": [],
+      "externalCalls": [],
+      "eventsEmitted": [],
+      "currentTransactionBoundary": "READ_ONLY_NOT_IMPLEMENTED",
+      "failureWindows": [
+        "Completed-order semantics and eligibility requirement are not approved."
+      ],
+      "retryBehavior": "NOT_APPLICABLE",
+      "idempotencySource": "NOT_APPLICABLE",
+      "concurrencyRisk": "NONE_CURRENTLY",
+      "selectedCoordinationMode": "DEFERRED"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "COMMERCE_CANONICAL_SCHEMA_UNVERIFIED",
+      "stopCondition": 4,
+      "evidence": "All six tables are Group C, absent from baseline v2 and protected DB, and have no deployed schema evidence."
+    },
+    {
+      "code": "COMMERCE_DEPLOYED_EVIDENCE_REQUIRED",
+      "stopCondition": 6,
+      "evidence": "The legacy declarations contain unverified ID types and no deployed row/constraint inventory."
+    },
+    {
+      "code": "MONEY_CONTRACT_UNVERIFIED",
+      "stopCondition": 8,
+      "evidence": "Currency and rounding rules are absent; application declarations use JavaScript number."
+    },
+    {
+      "code": "COMMERCE_STATE_MACHINES_UNVERIFIED",
+      "stopCondition": 9,
+      "evidence": "Enums exist, but allowed transitions, terminal states, actors and conditional update behavior do not."
+    }
+  ],
+  "approvedDecisions": {
+    "ownership": {
+      "orders": [
+        "orders",
+        "order_items",
+        "order_status_history"
+      ],
+      "payments": [
+        "payments"
+      ],
+      "contracts": [
+        "contracts",
+        "purchase_requests"
+      ]
+    },
+    "ownershipImplementation": "BLOCKED_BEFORE_ENTITY_RELOCATION",
+    "baselineOnboarding": "NOT_APPROVED",
+    "migration": "NONE",
+    "operationKeyTable": "NOT_CREATED_NO_PROVEN_WORKFLOW",
+    "outbox": "NOT_CREATED_NO_PROVEN_RELIABLE_POST_COMMIT_EVENT",
+    "reviewPurchaseEligibility": "DEFERRED",
+    "phaseStatus": "BLOCKED"
+  }
+}
