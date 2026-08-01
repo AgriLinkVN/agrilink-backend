@@ -17,9 +17,15 @@ import { Review } from './infrastructure/persistence/entities/review.entity';
 import { TypeOrmReviewsRepository } from './infrastructure/persistence/repositories/typeorm-reviews.repository';
 import { ReviewsController } from './presentation/controllers/reviews.controller';
 import { ReviewReadModelService } from './application/services/review-read-model.service';
+import { OrdersModule } from '@modules/orders/orders.module';
 
 @Module({
-  imports: [ProductsModule, UsersModule, TypeOrmModule.forFeature([Review])],
+  imports: [
+    ProductsModule,
+    UsersModule,
+    OrdersModule,
+    TypeOrmModule.forFeature([Review]),
+  ],
   controllers: [ReviewsController],
   providers: [
     TypeOrmReviewsRepository,

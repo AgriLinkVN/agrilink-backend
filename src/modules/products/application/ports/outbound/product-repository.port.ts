@@ -25,6 +25,7 @@ export const PRODUCT_CERTIFICATION_REPOSITORY = Symbol(
 export const PRODUCT_WISHLIST_REPOSITORY = Symbol('PRODUCT_WISHLIST_REPOSITORY');
 export const PRODUCT_SEED_REPOSITORY = Symbol('PRODUCT_SEED_REPOSITORY');
 export const PRODUCT_REVIEW_QUERY = Symbol('PRODUCT_REVIEW_QUERY');
+export const PRODUCT_COMMERCE_QUERY = Symbol('PRODUCT_COMMERCE_QUERY');
 export const PRODUCT_ADMIN_QUERY = Symbol('PRODUCT_ADMIN_QUERY');
 export const PRODUCT_MODERATION_REPOSITORY = Symbol(
   'PRODUCT_MODERATION_REPOSITORY',
@@ -146,6 +147,16 @@ export interface ProductReviewQueryPort {
   findReviewSummariesByIds(
     ids: string[],
   ): Promise<Array<{ id: string; name: string | null }>>;
+}
+
+export interface ProductCommerceQueryPort {
+  findCommerceProduct(productId: string): Promise<{
+    id: string;
+    sellerId: string;
+    name: string;
+    pricePerUnit: string;
+    unit: string;
+  } | null>;
 }
 
 export interface ProductAdminQueryPort {

@@ -121,10 +121,10 @@
     {
       "schema": "public",
       "table": "contracts",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/contract.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented the greenfield Contracts capability with reviewed domain, persistence, transaction and concurrency contracts.",
+      "canonicalMappingCandidate": "src/modules/contracts/infrastructure/persistence/entities/contract.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -134,7 +134,27 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "contracts",
       "risk": "high",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "commerce_operations",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved the supporting database-backed idempotency ledger for Commerce mutations.",
+      "canonicalMappingCandidate": "src/modules/commerce/infrastructure/persistence/entities/commerce-operation.orm-entity.ts",
+      "requiredColumns": [
+        "actor_id, operation_type, idempotency_key, request_fingerprint",
+        "aggregate_id, result_reference, status and timestamps"
+      ],
+      "requiredConstraints": [
+        "UUID primary key and actor FK",
+        "unique actor/operation/key scope and status check"
+      ],
+      "legacyCompatibility": "none; Phase 6 greenfield supporting table",
+      "reconciliationOwner": "commerce",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity and concurrency verified"
     },
     {
       "schema": "public",
@@ -456,10 +476,10 @@
     {
       "schema": "public",
       "table": "order_items",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/order-item.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented immutable order line snapshots with exact quantity and VND arithmetic.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order-item.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -469,15 +489,15 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "orders",
       "risk": "high",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
     },
     {
       "schema": "public",
       "table": "order_status_history",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/order-status-history.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented immutable, operation-keyed order transition history.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order-status-history.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -487,15 +507,15 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "orders",
       "risk": "high",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
     },
     {
       "schema": "public",
       "table": "orders",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/order.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented the Orders aggregate, state machine, actor policy and atomic persistence boundary.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -505,7 +525,7 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "orders",
       "risk": "critical",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
     },
     {
       "schema": "public",
@@ -528,10 +548,10 @@
     {
       "schema": "public",
       "table": "payments",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/payment.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented manual VND payments, state transitions and bounded refunds without an external provider.",
+      "canonicalMappingCandidate": "src/modules/payments/infrastructure/persistence/entities/payment.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -541,7 +561,7 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "payments",
       "risk": "critical",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
     },
     {
       "schema": "public",
@@ -657,10 +677,10 @@
     {
       "schema": "public",
       "table": "purchase_requests",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
-      "canonicalMappingCandidate": "src/database/entities/purchase-request.entity.ts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented enterprise purchase requests with exact allocation and row-lock protection.",
+      "canonicalMappingCandidate": "src/modules/contracts/infrastructure/persistence/entities/purchase-request.orm-entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
       ],
@@ -670,7 +690,7 @@
       "legacyCompatibility": "none beyond deployed-schema verification",
       "reconciliationOwner": "contracts",
       "risk": "high",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
     },
     {
       "schema": "public",

@@ -19,6 +19,9 @@ import { AdsModule } from "./modules/ads/ads.module";
 import { AdminRoute } from "./modules/admin/admin.route";
 import { StorageModule } from "./modules/storage/storage.module";
 import { ForumModule } from "./modules/forum/forum.module";
+import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { ContractsModule } from './modules/contracts/contracts.module';
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { SmsRoute } from "./shared/sms/sms.route";
@@ -58,6 +61,9 @@ import { DevSeedService } from "./database/dev-seed.service";
     AdminRoute,
     StorageModule,
     ForumModule,
+    OrdersModule,
+    PaymentsModule,
+    ContractsModule,
   ],
   controllers: [AppController],
   providers: [

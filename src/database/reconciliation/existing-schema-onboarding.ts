@@ -13,8 +13,16 @@ import {
 import { assertDisposableDatabaseTarget } from "./database-target.guard";
 
 export const ONBOARDING_APPROVAL = "APPROVE_V2_BASELINE_ONBOARDING";
-const BASELINE_TIMESTAMP = "1800000000000" as const;
-const BASELINE_NAME = "CreateCanonicalBaselineV21800000000000" as const;
+const V2_LINEAGE = [
+  {
+    timestamp: "1800000000000",
+    name: "CreateCanonicalBaselineV21800000000000",
+  },
+  {
+    timestamp: "1800000001000",
+    name: "CreateCommerceBoundariesV21800000001000",
+  },
+] as const;
 
 export interface ExistingSchemaOnboardingPlan {
   version: 1;
@@ -26,9 +34,9 @@ export interface ExistingSchemaOnboardingPlan {
   operations: Array<
     | { type: "ensure-ledger"; table: "migrations_v2" }
     | {
-        type: "register-baseline";
-        timestamp: typeof BASELINE_TIMESTAMP;
-        name: typeof BASELINE_NAME;
+        type: "register-migration";
+        timestamp: (typeof V2_LINEAGE)[number]["timestamp"];
+        name: (typeof V2_LINEAGE)[number]["name"];
       }
   >;
   digest: string;
@@ -68,11 +76,11 @@ export function buildExistingSchemaOnboardingPlan(
     canonicalFingerprint: readCatalogManifest().fingerprint,
     operations: [
       { type: "ensure-ledger" as const, table: "migrations_v2" as const },
-      {
-        type: "register-baseline" as const,
-        timestamp: BASELINE_TIMESTAMP,
-        name: BASELINE_NAME,
-      },
+      ...V2_LINEAGE.map(({ timestamp, name }) => ({
+        type: "register-migration" as const,
+        timestamp,
+        name,
+      })),
     ],
   };
   return {
@@ -136,15 +144,19 @@ export async function applyExistingSchemaOnboarding(
       `SELECT COUNT(*)::text AS count FROM "public"."migrations_v2"`,
     )) as Array<{ count: string }>;
     if (Number(ledger.count) !== 0) {
-      throw new Error("V2 ledger is not empty; refusing baseline registration");
+      throw new Error(
+        "V2 ledger is not empty; refusing migration lineage registration",
+      );
     }
-    await runner.query(
-      `
-        INSERT INTO "public"."migrations_v2" ("timestamp", "name")
-        VALUES ($1, $2)
-      `,
-      [BASELINE_TIMESTAMP, BASELINE_NAME],
-    );
+    for (const migration of V2_LINEAGE) {
+      await runner.query(
+        `
+          INSERT INTO "public"."migrations_v2" ("timestamp", "name")
+          VALUES ($1, $2)
+        `,
+        [migration.timestamp, migration.name],
+      );
+    }
     await runner.commitTransaction();
   } catch (error) {
     await runner.rollbackTransaction();

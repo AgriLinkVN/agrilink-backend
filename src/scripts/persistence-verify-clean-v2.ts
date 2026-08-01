@@ -5,7 +5,6 @@ import * as path from "path";
 import { DataSource } from "typeorm";
 
 import { createDataSourceOptions } from "../database/data-source-options";
-import { CANONICAL_BASELINE_V2_TABLES } from "../database/migrations-v2/1800000000000-CreateCanonicalBaselineV2";
 import { V2_MIGRATIONS } from "../database/migration-registry";
 import {
   createAdminDataSource,
@@ -25,6 +24,7 @@ import {
 import { verifyExistingSchema } from "../database/reconciliation/existing-schema-verifier";
 import {
   CLI_ENTITY_REGISTRY,
+  CANONICAL_BASELINE_TABLE_KEYS,
   excludeDeferredEntitiesFromSchemaBuild,
 } from "../database/entity-registry";
 import {
@@ -70,7 +70,9 @@ async function main(): Promise<void> {
     const firstParity = await verifyCanonicalParity(target);
     assertCanonicalParity(firstParity);
 
-    await target.undoLastMigration();
+    for (let index = 0; index < V2_MIGRATIONS.length; index += 1) {
+      await target.undoLastMigration();
+    }
     const tablesAfterDown = await readBusinessTables(target);
     if (tablesAfterDown.length !== 0) {
       throw new Error(
@@ -115,7 +117,7 @@ async function main(): Promise<void> {
           secondRunMigrations: secondRun.length,
           downBusinessTableCount: tablesAfterDown.length,
           rerunMigrations: rerun.map(({ name }) => name),
-          tableCount: CANONICAL_BASELINE_V2_TABLES.length,
+          tableCount: CANONICAL_BASELINE_TABLE_KEYS.length,
           catalog: finalParity.catalog,
           typeOrm: finalParity.typeOrm,
           runtime: {
@@ -216,7 +218,9 @@ function assertMigrationNames(names: string[]): void {
 
 async function assertBaselineTableSet(dataSource: DataSource): Promise<void> {
   const actual = await readBusinessTables(dataSource);
-  const expected = [...CANONICAL_BASELINE_V2_TABLES].sort();
+  const expected = CANONICAL_BASELINE_TABLE_KEYS.map((key) =>
+    key.replace('public.', ''),
+  ).sort();
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     throw new Error(
       `Clean-v2 table set differs: ${JSON.stringify({ expected, actual })}`,

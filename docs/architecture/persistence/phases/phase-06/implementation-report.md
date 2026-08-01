@@ -1,75 +1,105 @@
 # Persistence Phase 6 Implementation Report
 
-## A. Synchronization
+## A. Scope And Ownership
 
-PR #85 was merged with successful CI. `develop` and `origin/develop` were
-equal at `b9013935bab4eb62caf9a0fa281ef8c576835537`, and the Phase 5 merge
-commit was an ancestor before this branch was created.
+The historical blocker audit remains preserved in PR #86 and
+`evidence/commerce-evidence.json`. The resumed implementation approves and
+owns:
 
-## B. Commerce Inventory
+| Table | Owner | Purpose |
+| --- | --- | --- |
+| `orders`, `order_items`, `order_status_history` | orders | order aggregate and immutable transition history |
+| `payments` | payments | manual VND payment and refund state |
+| `purchase_requests`, `contracts` | contracts | enterprise demand, allocation and bilateral contracts |
+| `commerce_operations` | commerce | durable operation-key claim and result replay |
 
-| Table | Approved owner | Runtime | Baseline v2 | Protected DB | Decision |
-| --- | --- | --- | --- | --- | --- |
-| `orders` | orders | unmounted | excluded Group C | absent | blocked |
-| `order_items` | orders | unmounted | excluded Group C | absent | blocked |
-| `order_status_history` | orders | unmounted | excluded Group C | absent | blocked |
-| `payments` | payments | unmounted | excluded Group C | absent | blocked |
-| `contracts` | contracts | unmounted | excluded Group C | absent | blocked |
-| `purchase_requests` | contracts | unmounted | excluded Group C | absent | blocked |
+Legacy central declarations are decorator-free compatibility re-exports. The
+runtime/CLI/test registry has one writable mapping for every scoped table.
 
-The approved ownership direction is clear, but the canonical schemas and
-active capability contracts are not.
+## B. Domain And Application
 
-## C. Workflow Inventory
+- Money accepts only non-negative integer decimal strings and uses bigint.
+- Quantity accepts positive values with at most three decimal places and uses
+  bigint thousandths.
+- Orders, Payments, Purchase Requests and Contracts enforce explicit state
+  machines, terminal states, actor rules and immutable commercial terms.
+- Mutations are split into focused use cases. Buyer, seller, enterprise and
+  changed-by identity are derived from the authenticated principal.
+- DTOs document money and quantity as strings; persistence entities never
+  leave infrastructure.
 
-No Orders, Payments, Contracts or Commerce module, endpoint, use case,
-repository, provider adapter, callback, operation-key implementation or
-outbox exists. Selecting transaction, saga or outbox behavior without those
-contracts would invent business behavior.
+## C. Transactions And Idempotency
 
-## D. Schema And State Blockers
+`CommerceUnitOfWork` exposes only `execute`. The shared TypeORM transaction
+context keeps EntityManager inside infrastructure and shares the active
+manager through AsyncLocalStorage.
 
-- `product_category_id`, `category_id` and `province_id` are `int` in dormant
-  declarations, while their current canonical owners use UUID identifiers.
-- Payment has no currency field, rounding rule, callback event identity or
-  unique provider reference.
-- Order and Contract enums do not define allowed transitions, terminal states
-  or actor permissions.
-- Purchase Request uses a free-text status with only the default `open`.
-- History has no from-status or operation/event key.
-- Money columns are declared as PostgreSQL numeric but application properties
-  use JavaScript `number`; no canonical arithmetic rule exists.
+The operation ledger is unique by actor, operation type and key. Canonical
+SHA-256 fingerprints support same-request replay and conflicting-payload
+rejection. PostgreSQL `RETURNING` determines the claim winner; this avoids the
+false TypeORM identifier signal observed under concurrent `ON CONFLICT`.
 
-## E. Protected Database Safety
+Order writes include items/history/operation result atomically. Payment and
+contract changes use conditional versions. Purchase Request allocation uses a
+row lock and exact decimal arithmetic.
 
-The read-only verifier reported 33 public tables, no migration ledger and
-catalog fingerprint
+## D. Cross-Module Boundaries
+
+- Products exports `ProductCommerceReader` with scalar snapshot fields.
+- Orders exports `OrderPaymentReader` and `CompletedPurchaseReader`.
+- Payments derives amount and ownership from the Order projection.
+- Reviews imports only `CompletedPurchaseReader`; a delivered qualifying order
+  sets `isVerifiedPurchase=true`, while reader failure never becomes true.
+- Architecture audit reports zero cross-module infrastructure violations.
+
+## E. Migration And Catalog
+
+`CreateCommerceBoundariesV21800000001000` adds the six business tables and
+the approved operation ledger. It uses UUID keys/FKs, `numeric(18,0)` money,
+`numeric(15,3)` quantity, explicit checks/indexes, restrictive deletes and
+version columns. Baseline and legacy migrations remain unchanged.
+
+Disposable PostgreSQL verification result:
+
+- first run: both v2 migrations applied;
+- second run: zero pending migrations;
+- full down: zero business tables remain;
+- rerun: both migrations apply;
+- catalog: 33 tables, 644 objects, zero diff;
+- TypeORM: one historical reviewed difference, zero unexpected/stale entries;
+- OpenAPI: 19 intentional Commerce paths, 107 total paths and 118 operations;
+- disposable databases removed after each run.
+
+Catalog and TypeORM compatibility now have distinct command entry points and
+assertions. `persistence:schema-parity` asserts the canonical catalog diff;
+`persistence:typeorm-compatibility-parity` asserts unexpected TypeORM
+operations, stale manifest entries and compatibility catalog mismatches.
+
+## F. Test Evidence
+
+- Domain/application focused suite: 67 tests across eight suites, including
+  exact arithmetic, DTO alignment, authorization and independent parity gates.
+- Real PostgreSQL concurrency uses `Promise.all` for same-key create-order,
+  stale transitions, duplicate mark-paid, bounded refunds, contract allocation
+  and same-side signatures.
+- Commerce E2E covers create/list/detail orders, valid delivery transitions,
+  cross-user denial, payments/refunds, requests/contracts, over-allocation,
+  bilateral activation/completion and verified-purchase review. Review-fix
+  coverage also verifies controller role rejection, ownership enforcement,
+  zero-value DTO rejection and controlled incompatible product-price handling.
+- Full-project gate results are recorded in `implementation-evidence.json`.
+
+## G. Protected Database Safety
+
+The safe verifier accessed local `agrilink_db` read-only. Before and after the
+final gates it reported PostgreSQL 16.14, 33 public tables, no migration ledger
+and the unchanged fingerprint
 `2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4`.
-All six Commerce tables and all candidate operation/outbox tables are absent.
-No DDL, DML, migration, seed or onboarding apply was run.
+No Commerce migration, seed, onboarding apply, DDL or DML ran there. Railway
+production was not accessed.
 
-## F. Decision
+## H. Deferred Work
 
-Phase 6 is blocked by stop conditions 4, 6, 8 and 9:
-
-1. Canonical Commerce schema cannot be determined.
-2. Required deployed evidence has not been supplied.
-3. Money precision semantics are incomplete.
-4. Order, payment, contract and purchase-request state machines are unknown.
-
-No ownership code was changed because a module-local decorated mapping would
-incorrectly promote the dormant declarations to canonical contracts.
-Migration is `NONE`; baseline v2 remains 26 tables.
-
-ADR 0008 was not created because no durable Commerce transaction,
-idempotency or outbox design was safe to accept. Review purchase eligibility
-remains deferred, so current Review authorization and API behavior do not
-change.
-
-## G. Resume Contract
-
-Resume on this phase only after the unblock evidence listed in
-[README.md](README.md) is reviewed and the
-[Commerce Decision Pack](decision-pack.md) records the required approvals.
-Then regenerate the evidence pack before moving entities or changing the
-registry. Do not start Phase 7A while Phase 6 is blocked.
+External payment providers, callbacks, saga/outbox, disputes, allocation
+release/reopen and Phase 7A operational ownership are deliberately excluded.
+Phase 7A must wait for this implementation PR to merge.

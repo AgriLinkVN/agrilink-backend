@@ -135,7 +135,7 @@ Implementation contract:
 
 ## Phase 6: Commerce And Transaction Boundaries
 
-- Branch: `refactor/persistence-phase-6-commerce`
+- Branch: `refactor/persistence-phase-6-commerce-implementation`
 - Scope: Orders, items/history, Payments, Contracts, PurchaseRequests,
   transaction coordinator, saga/outbox and operation keys.
 - Tests: atomic failure paths, callback/order/contract idempotency, outbox
@@ -144,6 +144,13 @@ Implementation contract:
 - Rollback: cohort/feature flag plus outbox drain and reconciliation.
 - Gate: same operation key cannot duplicate state; no TypeORM boundary leakage.
 - Risk: critical. Dependency: Phase 5.
+- Result: Orders, Payments and Contracts own canonical persistence and focused
+  application boundaries. Exact VND/quantity value objects, durable operation
+  keys, PostgreSQL transactions, optimistic versions and Purchase Request row
+  locks protect mutations. Typed Product/Order/Review ports replace
+  cross-module persistence. The six business tables and approved
+  `commerce_operations` support table are included in lineage v2. External
+  payment providers, saga/outbox and disputes remain deferred.
 
 ## Phase 7A: Operations
 

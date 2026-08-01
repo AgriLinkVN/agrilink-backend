@@ -12,6 +12,7 @@ import { AddStoredFileDeletionRetry1783645200000 } from "./migrations/1783645200
 import { EstablishCooperativePersistenceBoundaries1783731600000 } from "./migrations/1783731600000-EstablishCooperativePersistenceBoundaries";
 import { AddStoredFileIdToPrivateDocuments1783818000000 } from "./migrations/1783818000000-AddStoredFileIdToPrivateDocuments";
 import { CreateCanonicalBaselineV21800000000000 } from "./migrations-v2/1800000000000-CreateCanonicalBaselineV2";
+import { CreateCommerceBoundariesV21800000001000 } from "./migrations-v2/1800000001000-CreateCommerceBoundariesV2";
 
 export type MigrationClass = new () => MigrationInterface;
 
@@ -31,6 +32,7 @@ export const LEGACY_MIGRATIONS = Object.freeze([
 
 export const V2_MIGRATIONS = Object.freeze([
   CreateCanonicalBaselineV21800000000000,
+  CreateCommerceBoundariesV21800000001000,
 ] as const satisfies readonly MigrationClass[]);
 
 export function getMigrationNames(

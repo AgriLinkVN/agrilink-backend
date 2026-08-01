@@ -52,6 +52,7 @@ export interface CreateReviewInput {
   rating: number;
   comment: string | null;
   images: string[];
+  isVerifiedPurchase: boolean;
 }
 
 export interface ReviewPagination {

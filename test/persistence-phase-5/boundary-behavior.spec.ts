@@ -111,6 +111,7 @@ describe('Persistence Phase 5 boundary behavior', () => {
         rating: 5,
         comment: null,
         images: [],
+        isVerifiedPurchase: false,
       }),
     ).resolves.toBeNull();
   });

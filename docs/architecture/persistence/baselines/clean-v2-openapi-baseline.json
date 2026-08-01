@@ -1,7 +1,7 @@
 {
-  "fingerprint": "5637fed8d1ae886ea9cb8fabc5b9f7813454990c5f52ac5c5cded8fcb0a0157f",
-  "pathCount": 88,
-  "operationCount": 99,
+  "fingerprint": "53f5047404bd0cd9947645d318a9ac2320803b7ff205b964425fc5c593367d25",
+  "pathCount": 107,
+  "operationCount": 118,
   "snapshot": {
     "paths": {
       "/api/v1": {
@@ -2238,6 +2238,173 @@
           ]
         }
       },
+      "/api/v1/orders": {
+        "post": {
+          "operationId": "OrdersController_create",
+          "summary": "Create an order from active product snapshots",
+          "parameters": [
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Orders"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/orders/buyer/me": {
+        "get": {
+          "operationId": "OrdersController_listPurchases",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Orders"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/orders/seller/me": {
+        "get": {
+          "operationId": "OrdersController_listSales",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Orders"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/orders/{id}": {
+        "get": {
+          "operationId": "OrdersController_getOne",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Orders"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/orders/{id}/status": {
+        "patch": {
+          "operationId": "OrdersController_transition",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionOrderStatusDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Orders"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
       "/api/v1/ads/packages": {
         "get": {
           "operationId": "AdsController_getPackages",
@@ -3602,6 +3769,590 @@
             }
           ]
         }
+      },
+      "/api/v1/payments": {
+        "post": {
+          "operationId": "PaymentsController_create",
+          "parameters": [
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePaymentDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Payments"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/payments/order/{orderId}": {
+        "get": {
+          "operationId": "PaymentsController_get",
+          "parameters": [
+            {
+              "name": "orderId",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Payments"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/payments/{id}/paid": {
+        "patch": {
+          "operationId": "PaymentsController_paid",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionedPaymentDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Payments"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/payments/{id}/refund": {
+        "patch": {
+          "operationId": "PaymentsController_refund",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundPaymentDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Payments"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/purchase-requests": {
+        "post": {
+          "operationId": "ContractsController_createPurchaseRequest",
+          "parameters": [
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePurchaseRequestDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/purchase-requests/mine": {
+        "get": {
+          "operationId": "ContractsController_listPurchaseRequests",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/purchase-requests/{id}": {
+        "get": {
+          "operationId": "ContractsController_getPurchaseRequest",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/purchase-requests/{id}/close": {
+        "patch": {
+          "operationId": "ContractsController_closePurchaseRequest",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionedContractDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/purchase-requests/{id}/cancel": {
+        "patch": {
+          "operationId": "ContractsController_cancelPurchaseRequest",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionedContractDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/contracts/from-request": {
+        "post": {
+          "operationId": "ContractsController_createFromRequest",
+          "parameters": [
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateContractDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/contracts/mine": {
+        "get": {
+          "operationId": "ContractsController_listMyContracts",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/contracts/{id}": {
+        "get": {
+          "operationId": "ContractsController_getOneContract",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/contracts/{id}/sign": {
+        "patch": {
+          "operationId": "ContractsController_sign",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionedContractDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
+      },
+      "/api/v1/contracts/{id}/status": {
+        "patch": {
+          "operationId": "ContractsController_transition",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "idempotency-key",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionContractDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "tags": [
+            "Contracts"
+          ],
+          "security": [
+            {
+              "access-token": []
+            }
+          ]
+        }
       }
     },
     "components": {
@@ -4305,6 +5056,89 @@
             "reason"
           ]
         },
+        "CreateOrderItemDto": {
+          "type": "object",
+          "properties": {
+            "productId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "quantity": {
+              "type": "string",
+              "example": "2.5"
+            }
+          },
+          "required": [
+            "productId",
+            "quantity"
+          ]
+        },
+        "CreateOrderDto": {
+          "type": "object",
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CreateOrderItemDto"
+              }
+            },
+            "shippingFee": {
+              "type": "string",
+              "example": "0"
+            },
+            "platformFee": {
+              "type": "string",
+              "example": "0"
+            },
+            "paymentMethod": {
+              "type": "string",
+              "enum": [
+                "cod",
+                "bank_transfer",
+                "manual"
+              ]
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "items",
+            "shippingFee",
+            "platformFee",
+            "paymentMethod"
+          ]
+        },
+        "TransitionOrderStatusDto": {
+          "type": "object",
+          "properties": {
+            "toStatus": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "confirmed",
+                "preparing",
+                "handed_to_logistics",
+                "shipping",
+                "delivered",
+                "cancelled"
+              ]
+            },
+            "expectedVersion": {
+              "type": "number",
+              "minimum": 1
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "toStatus",
+            "expectedVersion"
+          ]
+        },
         "TrackAdEventDto": {
           "type": "object",
           "properties": {
@@ -4450,6 +5284,144 @@
           },
           "required": [
             "content"
+          ]
+        },
+        "CreatePaymentDto": {
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "cod",
+                "bank_transfer",
+                "manual"
+              ]
+            }
+          },
+          "required": [
+            "orderId",
+            "method"
+          ]
+        },
+        "VersionedPaymentDto": {
+          "type": "object",
+          "properties": {
+            "expectedVersion": {
+              "type": "number",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "expectedVersion"
+          ]
+        },
+        "RefundPaymentDto": {
+          "type": "object",
+          "properties": {
+            "expectedVersion": {
+              "type": "number",
+              "minimum": 1
+            },
+            "amount": {
+              "type": "string",
+              "example": "10000"
+            }
+          },
+          "required": [
+            "expectedVersion",
+            "amount"
+          ]
+        },
+        "CreatePurchaseRequestDto": {
+          "type": "object",
+          "properties": {
+            "productCategoryId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "provinceId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "quantityNeeded": {
+              "type": "string",
+              "example": "1000"
+            },
+            "unit": {
+              "type": "string",
+              "example": "kg",
+              "maxLength": 32
+            }
+          },
+          "required": [
+            "quantityNeeded",
+            "unit"
+          ]
+        },
+        "VersionedContractDto": {
+          "type": "object",
+          "properties": {
+            "expectedVersion": {
+              "type": "number",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "expectedVersion"
+          ]
+        },
+        "CreateContractDto": {
+          "type": "object",
+          "properties": {
+            "purchaseRequestId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "sellerId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "quantity": {
+              "type": "string",
+              "example": "100"
+            },
+            "unitPrice": {
+              "type": "string",
+              "example": "25000"
+            }
+          },
+          "required": [
+            "purchaseRequestId",
+            "sellerId",
+            "quantity",
+            "unitPrice"
+          ]
+        },
+        "TransitionContractDto": {
+          "type": "object",
+          "properties": {
+            "expectedVersion": {
+              "type": "number",
+              "minimum": 1
+            },
+            "toStatus": {
+              "type": "string",
+              "enum": [
+                "negotiating",
+                "pending_signature",
+                "active",
+                "completed",
+                "cancelled"
+              ]
+            }
+          },
+          "required": [
+            "expectedVersion",
+            "toStatus"
           ]
         }
       }

@@ -30,7 +30,7 @@ export class TypeOrmReviewsRepository implements ReviewsRepositoryPort {
       rating: input.rating,
       comment: input.comment,
       images: input.images,
-      isVerifiedPurchase: false,
+      isVerifiedPurchase: input.isVerifiedPurchase,
     });
 
     try {

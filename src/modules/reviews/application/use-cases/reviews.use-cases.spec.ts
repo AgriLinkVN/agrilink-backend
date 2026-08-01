@@ -129,6 +129,43 @@ describe('Reviews use cases', () => {
     );
   });
 
+  it('marks a review verified only through CompletedPurchaseReader', async () => {
+    const repository = createRepository();
+    const products = createProducts();
+    const users = createUsers();
+    const completedPurchases = { isEligible: jest.fn().mockResolvedValue(true) };
+    products.findReviewContext.mockResolvedValue({
+      id: PRODUCT_ID,
+      sellerId: SELLER_ID,
+      name: 'Xoai cat',
+    });
+    repository.createIfAbsent.mockImplementation(async (input) =>
+      makeReview({ isVerifiedPurchase: input.isVerifiedPurchase }),
+    );
+    const useCase = new CreateProductReviewUseCase(
+      repository,
+      products,
+      users,
+      completedPurchases,
+    );
+
+    await expect(
+      useCase.execute(BUYER_ID, {
+        productId: PRODUCT_ID,
+        rating: 5,
+        comment: null,
+        images: [],
+      }),
+    ).resolves.toMatchObject({ isVerifiedPurchase: true });
+    expect(completedPurchases.isEligible).toHaveBeenCalledWith(
+      BUYER_ID,
+      PRODUCT_ID,
+    );
+    expect(repository.createIfAbsent).toHaveBeenCalledWith(
+      expect.objectContaining({ isVerifiedPurchase: true }),
+    );
+  });
+
   it('rejects missing products, self reviews, and duplicate reviews', async () => {
     const repository = createRepository();
     const products = createProducts();
