@@ -1,12 +1,14 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "CreateCanonicalBaselineV21800000000000",
-  "fingerprint": "b267c0189b42040b9bfd2920da36605a680d23b94ccbeb1eac9dfe31e782b029",
-  "objectCount": 499,
+  "migration": "CreateCommerceBoundariesV21800000001000",
+  "fingerprint": "be704d36ffb557680535c6aa69b949f37b9ff843c2b523e224e96119da381d64",
+  "objectCount": 644,
   "snapshot": {
     "schema": "public",
-    "schemas": ["public"],
+    "schemas": [
+      "public"
+    ],
     "extensions": [
       {
         "name": "uuid-ossp",
@@ -26,19 +28,35 @@
       },
       {
         "name": "ad_events_eventtype_enum",
-        "values": ["impression", "click"]
+        "values": [
+          "impression",
+          "click"
+        ]
       },
       {
         "name": "ad_packages_type_enum",
-        "values": ["banner", "featured", "spotlight"]
+        "values": [
+          "banner",
+          "featured",
+          "spotlight"
+        ]
       },
       {
         "name": "forum_posts_category_enum",
-        "values": ["technical", "market", "experience"]
+        "values": [
+          "technical",
+          "market",
+          "experience"
+        ]
       },
       {
         "name": "incident_reports_incident_type_enum",
-        "values": ["damaged", "lost", "unreachable", "other"]
+        "values": [
+          "damaged",
+          "lost",
+          "unreachable",
+          "other"
+        ]
       },
       {
         "name": "notifications_type_enum",
@@ -63,27 +81,53 @@
       },
       {
         "name": "otp_verifications_purpose_enum",
-        "values": ["register", "login", "reset_password"]
+        "values": [
+          "register",
+          "login",
+          "reset_password"
+        ]
       },
       {
         "name": "otp_verifications_type_enum",
-        "values": ["sms", "email"]
+        "values": [
+          "sms",
+          "email"
+        ]
       },
       {
         "name": "product_certifications_cert_type_enum",
-        "values": ["vietgap", "organic", "globalgap", "ocop", "other"]
+        "values": [
+          "vietgap",
+          "organic",
+          "globalgap",
+          "ocop",
+          "other"
+        ]
       },
       {
         "name": "product_certifications_status_enum",
-        "values": ["pending", "verified", "rejected"]
+        "values": [
+          "pending",
+          "verified",
+          "rejected"
+        ]
       },
       {
         "name": "products_farming_type_enum",
-        "values": ["organic", "traditional", "vietgap", "globalgap"]
+        "values": [
+          "organic",
+          "traditional",
+          "vietgap",
+          "globalgap"
+        ]
       },
       {
         "name": "products_seller_type_enum",
-        "values": ["farmer", "cooperative", "supplier"]
+        "values": [
+          "farmer",
+          "cooperative",
+          "supplier"
+        ]
       },
       {
         "name": "products_status_enum",
@@ -99,15 +143,32 @@
       },
       {
         "name": "products_unit_enum",
-        "values": ["kg", "ton", "box", "bunch", "liter", "piece"]
+        "values": [
+          "kg",
+          "ton",
+          "box",
+          "bunch",
+          "liter",
+          "piece"
+        ]
       },
       {
         "name": "provinces_region_enum",
-        "values": ["north", "central", "south", "highlands"]
+        "values": [
+          "north",
+          "central",
+          "south",
+          "highlands"
+        ]
       },
       {
         "name": "supplier_profiles_supplier_type_enum",
-        "values": ["fertilizer", "pesticide", "equipment", "mixed"]
+        "values": [
+          "fertilizer",
+          "pesticide",
+          "equipment",
+          "mixed"
+        ]
       },
       {
         "name": "users_role_enum",
@@ -124,7 +185,12 @@
       },
       {
         "name": "users_status_enum",
-        "values": ["pending_verification", "active", "locked", "rejected"]
+        "values": [
+          "pending_verification",
+          "active",
+          "locked",
+          "rejected"
+        ]
       }
     ],
     "tables": [
@@ -358,11 +424,15 @@
             "table": "ad_campaigns",
             "name": "FK_e62d6720c7feca78fb5fac35fdb",
             "type": "foreign-key",
-            "columns": ["package_id"],
+            "columns": [
+              "package_id"
+            ],
             "definition": "FOREIGN KEY (package_id) REFERENCES ad_packages(id) ON DELETE RESTRICT",
             "referencedSchema": "public",
             "referencedTable": "ad_packages",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "RESTRICT",
             "deferrable": false,
@@ -372,7 +442,9 @@
             "table": "ad_campaigns",
             "name": "PK_7877713eb87f782dd190eed85a7",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -495,11 +567,15 @@
             "table": "ad_events",
             "name": "FK_4c367ce06287ffee25df821fafd",
             "type": "foreign-key",
-            "columns": ["campaign_id"],
+            "columns": [
+              "campaign_id"
+            ],
             "definition": "FOREIGN KEY (campaign_id) REFERENCES ad_campaigns(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "ad_campaigns",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -509,7 +585,9 @@
             "table": "ad_events",
             "name": "PK_82199d91a8b3a397192ab63a27f",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -671,7 +749,9 @@
             "table": "ad_packages",
             "name": "PK_83f845520e0b1e582374d435781",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -833,7 +913,9 @@
             "table": "audit_logs",
             "name": "PK_1bb179d048bbc581caa3b013439",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -852,6 +934,629 @@
             "primary": true,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"PK_1bb179d048bbc581caa3b013439\" ON audit_logs USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "commerce_operations",
+        "columns": [
+          {
+            "name": "actor_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "aggregate_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "idempotency_key",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 128,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "operation_type",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 64,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "request_fingerprint",
+            "dataType": "character",
+            "udtSchema": "pg_catalog",
+            "udtName": "bpchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 64,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "result_reference",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'started'::character varying",
+            "characterMaximumLength": 16,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "commerce_operations",
+            "name": "CHK_commerce_operations_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['started'::character varying, 'completed'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "commerce_operations",
+            "name": "FK_commerce_operations_actor",
+            "type": "foreign-key",
+            "columns": [
+              "actor_id"
+            ],
+            "definition": "FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "commerce_operations",
+            "name": "commerce_operations_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "commerce_operations",
+            "name": "UQ_commerce_operations_scope",
+            "type": "unique-constraint",
+            "columns": [
+              "actor_id",
+              "operation_type",
+              "idempotency_key"
+            ],
+            "definition": "UNIQUE (actor_id, operation_type, idempotency_key)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "commerce_operations",
+            "name": "UQ_commerce_operations_scope",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_commerce_operations_scope\" ON commerce_operations USING btree (actor_id, operation_type, idempotency_key)",
+            "predicate": null
+          },
+          {
+            "table": "commerce_operations",
+            "name": "commerce_operations_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX commerce_operations_pkey ON commerce_operations USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "contracts",
+        "columns": [
+          {
+            "name": "buyer_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "buyer_signed_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "contract_code",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "product_category_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "purchase_request_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "quantity",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 15,
+            "numericScale": 3,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "seller_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "seller_signed_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'draft'::character varying",
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "total_value",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "unit",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "unit_price",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "version",
+            "dataType": "integer",
+            "udtSchema": "pg_catalog",
+            "udtName": "int4",
+            "nullable": false,
+            "default": "1",
+            "characterMaximumLength": null,
+            "numericPrecision": 32,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "contracts",
+            "name": "CHK_contracts_quantity",
+            "type": "check-constraint",
+            "columns": [
+              "quantity"
+            ],
+            "definition": "CHECK (quantity > 0::numeric)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "CHK_contracts_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['draft'::character varying, 'negotiating'::character varying, 'pending_signature'::character varying, 'active'::character varying, 'completed'::character varying, 'cancelled'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "CHK_contracts_total",
+            "type": "check-constraint",
+            "columns": [
+              "unit_price",
+              "total_value",
+              "quantity"
+            ],
+            "definition": "CHECK (unit_price >= 0::numeric AND total_value = (quantity * unit_price))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "FK_contracts_buyer",
+            "type": "foreign-key",
+            "columns": [
+              "buyer_id"
+            ],
+            "definition": "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "FK_contracts_category",
+            "type": "foreign-key",
+            "columns": [
+              "product_category_id"
+            ],
+            "definition": "FOREIGN KEY (product_category_id) REFERENCES product_categories(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "product_categories",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "FK_contracts_request",
+            "type": "foreign-key",
+            "columns": [
+              "purchase_request_id"
+            ],
+            "definition": "FOREIGN KEY (purchase_request_id) REFERENCES purchase_requests(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "purchase_requests",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "FK_contracts_seller",
+            "type": "foreign-key",
+            "columns": [
+              "seller_id"
+            ],
+            "definition": "FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "contracts_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "contracts",
+            "name": "contracts_contract_code_key",
+            "type": "unique-constraint",
+            "columns": [
+              "contract_code"
+            ],
+            "definition": "UNIQUE (contract_code)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "contracts",
+            "name": "IDX_contracts_purchase_request",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_contracts_purchase_request\" ON contracts USING btree (purchase_request_id)",
+            "predicate": null
+          },
+          {
+            "table": "contracts",
+            "name": "contracts_contract_code_key",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX contracts_contract_code_key ON contracts USING btree (contract_code)",
+            "predicate": null
+          },
+          {
+            "table": "contracts",
+            "name": "contracts_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX contracts_pkey ON contracts USING btree (id)",
             "predicate": null
           }
         ]
@@ -1229,11 +1934,15 @@
             "table": "cooperative_profiles",
             "name": "FK_2ee3321e75f5e1f2261baa4e800",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -1243,11 +1952,15 @@
             "table": "cooperative_profiles",
             "name": "FK_cooperative_profiles_business_license_file_id",
             "type": "foreign-key",
-            "columns": ["business_license_file_id"],
+            "columns": [
+              "business_license_file_id"
+            ],
             "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1257,11 +1970,15 @@
             "table": "cooperative_profiles",
             "name": "FK_cooperative_profiles_cooperative_cert_file_id",
             "type": "foreign-key",
-            "columns": ["cooperative_cert_file_id"],
+            "columns": [
+              "cooperative_cert_file_id"
+            ],
             "definition": "FOREIGN KEY (cooperative_cert_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1271,11 +1988,15 @@
             "table": "cooperative_profiles",
             "name": "FK_cooperative_profiles_members_list_file_id",
             "type": "foreign-key",
-            "columns": ["members_list_file_id"],
+            "columns": [
+              "members_list_file_id"
+            ],
             "definition": "FOREIGN KEY (members_list_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1285,11 +2006,15 @@
             "table": "cooperative_profiles",
             "name": "FK_cooperative_profiles_representative_cccd_back_fi",
             "type": "foreign-key",
-            "columns": ["representative_cccd_back_file_id"],
+            "columns": [
+              "representative_cccd_back_file_id"
+            ],
             "definition": "FOREIGN KEY (representative_cccd_back_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1299,11 +2024,15 @@
             "table": "cooperative_profiles",
             "name": "FK_cooperative_profiles_representative_cccd_front_f",
             "type": "foreign-key",
-            "columns": ["representative_cccd_front_file_id"],
+            "columns": [
+              "representative_cccd_front_file_id"
+            ],
             "definition": "FOREIGN KEY (representative_cccd_front_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1313,7 +2042,9 @@
             "table": "cooperative_profiles",
             "name": "PK_0740de5336ada82174537b349d4",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1327,7 +2058,9 @@
             "table": "cooperative_profiles",
             "name": "REL_2ee3321e75f5e1f2261baa4e80",
             "type": "unique-constraint",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "UNIQUE (user_id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1341,7 +2074,9 @@
             "table": "cooperative_profiles",
             "name": "UQ_630b29a155375bb0ff7ecc13ce0",
             "type": "unique-constraint",
-            "columns": ["business_license_number"],
+            "columns": [
+              "business_license_number"
+            ],
             "definition": "UNIQUE (business_license_number)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1355,7 +2090,9 @@
             "table": "cooperative_profiles",
             "name": "UQ_71398f99d7a3abfc43e3bdfcaa1",
             "type": "unique-constraint",
-            "columns": ["tax_code"],
+            "columns": [
+              "tax_code"
+            ],
             "definition": "UNIQUE (tax_code)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1524,11 +2261,15 @@
             "table": "districts",
             "name": "FK_9d451638507b11822dc411a2dfe",
             "type": "foreign-key",
-            "columns": ["province_id"],
+            "columns": [
+              "province_id"
+            ],
             "definition": "FOREIGN KEY (province_id) REFERENCES provinces(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "provinces",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -1538,7 +2279,9 @@
             "table": "districts",
             "name": "PK_972a72ff4e3bea5c7f43a2b98af",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1778,11 +2521,15 @@
             "table": "enterprise_profiles",
             "name": "FK_7b9aac16881c9af649fd74011b9",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -1792,11 +2539,15 @@
             "table": "enterprise_profiles",
             "name": "FK_enterprise_profiles_business_license_file_id",
             "type": "foreign-key",
-            "columns": ["business_license_file_id"],
+            "columns": [
+              "business_license_file_id"
+            ],
             "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -1806,7 +2557,9 @@
             "table": "enterprise_profiles",
             "name": "PK_ed347c3fa667bf48b581f29dd2b",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1820,7 +2573,9 @@
             "table": "enterprise_profiles",
             "name": "REL_7b9aac16881c9af649fd74011b",
             "type": "unique-constraint",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "UNIQUE (user_id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -1834,7 +2589,9 @@
             "table": "enterprise_profiles",
             "name": "UQ_35d168bd386baa81557b209aa0e",
             "type": "unique-constraint",
-            "columns": ["tax_code"],
+            "columns": [
+              "tax_code"
+            ],
             "definition": "UNIQUE (tax_code)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2179,11 +2936,15 @@
             "table": "farmer_profiles",
             "name": "FK_77f5f5145225ffcaa3583fb0ee1",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -2193,11 +2954,15 @@
             "table": "farmer_profiles",
             "name": "FK_farmer_profiles_cccd_back_file_id",
             "type": "foreign-key",
-            "columns": ["cccd_back_file_id"],
+            "columns": [
+              "cccd_back_file_id"
+            ],
             "definition": "FOREIGN KEY (cccd_back_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -2207,11 +2972,15 @@
             "table": "farmer_profiles",
             "name": "FK_farmer_profiles_cccd_front_file_id",
             "type": "foreign-key",
-            "columns": ["cccd_front_file_id"],
+            "columns": [
+              "cccd_front_file_id"
+            ],
             "definition": "FOREIGN KEY (cccd_front_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -2221,7 +2990,9 @@
             "table": "farmer_profiles",
             "name": "PK_4718a4781e7bd8b1f701b9a3cc1",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2235,7 +3006,9 @@
             "table": "farmer_profiles",
             "name": "REL_77f5f5145225ffcaa3583fb0ee",
             "type": "unique-constraint",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "UNIQUE (user_id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2249,7 +3022,9 @@
             "table": "farmer_profiles",
             "name": "UQ_a3d3dd6273bcbf7118d9c7fefbd",
             "type": "unique-constraint",
-            "columns": ["cccd_number"],
+            "columns": [
+              "cccd_number"
+            ],
             "definition": "UNIQUE (cccd_number)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2408,7 +3183,9 @@
             "table": "forum_comments",
             "name": "PK_1c860feac1713d199c00ce1e9d1",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2492,7 +3269,9 @@
             "table": "forum_likes",
             "name": "PK_9feaf1887b12844e95c35facaa5",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2506,7 +3285,10 @@
             "table": "forum_likes",
             "name": "UQ_9d0f0faa0615243262e3b689743",
             "type": "unique-constraint",
-            "columns": ["post_id", "user_id"],
+            "columns": [
+              "post_id",
+              "user_id"
+            ],
             "definition": "UNIQUE (post_id, user_id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2703,7 +3485,9 @@
             "table": "forum_posts",
             "name": "PK_3e9c301114a0fd42c998681b04e",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -2852,7 +3636,9 @@
             "table": "incident_reports",
             "name": "PK_8b924dea33e3dd1ef1bbac02ad6",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3001,7 +3787,9 @@
             "table": "notifications",
             "name": "PK_6a72c3c0f683f6462415e653c3a",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3020,6 +3808,817 @@
             "primary": true,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"PK_6a72c3c0f683f6462415e653c3a\" ON notifications USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "order_items",
+        "columns": [
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "line_total",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "order_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "product_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "product_name",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 255,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "quantity",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 15,
+            "numericScale": 3,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "unit_price",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "order_items",
+            "name": "CHK_order_items_money",
+            "type": "check-constraint",
+            "columns": [
+              "unit_price",
+              "line_total",
+              "quantity"
+            ],
+            "definition": "CHECK (unit_price >= 0::numeric AND line_total = (quantity * unit_price))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_items",
+            "name": "CHK_order_items_quantity",
+            "type": "check-constraint",
+            "columns": [
+              "quantity"
+            ],
+            "definition": "CHECK (quantity > 0::numeric)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_items",
+            "name": "FK_order_items_order",
+            "type": "foreign-key",
+            "columns": [
+              "order_id"
+            ],
+            "definition": "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "orders",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_items",
+            "name": "FK_order_items_product",
+            "type": "foreign-key",
+            "columns": [
+              "product_id"
+            ],
+            "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "products",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_items",
+            "name": "order_items_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "order_items",
+            "name": "IDX_order_items_order",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_order_items_order\" ON order_items USING btree (order_id)",
+            "predicate": null
+          },
+          {
+            "table": "order_items",
+            "name": "order_items_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX order_items_pkey ON order_items USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "order_status_history",
+        "columns": [
+          {
+            "name": "changed_by",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "from_status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "note",
+            "dataType": "text",
+            "udtSchema": "pg_catalog",
+            "udtName": "text",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "operation_key",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 128,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "order_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "to_status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "order_status_history",
+            "name": "FK_order_status_history_actor",
+            "type": "foreign-key",
+            "columns": [
+              "changed_by"
+            ],
+            "definition": "FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "SET NULL",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_status_history",
+            "name": "FK_order_status_history_order",
+            "type": "foreign-key",
+            "columns": [
+              "order_id"
+            ],
+            "definition": "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "orders",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_status_history",
+            "name": "order_status_history_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "order_status_history",
+            "name": "UQ_order_status_history_operation",
+            "type": "unique-constraint",
+            "columns": [
+              "order_id",
+              "operation_key"
+            ],
+            "definition": "UNIQUE (order_id, operation_key)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "order_status_history",
+            "name": "IDX_order_history_order_created",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_order_history_order_created\" ON order_status_history USING btree (order_id, created_at)",
+            "predicate": null
+          },
+          {
+            "table": "order_status_history",
+            "name": "UQ_order_status_history_operation",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_order_status_history_operation\" ON order_status_history USING btree (order_id, operation_key)",
+            "predicate": null
+          },
+          {
+            "table": "order_status_history",
+            "name": "order_status_history_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX order_status_history_pkey ON order_status_history USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "orders",
+        "columns": [
+          {
+            "name": "buyer_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "cancelled_reason",
+            "dataType": "text",
+            "udtSchema": "pg_catalog",
+            "udtName": "text",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "delivered_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "note",
+            "dataType": "text",
+            "udtSchema": "pg_catalog",
+            "udtName": "text",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "order_code",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "payment_method",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "platform_fee",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": "0",
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "seller_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "shipping_address_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "shipping_fee",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": "0",
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'pending'::character varying",
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "subtotal",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "total_amount",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "version",
+            "dataType": "integer",
+            "udtSchema": "pg_catalog",
+            "udtName": "int4",
+            "nullable": false,
+            "default": "1",
+            "characterMaximumLength": null,
+            "numericPrecision": 32,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "orders",
+            "name": "CHK_orders_method",
+            "type": "check-constraint",
+            "columns": [
+              "payment_method"
+            ],
+            "definition": "CHECK (payment_method::text = ANY (ARRAY['cod'::character varying, 'bank_transfer'::character varying, 'manual'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "CHK_orders_money",
+            "type": "check-constraint",
+            "columns": [
+              "subtotal",
+              "shipping_fee",
+              "platform_fee",
+              "total_amount"
+            ],
+            "definition": "CHECK (subtotal >= 0::numeric AND shipping_fee >= 0::numeric AND platform_fee >= 0::numeric AND total_amount = (subtotal + shipping_fee + platform_fee))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "CHK_orders_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'preparing'::character varying, 'handed_to_logistics'::character varying, 'shipping'::character varying, 'delivered'::character varying, 'cancelled'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "FK_orders_buyer",
+            "type": "foreign-key",
+            "columns": [
+              "buyer_id"
+            ],
+            "definition": "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "FK_orders_seller",
+            "type": "foreign-key",
+            "columns": [
+              "seller_id"
+            ],
+            "definition": "FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "orders_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "orders",
+            "name": "orders_order_code_key",
+            "type": "unique-constraint",
+            "columns": [
+              "order_code"
+            ],
+            "definition": "UNIQUE (order_code)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "orders",
+            "name": "IDX_orders_buyer_created",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_orders_buyer_created\" ON orders USING btree (buyer_id, created_at)",
+            "predicate": null
+          },
+          {
+            "table": "orders",
+            "name": "IDX_orders_seller_created",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_orders_seller_created\" ON orders USING btree (seller_id, created_at)",
+            "predicate": null
+          },
+          {
+            "table": "orders",
+            "name": "orders_order_code_key",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX orders_order_code_key ON orders USING btree (order_code)",
+            "predicate": null
+          },
+          {
+            "table": "orders",
+            "name": "orders_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX orders_pkey ON orders USING btree (id)",
             "predicate": null
           }
         ]
@@ -3163,11 +4762,15 @@
             "table": "otp_verifications",
             "name": "FK_c7f1d281e1acc51e2a37889f5a9",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id)",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -3177,7 +4780,9 @@
             "table": "otp_verifications",
             "name": "PK_91d17e75ac3182dba6701869b39",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3196,6 +4801,278 @@
             "primary": true,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"PK_91d17e75ac3182dba6701869b39\" ON otp_verifications USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "payments",
+        "columns": [
+          {
+            "name": "amount",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "currency",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'VND'::character varying",
+            "characterMaximumLength": 3,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "method",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "order_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "refunded_amount",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": "0",
+            "characterMaximumLength": null,
+            "numericPrecision": 18,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'unpaid'::character varying",
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "version",
+            "dataType": "integer",
+            "udtSchema": "pg_catalog",
+            "udtName": "int4",
+            "nullable": false,
+            "default": "1",
+            "characterMaximumLength": null,
+            "numericPrecision": 32,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "payments",
+            "name": "CHK_payments_currency",
+            "type": "check-constraint",
+            "columns": [
+              "currency"
+            ],
+            "definition": "CHECK (currency::text = 'VND'::text)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "CHK_payments_method",
+            "type": "check-constraint",
+            "columns": [
+              "method"
+            ],
+            "definition": "CHECK (method::text = ANY (ARRAY['cod'::character varying, 'bank_transfer'::character varying, 'manual'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "CHK_payments_refund",
+            "type": "check-constraint",
+            "columns": [
+              "amount",
+              "refunded_amount"
+            ],
+            "definition": "CHECK (amount >= 0::numeric AND refunded_amount >= 0::numeric AND refunded_amount <= amount)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "CHK_payments_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['unpaid'::character varying, 'paid'::character varying, 'partially_refunded'::character varying, 'refunded'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "FK_payments_order",
+            "type": "foreign-key",
+            "columns": [
+              "order_id"
+            ],
+            "definition": "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "orders",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "payments_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "payments",
+            "name": "payments_order_id_key",
+            "type": "unique-constraint",
+            "columns": [
+              "order_id"
+            ],
+            "definition": "UNIQUE (order_id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "payments",
+            "name": "payments_order_id_key",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX payments_order_id_key ON payments USING btree (order_id)",
+            "predicate": null
+          },
+          {
+            "table": "payments",
+            "name": "payments_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX payments_pkey ON payments USING btree (id)",
             "predicate": null
           }
         ]
@@ -3339,11 +5216,15 @@
             "table": "product_categories",
             "name": "FK_5f151d414daab0290f65b517ed4",
             "type": "foreign-key",
-            "columns": ["parent_id"],
+            "columns": [
+              "parent_id"
+            ],
             "definition": "FOREIGN KEY (parent_id) REFERENCES product_categories(id)",
             "referencedSchema": "public",
             "referencedTable": "product_categories",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -3353,7 +5234,9 @@
             "table": "product_categories",
             "name": "PK_7069dac60d88408eca56fdc9e0c",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3367,7 +5250,9 @@
             "table": "product_categories",
             "name": "UQ_f314a8b42f88d87b2dcb7fc491a",
             "type": "unique-constraint",
-            "columns": ["slug"],
+            "columns": [
+              "slug"
+            ],
             "definition": "UNIQUE (slug)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3603,11 +5488,15 @@
             "table": "product_certifications",
             "name": "FK_4ac2b9fb94b2cbe43d0fe493c80",
             "type": "foreign-key",
-            "columns": ["product_id"],
+            "columns": [
+              "product_id"
+            ],
             "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "products",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -3617,11 +5506,15 @@
             "table": "product_certifications",
             "name": "FK_product_certifications_stored_file",
             "type": "foreign-key",
-            "columns": ["stored_file_id"],
+            "columns": [
+              "stored_file_id"
+            ],
             "definition": "FOREIGN KEY (stored_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -3631,7 +5524,9 @@
             "table": "product_certifications",
             "name": "PK_d369317135cb1047e6046a86b8f",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -3763,11 +5658,15 @@
             "table": "product_images",
             "name": "FK_4f166bb8c2bfcef2498d97b4068",
             "type": "foreign-key",
-            "columns": ["product_id"],
+            "columns": [
+              "product_id"
+            ],
             "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "products",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -3777,7 +5676,9 @@
             "table": "product_images",
             "name": "PK_1974264ea7265989af8392f63a1",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4160,11 +6061,15 @@
             "table": "products",
             "name": "FK_9a5f6868c96e0069e699f33e124",
             "type": "foreign-key",
-            "columns": ["category_id"],
+            "columns": [
+              "category_id"
+            ],
             "definition": "FOREIGN KEY (category_id) REFERENCES product_categories(id)",
             "referencedSchema": "public",
             "referencedTable": "product_categories",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -4174,7 +6079,9 @@
             "table": "products",
             "name": "PK_0806c755e0aca124e67c0cf6d7d",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4188,7 +6095,9 @@
             "table": "products",
             "name": "UQ_c44ac33a05b144dd0d9ddcf9327",
             "type": "unique-constraint",
-            "columns": ["sku"],
+            "columns": [
+              "sku"
+            ],
             "definition": "UNIQUE (sku)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4333,7 +6242,9 @@
             "table": "provinces",
             "name": "PK_2e4260eedbcad036ec53222e0c7",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4347,7 +6258,9 @@
             "table": "provinces",
             "name": "UQ_5c78199072262966fb68b718095",
             "type": "unique-constraint",
-            "columns": ["name"],
+            "columns": [
+              "name"
+            ],
             "definition": "UNIQUE (name)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4361,7 +6274,9 @@
             "table": "provinces",
             "name": "UQ_d9bd798de5f037f71e348d47f8d",
             "type": "unique-constraint",
-            "columns": ["slug"],
+            "columns": [
+              "slug"
+            ],
             "definition": "UNIQUE (slug)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4375,7 +6290,9 @@
             "table": "provinces",
             "name": "UQ_f4b684af62d5cb3aa174f6b9b8a",
             "type": "unique-constraint",
-            "columns": ["code"],
+            "columns": [
+              "code"
+            ],
             "definition": "UNIQUE (code)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4421,6 +6338,256 @@
             "primary": false,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"UQ_f4b684af62d5cb3aa174f6b9b8a\" ON provinces USING btree (code)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "purchase_requests",
+        "columns": [
+          {
+            "name": "buyer_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "product_category_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "province_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "quantity_needed",
+            "dataType": "numeric",
+            "udtSchema": "pg_catalog",
+            "udtName": "numeric",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 15,
+            "numericScale": 3,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'open'::character varying",
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "unit",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 32,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "version",
+            "dataType": "integer",
+            "udtSchema": "pg_catalog",
+            "udtName": "int4",
+            "nullable": false,
+            "default": "1",
+            "characterMaximumLength": null,
+            "numericPrecision": 32,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "purchase_requests",
+            "name": "CHK_purchase_requests_quantity",
+            "type": "check-constraint",
+            "columns": [
+              "quantity_needed"
+            ],
+            "definition": "CHECK (quantity_needed > 0::numeric)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "purchase_requests",
+            "name": "CHK_purchase_requests_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['open'::character varying, 'closed'::character varying, 'cancelled'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "purchase_requests",
+            "name": "FK_purchase_requests_buyer",
+            "type": "foreign-key",
+            "columns": [
+              "buyer_id"
+            ],
+            "definition": "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "purchase_requests",
+            "name": "FK_purchase_requests_category",
+            "type": "foreign-key",
+            "columns": [
+              "product_category_id"
+            ],
+            "definition": "FOREIGN KEY (product_category_id) REFERENCES product_categories(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "product_categories",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "purchase_requests",
+            "name": "FK_purchase_requests_province",
+            "type": "foreign-key",
+            "columns": [
+              "province_id"
+            ],
+            "definition": "FOREIGN KEY (province_id) REFERENCES provinces(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "provinces",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "purchase_requests",
+            "name": "purchase_requests_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "purchase_requests",
+            "name": "purchase_requests_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX purchase_requests_pkey ON purchase_requests USING btree (id)",
             "predicate": null
           }
         ]
@@ -4538,11 +6705,15 @@
             "table": "refresh_tokens",
             "name": "FK_3ddc983c5f7bcf132fd8732c3f4",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -4552,7 +6723,9 @@
             "table": "refresh_tokens",
             "name": "PK_7d8bee0204106019488c4c50ffa",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4566,7 +6739,9 @@
             "table": "refresh_tokens",
             "name": "UQ_a7838d2ba25be1342091b6695f1",
             "type": "unique-constraint",
-            "columns": ["token_hash"],
+            "columns": [
+              "token_hash"
+            ],
             "definition": "UNIQUE (token_hash)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4828,7 +7003,9 @@
             "table": "reviews",
             "name": "CHK_reviews_rating_range",
             "type": "check-constraint",
-            "columns": ["rating"],
+            "columns": [
+              "rating"
+            ],
             "definition": "CHECK (rating >= 1 AND rating <= 5)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -4842,11 +7019,15 @@
             "table": "reviews",
             "name": "FK_92e950a2513a79bb3fab273c92e",
             "type": "foreign-key",
-            "columns": ["reviewer_id"],
+            "columns": [
+              "reviewer_id"
+            ],
             "definition": "FOREIGN KEY (reviewer_id) REFERENCES users(id)",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -4856,11 +7037,15 @@
             "table": "reviews",
             "name": "FK_9482e9567d8dcc2bc615981ef44",
             "type": "foreign-key",
-            "columns": ["product_id"],
+            "columns": [
+              "product_id"
+            ],
             "definition": "FOREIGN KEY (product_id) REFERENCES products(id)",
             "referencedSchema": "public",
             "referencedTable": "products",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -4870,7 +7055,9 @@
             "table": "reviews",
             "name": "PK_231ae565c273ee700b283f15c1d",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5158,7 +7345,9 @@
             "table": "stored_files",
             "name": "CHK_stored_files_status",
             "type": "check-constraint",
-            "columns": ["status"],
+            "columns": [
+              "status"
+            ],
             "definition": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'UPLOADED'::character varying, 'QUARANTINED'::character varying, 'ACTIVE'::character varying, 'FAILED'::character varying, 'DELETE_RETRY'::character varying, 'DELETED'::character varying]::text[]))",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5172,7 +7361,9 @@
             "table": "stored_files",
             "name": "PK_5d5be862bf53851c1794b4adf4e",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5186,7 +7377,9 @@
             "table": "stored_files",
             "name": "UQ_0a8766dd87c9ec99f69bc0d6629",
             "type": "unique-constraint",
-            "columns": ["object_key"],
+            "columns": [
+              "object_key"
+            ],
             "definition": "UNIQUE (object_key)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5427,11 +7620,15 @@
             "table": "supplier_profiles",
             "name": "FK_supplier_profiles_business_license_file_id",
             "type": "foreign-key",
-            "columns": ["business_license_file_id"],
+            "columns": [
+              "business_license_file_id"
+            ],
             "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
             "referencedSchema": "public",
             "referencedTable": "stored_files",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -5441,11 +7638,15 @@
             "table": "supplier_profiles",
             "name": "FK_supplier_profiles_user",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id)",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "NO ACTION",
             "deferrable": false,
@@ -5455,7 +7656,9 @@
             "table": "supplier_profiles",
             "name": "PK_3206f32d21aefa46b72abffa366",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5469,7 +7672,9 @@
             "table": "supplier_profiles",
             "name": "UQ_d8f0b495dba71509b24110ef9ea",
             "type": "unique-constraint",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "UNIQUE (user_id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5610,7 +7815,9 @@
             "table": "system_configs",
             "name": "PK_29ac548e654c799fd885e1b9b71",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5624,7 +7831,9 @@
             "table": "system_configs",
             "name": "UQ_5aff9a6d272a5cedf54d7aaf617",
             "type": "unique-constraint",
-            "columns": ["key"],
+            "columns": [
+              "key"
+            ],
             "definition": "UNIQUE (key)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5847,7 +8056,9 @@
             "table": "users",
             "name": "PK_a3ffb1c0c8416b9fc6f907b7433",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5861,7 +8072,9 @@
             "table": "users",
             "name": "UQ_0fd54ced5cc75f7cb92925dd803",
             "type": "unique-constraint",
-            "columns": ["firebase_uid"],
+            "columns": [
+              "firebase_uid"
+            ],
             "definition": "UNIQUE (firebase_uid)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5875,7 +8088,9 @@
             "table": "users",
             "name": "UQ_97672ac88f789774dd47f7c8be3",
             "type": "unique-constraint",
-            "columns": ["email"],
+            "columns": [
+              "email"
+            ],
             "definition": "UNIQUE (email)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -5889,7 +8104,9 @@
             "table": "users",
             "name": "UQ_a000cca60bcf04454e727699490",
             "type": "unique-constraint",
-            "columns": ["phone"],
+            "columns": [
+              "phone"
+            ],
             "definition": "UNIQUE (phone)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -6000,11 +8217,15 @@
             "table": "wishlists",
             "name": "FK_2662acbb3868b1f0077fda61dd2",
             "type": "foreign-key",
-            "columns": ["product_id"],
+            "columns": [
+              "product_id"
+            ],
             "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "products",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -6014,11 +8235,15 @@
             "table": "wishlists",
             "name": "FK_wishlists_user",
             "type": "foreign-key",
-            "columns": ["user_id"],
+            "columns": [
+              "user_id"
+            ],
             "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
             "referencedSchema": "public",
             "referencedTable": "users",
-            "referencedColumns": ["id"],
+            "referencedColumns": [
+              "id"
+            ],
             "onUpdate": "NO ACTION",
             "onDelete": "CASCADE",
             "deferrable": false,
@@ -6028,7 +8253,9 @@
             "table": "wishlists",
             "name": "PK_d0a37f2848c5d268d315325f359",
             "type": "primary-key",
-            "columns": ["id"],
+            "columns": [
+              "id"
+            ],
             "definition": "PRIMARY KEY (id)",
             "referencedSchema": null,
             "referencedTable": null,
@@ -6042,7 +8269,10 @@
             "table": "wishlists",
             "name": "UQ_9c64a981c56ba677ac17f5fba6f",
             "type": "unique-constraint",
-            "columns": ["user_id", "product_id"],
+            "columns": [
+              "user_id",
+              "product_id"
+            ],
             "definition": "UNIQUE (user_id, product_id)",
             "referencedSchema": null,
             "referencedTable": null,

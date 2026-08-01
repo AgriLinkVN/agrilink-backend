@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import { UserStatus } from '@common/enums';
 import {
@@ -35,6 +35,10 @@ import {
 } from '../../domain/policies/review.policy';
 import { ReviewStateError } from '../../domain/errors/review-domain.error';
 import { ReviewReadModelService } from '../services/review-read-model.service';
+import {
+  COMPLETED_PURCHASE_READER,
+  CompletedPurchaseReader,
+} from '@modules/orders/application/ports/order-repository.port';
 
 @Injectable()
 export class ListPublicProductReviewsUseCase {
@@ -71,11 +75,17 @@ export class CreateProductReviewUseCase {
     private readonly products: ProductReviewReader,
     @Inject(USER_REVIEW_READER)
     private readonly users: UserReviewReader,
+    @Optional()
+    @Inject(COMPLETED_PURCHASE_READER)
+    private readonly completedPurchases?: CompletedPurchaseReader,
   ) {}
 
   async execute(
     reviewerId: string,
-    input: Omit<CreateReviewInput, 'reviewerId' | 'revieweeId'>,
+    input: Omit<
+      CreateReviewInput,
+      'reviewerId' | 'revieweeId' | 'isVerifiedPurchase'
+    >,
   ): Promise<ReviewModel> {
     const [product, reviewer] = await Promise.all([
       this.products.findReviewContext(input.productId),
@@ -89,10 +99,15 @@ export class CreateProductReviewUseCase {
     }
     assertCanReviewProduct(reviewerId, product.sellerId);
 
+    const isVerifiedPurchase = this.completedPurchases
+      ? await this.completedPurchases.isEligible(reviewerId, input.productId)
+      : false;
+
     const review = await this.reviews.createIfAbsent({
       ...input,
       reviewerId,
       revieweeId: product.sellerId,
+      isVerifiedPurchase,
     });
     if (!review) {
       throw new ReviewAlreadyExistsError();

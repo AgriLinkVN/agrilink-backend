@@ -13,6 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { StorageModule } from '../storage/storage.module';
 import {
   PRODUCT_CATALOG_QUERY,
+  PRODUCT_COMMERCE_QUERY,
   PRODUCT_CATEGORY_QUERY,
   PRODUCT_CERTIFICATION_REPOSITORY,
   PRODUCT_DETAIL_QUERY,
@@ -29,6 +30,7 @@ import {
   PRODUCT_MODERATION_MANAGER,
 } from './application/ports/inbound/product-admin.port';
 import { PRODUCT_REVIEW_READER } from './application/ports/inbound/product-review.port';
+import { PRODUCT_COMMERCE_READER } from './application/ports/inbound/product-commerce.port';
 import { ProductBoundaryService } from './application/services/product-boundary.service';
 import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
 import { ProductDevelopmentSeedService } from './infrastructure/database/seeds/product-development-seed.service';
@@ -109,12 +111,14 @@ import {
     },
     { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_REVIEW_QUERY, useExisting: TypeOrmProductRepository },
+    { provide: PRODUCT_COMMERCE_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_ADMIN_QUERY, useExisting: TypeOrmProductRepository },
     {
       provide: PRODUCT_MODERATION_REPOSITORY,
       useExisting: TypeOrmProductRepository,
     },
     { provide: PRODUCT_REVIEW_READER, useExisting: ProductBoundaryService },
+    { provide: PRODUCT_COMMERCE_READER, useExisting: ProductBoundaryService },
     { provide: PRODUCT_ADMIN_READER, useExisting: ProductBoundaryService },
     {
       provide: PRODUCT_MODERATION_MANAGER,
@@ -123,6 +127,7 @@ import {
   ],
   exports: [
     PRODUCT_REVIEW_READER,
+    PRODUCT_COMMERCE_READER,
     PRODUCT_ADMIN_READER,
     PRODUCT_MODERATION_MANAGER,
   ],

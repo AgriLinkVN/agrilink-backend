@@ -1,11 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import { ProductStatus } from '@common/enums';
 import {
   PRODUCT_ADMIN_QUERY,
+  PRODUCT_COMMERCE_QUERY,
   PRODUCT_MODERATION_REPOSITORY,
   PRODUCT_REVIEW_QUERY,
   ProductAdminQueryPort,
+  ProductCommerceQueryPort,
   ProductModerationRepositoryPort,
   ProductReviewQueryPort,
 } from '../ports/outbound/product-repository.port';
@@ -20,6 +22,10 @@ import {
   ProductReviewReader,
   ProductReviewSummary,
 } from '../ports/inbound/product-review.port';
+import {
+  ProductCommerceProjection,
+  ProductCommerceReader,
+} from '../ports/inbound/product-commerce.port';
 
 const MODERATION_TARGETS = new Set([
   ProductStatus.ACTIVE,
@@ -29,7 +35,11 @@ const MODERATION_TARGETS = new Set([
 
 @Injectable()
 export class ProductBoundaryService
-  implements ProductReviewReader, ProductAdminReader, ProductModerationManager
+  implements
+    ProductReviewReader,
+    ProductCommerceReader,
+    ProductAdminReader,
+    ProductModerationManager
 {
   constructor(
     @Inject(PRODUCT_REVIEW_QUERY)
@@ -38,6 +48,9 @@ export class ProductBoundaryService
     private readonly adminQuery: ProductAdminQueryPort,
     @Inject(PRODUCT_MODERATION_REPOSITORY)
     private readonly moderationRepository: ProductModerationRepositoryPort,
+    @Optional()
+    @Inject(PRODUCT_COMMERCE_QUERY)
+    private readonly commerceQuery?: ProductCommerceQueryPort,
   ) {}
 
   findReviewContext(productId: string): Promise<ProductReviewContext | null> {
@@ -48,6 +61,14 @@ export class ProductBoundaryService
     ids: string[],
   ): Promise<ProductReviewSummary[]> {
     return this.reviewQuery.findReviewSummariesByIds(ids);
+  }
+
+  findCommerceProduct(
+    productId: string,
+  ): Promise<ProductCommerceProjection | null> {
+    return this.commerceQuery
+      ? this.commerceQuery.findCommerceProduct(productId)
+      : Promise.resolve(null);
   }
 
   countAll(): Promise<number> {

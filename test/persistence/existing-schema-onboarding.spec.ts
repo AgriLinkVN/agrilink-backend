@@ -19,9 +19,14 @@ describe("existing schema onboarding guards", () => {
     expect(first.operations).toEqual([
       { type: "ensure-ledger", table: "migrations_v2" },
       {
-        type: "register-baseline",
+        type: "register-migration",
         timestamp: "1800000000000",
         name: "CreateCanonicalBaselineV21800000000000",
+      },
+      {
+        type: "register-migration",
+        timestamp: "1800000001000",
+        name: "CreateCommerceBoundariesV21800000001000",
       },
     ]);
     expect(() => verifyOnboardingPlanIntegrity(first)).not.toThrow();

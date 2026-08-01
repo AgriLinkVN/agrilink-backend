@@ -32,6 +32,7 @@ import {
   ProductModerationRepositoryPort,
   ProductRepositoryPort,
   ProductReviewQueryPort,
+  ProductCommerceQueryPort,
   ProductSeedRepositoryPort,
   ProductWishlistRepositoryPort,
 } from '../../application/ports/outbound/product-repository.port';
@@ -54,6 +55,7 @@ export class TypeOrmProductRepository
     ProductWishlistRepositoryPort,
     ProductSeedRepositoryPort,
     ProductReviewQueryPort,
+    ProductCommerceQueryPort,
     ProductAdminQueryPort,
     ProductModerationRepositoryPort
 {
@@ -313,6 +315,42 @@ export class TypeOrmProductRepository
       where: { id: In(ids) },
       select: { id: true, name: true },
     });
+  }
+
+  async findCommerceProduct(productId: string): Promise<{
+    id: string;
+    sellerId: string;
+    name: string;
+    pricePerUnit: string;
+    unit: string;
+  } | null> {
+    const product = await this.productRepo.findOne({
+      where: { id: productId, status: ProductStatus.ACTIVE },
+      select: {
+        id: true,
+        sellerId: true,
+        name: true,
+        pricePerUnit: true,
+        unit: true,
+      },
+    });
+    if (!product || !product.name) return null;
+    return {
+      id: product.id,
+      sellerId: product.sellerId,
+      name: product.name,
+      pricePerUnit: this.toIntegerVnd(product.pricePerUnit),
+      unit: product.unit,
+    };
+  }
+
+  private toIntegerVnd(value: number | string): string {
+    const raw = String(value);
+    const match = /^(0|[1-9]\d*)(?:\.(\d+))?$/.exec(raw);
+    if (!match || (match[2] && /[1-9]/.test(match[2]))) {
+      throw new Error('Product price must represent an integer VND amount');
+    }
+    return match[1];
   }
 
   countAllProducts(): Promise<number> {
