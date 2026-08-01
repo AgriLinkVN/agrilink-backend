@@ -44,7 +44,7 @@
     "storage:phase9:verify": "ts-node -r tsconfig-paths/register src/scripts/storage-phase9-rollout.ts verify",
     "persistence:audit": "ts-node -r tsconfig-paths/register src/scripts/persistence-architecture-audit.ts",
     "persistence:schema-parity": "ts-node -r tsconfig-paths/register src/scripts/persistence-schema-parity.ts",
-    "persistence:typeorm-compatibility-parity": "ts-node -r tsconfig-paths/register src/scripts/persistence-schema-parity.ts",
+    "persistence:typeorm-compatibility-parity": "ts-node -r tsconfig-paths/register src/scripts/persistence-typeorm-compatibility-parity.ts",
     "persistence:verify-existing": "ts-node -r tsconfig-paths/register src/scripts/persistence-verify-existing-schema.ts",
     "persistence:onboard-existing": "ts-node -r tsconfig-paths/register src/scripts/persistence-onboard-existing-schema.ts",
     "migration:v2:verify-clean": "ts-node -r tsconfig-paths/register src/scripts/persistence-verify-clean-v2.ts",

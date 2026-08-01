@@ -9,7 +9,7 @@ import {
   excludeDeferredEntitiesFromSchemaBuild,
 } from "../database/entity-registry";
 import {
-  assertCatalogParity,
+  assertTypeOrmCompatibilityParity,
   verifyCanonicalParity,
 } from "../database/reconciliation/parity-verifier";
 
@@ -32,11 +32,11 @@ async function main(): Promise<void> {
       database,
       synchronize: dataSource.options.synchronize,
       lineage: "v2",
-      gate: "canonical-catalog",
-      catalog: parity.catalog,
+      gate: "typeorm-compatibility",
+      typeOrm: parity.typeOrm,
     };
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-    assertCatalogParity(parity);
+    assertTypeOrmCompatibilityParity(parity);
   } finally {
     await dataSource.destroy();
   }

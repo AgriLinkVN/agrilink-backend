@@ -150,6 +150,12 @@ export class ContractsController {
   }
 
   @Patch('contracts/:id/sign')
+  @Roles(
+    UserRole.ENTERPRISE,
+    UserRole.FARMER,
+    UserRole.COOPERATIVE,
+    UserRole.SUPPLIER,
+  )
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   sign(
     @Param('id', ParseUuidPipe) contractId: string,
@@ -169,6 +175,12 @@ export class ContractsController {
   }
 
   @Patch('contracts/:id/status')
+  @Roles(
+    UserRole.ENTERPRISE,
+    UserRole.FARMER,
+    UserRole.COOPERATIVE,
+    UserRole.SUPPLIER,
+  )
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   transition(
     @Param('id', ParseUuidPipe) contractId: string,

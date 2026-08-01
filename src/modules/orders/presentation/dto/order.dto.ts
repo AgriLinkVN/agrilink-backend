@@ -13,9 +13,10 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-
-const MONEY_PATTERN = /^(0|[1-9]\d*)$/;
-const QUANTITY_PATTERN = /^(0|[1-9]\d*)(\.\d{1,3})?$/;
+import {
+  NON_NEGATIVE_INTEGER_MONEY_PATTERN,
+  POSITIVE_QUANTITY_PATTERN,
+} from '../../../commerce/presentation/validation/commerce-value-patterns';
 
 export class CreateOrderItemDto {
   @ApiProperty({ format: 'uuid' })
@@ -24,7 +25,7 @@ export class CreateOrderItemDto {
 
   @ApiProperty({ type: String, example: '2.5' })
   @IsString()
-  @Matches(QUANTITY_PATTERN)
+  @Matches(POSITIVE_QUANTITY_PATTERN)
   quantity: string;
 }
 
@@ -38,12 +39,12 @@ export class CreateOrderDto {
 
   @ApiProperty({ type: String, example: '0' })
   @IsString()
-  @Matches(MONEY_PATTERN)
+  @Matches(NON_NEGATIVE_INTEGER_MONEY_PATTERN)
   shippingFee: string;
 
   @ApiProperty({ type: String, example: '0' })
   @IsString()
-  @Matches(MONEY_PATTERN)
+  @Matches(NON_NEGATIVE_INTEGER_MONEY_PATTERN)
   platformFee: string;
 
   @ApiProperty({ enum: ['cod', 'bank_transfer', 'manual'] })

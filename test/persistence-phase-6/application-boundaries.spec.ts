@@ -17,7 +17,10 @@ import {
   CreateContractFromPurchaseRequestUseCase,
   CreatePurchaseRequestUseCase,
   SignContractUseCase,
+  TransitionContractStatusUseCase,
 } from '../../src/modules/contracts/application/use-cases/contract.use-cases';
+import { ProductCommercePriceIncompatibleError } from '../../src/modules/products/application/ports/inbound/product-commerce.port';
+import { TypeOrmProductRepository } from '../../src/modules/products/infrastructure/repositories/typeorm-product.repository';
 
 const BUYER = '11111111-1111-4111-8111-111111111111';
 const SELLER = '22222222-2222-4222-8222-222222222222';
@@ -249,7 +252,66 @@ describe('Persistence Phase 6 application boundaries', () => {
         1,
         'sign-key',
       ),
-    ).rejects.toThrow('Actor is not a contract party');
+    ).rejects.toBeInstanceOf(CommerceForbiddenError);
+
+    await expect(
+      sign.execute(
+        { id: BUYER, role: UserRole.ADMIN },
+        CONTRACT,
+        1,
+        'admin-sign-key',
+      ),
+    ).rejects.toBeInstanceOf(CommerceForbiddenError);
+
+    const transition = new TransitionContractStatusUseCase(contracts as never);
+    await expect(
+      transition.execute(
+        { id: BUYER, role: UserRole.STATE_AGENCY },
+        { id: CONTRACT, toStatus: 'active', expectedVersion: 1 },
+        'state-agency-transition-key',
+      ),
+    ).rejects.toBeInstanceOf(CommerceForbiddenError);
+  });
+
+  it('returns typed Commerce price failures and preserves repository errors', async () => {
+    const productRepo = { findOne: jest.fn() };
+    const repository = new TypeOrmProductRepository(
+      productRepo as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+    const product = {
+      id: PRODUCT,
+      sellerId: SELLER,
+      name: 'Rice',
+      pricePerUnit: '25000.00',
+      unit: 'kg',
+    };
+
+    productRepo.findOne.mockResolvedValueOnce(product);
+    await expect(repository.findCommerceProduct(PRODUCT)).resolves.toMatchObject({
+      pricePerUnit: '25000',
+    });
+
+    productRepo.findOne.mockResolvedValueOnce(null);
+    await expect(repository.findCommerceProduct(PRODUCT)).resolves.toBeNull();
+
+    productRepo.findOne.mockResolvedValueOnce({
+      ...product,
+      pricePerUnit: '25000.50',
+    });
+    await expect(repository.findCommerceProduct(PRODUCT)).rejects.toBeInstanceOf(
+      ProductCommercePriceIncompatibleError,
+    );
+
+    const databaseError = new Error('database unavailable');
+    productRepo.findOne.mockRejectedValueOnce(databaseError);
+    await expect(repository.findCommerceProduct(PRODUCT)).rejects.toBe(
+      databaseError,
+    );
   });
 });
 

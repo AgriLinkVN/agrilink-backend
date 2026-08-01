@@ -70,16 +70,23 @@ Disposable PostgreSQL verification result:
 - OpenAPI: 19 intentional Commerce paths, 107 total paths and 118 operations;
 - disposable databases removed after each run.
 
+Catalog and TypeORM compatibility now have distinct command entry points and
+assertions. `persistence:schema-parity` asserts the canonical catalog diff;
+`persistence:typeorm-compatibility-parity` asserts unexpected TypeORM
+operations, stale manifest entries and compatibility catalog mismatches.
+
 ## F. Test Evidence
 
-- Domain/application focused suite: 47 tests, including exact arithmetic and
-  authorization.
+- Domain/application focused suite: 67 tests across eight suites, including
+  exact arithmetic, DTO alignment, authorization and independent parity gates.
 - Real PostgreSQL concurrency uses `Promise.all` for same-key create-order,
   stale transitions, duplicate mark-paid, bounded refunds, contract allocation
   and same-side signatures.
 - Commerce E2E covers create/list/detail orders, valid delivery transitions,
   cross-user denial, payments/refunds, requests/contracts, over-allocation,
-  bilateral activation/completion and verified-purchase review.
+  bilateral activation/completion and verified-purchase review. Review-fix
+  coverage also verifies controller role rejection, ownership enforcement,
+  zero-value DTO rejection and controlled incompatible product-price handling.
 - Full-project gate results are recorded in `implementation-evidence.json`.
 
 ## G. Protected Database Safety

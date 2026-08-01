@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsInt, IsString, IsUUID, Matches, Min } from 'class-validator';
+import { POSITIVE_INTEGER_MONEY_PATTERN } from '../../../commerce/presentation/validation/commerce-value-patterns';
 
 export class CreatePaymentDto {
   @ApiProperty({ format: 'uuid' })
@@ -21,6 +22,6 @@ export class VersionedPaymentDto {
 export class RefundPaymentDto extends VersionedPaymentDto {
   @ApiProperty({ type: String, example: '10000' })
   @IsString()
-  @Matches(/^(0|[1-9]\d*)$/)
+  @Matches(POSITIVE_INTEGER_MONEY_PATTERN)
   amount: string;
 }

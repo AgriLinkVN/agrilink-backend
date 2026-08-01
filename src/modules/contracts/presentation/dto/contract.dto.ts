@@ -9,9 +9,10 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-
-const QUANTITY = /^(0|[1-9]\d*)(\.\d{1,3})?$/;
-const MONEY = /^(0|[1-9]\d*)$/;
+import {
+  NON_NEGATIVE_INTEGER_MONEY_PATTERN,
+  POSITIVE_QUANTITY_PATTERN,
+} from '../../../commerce/presentation/validation/commerce-value-patterns';
 
 export class CreatePurchaseRequestDto {
   @ApiPropertyOptional({ format: 'uuid' })
@@ -26,7 +27,7 @@ export class CreatePurchaseRequestDto {
 
   @ApiProperty({ type: String, example: '1000' })
   @IsString()
-  @Matches(QUANTITY)
+  @Matches(POSITIVE_QUANTITY_PATTERN)
   quantityNeeded: string;
 
   @ApiProperty({ example: 'kg', maxLength: 32 })
@@ -53,12 +54,12 @@ export class CreateContractDto {
 
   @ApiProperty({ type: String, example: '100' })
   @IsString()
-  @Matches(QUANTITY)
+  @Matches(POSITIVE_QUANTITY_PATTERN)
   quantity: string;
 
   @ApiProperty({ type: String, example: '25000' })
   @IsString()
-  @Matches(MONEY)
+  @Matches(NON_NEGATIVE_INTEGER_MONEY_PATTERN)
   unitPrice: string;
 }
 

@@ -1,4 +1,4 @@
-import { MoneyVnd, Quantity } from '../../orders/domain/commerce-values';
+import { MoneyVnd, Quantity } from '../../commerce/domain/commerce-values';
 import { Contract } from './contract';
 import { PurchaseRequest } from './purchase-request';
 

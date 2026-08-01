@@ -85,6 +85,14 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
+  @Roles(
+    UserRole.BUYER,
+    UserRole.FARMER,
+    UserRole.COOPERATIVE,
+    UserRole.SUPPLIER,
+    UserRole.LOGISTICS,
+    UserRole.ADMIN,
+  )
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   transition(
     @Param('id', ParseUuidPipe) orderId: string,

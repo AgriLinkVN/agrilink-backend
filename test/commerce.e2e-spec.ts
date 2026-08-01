@@ -2,10 +2,12 @@ import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { APP_GUARD } from '@nestjs/core';
 import { DataSource } from 'typeorm';
 import * as request from 'supertest';
 
 import { UserRole, UserStatus } from '../src/common/enums';
+import { RolesGuard } from '../src/common/guards/roles.guard';
 import { createDataSourceOptions } from '../src/database/data-source-options';
 import {
   CLI_ENTITY_REGISTRY,
@@ -73,6 +75,7 @@ import { TypeOrmPaymentRepository } from '../src/modules/payments/infrastructure
 import { PaymentsController } from '../src/modules/payments/presentation/controllers/payments.controller';
 import {
   PRODUCT_COMMERCE_READER,
+  ProductCommercePriceIncompatibleError,
   ProductCommerceReader,
 } from '../src/modules/products/application/ports/inbound/product-commerce.port';
 import { Review } from '../src/modules/reviews/infrastructure/persistence/entities/review.entity';
@@ -89,6 +92,7 @@ const ADMIN = '33333333-3333-4333-8333-333333333333';
 const LOGISTICS = '44444444-4444-4444-8444-444444444444';
 const OTHER = '55555555-5555-4555-8555-555555555555';
 const PRODUCT = '66666666-6666-4666-8666-666666666666';
+const FRACTIONAL_PRODUCT = '77777777-7777-4777-8777-777777777777';
 
 describe('Commerce Phase 6 E2E', () => {
   const database = createDisposableDatabaseName();
@@ -119,6 +123,7 @@ describe('Commerce Phase 6 E2E', () => {
     module = await Test.createTestingModule({
       controllers: [OrdersController, PaymentsController, ContractsController],
       providers: [
+        { provide: APP_GUARD, useClass: RolesGuard },
         { provide: DataSource, useValue: dataSource },
         TypeOrmTransactionContext,
         TypeOrmCommerceOperationRepository,
@@ -134,8 +139,11 @@ describe('Commerce Phase 6 E2E', () => {
         {
           provide: PRODUCT_COMMERCE_READER,
           useValue: {
-            findCommerceProduct: async (id: string) =>
-              id === PRODUCT
+            findCommerceProduct: async (id: string) => {
+              if (id === FRACTIONAL_PRODUCT) {
+                throw new ProductCommercePriceIncompatibleError();
+              }
+              return id === PRODUCT
                 ? {
                     id: PRODUCT,
                     sellerId: SELLER,
@@ -143,7 +151,8 @@ describe('Commerce Phase 6 E2E', () => {
                     pricePerUnit: '100',
                     unit: 'kg',
                   }
-                : null,
+                : null;
+            },
           } satisfies ProductCommerceReader,
         },
         CreateOrderUseCase,
@@ -207,6 +216,74 @@ describe('Commerce Phase 6 E2E', () => {
     }
   });
 
+  it('rejects invalid Commerce DTO values before domain execution', async () => {
+    for (const quantity of ['0', '0.000']) {
+      await request(app.getHttpServer())
+        .post('/api/v1/orders')
+        .set(actor(BUYER, UserRole.BUYER))
+        .set('Idempotency-Key', `invalid-order-${quantity}`)
+        .send({
+          items: [{ productId: PRODUCT, quantity }],
+          shippingFee: '0',
+          platformFee: '0',
+          paymentMethod: 'manual',
+        })
+        .expect(400);
+    }
+
+    await request(app.getHttpServer())
+      .post('/api/v1/purchase-requests')
+      .set(actor(BUYER, UserRole.ENTERPRISE))
+      .set('Idempotency-Key', 'invalid-request-zero')
+      .send({ quantityNeeded: '0', unit: 'kg' })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/contracts/from-request')
+      .set(actor(BUYER, UserRole.ENTERPRISE))
+      .set('Idempotency-Key', 'invalid-contract-zero')
+      .send({
+        purchaseRequestId: BUYER,
+        sellerId: SELLER,
+        quantity: '0',
+        unitPrice: '100',
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/payments/${BUYER}/refund`)
+      .set(actor(ADMIN, UserRole.ADMIN))
+      .set('Idempotency-Key', 'invalid-refund-zero')
+      .send({ expectedVersion: 1, amount: '0' })
+      .expect(400);
+  });
+
+  it('maps incompatible product prices without hiding missing products', async () => {
+    const payload = (productId: string) => ({
+      items: [{ productId, quantity: '1' }],
+      shippingFee: '0',
+      platformFee: '0',
+      paymentMethod: 'manual',
+    });
+
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set(actor(BUYER, UserRole.BUYER))
+      .set('Idempotency-Key', 'fractional-product-price')
+      .send(payload(FRACTIONAL_PRODUCT))
+      .expect(409)
+      .expect(({ body }) =>
+        expect(body.message).toBe('Product price is not compatible with Commerce'),
+      );
+
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set(actor(BUYER, UserRole.BUYER))
+      .set('Idempotency-Key', 'missing-product')
+      .send(payload(OTHER))
+      .expect(404);
+  });
+
   it('runs order, payment, contract and verified-review workflows', async () => {
     const createdOrder = await request(app.getHttpServer())
       .post('/api/v1/orders')
@@ -226,6 +303,25 @@ describe('Commerce Phase 6 E2E', () => {
       totalAmount: '210',
     });
     const orderId = createdOrder.body.id as string;
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/orders/${orderId}/status`)
+      .set(actor(OTHER, UserRole.STATE_AGENCY))
+      .set('Idempotency-Key', 'irrelevant-order-role')
+      .send({ toStatus: 'confirmed', expectedVersion: 1 })
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/orders/${orderId}/status`)
+      .set(actor(OTHER, UserRole.FARMER))
+      .set('Idempotency-Key', 'foreign-order-seller')
+      .send({ toStatus: 'confirmed', expectedVersion: 1 })
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/orders/${orderId}/status`)
+      .set(actor(ADMIN, UserRole.ADMIN))
+      .set('Idempotency-Key', 'admin-invalid-order-transition')
+      .send({ toStatus: 'delivered', expectedVersion: 1 })
+      .expect(409);
 
     await request(app.getHttpServer())
       .get('/api/v1/orders/buyer/me')
@@ -302,6 +398,33 @@ describe('Commerce Phase 6 E2E', () => {
         unitPrice: '100',
       })
       .expect(201);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/contracts/${createdContract.body.id}/sign`)
+      .set(actor(OTHER, UserRole.STATE_AGENCY))
+      .set('Idempotency-Key', 'irrelevant-contract-sign-role')
+      .send({ expectedVersion: createdContract.body.version })
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/contracts/${createdContract.body.id}/status`)
+      .set(actor(OTHER, UserRole.STATE_AGENCY))
+      .set('Idempotency-Key', 'irrelevant-contract-status-role')
+      .send({
+        toStatus: 'negotiating',
+        expectedVersion: createdContract.body.version,
+      })
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/contracts/${createdContract.body.id}/sign`)
+      .set(actor(OTHER, UserRole.FARMER))
+      .set('Idempotency-Key', 'foreign-contract-party')
+      .send({ expectedVersion: createdContract.body.version })
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/contracts/${createdContract.body.id}/sign`)
+      .set(actor(ADMIN, UserRole.ADMIN))
+      .set('Idempotency-Key', 'admin-contract-sign')
+      .send({ expectedVersion: createdContract.body.version })
+      .expect(403);
     await request(app.getHttpServer())
       .post('/api/v1/contracts/from-request')
       .set(actor(BUYER, UserRole.ENTERPRISE))

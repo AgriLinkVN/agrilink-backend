@@ -144,7 +144,9 @@ export async function applyExistingSchemaOnboarding(
       `SELECT COUNT(*)::text AS count FROM "public"."migrations_v2"`,
     )) as Array<{ count: string }>;
     if (Number(ledger.count) !== 0) {
-      throw new Error("V2 ledger is not empty; refusing baseline registration");
+      throw new Error(
+        "V2 ledger is not empty; refusing migration lineage registration",
+      );
     }
     for (const migration of V2_LINEAGE) {
       await runner.query(

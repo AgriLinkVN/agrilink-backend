@@ -49,14 +49,30 @@ export async function verifyCanonicalParity(dataSource: DataSource) {
 export function assertCanonicalParity(
   parity: Awaited<ReturnType<typeof verifyCanonicalParity>>,
 ): void {
+  assertCatalogParity(parity);
+  assertTypeOrmCompatibilityParity(parity);
+}
+
+export function assertCatalogParity(
+  parity: Awaited<ReturnType<typeof verifyCanonicalParity>>,
+): void {
+  if (parity.catalog.diffCount !== 0) {
+    throw new Error(
+      `Canonical catalog parity failed: ${JSON.stringify(parity.catalog, null, 2)}`,
+    );
+  }
+}
+
+export function assertTypeOrmCompatibilityParity(
+  parity: Awaited<ReturnType<typeof verifyCanonicalParity>>,
+): void {
   if (
-    parity.catalog.diffCount !== 0 ||
     parity.typeOrm.unexpectedCount !== 0 ||
     parity.typeOrm.staleManifestCount !== 0 ||
     parity.typeOrm.catalogMismatchCount !== 0
   ) {
     throw new Error(
-      `Canonical schema parity failed: ${JSON.stringify(parity, null, 2)}`,
+      `TypeORM compatibility parity failed: ${JSON.stringify(parity.typeOrm, null, 2)}`,
     );
   }
 }

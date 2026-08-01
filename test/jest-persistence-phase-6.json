@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "..",
   "testEnvironment": "node",
-  "testRegex": "(src/modules/(commerce|orders|payments|contracts)/.*\\.spec\\.ts|test/persistence-phase-6/.*\\.spec\\.ts)$",
+  "testRegex": "(src/modules/(commerce|orders|payments|contracts)/.*\\.spec\\.ts|src/scripts/persistence-parity-commands\\.spec\\.ts|test/persistence-phase-6/.*\\.spec\\.ts)$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },

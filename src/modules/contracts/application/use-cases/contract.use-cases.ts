@@ -201,8 +201,12 @@ export class SignContractUseCase {
     expectedVersion: number,
     key: string,
   ): Promise<ContractModel> {
+    assertContractPartyRole(actor.role);
     const contract = await this.contracts.findById(id);
     if (!contract) throw new CommerceNotFoundError('Contract not found');
+    if (contract.buyerId !== actor.id && contract.sellerId !== actor.id) {
+      throw new CommerceForbiddenError('Actor is not a contract party');
+    }
     Contract.rehydrate(contract).sign(actor.id);
     const result = await this.contracts.signAtomically({
       id,
@@ -228,6 +232,7 @@ export class TransitionContractStatusUseCase {
     input: { id: string; toStatus: ContractStatus; expectedVersion: number },
     key: string,
   ): Promise<ContractModel> {
+    assertContractPartyRole(actor.role);
     const contract = await this.contracts.findById(input.id);
     if (!contract) throw new CommerceNotFoundError('Contract not found');
     if (
@@ -249,5 +254,18 @@ export class TransitionContractStatusUseCase {
     });
     if (!result) throw new CommerceConflictError('Contract state changed');
     return result;
+  }
+}
+
+const contractPartyRoles = new Set<UserRole>([
+  UserRole.ENTERPRISE,
+  UserRole.FARMER,
+  UserRole.COOPERATIVE,
+  UserRole.SUPPLIER,
+]);
+
+function assertContractPartyRole(role: UserRole): void {
+  if (!contractPartyRoles.has(role)) {
+    throw new CommerceForbiddenError('Role cannot mutate contracts');
   }
 }

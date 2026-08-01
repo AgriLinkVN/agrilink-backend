@@ -22,6 +22,7 @@ import {
 import { PaymentDomainError } from '../../../payments/domain/payment';
 import { ContractDomainError } from '../../../contracts/domain/contract';
 import { PurchaseRequestDomainError } from '../../../contracts/domain/purchase-request';
+import { ProductCommercePriceIncompatibleError } from '../../../products/application/ports/inbound/product-commerce.port';
 
 export function mapCommerceApplicationError(error: unknown): never {
   if (
@@ -35,7 +36,8 @@ export function mapCommerceApplicationError(error: unknown): never {
   }
   if (
     error instanceof CommerceConflictError ||
-    error instanceof OrderTransitionError
+    error instanceof OrderTransitionError ||
+    error instanceof ProductCommercePriceIncompatibleError
   ) {
     throw new ConflictException(error.message);
   }

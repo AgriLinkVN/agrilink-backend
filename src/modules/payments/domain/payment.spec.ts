@@ -1,4 +1,4 @@
-import { MoneyVnd } from '../../orders/domain/commerce-values';
+import { MoneyVnd } from '../../commerce/domain/commerce-values';
 import { Payment } from './payment';
 
 const money = (value: string) => MoneyVnd.parse(value);

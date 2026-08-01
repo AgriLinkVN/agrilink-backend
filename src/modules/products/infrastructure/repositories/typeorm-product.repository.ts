@@ -42,6 +42,7 @@ import { ProductCertification } from '../persistence/entities/product-certificat
 import { ProductImage } from '../persistence/entities/product-image.entity';
 import { Wishlist } from '../persistence/entities/wishlist.entity';
 import { seedProductCategories } from '../database/seeds/product-category.seed';
+import { ProductCommercePriceIncompatibleError } from '../../application/ports/inbound/product-commerce.port';
 
 @Injectable()
 export class TypeOrmProductRepository
@@ -348,7 +349,7 @@ export class TypeOrmProductRepository
     const raw = String(value);
     const match = /^(0|[1-9]\d*)(?:\.(\d+))?$/.exec(raw);
     if (!match || (match[2] && /[1-9]/.test(match[2]))) {
-      throw new Error('Product price must represent an integer VND amount');
+      throw new ProductCommercePriceIncompatibleError();
     }
     return match[1];
   }
