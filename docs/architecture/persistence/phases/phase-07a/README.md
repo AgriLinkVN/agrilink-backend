@@ -1,6 +1,7 @@
 # Persistence Phase 7A: Operations Boundaries
 
-- Status: Complete, awaiting pull request
+- Status: Complete, awaiting merge
+- Source PR: #90
 - Branch: `refactor/persistence-phase-7a-operations`
 - Dependency: Phase 6, PR #89, merge commit `924e2a6`
 - Scope: Logistics, Messaging and Notifications
