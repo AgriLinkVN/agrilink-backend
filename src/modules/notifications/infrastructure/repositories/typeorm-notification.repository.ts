@@ -25,7 +25,7 @@ export class TypeOrmNotificationRepository implements NotificationRepositoryPort
   ): Promise<NotificationListResult> {
     const [entities, total] = await this.notificationRepo.findAndCount({
       where: { userId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC', id: 'DESC' },
       skip: (pagination.page - 1) * pagination.limit,
       take: pagination.limit,
     });
@@ -38,10 +38,13 @@ export class TypeOrmNotificationRepository implements NotificationRepositoryPort
     };
   }
 
-  async findUnread(userId: string, limit: number): Promise<NotificationModel[]> {
+  async findUnread(
+    userId: string,
+    limit: number,
+  ): Promise<NotificationModel[]> {
     const entities = await this.notificationRepo.find({
       where: { userId, isRead: false },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC', id: 'DESC' },
       take: limit,
     });
 

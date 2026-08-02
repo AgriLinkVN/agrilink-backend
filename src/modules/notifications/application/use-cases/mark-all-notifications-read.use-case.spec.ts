@@ -1,7 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
+import {
+  NOTIFICATION_REPOSITORY,
+  NotificationRepositoryPort,
+} from '../ports/outbound/notification-repository.port';
+import {
+  NOTIFICATION_REALTIME_PUBLISHER,
+  NotificationRealtimePublisherPort,
+} from '../ports/outbound/notification-realtime-publisher.port';
 import { MarkAllNotificationsReadUseCase } from './mark-all-notifications-read.use-case';
 
 describe('MarkAllNotificationsReadUseCase', () => {
@@ -30,7 +36,10 @@ describe('MarkAllNotificationsReadUseCase', () => {
       providers: [
         MarkAllNotificationsReadUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: repository },
-        { provide: NOTIFICATION_REALTIME_PUBLISHER, useValue: realtimePublisher },
+        {
+          provide: NOTIFICATION_REALTIME_PUBLISHER,
+          useValue: realtimePublisher,
+        },
       ],
     }).compile();
 
@@ -58,5 +67,17 @@ describe('MarkAllNotificationsReadUseCase', () => {
     });
 
     expect(realtimePublisher.publishAllRead).not.toHaveBeenCalled();
+  });
+
+  it('returns the persisted update count when realtime delivery fails', async () => {
+    repository.markAllAsRead.mockResolvedValue(2);
+    realtimePublisher.publishAllRead.mockImplementation(() => {
+      throw new Error('socket unavailable');
+    });
+
+    await expect(useCase.execute('user-1')).resolves.toEqual({
+      updated: 2,
+      readAt: expect.any(Date),
+    });
   });
 });

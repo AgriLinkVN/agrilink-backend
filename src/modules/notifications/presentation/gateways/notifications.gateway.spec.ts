@@ -73,4 +73,38 @@ describe('NotificationsGateway contract', () => {
       { updated: 3, readAt: '2026-06-02T00:00:00.000Z' },
     );
   });
+
+  it('disconnects unauthenticated clients without joining a room', () => {
+    const client = {
+      handshake: { auth: {}, headers: {} },
+      data: {},
+      join: jest.fn(),
+      disconnect: jest.fn(),
+    };
+
+    gateway.handleConnection(client as never);
+
+    expect(client.disconnect).toHaveBeenCalledWith(true);
+    expect(client.join).not.toHaveBeenCalled();
+  });
+
+  it('joins only the room derived from the verified subject', () => {
+    const client = {
+      handshake: {
+        auth: { token: 'Bearer valid-token' },
+        headers: {},
+      },
+      data: {},
+      join: jest.fn(),
+      disconnect: jest.fn(),
+    };
+    (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'user-1' });
+
+    gateway.handleConnection(client as never);
+
+    expect(jwtService.verify).toHaveBeenCalledWith('valid-token');
+    expect(client.data).toEqual({ userId: 'user-1' });
+    expect(client.join).toHaveBeenCalledWith('user:user-1');
+    expect(client.disconnect).not.toHaveBeenCalled();
+  });
 });

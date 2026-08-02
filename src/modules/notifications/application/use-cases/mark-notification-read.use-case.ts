@@ -10,6 +10,7 @@ import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
 } from '../ports/outbound/notification-realtime-publisher.port';
+import { publishRealtimeBestEffort } from '../services/best-effort-realtime-delivery';
 
 @Injectable()
 export class MarkNotificationReadUseCase {
@@ -20,7 +21,10 @@ export class MarkNotificationReadUseCase {
     private readonly realtimePublisher: NotificationRealtimePublisherPort,
   ) {}
 
-  async execute(notificationId: string, userId: string): Promise<NotificationModel> {
+  async execute(
+    notificationId: string,
+    userId: string,
+  ): Promise<NotificationModel> {
     const existing = await this.notifications.findByIdForUser(
       notificationId,
       userId,
@@ -42,13 +46,20 @@ export class MarkNotificationReadUseCase {
     );
 
     if (!updated) {
+      const concurrentlyUpdated = await this.notifications.findByIdForUser(
+        notificationId,
+        userId,
+      );
+      if (concurrentlyUpdated?.isRead) return concurrentlyUpdated;
       throw new NotificationNotFoundError(notificationId);
     }
 
-    this.realtimePublisher.publishMarkedRead(userId, {
-      id: updated.id,
-      readAt,
-    });
+    publishRealtimeBestEffort('marked_read', () =>
+      this.realtimePublisher.publishMarkedRead(userId, {
+        id: updated.id,
+        readAt,
+      }),
+    );
 
     return updated;
   }
