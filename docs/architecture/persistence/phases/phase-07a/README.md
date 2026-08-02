@@ -1,7 +1,9 @@
 # Persistence Phase 7A: Operations Boundaries
 
-- Status: Complete, awaiting merge
+- Status: Complete
 - Source PR: #90
+- Merge commit: `4a16970`
+- CI evidence: Backend Quality Gate `SUCCESS` on PR #90
 - Branch: `refactor/persistence-phase-7a-operations`
 - Dependency: Phase 6, PR #89, merge commit `924e2a6`
 - Scope: Logistics, Messaging and Notifications
