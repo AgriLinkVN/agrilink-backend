@@ -1,6 +1,6 @@
 # Phase 7B Decision Pack
 
-Status: `READY_FOR_REVIEW`
+Status: `OWNER_DECISIONS_RECORDED`
 
 ## Decision Labels
 
@@ -10,6 +10,27 @@ Status: `READY_FOR_REVIEW`
 - `OUT_OF_SCOPE`: not authorized for Phase 7B.
 
 Legacy entity fields are discovery evidence, not an approved contract.
+
+## Recorded Owner Outcomes
+
+The authoritative outcome details, approver capacities and notes are in
+`open-decisions.md`. The applicable current implementation scope is:
+
+- Incident and Dispute are separate aggregates; Dispute implementation and schema
+  are deferred, and no payment behavior is approved.
+- Compliance owns Incident writes; Admin retains only a compatibility adapter over
+  typed application ports.
+- Incident uses `open`, `in_review`, `resolved`, `closed` actions; reopen is out of scope.
+- Evidence is immutable and corrected through superseding records.
+- Products retains product certificates. Legacy `quality_certificates` remains
+  inventory-conditional, and no Certifier role is added.
+- Traceability uses immutable batch identity, typed events and deterministic
+  projections; reconciliation remains inventory-conditional.
+- A separate compliance evidence ledger is selected when implementation evidence
+  confirms technical `audit_logs` cannot meet its policy.
+- Retention is per class with legal hold and no cascade hard-delete; cleanup remains
+  disabled until exact durations are approved.
+- P7B-19 authorizes read-only inventory only, never migration or mutation.
 
 ## Source Audit
 
@@ -55,13 +76,13 @@ opening disputes or managing `quality_certificates`. The frontend support form a
 
 ## Ownership Findings
 
-| Entity                 | Current owner                                      | Proposed canonical owner                                                                             | Read dependencies                                                                | Write dependencies                                                               | Migration impact                                                                 | Decision status        |
-| ---------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------- |
-| `incident_reports`     | Compliance in catalog; Admin repository at runtime | Compliance                                                                                           | Admin/State Agency oversight; reporter view is undecided                         | Compliance command handler only; Admin through port                              | Move mapping without changing table first; later constraints conditional         | `RECOMMENDED_DECISION` |
-| `disputes`             | Compliance catalog; no repository owner            | Compliance if capability approved                                                                    | Orders, Payments, Users, Admin/State Agency                                      | Compliance only; Payments receives an approved resolution command through a port | Table is absent from baseline v2; additive migration only after approval         | `DECISION_REQUIRED`    |
-| `quality_certificates` | Compliance catalog; no repository owner            | Products for product certificates; Compliance only for a separately approved organization credential | Products, Storage, public product query, State Agency                            | Owning module only; verifier through application command                         | Prefer retirement if duplicate; otherwise additive model after deployed evidence | `DECISION_REQUIRED`    |
-| `traceability_records` | Traceability                                       | Traceability                                                                                         | Products, Users producer projection, public QR query; Logistics remains deferred | Traceability command handler only                                                | Critical reconcile/copy/verify/finalize plan                                     | `RECOMMENDED_DECISION` |
-| `audit_logs`           | Admin                                              | Admin for technical audit; compliance evidence store remains undecided                               | Admin/State Agency and audited capabilities                                      | Append through an audit port; no caller repository access                        | Additive constraints/columns only if approved                                    | `DECISION_REQUIRED`    |
+| Entity                 | Current owner                                      | Proposed canonical owner                                                                   | Read dependencies                                                           | Write dependencies                                        | Migration impact                                                    | Decision status          |
+| ---------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------ |
+| `incident_reports`     | Compliance in catalog; Admin repository at runtime | Compliance                                                                                 | Admin/State Agency oversight; reporter view is policy-controlled            | Compliance command handler only; Admin through port       | Preserve table first; later deltas require inventory-derived review | `APPROVED`               |
+| `disputes`             | Compliance catalog; no repository owner            | None in current Phase 7B scope                                                             | Future Orders, Payments, Users and oversight dependencies remain unapproved | No current write owner or payment behavior                | No table or canonical mapping                                       | `DEFERRED`               |
+| `quality_certificates` | Compliance catalog; no repository owner            | Products for product certificates; distinct non-product credential requires later evidence | Products, Storage, public product query, State Agency                       | Products remains the current owner                        | Retire only if inventories prove empty; otherwise stop and review   | `APPROVED_CONDITIONALLY` |
+| `traceability_records` | Traceability                                       | Traceability                                                                               | Products, producer capability and public QR projection                      | Traceability command handler only                         | Inventory/additive/copy/verify/compatibility/finalize               | `APPROVED_CONDITIONALLY` |
+| `audit_logs`           | Admin                                              | Admin for technical audit; separate compliance ledger when policy gap is confirmed         | Admin/State Agency and audited capabilities                                 | Append through an audit port; no caller repository access | Separate additive store requires its own reviewed migration         | `APPROVED`               |
 
 Admin, Products, Payments and Traceability must not import another module's ORM
 entity or repository. Cross-owner access uses scalar IDs and application ports.
@@ -70,82 +91,84 @@ entity or repository. Cross-owner access uses scalar IDs and application ports.
 
 ### Incident Domain Contract
 
-| Concern          | Proposal                                                                         | Classification                                              |
-| ---------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Aggregate        | Incident is a Compliance aggregate with evidence references                      | `RECOMMENDED_DECISION`                                      |
-| Current subject  | `shipment_id` is required by baseline v2                                         | `SUPPORTED_BY_EXISTING_CONTRACT`                            |
-| Subject future   | Generic order/product/shipment subject                                           | `DECISION_REQUIRED` because Logistics is deferred           |
-| Creator          | Authenticated participant or system producer                                     | `DECISION_REQUIRED`                                         |
-| Content mutation | Core report content becomes immutable after submission; evidence may be appended | `RECOMMENDED_DECISION`                                      |
-| Status           | Candidate `open`, `in_review`, `resolved`, `closed`                              | `DECISION_REQUIRED`; current code accepts arbitrary strings |
-| Reopen           | Never implicit; explicit privileged transition only if approved                  | `DECISION_REQUIRED`                                         |
-| Evidence         | Private `stored_file_id` references, not client-controlled URLs                  | `RECOMMENDED_DECISION`, consistent with Storage ADR         |
+| Concern          | Proposal                                                                         | Classification                                    |
+| ---------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Aggregate        | Incident is a Compliance aggregate with evidence references                      | `APPROVED` by P7B-01/P7B-02                       |
+| Current subject  | `shipment_id` is required by baseline v2                                         | `SUPPORTED_BY_EXISTING_CONTRACT`                  |
+| Subject future   | Generic order/product/shipment subject                                           | `DECISION_REQUIRED` because Logistics is deferred |
+| Creator          | Existing role plus object-level capability                                       | `APPROVED` by P7B-07                              |
+| Content mutation | Core report content becomes immutable after submission; evidence may be appended | `APPROVED` by P7B-08/P7B-09                       |
+| Status           | `open`, `in_review`, `resolved`, `closed` through actions                        | `APPROVED` by P7B-05                              |
+| Reopen           | No reopen transition in the current scope                                        | `OUT_OF_SCOPE`                                    |
+| Evidence         | Private `stored_file_id` references, not client-controlled URLs                  | `APPROVED` by P7B-08 and the Storage ADR          |
 
 ### Dispute Domain Contract
 
-| Concern            | Proposal                                                                                | Classification         |
-| ------------------ | --------------------------------------------------------------------------------------- | ---------------------- |
-| Aggregate          | Separate Compliance aggregate linked to one order                                       | `RECOMMENDED_DECISION` |
-| Existence          | Do not create the table until product ownership confirms a dispute workflow             | `DECISION_REQUIRED`    |
-| Opener             | Buyer or seller participating in the order                                              | `RECOMMENDED_DECISION` |
-| Eligibility/window | Depends on delivered/cancelled/payment state and a configured time window               | `DECISION_REQUIRED`    |
-| Resolution         | Structured outcome plus immutable rationale; free-text alone is insufficient            | `RECOMMENDED_DECISION` |
-| Payment effect     | Resolution emits/requests an authorized refund; Compliance never writes Payments tables | `RECOMMENDED_DECISION` |
-| Concurrency        | One terminal resolution wins using expected version or row lock                         | `RECOMMENDED_DECISION` |
-| Idempotency        | Open and resolve commands require operation keys                                        | `RECOMMENDED_DECISION` |
+| Concern            | Proposal                                                                  | Classification |
+| ------------------ | ------------------------------------------------------------------------- | -------------- |
+| Aggregate          | Separate Compliance aggregate linked to one order                         | `DEFERRED`     |
+| Existence          | No Dispute implementation or table in current Phase 7B                    | `DEFERRED`     |
+| Opener             | Buyer or seller participating in the order                                | `DEFERRED`     |
+| Eligibility/window | Depends on delivered/cancelled/payment state and a configured time window | `DEFERRED`     |
+| Resolution         | Structured outcome plus immutable rationale                               | `DEFERRED`     |
+| Payment effect     | Any future refund remains Payments-owned                                  | `DEFERRED`     |
+| Concurrency        | One future terminal resolution wins                                       | `DEFERRED`     |
+| Idempotency        | Future open and resolve commands use operation keys                       | `DEFERRED`     |
 
 ### Quality Certificate Domain Contract
 
-| Concern                      | Proposal                                                                                  | Classification                                                                  |
-| ---------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Existing product certificate | `product_certifications` remains Products-owned                                           | `SUPPORTED_BY_EXISTING_CONTRACT`                                                |
-| Legacy quality certificate   | No implementation until its distinction from product certification is approved            | `DECISION_REQUIRED`                                                             |
-| Issuer/certifier             | Existing roles have no `certifier`; State Agency is the only evidenced verifier-like role | `DECISION_REQUIRED`                                                             |
-| Verification                 | Candidate pending to verified/rejected flow                                               | `SUPPORTED_BY_EXISTING_CONTRACT` for product certificates only                  |
-| Revocation                   | Verified to revoked, with actor, reason and timestamp; never hard delete                  | `RECOMMENDED_DECISION`                                                          |
-| Expiration                   | Derived from `expiry_date`; whether it is a persisted state is undecided                  | `DECISION_REQUIRED`                                                             |
-| Replacement                  | New immutable version linked to predecessor instead of editing verified facts             | `RECOMMENDED_DECISION`                                                          |
-| File/public badge            | Document remains private; public projection exposes only approved metadata                | `SUPPORTED_BY_EXISTING_CONTRACT` for privacy; badge rule is `DECISION_REQUIRED` |
+| Concern                      | Proposal                                                                        | Classification                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Existing product certificate | `product_certifications` remains Products-owned                                 | `APPROVED` by P7B-10                                           |
+| Legacy quality certificate   | Retire only after inventories prove no data/consumer; otherwise stop and review | `APPROVED_CONDITIONALLY` by P7B-11                             |
+| Issuer/certifier             | State Agency/Admin by policy; no new `certifier` role                           | `APPROVED` by P7B-13                                           |
+| Verification                 | Candidate pending to verified/rejected flow                                     | `SUPPORTED_BY_EXISTING_CONTRACT` for product certificates only |
+| Revocation                   | Verified to revoked, with actor, reason and timestamp; never hard delete        | `APPROVED` by P7B-12                                           |
+| Expiration                   | Derived from `expiry_date`, not a client-assigned state                         | `APPROVED` by P7B-12                                           |
+| Replacement                  | New immutable version linked to predecessor instead of editing verified facts   | `APPROVED` by P7B-09/P7B-12                                    |
+| File/public badge            | Document remains private; public projection exposes allow-listed metadata only  | `APPROVED` for privacy; exact badge fields remain P1           |
 
 ### Audit Evidence
 
-| Concern             | Proposal                                                                                | Classification                   |
-| ------------------- | --------------------------------------------------------------------------------------- | -------------------------------- |
-| Technical audit     | Keep `audit_logs` Admin-owned                                                           | `SUPPORTED_BY_EXISTING_CONTRACT` |
-| Compliance evidence | Actor, action, occurred-at, target, before/after, evidence reference and correlation ID | `RECOMMENDED_DECISION`           |
-| Immutability        | Insert-only application port; no update/delete API                                      | `RECOMMENDED_DECISION`           |
-| Failure behavior    | Business mutation and required compliance evidence commit atomically                    | `RECOMMENDED_DECISION`           |
-| Retention           | Duration and legal hold behavior                                                        | `DECISION_REQUIRED`              |
-| Read access         | Admin/State Agency by default; private evidence requires resource authorization         | `RECOMMENDED_DECISION`           |
+| Concern             | Proposal                                                                       | Classification                   |
+| ------------------- | ------------------------------------------------------------------------------ | -------------------------------- |
+| Technical audit     | Keep `audit_logs` Admin-owned                                                  | `SUPPORTED_BY_EXISTING_CONTRACT` |
+| Compliance evidence | Separate ledger when technical-audit policy gap is confirmed                   | `APPROVED` by P7B-17             |
+| Immutability        | Insert-only application port; no update/delete API                             | `APPROVED` by P7B-08             |
+| Failure behavior    | Business mutation and required compliance evidence commit atomically           | `APPROVED` by P7B-17             |
+| Retention           | Per-class policy with legal hold; exact durations gate cleanup                 | `APPROVED_CONDITIONALLY`         |
+| Read access         | Admin/State Agency by policy; private evidence requires resource authorization | `APPROVED` by P7B-07             |
 
 ### Traceability
 
-| Concern            | Proposal                                                                 | Classification                   |
-| ------------------ | ------------------------------------------------------------------------ | -------------------------------- |
-| Aggregate          | Batch/lot identity with append-only trace events and a public projection | `RECOMMENDED_DECISION`           |
-| Current identifier | Unique QR code exists in both mappings                                   | `SUPPORTED_BY_EXISTING_CONTRACT` |
-| Product/producer   | Scalar product and producer IDs; ownership verified through ports        | `RECOMMENDED_DECISION`           |
-| Batch identifier   | Required stable batch/lot code separate from QR                          | `DECISION_REQUIRED`              |
-| Location           | Structured location reference versus legacy free text                    | `DECISION_REQUIRED`              |
-| History            | Append-only events; correction appends a superseding event               | `RECOMMENDED_DECISION`           |
-| Query              | Public QR projection and authenticated owner/admin detail projection     | `RECOMMENDED_DECISION`           |
-| Compatibility      | Preserve `/trace` routes until response and migration compatibility pass | `SUPPORTED_BY_EXISTING_CONTRACT` |
+| Concern            | Proposal                                                                 | Classification                     |
+| ------------------ | ------------------------------------------------------------------------ | ---------------------------------- |
+| Aggregate          | Batch/lot identity with append-only trace events and a public projection | `APPROVED` by P7B-14/P7B-16        |
+| Current identifier | Unique QR code exists in both mappings                                   | `SUPPORTED_BY_EXISTING_CONTRACT`   |
+| Product/producer   | Scalar product and producer IDs; ownership verified through ports        | `APPROVED` by P7B-07/P7B-14        |
+| Batch identifier   | Required stable batch/lot code separate from QR                          | `DECISION_REQUIRED`                |
+| Location           | Structured location reference versus legacy free text                    | `DECISION_REQUIRED`                |
+| History            | Append-only events; correction appends a superseding event               | `APPROVED` by P7B-09/P7B-16        |
+| Query              | Public QR projection and authenticated owner/admin detail projection     | `APPROVED`; exact fields remain P1 |
+| Compatibility      | Preserve `/trace` routes until response and migration compatibility pass | `SUPPORTED_BY_EXISTING_CONTRACT`   |
 
-## Candidate State Machines
+## Recorded State-Machine Outcomes
 
-These are review candidates, not approved transitions.
+Incident and certificate rows below are the selected planning contract. Dispute is
+retained only as a deferred future design and is not part of implementation scope.
 
 ### Incident State Machine
 
-| Current         | Action       | Next      | Actor                           | Preconditions                       | Side effects                                   | Invalid result                |
-| --------------- | ------------ | --------- | ------------------------------- | ----------------------------------- | ---------------------------------------------- | ----------------------------- |
-| none            | submit       | open      | eligible authenticated reporter | valid subject and evidence access   | incident and evidence audit in one transaction | `INCIDENT_INVALID_INPUT`      |
-| open            | start review | in_review | Admin/State Agency              | expected version                    | append audit evidence                          | `INCIDENT_INVALID_TRANSITION` |
-| in_review       | resolve      | resolved  | Admin/State Agency              | resolution supplied                 | append resolution evidence                     | `INCIDENT_INVALID_TRANSITION` |
-| resolved        | close        | closed    | Admin/State Agency              | retention record complete           | append audit evidence                          | `INCIDENT_INVALID_TRANSITION` |
-| resolved/closed | reopen       | in_review | undecided                       | explicit reason and policy approval | append immutable reopen event                  | `DECISION_REQUIRED`           |
+| Current         | Action       | Next      | Actor                           | Preconditions                     | Side effects                                   | Invalid result                |
+| --------------- | ------------ | --------- | ------------------------------- | --------------------------------- | ---------------------------------------------- | ----------------------------- |
+| none            | submit       | open      | eligible authenticated reporter | valid subject and evidence access | incident and evidence audit in one transaction | `INCIDENT_INVALID_INPUT`      |
+| open            | start review | in_review | Admin/State Agency              | expected version                  | append audit evidence                          | `INCIDENT_INVALID_TRANSITION` |
+| in_review       | resolve      | resolved  | Admin/State Agency              | resolution supplied               | append resolution evidence                     | `INCIDENT_INVALID_TRANSITION` |
+| resolved        | close        | closed    | Admin/State Agency              | retention record complete         | append audit evidence                          | `INCIDENT_INVALID_TRANSITION` |
+| resolved/closed | reopen       | in_review | none in current scope           | separate future approval          | none                                           | `OUT_OF_SCOPE`                |
 
-All rows are `RECOMMENDED_DECISION` except reopen, which is `DECISION_REQUIRED`.
+Submit, review, resolve and close are approved planning transitions. Reopen is out
+of scope and clients never assign a next status directly.
 
 ### Dispute State Machine
 
@@ -157,21 +180,22 @@ All rows are `RECOMMENDED_DECISION` except reopen, which is `DECISION_REQUIRED`.
 | under_review | resolve seller | resolved_seller | approved resolver        | structured outcome                                  | audit transition                                 | `DISPUTE_INVALID_TRANSITION` |
 | resolved\_\* | close          | closed          | approved resolver/system | side effects completed                              | close audit event                                | `DISPUTE_INVALID_TRANSITION` |
 
-The state names have legacy enum evidence, but every transition, actor, eligibility
-rule, window and side effect remains `DECISION_REQUIRED`.
+The entire Dispute state machine, its actors, eligibility, resolution and payment
+side effects are `DEFERRED_WITH_P7B_03`.
 
 ### Quality Certificate State Machine
 
-| Current  | Action | Next            | Actor                              | Preconditions               | Side effects                     | Invalid result                   |
-| -------- | ------ | --------------- | ---------------------------------- | --------------------------- | -------------------------------- | -------------------------------- |
-| none     | submit | pending         | owner                              | private file authorized     | create certificate and audit     | `CERTIFICATE_INVALID_INPUT`      |
-| pending  | verify | verified        | State Agency or approved certifier | evidence review complete    | publish metadata projection only | `CERTIFICATE_INVALID_TRANSITION` |
-| pending  | reject | rejected        | State Agency or approved certifier | reason required             | audit rejection                  | `CERTIFICATE_INVALID_TRANSITION` |
-| verified | revoke | revoked         | approved authority                 | reason and expected version | remove badge, retain evidence    | `CERTIFICATE_INVALID_TRANSITION` |
-| verified | expire | expired/derived | system/query                       | expiry date elapsed         | hide active badge                | `DECISION_REQUIRED`              |
+| Current  | Action | Next     | Actor                        | Preconditions               | Side effects                     | Invalid result                   |
+| -------- | ------ | -------- | ---------------------------- | --------------------------- | -------------------------------- | -------------------------------- |
+| none     | submit | pending  | owner                        | private file authorized     | create certificate and audit     | `CERTIFICATE_INVALID_INPUT`      |
+| pending  | verify | verified | State Agency/Admin by policy | evidence review complete    | publish metadata projection only | `CERTIFICATE_INVALID_TRANSITION` |
+| pending  | reject | rejected | State Agency/Admin by policy | reason required             | audit rejection                  | `CERTIFICATE_INVALID_TRANSITION` |
+| verified | revoke | revoked  | approved authority           | reason and expected version | remove badge, retain evidence    | `CERTIFICATE_INVALID_TRANSITION` |
+| verified | expire | derived  | query policy                 | expiry date elapsed         | hide active badge                | `CERTIFICATE_EXPIRED`            |
 
-Submission/verification/rejection reflect the active Products flow. Revocation and
-expiration are `RECOMMENDED_DECISION`/`DECISION_REQUIRED` and require approval.
+Submission/verification/rejection remain Products-owned. Immutable revocation,
+linked replacement and derived expiry are approved planning behavior; documents
+and internal notes remain private.
 
 ## Transaction And Concurrency
 

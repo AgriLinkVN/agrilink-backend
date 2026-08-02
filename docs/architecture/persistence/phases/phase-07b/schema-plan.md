@@ -1,6 +1,7 @@
 # Phase 7B Schema Plan
 
-Status: `READY_FOR_REVIEW`. This document contains no executable SQL.
+Status: `OWNER_DECISIONS_RECORDED`. This document contains no executable SQL and
+does not authorize a migration.
 
 ## Verified Baseline
 
@@ -26,27 +27,26 @@ Every item marked `proposal` requires approval before migration generation.
 
 ### Incident
 
-| Concern     | Existing                               | Proposal                                                                                     | Status            |
-| ----------- | -------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------- |
-| Table/PK    | `incident_reports.id` UUID             | retain                                                                                       | supported         |
-| Subject FK  | required `shipment_id`, no baseline FK | retain scalar initially; FK only after Logistics activation decision                         | decision required |
-| Reporter    | required `reported_by`, no baseline FK | scalar user ID with Users existence checked through a port; physical FK decision separate    | proposal          |
-| Status      | varchar(50), default open              | approved state constraint                                                                    | decision required |
-| Evidence    | `text[] evidence_urls`                 | private evidence link model using `stored_file_id`; preserve old column during compatibility | proposal          |
-| Concurrency | none                                   | integer version or compare-and-set status                                                    | decision required |
-| Time        | created/resolved only                  | add updated/closed timestamps only if state contract needs them                              | decision required |
-| Delete      | unspecified                            | retained; no cascade delete                                                                  | proposal          |
-| Indexes     | PK only                                | `(status, created_at, id)` and subject/reporter query indexes after query approval           | proposal          |
+| Concern     | Existing                               | Proposal                                                                                  | Status            |
+| ----------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------- |
+| Table/PK    | `incident_reports.id` UUID             | retain                                                                                    | supported         |
+| Subject FK  | required `shipment_id`, no baseline FK | retain scalar initially; FK only after Logistics activation decision                      | decision required |
+| Reporter    | required `reported_by`, no baseline FK | scalar user ID with Users existence checked through a port; physical FK decision separate | approved contract |
+| Status      | varchar(50), default open              | `open`, `in_review`, `resolved`, `closed`; clients use actions                            | approved contract |
+| Evidence    | `text[] evidence_urls`                 | private evidence links using `stored_file_id`; preserve old column during compatibility   | approved contract |
+| Concurrency | none                                   | integer version or compare-and-set status                                                 | decision required |
+| Time        | created/resolved only                  | add updated/closed timestamps only if state contract needs them                           | decision required |
+| Delete      | unspecified                            | retained; no cascade hard-delete                                                          | approved contract |
+| Indexes     | PK only                                | `(status, created_at, id)` and subject/reporter query indexes after query approval        | proposal          |
 
 ### Dispute
 
-`disputes` is absent from baseline v2. No table is approved.
+`disputes` is absent from baseline v2. P7B-03 is `DEFERRED` and P7B-04 is
+`NOT_APPLICABLE_DUE_TO_P7B_03`; no table or canonical mapping is permitted in the
+current Phase 7B implementation.
 
-If the capability is approved, the minimum proposal is UUID PK, `order_id`, opener
-and respondent scalar IDs, structured status/outcome, reason, opened/resolved
-timestamps, expected version and operation key. Candidate uniqueness is based on
-the approved eligibility scope, not automatically one dispute per order. Exact
-nullability, FKs, window snapshot and refund linkage are P0 decisions.
+The order-centric model remains future design evidence only. Reopening this scope
+requires Product, Compliance and Payment review before schema planning.
 
 ### Quality Certificate
 
@@ -54,11 +54,10 @@ The active canonical product certificate is `product_certifications`, owned by
 Products. The legacy `quality_certificates` declaration must not recreate a second
 table merely because it exists in source.
 
-Preferred migration intent is to retire the legacy declaration if all required
-quality-certificate use cases are product-scoped. If organization/person
-credentials are approved as distinct, design a separately named Compliance table
-with immutable versions and private `stored_file_id`; do not reuse ambiguous
-`quality_certificates` until deployed evidence and naming are reviewed.
+Products remains the canonical owner of product certificates. Retire the legacy
+declaration only if every approved inventory proves no rows and no runtime consumer.
+If evidence exists, stop and review reconciliation into Products or a separately
+named non-product credential; do not recreate ambiguous `quality_certificates`.
 
 ### Audit Evidence
 
@@ -66,14 +65,16 @@ with immutable versions and private `stored_file_id`; do not reuse ambiguous
 IP and created time. It has no FK, correlation ID, operation key, retention/legal
 hold field or update/delete prevention.
 
-The review must choose between:
+The recorded owner outcome selects the second option when implementation evidence
+confirms the policy gap:
 
 1. Extend `audit_logs` as the single append-only evidence ledger.
 2. Keep it as technical request audit and add a separately owned compliance event
    store.
 
-No schema intent is approved until retention, PII, query and failure requirements
-select one option.
+The separate compliance ledger must roll back its domain mutation when mandatory
+evidence persistence fails. Exact schema remains blocked by inventory-derived
+migration review and the conditional retention configuration.
 
 ## Traceability Conflict
 
@@ -133,6 +134,7 @@ The implementation review should consider, but must not generate before approval
 
 ## Migration Gate
 
-Migration generation remains blocked until all P0 schema decisions are approved,
-fresh deployed inventories are attached and an exact up/down data-loss review is
-accepted. The baseline migration already merged must not be edited.
+Migration generation remains blocked until approved read-only inventories are
+attached, P7B-11/P7B-15 conditional branches are resolved and an exact up/down
+data-loss review is accepted separately. P7B-19 authorizes inventory only. The
+merged baseline migration must not be edited.

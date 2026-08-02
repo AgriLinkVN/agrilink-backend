@@ -1,10 +1,15 @@
 # Phase 7B Implementation Plan
 
-Status: `READY_FOR_REVIEW`; execution is blocked by P0 decisions.
+Status: `OWNER_DECISIONS_RECORDED`; execution remains blocked by PR merge,
+read-only inventory and conditional gates.
 
 ## Preconditions
 
-- Named owner groups approve every P0 decision and record the outcome, approver and date.
+- Use only the applicable approved outcomes recorded on 2026-08-02. Exclude Dispute,
+  refund coordination and every deferred capability.
+- Resolve P7B-11 and P7B-15 using approved read-only deployed inventories before any
+  retirement, backfill or migration design.
+- Keep cleanup disabled until P7B-18 has exact approved retention durations.
 - A fresh branch `refactor/persistence-phase-7b-compliance` is created from a clean,
   current `origin/develop` only after the specification PR is merged.
 - Fresh approved read-only deployed inventories exist where migration decisions
@@ -39,8 +44,10 @@ Candidate files, conditional on approved decisions:
 - `src/modules/compliance/presentation/**`
 - `src/modules/traceability/{domain,application,infrastructure,presentation}/**`
 - Admin compatibility/query-port wiring only; no Admin ownership of Compliance repositories.
-- Products/Payments typed ports only where approved; no direct entity imports.
-- A new timestamped migration under `src/database/migrations-v2/` only after approval.
+- Products typed ports only where approved; no direct entity imports. Payment ports
+  remain deferred with Dispute.
+- A new timestamped migration under `src/database/migrations-v2/` only after a
+  separate inventory-derived migration review; P7B-19 alone is not authorization.
 - Phase 7B focused Jest config and architecture/disposable-DB tests.
 
 ## Required Full Gates
@@ -77,7 +84,7 @@ gate passed when it was skipped or blocked by environment.
 - Do not dual-write without a separately approved reconciliation/failure contract.
 - Never run development migration/seed/sync against protected databases.
 - Treat public trace/certificate projections as privacy-sensitive API changes.
-- Payment refund remains Payments-owned and idempotent; Compliance records outcome,
-  not ledger mutation.
+- No payment behavior is implemented in the current scope. Any future refund remains
+  Payments-owned and requires Payment Owner review.
 - Stop the dependent step when a decision or deployed fact is missing; independent
   documentation/test work may continue and must be reported as partial.

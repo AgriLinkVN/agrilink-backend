@@ -1,7 +1,8 @@
 # Persistence Phase 7B: Compliance And Traceability Specification
 
-- Status: Specification ready for review
-- Implementation status: Blocked pending P0 approvals
+- Status: Owner decisions recorded on 2026-08-02
+- Implementation status: Blocked pending specification PR merge, approved read-only
+  inventories and conditional gates
 - Phase type: planning and contract definition
 - Base: `develop` at `4a16970`
 - Dependencies: Phase 6 PR #89 and Phase 7A PR #90, both merged with successful CI
@@ -49,6 +50,20 @@ The checked-in local reconciliation snapshot records `traceability_records` as a
 known preserved extra with zero rows. It is evidence about that captured local
 environment, not evidence about production.
 
+## Owner Decision Summary
+
+- Approver: Mai Nguyễn Tiến Đạt.
+- Capacity: Project Owner, Product Owner, Architecture Owner, Database Owner and
+  Security/Compliance Owner for this academic project.
+- Approval date: 2026-08-02.
+- Incident, evidence, certificate and Traceability contracts have recorded outcomes.
+- Dispute implementation, schema, resolution and refund coordination are deferred.
+- Legacy certificate retirement and Traceability reconciliation remain conditional
+  on approved read-only deployed inventories.
+- Retention cleanup remains disabled until exact per-class durations are configured
+  and approved.
+- No Payment Owner authority was exercised; no payment behavior was approved.
+
 ## Documents
 
 - [Decision pack](decision-pack.md)
@@ -66,25 +81,24 @@ environment, not evidence about production.
 - Migration generated or applied: `NO`.
 - Seed, schema synchronization or onboarding apply executed: `NO`.
 - The merged canonical baseline migration was not modified and must remain immutable.
-- Deployed inventory may be collected read-only only after P7B-19 approval and
-  operational authorization.
+- P7B-19 authorizes deployed inventory collection in read-only mode for each rollout
+  environment, subject to operational access authorization and secret-safe capture.
 - Any approved Traceability migration must follow inventory, additive, copy,
   verify, compatibility and finalize stages with evidence-preserving rollback.
 
 ## Exit Criteria
 
-Phase 7B may receive implementation approval only when:
+The applicable, non-deferred Phase 7B scope may move to an implementation branch
+only when:
 
-1. Every P0 decision in `open-decisions.md` has an approver and recorded outcome.
-2. Incident and dispute semantics are separated, including the dependency on the
-   currently deferred Logistics capability.
-3. The fate of `quality_certificates` versus `product_certifications` is approved.
-4. The canonical traceability model and compatibility/backfill strategy are approved.
-5. Evidence immutability, retention and private-file access are approved by the
-   compliance/security owners.
-6. API compatibility and stable error-envelope changes are approved.
-7. Migration up/down and protected-data verification plans are reviewable without
-   requiring production access during development.
+1. PR #91 is reviewed and merged into a current `develop`.
+2. Approved read-only inventories resolve the P7B-11 and P7B-15 conditional branches.
+3. The implementation scope explicitly excludes Dispute and every payment side effect.
+4. Exact per-class retention durations are approved before cleanup is enabled.
+5. Any proposed migration has inventory-derived up/down, reconciliation and
+   data-loss evidence and receives a separate review; P7B-19 is not migration approval.
+6. API compatibility and public/private projections are represented by executable
+   contract and security tests.
 
-Until all exit criteria pass, no implementation branch, migration or schema change
-is authorized.
+Until these exit criteria pass, no implementation branch, migration or schema
+change is authorized.

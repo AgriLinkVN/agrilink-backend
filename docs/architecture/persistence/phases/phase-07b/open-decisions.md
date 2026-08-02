@@ -1,33 +1,35 @@
 # Phase 7B Open Decisions
 
-Status: Specification ready for review
+Status: Owner outcomes recorded; conditional implementation gates remain
 
-Implementation remains blocked until every P0 record has a human-approved outcome,
-approver group and approval date. Recommendations below are not approvals.
+The outcomes below were recorded by the named academic-project owner on 2026-08-02.
+They approve only the explicitly selected specification scope. Conditional outcomes,
+read-only inventory gates and deferred capabilities remain binding. No outcome in
+this document authorizes DDL, DML, migration execution or production mutation.
 
 ## P0 Summary
 
-| ID     | Topic                                    | Required approver groups                             | Outcome            |
-| ------ | ---------------------------------------- | ---------------------------------------------------- | ------------------ |
-| P7B-01 | Incident and Dispute capability boundary | Product Owner, Architecture Owner, Compliance Owner  | `PENDING_APPROVAL` |
-| P7B-02 | Incident table ownership                 | Architecture Owner, Compliance Owner                 | `PENDING_APPROVAL` |
-| P7B-03 | Dispute MVP inclusion                    | Product Owner, Compliance Owner, Payment Owner       | `PENDING_APPROVAL` |
-| P7B-04 | Dispute canonical schema                 | Architecture Owner, Database Owner, Compliance Owner | `PENDING_APPROVAL` |
-| P7B-05 | Incident state machine                   | Product Owner, Compliance Owner                      | `PENDING_APPROVAL` |
-| P7B-06 | Dispute state machine                    | Product Owner, Compliance Owner, Payment Owner       | `PENDING_APPROVAL` |
-| P7B-07 | Actor authorization                      | Security Owner, Compliance Owner, Product Owner      | `PENDING_APPROVAL` |
-| P7B-08 | Evidence immutability                    | Compliance Owner, Security Owner, Database Owner     | `PENDING_APPROVAL` |
-| P7B-09 | Evidence replacement and correction      | Compliance Owner, Security Owner                     | `PENDING_APPROVAL` |
-| P7B-10 | Quality Certificate ownership            | Product Owner, Architecture Owner, Compliance Owner  | `PENDING_APPROVAL` |
-| P7B-11 | Legacy `quality_certificates` scope      | Product Owner, Database Owner, Compliance Owner      | `PENDING_APPROVAL` |
-| P7B-12 | Certificate verification and revocation  | Product Owner, Compliance Owner, Security Owner      | `PENDING_APPROVAL` |
-| P7B-13 | Certifier role governance                | Security Owner, Product Owner, Compliance Owner      | `PENDING_APPROVAL` |
-| P7B-14 | Traceability canonical mapping           | Product Owner, Architecture Owner, Database Owner    | `PENDING_APPROVAL` |
-| P7B-15 | Traceability reconciliation strategy     | Database Owner, Architecture Owner                   | `PENDING_APPROVAL` |
-| P7B-16 | Traceability append-only contract        | Product Owner, Compliance Owner, Architecture Owner  | `PENDING_APPROVAL` |
-| P7B-17 | Audit evidence persistence               | Architecture Owner, Compliance Owner, Security Owner | `PENDING_APPROVAL` |
-| P7B-18 | Retention and hard-delete policy         | Compliance Owner, Security Owner, Database Owner     | `PENDING_APPROVAL` |
-| P7B-19 | Deployed inventory and migration basis   | Database Owner, Architecture Owner                   | `PENDING_APPROVAL` |
+| ID     | Topic                                    | Required approver groups                             | Outcome                            |
+| ------ | ---------------------------------------- | ---------------------------------------------------- | ---------------------------------- |
+| P7B-01 | Incident and Dispute capability boundary | Product Owner, Architecture Owner, Compliance Owner  | `APPROVED`                         |
+| P7B-02 | Incident table ownership                 | Architecture Owner, Compliance Owner                 | `APPROVED`                         |
+| P7B-03 | Dispute MVP inclusion                    | Product Owner, Compliance Owner, Payment Owner       | `DEFERRED`                         |
+| P7B-04 | Dispute canonical schema                 | Architecture Owner, Database Owner, Compliance Owner | `NOT_APPLICABLE_DUE_TO_P7B_03`     |
+| P7B-05 | Incident state machine                   | Product Owner, Compliance Owner                      | `APPROVED`                         |
+| P7B-06 | Dispute state machine                    | Product Owner, Compliance Owner, Payment Owner       | `DEFERRED_WITH_P7B_03`             |
+| P7B-07 | Actor authorization                      | Security Owner, Compliance Owner, Product Owner      | `APPROVED`                         |
+| P7B-08 | Evidence immutability                    | Compliance Owner, Security Owner, Database Owner     | `APPROVED`                         |
+| P7B-09 | Evidence replacement and correction      | Compliance Owner, Security Owner                     | `APPROVED`                         |
+| P7B-10 | Quality Certificate ownership            | Product Owner, Architecture Owner, Compliance Owner  | `APPROVED`                         |
+| P7B-11 | Legacy `quality_certificates` scope      | Product Owner, Database Owner, Compliance Owner      | `APPROVED_CONDITIONALLY`           |
+| P7B-12 | Certificate verification and revocation  | Product Owner, Compliance Owner, Security Owner      | `APPROVED`                         |
+| P7B-13 | Certifier role governance                | Security Owner, Product Owner, Compliance Owner      | `APPROVED`                         |
+| P7B-14 | Traceability canonical mapping           | Product Owner, Architecture Owner, Database Owner    | `APPROVED`                         |
+| P7B-15 | Traceability reconciliation strategy     | Database Owner, Architecture Owner                   | `APPROVED_CONDITIONALLY`           |
+| P7B-16 | Traceability append-only contract        | Product Owner, Compliance Owner, Architecture Owner  | `APPROVED`                         |
+| P7B-17 | Audit evidence persistence               | Architecture Owner, Compliance Owner, Security Owner | `APPROVED`                         |
+| P7B-18 | Retention and hard-delete policy         | Compliance Owner, Security Owner, Database Owner     | `APPROVED_CONDITIONALLY`           |
+| P7B-19 | Deployed inventory and migration basis   | Database Owner, Architecture Owner                   | `APPROVED_FOR_READ_ONLY_INVENTORY` |
 
 ## P0 Decision Records
 
@@ -46,9 +48,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Separate shipment/operational Incident from order/payment
   Dispute, with a deprecated compatibility adapter for the Admin route.
 - **Required approver groups:** Product Owner, Architecture Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - separate aggregates.
+- **Outcome:** `APPROVED`
+- **Approval note:** Incident and Dispute are separate aggregates. Legacy Admin
+  dispute routes remain an Incident compatibility adapter during transition.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Determines module boundaries and application ports.
 - **Migration impact:** Determines whether a Dispute table is needed.
 - **API impact:** Determines replacement/deprecation of `/admin/disputes`.
@@ -69,9 +76,14 @@ approver group and approval date. Recommendations below are not approvals.
   preserves current wiring but couples oversight UI to business persistence.
 - **Recommendation:** Compliance owns writes and mapping; Admin uses typed ports.
 - **Required approver groups:** Architecture Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** A - Compliance owner.
+- **Outcome:** `APPROVED`
+- **Approval note:** Compliance owns the Incident domain and writable persistence.
+  Admin accesses it only through typed application ports.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Moves entity/repository registration and adds ports.
 - **Migration impact:** Compatibility move should initially preserve the table.
 - **API impact:** Existing Admin response remains behind an adapter.
@@ -90,9 +102,17 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Include only after eligibility, actors and resolution outcomes
   are approved; otherwise explicitly defer and retire the writable declaration.
 - **Required approver groups:** Product Owner, Compliance Owner, Payment Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - defer.
+- **Outcome:** `DEFERRED`
+- **Approval note:** Dispute is excluded from the current Phase 7B implementation
+  because eligibility, participants, outcomes and payment coordination are not
+  approved. No payment behavior is approved; future activation still requires
+  Payment Owner review.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project; scope deferral
+  only, not Payment Owner approval.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Controls whether Dispute domain/use cases are built.
 - **Migration impact:** Controls whether any additive Dispute table is permitted.
 - **API impact:** Controls whether new Dispute endpoints are introduced.
@@ -113,9 +133,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Order-centric UUID aggregate with scalar participants,
   structured outcome, private evidence links, version and durable operation key.
 - **Required approver groups:** Architecture Owner, Database Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - no table/defer.
+- **Outcome:** `NOT_APPLICABLE_DUE_TO_P7B_03`
+- **Approval note:** No `disputes` table or canonical Dispute mapping is created in
+  the current Phase 7B scope.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines domain, mapper and repository contracts.
 - **Migration impact:** Defines exact additive table/constraints/indexes.
 - **API impact:** Defines request/response fields and idempotency header.
@@ -136,9 +161,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Action-based constrained lifecycle with explicit privileged
   reopen only if product owners require it.
 - **Required approver groups:** Product Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - `open`, `in_review`, `resolved`, `closed`.
+- **Outcome:** `APPROVED`
+- **Approval note:** Clients invoke validated actions and cannot assign status
+  directly. Reopen remains out of scope without a separate decision.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines aggregate transition policy.
 - **Migration impact:** Defines status normalization/check constraints.
 - **API impact:** Replaces direct status assignment with transition actions.
@@ -156,9 +186,16 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Approve action/state/outcome separately and make payment side
   effects explicit through a Payments port.
 - **Required approver groups:** Product Owner, Compliance Owner, Payment Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - structured outcome events, deferred with P7B-03.
+- **Outcome:** `DEFERRED_WITH_P7B_03`
+- **Approval note:** Structured outcomes remain a future recommendation. Resolution,
+  refund coordination and every payment side effect are excluded from Phase 7B.
+  Future activation requires Payment Owner review.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project; scope deferral
+  only, not Payment Owner approval.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines resolution use case and ports.
 - **Migration impact:** Defines state/outcome columns and constraints.
 - **API impact:** Defines resolution DTO and conflict responses.
@@ -179,9 +216,14 @@ approver group and approval date. Recommendations below are not approvals.
   cross-module read ports but preserve boundaries.
 - **Recommendation:** Existing role plus object-level authorization through typed ports.
 - **Required approver groups:** Security Owner, Compliance Owner, Product Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - existing role plus object-level capability.
+- **Outcome:** `APPROVED`
+- **Approval note:** Use existing roles and typed capability ports. No new role is
+  introduced.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines guards/policies and read ports.
 - **Migration impact:** May require participant snapshots, not role columns.
 - **API impact:** Defines 401/403/non-disclosing 404 behavior.
@@ -200,9 +242,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Submission and decision facts become immutable at commit;
   corrections append evidence/events.
 - **Required approver groups:** Compliance Owner, Security Owner, Database Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - immutable facts with append-only metadata.
+- **Outcome:** `APPROVED`
+- **Approval note:** Submitted compliance evidence cannot be updated or hard-deleted
+  in place.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Prohibits update/delete use cases for evidence facts.
 - **Migration impact:** May require event/evidence tables and no-cascade constraints.
 - **API impact:** No raw evidence update/delete endpoints.
@@ -219,9 +266,14 @@ approver group and approval date. Recommendations below are not approvals.
   provenance but need ordering and public projection rules.
 - **Recommendation:** Append a correction referencing the superseded fact, reason and actor.
 - **Required approver groups:** Compliance Owner, Security Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - append a superseding record.
+- **Outcome:** `APPROVED`
+- **Approval note:** Corrections record predecessor, actor, reason and time while
+  preserving the original evidence.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Adds correction commands/projections.
 - **Migration impact:** Requires predecessor/supersedes relationship if approved.
 - **API impact:** Adds action endpoint rather than PATCHing immutable facts.
@@ -242,9 +294,15 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Products retains product certificates; Compliance owns only a
   separately approved non-product credential aggregate.
 - **Required approver groups:** Product Owner, Architecture Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - split by credential subject.
+- **Outcome:** `APPROVED`
+- **Approval note:** Products retains `product_certifications`. Compliance may own a
+  distinct certificate capability only after a non-product subject is approved by
+  evidence.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Determines module and port placement.
 - **Migration impact:** Determines consolidation versus separate renamed table.
 - **API impact:** Determines whether existing Products endpoints remain canonical.
@@ -263,9 +321,15 @@ approver group and approval date. Recommendations below are not approvals.
   inventory and backfill before retirement.
 - **Recommendation:** Treat as unverified legacy until approved deployed inventory proves otherwise.
 - **Required approver groups:** Product Owner, Database Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** Conditional A/B/C.
+- **Outcome:** `APPROVED_CONDITIONALLY`
+- **Approval note:** Retire the legacy declaration only if every approved deployed
+  inventory proves no data and no runtime consumer. If evidence exists, stop and
+  review reconciliation option B or C before implementation.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Controls whether any legacy adapter remains.
 - **Migration impact:** Controls no-op retirement versus copy/verify migration.
 - **API impact:** Prevents an unapproved second certificate API.
@@ -285,9 +349,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Preserve current flow, add immutable revocation event and
   linked replacement only after approval; derive validity from expiry date.
 - **Required approver groups:** Product Owner, Compliance Owner, Security Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - immutable revocation, linked replacement and derived expiry.
+- **Outcome:** `APPROVED`
+- **Approval note:** Private document URLs and internal notes never enter the public
+  projection.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines certificate policy/use cases.
 - **Migration impact:** May require revocation/version metadata.
 - **API impact:** Defines revoke/public-validity responses.
@@ -303,9 +372,13 @@ approver group and approval date. Recommendations below are not approvals.
   may not match operational authority.
 - **Recommendation:** Add no role in Phase 7B unless Auth/Security governance approves it.
 - **Required approver groups:** Security Owner, Product Owner, Compliance Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** A - existing State Agency and Admin roles.
+- **Outcome:** `APPROVED`
+- **Approval note:** Phase 7B does not add Certifier to `UserRole`.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Determines decorators/authorization policies.
 - **Migration impact:** May require no schema if issuer remains scalar metadata.
 - **API impact:** Determines verifier-facing endpoints and claims.
@@ -324,9 +397,13 @@ approver group and approval date. Recommendations below are not approvals.
   Event model preserves history but needs reconciliation.
 - **Recommendation:** Stable batch aggregate, unique QR aliases and append-only typed events.
 - **Required approver groups:** Product Owner, Architecture Owner, Database Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - immutable batch identity plus typed events.
+- **Outcome:** `APPROVED`
+- **Approval note:** Neither conflicting legacy mapping is adopted directly.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines Traceability domain/mapping/query projection.
 - **Migration impact:** Defines destination tables/columns.
 - **API impact:** Defines public and owner response fields.
@@ -344,9 +421,15 @@ approver group and approval date. Recommendations below are not approvals.
   Copy requires deterministic mapping for conflicting/null fields.
 - **Recommendation:** Inventory, additive, copy, verify, compatibility, finalize.
 - **Required approver groups:** Database Owner, Architecture Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** Staged B+C.
+- **Outcome:** `APPROVED_CONDITIONALLY`
+- **Approval note:** Use inventory, additive, copy, verify, compatibility and
+  finalize. Direct retirement is permitted only when every approved inventory
+  proves the source empty.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Controls adapter cutover and write enablement.
 - **Migration impact:** Defines staged up/down strategy and reconciliation evidence.
 - **API impact:** Requires old `/trace` compatibility until parity passes.
@@ -363,9 +446,14 @@ approver group and approval date. Recommendations below are not approvals.
   provenance but require ordering, idempotency and projection logic.
 - **Recommendation:** Immutable events plus derived/materialized public projection.
 - **Required approver groups:** Product Owner, Compliance Owner, Architecture Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - immutable events plus deterministic projection.
+- **Outcome:** `APPROVED`
+- **Approval note:** Corrections append a superseding event and never update the
+  original event.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines event command/query model.
 - **Migration impact:** May require event table and projection rebuild.
 - **API impact:** Corrections append actions, never PATCH historical facts.
@@ -384,9 +472,16 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** Keep technical audit Admin-owned; use a dedicated compliance
   evidence contract if retention/immutability differs.
 - **Required approver groups:** Architecture Owner, Compliance Owner, Security Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** B - separate compliance evidence ledger when the stated
+  implementation evidence condition is met.
+- **Outcome:** `APPROVED`
+- **Approval note:** Use a separate ledger when implementation evidence confirms
+  technical `audit_logs` cannot satisfy retention, immutability and transaction
+  policy. Mandatory compliance-evidence failure rolls back the domain mutation.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines audit port and transaction participation.
 - **Migration impact:** Determines extension versus additive evidence store.
 - **API impact:** Determines oversight query and redaction surface.
@@ -403,9 +498,14 @@ approver group and approval date. Recommendations below are not approvals.
   deletion can violate legal holds without explicit controls.
 - **Recommendation:** Per-class policy with legal hold; prohibit cascade hard delete.
 - **Required approver groups:** Compliance Owner, Security Owner, Database Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - per-class policy with legal hold.
+- **Outcome:** `APPROVED_CONDITIONALLY`
+- **Approval note:** Cascade hard-delete is prohibited. Exact durations must be
+  configured and approved before any cleanup process is enabled.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Defines lifecycle jobs and delete prohibitions.
 - **Migration impact:** May require retention/legal-hold metadata and FK changes.
 - **API impact:** Determines whether archive/purge actions exist.
@@ -423,9 +523,14 @@ approver group and approval date. Recommendations below are not approvals.
 - **Recommendation:** After approval, capture read-only table/column/constraint/index,
   row-count, duplicate and orphan evidence for each rollout environment.
 - **Required approver groups:** Database Owner, Architecture Owner.
-- **Outcome:** `PENDING_APPROVAL`
-- **Approver:** Pending human owner-group assignment.
-- **Approval date:** Pending.
+- **Selected option:** C - every rollout environment.
+- **Outcome:** `APPROVED_FOR_READ_ONLY_INVENTORY`
+- **Approval note:** Read-only inventory is authorized. DDL, DML, migration, seed,
+  synchronize, onboarding apply and every production mutation remain prohibited.
+- **Approver:** Mai Nguyễn Tiến Đạt.
+- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
+  Owner and Security/Compliance Owner for this academic project.
+- **Approval date:** 2026-08-02.
 - **Implementation impact:** Keeps migration and write enablement blocked until evidence exists.
 - **Migration impact:** Provides the only approved basis for backfill/retirement SQL.
 - **API impact:** Determines compatibility duration where deployed shapes differ.
@@ -444,7 +549,7 @@ approver group and approval date. Recommendations below are not approvals.
 
 ## Approval Record Rule
 
-Only named human owner groups may replace `PENDING_APPROVAL`. Every approved record
-must include the outcome, approver, approval date, evidence URL and synchronized
-updates to the decision pack, schema plan, API contract and acceptance criteria.
-Automated review or absence of comments is never approval.
+Only named human owner groups may change an outcome. Every record must include the
+selected option, outcome, approver capacity, approval date and synchronized updates
+to the decision pack, schema plan, API contract and acceptance criteria. Conditional
+outcomes cannot be promoted by automated review or absence of comments.

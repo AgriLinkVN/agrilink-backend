@@ -1,6 +1,20 @@
 # Phase 7B API Contract
 
-Status: `READY_FOR_REVIEW`. Paths below are proposals, not implementation approval.
+Status: `OWNER_DECISIONS_RECORDED`. Paths remain implementation targets, not proof
+of implementation or authorization to mutate a deployed environment.
+
+## Recorded Scope
+
+- Incident receives a Compliance-owned API while legacy Admin dispute routes remain
+  Incident compatibility adapters during migration.
+- Dispute open/evidence/resolution endpoints are deferred and must not be added in
+  the current Phase 7B implementation. No refund behavior is approved.
+- Product certificate APIs remain Products-owned; revocation and replacement retain
+  private documents and expose approved metadata only.
+- State Agency/Admin are the approved certificate authority roles for this phase;
+  `Certifier` is not added to `UserRole`.
+- Traceability uses immutable batches/events and deterministic public/private
+  projections. Legacy `/trace` compatibility remains until verified cutover.
 
 ## Existing Compatibility Surface
 
@@ -27,17 +41,18 @@ repurposed to different resources while clients still consume them.
 | Open dispute              | POST       | `/api/v1/compliance/disputes`                                   | eligible order participant          | orderId, reason, evidence IDs plus `Idempotency-Key`           | `DisputeResponse`         | not eligible/window expired/duplicate                    |
 | Add dispute evidence      | POST       | `/api/v1/compliance/disputes/{id}/evidence`                     | participant/oversight               | storedFileIds plus operation key                               | evidence metadata         | immutable/forbidden/duplicate                            |
 | Resolve dispute           | POST       | `/api/v1/compliance/disputes/{id}/resolution`                   | approved resolver                   | outcome, reason, refund intent, expectedVersion, operation key | resolved dispute          | invalid transition/version/payment conflict              |
-| Submit certificate        | POST       | existing Products path or approved Compliance path              | owner                               | certificate metadata and storedFileId                          | private owner projection  | invalid file/duplicate                                   |
-| Verify/reject certificate | POST/PATCH | existing Products path or approved authority path               | State Agency/approved authority     | decision, reason, expectedVersion                              | authority projection      | invalid transition/version conflict                      |
-| Revoke certificate        | POST       | `/api/v1/compliance/certificates/{id}/revocation`               | approved authority                  | reason, expectedVersion, operation key                         | revoked metadata          | already revoked/forbidden/version conflict               |
-| Public certificate        | GET        | `/api/v1/public/certificates/{id}`                              | public                              | identifier                                                     | approved metadata only    | not found/expired/revoked policy                         |
+| Submit certificate        | POST       | existing Products path                                          | owner                               | certificate metadata and storedFileId                          | private owner projection  | invalid file/duplicate                                   |
+| Verify/reject certificate | POST/PATCH | existing or approved Products-owned authority path              | State Agency/Admin by policy        | decision, reason, expectedVersion                              | authority projection      | invalid transition/version conflict                      |
+| Revoke certificate        | POST       | approved Products-owned revocation path                         | State Agency/Admin by policy        | reason, expectedVersion, operation key                         | revoked metadata          | already revoked/forbidden/version conflict               |
+| Public certificate        | GET        | approved Products-owned public path                             | public                              | identifier                                                     | approved metadata only    | not found/expired/revoked policy                         |
 | Create trace batch        | POST       | `/api/v1/trace` compatibility or `/api/v1/traceability/batches` | producer/admin                      | `CreateTraceBatchRequest`, operation key                       | private batch projection  | product forbidden/duplicate                              |
 | Append trace event        | POST       | `/api/v1/traceability/batches/{id}/events`                      | owner/approved system               | type, occurredAt, payload, evidence IDs, operation key         | event projection          | conflict/forbidden/duplicate                             |
 | Correct trace event       | POST       | `/api/v1/traceability/events/{id}/corrections`                  | owner/oversight                     | replacement facts, reason, operation key                       | superseding event         | immutable/forbidden/conflict                             |
 | Public trace              | GET        | `/api/v1/trace/{qrCode}`                                        | public                              | QR path                                                        | redacted ordered timeline | not found                                                |
 
-Endpoint family, dispute existence, certificate location and correction authority
-remain P0 decisions. They must not be added to OpenAPI until approved.
+Dispute rows in this table are deferred future reference and must not be added to
+OpenAPI in the current phase. Applicable Incident, certificate and Traceability
+paths require implementation tests and compatibility review before publication.
 
 ## DTO Proposals
 
@@ -54,23 +69,24 @@ remain P0 decisions. They must not be added to OpenAPI until approved.
 
 - `action`: approved transition action enum.
 - `expectedVersion`: non-negative integer.
-- `reason`: required and bounded for resolution, close or reopen as approved.
+- `reason`: required and bounded for resolution or close. Reopen is not accepted.
 - Request does not accept resolver ID or next status directly.
 
-### OpenDisputeRequest
+### OpenDisputeRequest (Deferred Future Reference)
 
 - `orderId`: UUID.
 - `reasonCode`: approved enum plus bounded `description`.
 - `evidenceFileIds`: authorized private file IDs.
 - Request does not accept opener/respondent IDs, payment amount or status.
 
-### ResolveDisputeRequest
+### ResolveDisputeRequest (Deferred Future Reference)
 
 - `outcome`: approved structured enum.
 - `reason`: required bounded text.
 - `refundAmount`: exact VND string only if the approved outcome allows it.
 - `expectedVersion`: required integer.
-- Refund execution remains Payments-owned.
+- No refund execution is approved in the current phase. Any future refund remains
+  Payments-owned and requires Payment Owner review.
 
 ### Certificate Requests
 
