@@ -76,8 +76,8 @@ The complete machine-readable matrix is `entity-ownership.json`. Compact view:
 | `payments`                                 | payments              | canonical                            | 6        | critical      |
 | `contracts`, `purchase_requests`           | contracts             | canonical                            | 6        | high          |
 | `commerce_operations`                     | commerce              | canonical technical support          | 6        | high          |
-| logistics tables/profile                   | logistics             | central legacy                       | 7A       | high          |
-| conversations/messages                     | messaging             | central legacy                       | 7A       | medium        |
+| logistics tables/profile                   | logistics             | dormant deferred declarations        | 7A       | high          |
+| conversations/messages                     | messaging             | dormant deferred declarations        | 7A       | medium        |
 | disputes/incidents/certificates            | compliance            | central legacy                       | 7B       | high          |
 | `traceability_records`                     | traceability          | duplicate                            | 7B       | critical      |
 | cooperative persistence tables             | cooperatives          | canonical                            | complete | low           |

@@ -3,8 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotifType } from '@common/enums';
 import { NotificationNotFoundError } from '../errors/notification-not-found.error';
 import { NotificationModel } from '../models/notification.model';
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
+import {
+  NOTIFICATION_REPOSITORY,
+  NotificationRepositoryPort,
+} from '../ports/outbound/notification-repository.port';
+import {
+  NOTIFICATION_REALTIME_PUBLISHER,
+  NotificationRealtimePublisherPort,
+} from '../ports/outbound/notification-realtime-publisher.port';
 import { MarkNotificationReadUseCase } from './mark-notification-read.use-case';
 
 describe('MarkNotificationReadUseCase', () => {
@@ -45,7 +51,10 @@ describe('MarkNotificationReadUseCase', () => {
       providers: [
         MarkNotificationReadUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: repository },
-        { provide: NOTIFICATION_REALTIME_PUBLISHER, useValue: realtimePublisher },
+        {
+          provide: NOTIFICATION_REALTIME_PUBLISHER,
+          useValue: realtimePublisher,
+        },
       ],
     }).compile();
 
@@ -98,5 +107,41 @@ describe('MarkNotificationReadUseCase', () => {
       unreadNotification.userId,
       expect.objectContaining({ id: unreadNotification.id }),
     );
+  });
+
+  it('returns the winning concurrent update without publishing twice', async () => {
+    const readNotification = {
+      ...unreadNotification,
+      isRead: true,
+      readAt: new Date('2026-06-02T00:00:00.000Z'),
+    };
+    repository.findByIdForUser
+      .mockResolvedValueOnce(unreadNotification)
+      .mockResolvedValueOnce(readNotification);
+    repository.markOneAsRead.mockResolvedValue(null);
+
+    await expect(
+      useCase.execute(unreadNotification.id, unreadNotification.userId),
+    ).resolves.toBe(readNotification);
+
+    expect(repository.findByIdForUser).toHaveBeenCalledTimes(2);
+    expect(realtimePublisher.publishMarkedRead).not.toHaveBeenCalled();
+  });
+
+  it('returns the persisted read state when realtime delivery fails', async () => {
+    const readNotification = {
+      ...unreadNotification,
+      isRead: true,
+      readAt: new Date('2026-06-02T00:00:00.000Z'),
+    };
+    repository.findByIdForUser.mockResolvedValue(unreadNotification);
+    repository.markOneAsRead.mockResolvedValue(readNotification);
+    realtimePublisher.publishMarkedRead.mockImplementation(() => {
+      throw new Error('socket unavailable');
+    });
+
+    await expect(
+      useCase.execute(unreadNotification.id, unreadNotification.userId),
+    ).resolves.toBe(readNotification);
   });
 });

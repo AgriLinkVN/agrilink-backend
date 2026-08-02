@@ -1,6 +1,8 @@
 # Persistence Phase 6: Commerce And Transaction Boundaries
 
-- Status: Complete, awaiting merge
+- Status: Complete
+- Source PR: #89
+- Merge commit: `924e2a6`
 - Historical blocker audit: PR #86
 - Implementation branch: `refactor/persistence-phase-6-commerce-implementation`
 - Dependency: Phase 5, PR #85, merged
@@ -24,5 +26,4 @@ callbacks, saga/outbox and disputes remain deferred.
 - [Implementation evidence](implementation-evidence.json)
 - [Historical evidence audit](evidence/commerce-evidence.json)
 
-Phase 7A may begin only after the Phase 6 implementation PR is merged into
-`develop`.
+Phase 7A was unblocked when PR #89 merged into `develop` as `924e2a6`.

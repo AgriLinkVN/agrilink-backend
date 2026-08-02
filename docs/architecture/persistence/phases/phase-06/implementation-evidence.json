@@ -1,7 +1,9 @@
 {
   "version": 1,
   "phase": "6",
-  "status": "complete-awaiting-merge",
+  "status": "complete",
+  "sourcePr": 89,
+  "mergeCommit": "924e2a60e779eaf3f938980784297991545d5637",
   "historicalAuditPr": 86,
   "branch": "refactor/persistence-phase-6-commerce-implementation",
   "decisions": {

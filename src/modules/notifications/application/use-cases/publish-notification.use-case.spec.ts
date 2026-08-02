@@ -2,9 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { NotifType } from '@common/enums';
 import { PublishNotificationUseCase } from './publish-notification.use-case';
-import { NOTIFICATION_REPOSITORY, NotificationRepositoryPort } from '../ports/outbound/notification-repository.port';
-import { NOTIFICATION_REALTIME_PUBLISHER, NotificationRealtimePublisherPort } from '../ports/outbound/notification-realtime-publisher.port';
-import { NotificationModel, PublishNotificationInput } from '../models/notification.model';
+import {
+  NOTIFICATION_REPOSITORY,
+  NotificationRepositoryPort,
+} from '../ports/outbound/notification-repository.port';
+import {
+  NOTIFICATION_REALTIME_PUBLISHER,
+  NotificationRealtimePublisherPort,
+} from '../ports/outbound/notification-realtime-publisher.port';
+import {
+  NotificationModel,
+  PublishNotificationInput,
+} from '../models/notification.model';
 
 describe('PublishNotificationUseCase', () => {
   let useCase: PublishNotificationUseCase;
@@ -52,7 +61,10 @@ describe('PublishNotificationUseCase', () => {
       providers: [
         PublishNotificationUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: repository },
-        { provide: NOTIFICATION_REALTIME_PUBLISHER, useValue: realtimePublisher },
+        {
+          provide: NOTIFICATION_REALTIME_PUBLISHER,
+          useValue: realtimePublisher,
+        },
       ],
     }).compile();
 
@@ -77,5 +89,17 @@ describe('PublishNotificationUseCase', () => {
     await expect(useCase.publish(input)).rejects.toThrow('db failed');
 
     expect(realtimePublisher.publishCreated).not.toHaveBeenCalled();
+  });
+
+  it('returns the persisted notification when realtime delivery fails', async () => {
+    repository.create.mockResolvedValue(notification);
+    realtimePublisher.publishCreated.mockImplementation(() => {
+      throw new Error('socket unavailable');
+    });
+
+    await expect(useCase.publish(input)).resolves.toBe(notification);
+
+    expect(repository.create).toHaveBeenCalledTimes(1);
+    expect(realtimePublisher.publishCreated).toHaveBeenCalledTimes(1);
   });
 });

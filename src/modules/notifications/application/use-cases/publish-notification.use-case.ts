@@ -13,6 +13,7 @@ import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
 } from '../ports/outbound/notification-realtime-publisher.port';
+import { publishRealtimeBestEffort } from '../services/best-effort-realtime-delivery';
 
 @Injectable()
 export class PublishNotificationUseCase implements NotificationPublisherPort {
@@ -25,7 +26,9 @@ export class PublishNotificationUseCase implements NotificationPublisherPort {
 
   async publish(input: PublishNotificationInput): Promise<NotificationModel> {
     const notification = await this.notifications.create(input);
-    this.realtimePublisher.publishCreated(notification.userId, notification);
+    publishRealtimeBestEffort('new_notification', () =>
+      this.realtimePublisher.publishCreated(notification.userId, notification),
+    );
     return notification;
   }
 }

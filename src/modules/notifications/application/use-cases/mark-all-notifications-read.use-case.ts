@@ -9,6 +9,7 @@ import {
   NOTIFICATION_REALTIME_PUBLISHER,
   NotificationRealtimePublisherPort,
 } from '../ports/outbound/notification-realtime-publisher.port';
+import { publishRealtimeBestEffort } from '../services/best-effort-realtime-delivery';
 
 @Injectable()
 export class MarkAllNotificationsReadUseCase {
@@ -25,7 +26,9 @@ export class MarkAllNotificationsReadUseCase {
     const result = { updated, readAt };
 
     if (updated > 0) {
-      this.realtimePublisher.publishAllRead(userId, result);
+      publishRealtimeBestEffort('all_notifications_read', () =>
+        this.realtimePublisher.publishAllRead(userId, result),
+      );
     }
 
     return result;
