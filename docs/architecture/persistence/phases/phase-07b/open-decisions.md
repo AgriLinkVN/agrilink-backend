@@ -536,6 +536,21 @@ this document authorizes DDL, DML, migration execution or production mutation.
 - **API impact:** Determines compatibility duration where deployed shapes differ.
 - **Test impact:** Supplies realistic migration fixtures and reconciliation assertions.
 
+## Post-Specification Inventory Resolution
+
+The original outcomes above remain unchanged. The read-only inventory attempt and
+source audit are recorded in the
+[inventory evidence package](evidence/deployed-inventory/README.md).
+
+| Decision | Inventory resolution                    | Evidence reference                                                                                                      | Remaining condition                   | Implementation effect                                            |
+| -------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| P7B-11   | `P7B-11_RECONCILIATION_REQUIRED`        | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-11-legacy-quality-certificates) | `P7B-11_BLOCKED_INCOMPLETE_INVENTORY` | Do not retire the legacy declaration or Storage rollout consumer |
+| P7B-15   | `P7B-15_STAGED_RECONCILIATION_REQUIRED` | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-15-traceability-reconciliation) | `P7B-15_BLOCKED_INCOMPLETE_INVENTORY` | Preserve staged path; no migration or dual-write                 |
+| P7B-18   | `P7B-18_POLICY_MODEL_APPROVED`          | [retention gate](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-18-retention-gate)                      | `RETENTION_DURATION_NOT_CONFIGURED`   | Cleanup, purge and destructive deletion stay disabled            |
+| P7B-19   | `READ_ONLY_INVENTORY_NOT_EXECUTED`      | [authorization matrix](evidence/deployed-inventory/README.md#authorization-matrix)                                      | safe environment access is incomplete | P7B-19 remains inventory-only authorization                      |
+
+Overall inventory verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+
 ## P1 Decisions
 
 | ID     | Topic                                  | Recommendation                                                                    | Effect                                               |
