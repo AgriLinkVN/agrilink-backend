@@ -16,7 +16,7 @@ implementation, deployment or a production connection.
 
 | Environment alias | Exists | Phase 7B rollout evidence | Decision                  | Operational owner   | Operator              | Execution method                              | P7B-11 required | P7B-15 required | Inventory performed | Status                                              |
 | ----------------- | ------ | ------------------------- | ------------------------- | ------------------- | --------------------- | --------------------------------------------- | --------------- | --------------- | ------------------- | --------------------------------------------------- |
-| `local-protected` | YES    | YES                       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | Mai Nguyễn Tiến Đạt   | `APPROVED_OPERATOR_RUN_READ_ONLY_TRANSACTION` | YES             | YES             | YES                 | `REQUIRED_INVENTORY_COMPLETED_WITH_REVIEW_BLOCKERS` |
+| `local-protected` | YES    | YES                       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | Mai Nguyễn Tiến Đạt   | `APPROVED_OPERATOR_RUN_READ_ONLY_TRANSACTION` | YES             | YES             | YES                 | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS` |
 | `staging`         | NO     | NO                        | `NOT_APPLICABLE_APPROVED` | `NOT_APPLICABLE`    | `NOT_APPLICABLE`      | `NOT_APPLICABLE`                              | NO              | NO              | NO                  | `NOT_APPLICABLE_APPROVED`                           |
 | `production`      | YES    | YES, future rollout       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | not approved for task | `APPLICATION_DATABASE_URL_ONLY`               | YES             | YES             | NO                  | `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`             |
 
@@ -35,8 +35,9 @@ implementation, deployment or a production connection.
 The local inventory is complete for review. Schema-dependent aggregate checks that
 were not type-safe are recorded as blockers rather than rewritten or forced.
 Preliminary parser diagnostics remained allowlisted and read-only, but one catalog
-query was not byte-identical to the reviewed pack; this process deviation also
-requires review.
+query was not byte-identical to the reviewed pack. Its 2026-08-04 review concluded
+`PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`: the difference was whitespace-only,
+the output did not influence committed evidence, and no clean rerun is required.
 
 ## Staging Decision
 

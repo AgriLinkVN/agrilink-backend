@@ -28,7 +28,7 @@ applicable, and production remains blocked by missing read-only access.
 
 | Environment alias | Owner decision              | Operational authorization           | Connection | Inventory status                                    |
 | ----------------- | --------------------------- | ----------------------------------- | ---------- | --------------------------------------------------- |
-| `local-protected` | required                    | approved operator-run read-only     | completed  | `REQUIRED_INVENTORY_COMPLETED_WITH_REVIEW_BLOCKERS` |
+| `local-protected` | required                    | approved operator-run read-only     | completed  | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS` |
 | `staging`         | not applicable, approved    | not applicable                      | none       | `NOT_APPLICABLE_APPROVED`                           |
 | `production`      | required for future rollout | application credential only; unsafe | none       | `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`             |
 
@@ -72,8 +72,60 @@ capture is used as inventory evidence.
 
 One preliminary catalog-only diagnostic remained inside the statement allowlist but
 was not byte-identical to the reviewed estimate block. It returned metadata only and
-is recorded as a process-review blocker; it is not part of the 45-statement final
-evidence capture.
+is not part of the 45-statement final evidence capture. The review below resolves
+the process blocker without changing the capture artifact or its disclosed history.
+
+## Process Deviation Review
+
+- Decision: `PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`.
+- Reviewer: Mai Nguyễn Tiến Đạt.
+- Capacity: Project Owner / Architecture Owner / Database Owner.
+- Review date: 2026-08-04.
+- Statement class: `SELECT`, catalog estimate only.
+- Catalog sources: `pg_catalog.pg_class` joined to
+  `pg_catalog.pg_namespace`; no application table was read.
+- Reason: isolate the reviewed table-size estimate while diagnosing the local
+  client-side capture parser.
+- Transaction evidence: `transaction_read_only = on`, isolation
+  `repeatable read`, `statement_timeout = 30s`, `lock_timeout = 5s`,
+  `idle_in_transaction_session_timeout = 60s`, followed by explicit `ROLLBACK`.
+- Output classification: four metadata rows containing approved table aliases,
+  the constant `ESTIMATED` label and catalog row estimates; zero business rows,
+  PII, URLs, private identifiers, JSON payloads or secrets.
+- Side effects: zero DDL, zero DML and no application bootstrap, migration, seed
+  or synchronization operation.
+- Artifact influence: none. The estimates were not copied into
+  `local-protected.json`, whose per-table counts are independently captured exact
+  counts or `NOT_RUN` for the absent table.
+- Gate influence: none. P7B-11 remains based on reviewed table discovery, source
+  consumer evidence and missing production inventory. P7B-15 remains based on
+  reviewed schema metadata, exact counts and missing production inventory.
+- Final capture provenance: the final capture began after this diagnostic, used
+  45 reviewed statements from `operator-query-pack.md`, and ended with its own
+  explicit rollback. The diagnostic is not one of those 45 statements.
+
+Sanitized diagnostic SQL shape:
+
+```sql
+SELECT <relation_alias>, 'ESTIMATED', GREATEST(<catalog_row_estimate>, 0)
+FROM pg_catalog.pg_class
+JOIN pg_catalog.pg_namespace ON <namespace_oid_match>
+WHERE <namespace> = current_schema()
+  AND <relation_kind> IN ('r', 'p')
+  AND <relation_name> IN (<five_approved_target_aliases>)
+ORDER BY <relation_alias>;
+```
+
+The corresponding reviewed statement is the Section 4 catalog estimate in
+`operator-query-pack.md`. The preliminary SQL placed all three selected expressions
+on one line and all five `IN` values on one line without spaces after commas; the
+reviewed SQL places those expressions and values on separate indented lines. Raw
+SHA-256 values therefore differ (`37f822185d9fcf58604b9db441cd90b251be509ff9b233e97c30100f7d25d3b0`
+versus `24d3b6d07d733aa24f4805f040d7f79ce71a35ae625456a852273c8cbe2ce9d7`),
+while removing whitespace from both produces the same SHA-256
+`dc6904b3d57a4e993738b10dff3a16e0fce5c9cdb8ad1de66024169e168b4896`.
+There is no command, projection, catalog, join, predicate, ordering, timeout or
+result-use difference.
 
 ## Contents
 

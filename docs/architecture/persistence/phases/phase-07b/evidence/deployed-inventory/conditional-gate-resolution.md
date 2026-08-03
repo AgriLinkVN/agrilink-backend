@@ -64,6 +64,23 @@ cleanup scheduling, hard-delete and destructive down migration remain blocked.
 - P7B-19 does not approve DDL, DML, migration, seed, synchronize, onboarding apply,
   application bootstrap or production mutation.
 
+## Process Deviation Review
+
+- Decision: `PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`.
+- Reviewer: Mai Nguyễn Tiến Đạt.
+- Capacity: Project Owner / Architecture Owner / Database Owner.
+- Review date: 2026-08-04.
+- The deviating statement was a metadata-only `SELECT` over
+  `pg_catalog.pg_class` and `pg_catalog.pg_namespace` with the same projections,
+  join, predicates and ordering as the reviewed Section 4 estimate. Only whitespace
+  and line layout differed.
+- PostgreSQL confirmed read-only and repeatable-read transaction settings. The
+  bounded transaction ended with rollback and had zero side effects.
+- Its output was not used by the sanitized artifact or the P7B-11/P7B-15
+  conclusions. The later final capture used 45 reviewed-pack statements.
+- No clean rerun is required. The process history remains disclosed, and the
+  production inventory blockers are unchanged.
+
 ## Readiness Decision
 
 `PHASE_7B_INVENTORY_BLOCKED`

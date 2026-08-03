@@ -42,6 +42,22 @@ were not run because the observed ID types were incompatible or not proven safe.
 The exact zero-row result means no local orphan row exists, but that implication is
 recorded separately from query output.
 
+## Process Deviation Review
+
+Decision: `PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`.
+
+The preliminary diagnostic was the Section 4 catalog estimate expressed with
+different whitespace only. It selected relation aliases, a constant classification
+and catalog row estimates from `pg_catalog.pg_class` and
+`pg_catalog.pg_namespace`. It completed under the approved read-only,
+repeatable-read transaction and timeout policy and was rolled back. It returned
+metadata rather than application rows and did not enter this inventory's exact
+counts, schema hash, findings or conditional-gate conclusions.
+
+The final evidence capture was a later, independent 45-statement run sourced from
+the reviewed pack. The committed `local-protected.json` remains unchanged so the
+original deviation disclosure and final capture provenance remain auditable.
+
 ## Source References
 
 | Evidence                                | Source                                                                                                      |
