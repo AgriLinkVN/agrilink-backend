@@ -72,6 +72,23 @@ misrepresent blocked evidence as observed evidence.
 
 - [Inventory summary](inventory-summary.md)
 - [Conditional gate resolution](conditional-gate-resolution.md)
+- [Environment scope worksheet](environment-scope-worksheet.md)
+- [Operator instructions](operator-instructions.md)
+- [Operator read-only query pack](operator-query-pack.md)
+- [Sanitized output template](operator-output-template.json)
+- [Access request checklist](access-request-checklist.md)
+
+## Operational Access Preparation
+
+The operator pack is preparation only. It does not prove that an environment
+exists, grant operational authorization, provision a credential or authorize a
+database connection. An assigned operator may use it only after the environment
+scope and read-only access request are explicitly approved.
+
+The current scope remains blocked as recorded in the
+[environment worksheet](environment-scope-worksheet.md). In particular, staging
+must not be treated as an existing rollout environment or as not applicable until
+the owner records that decision.
 
 ## Operator Handoff
 
