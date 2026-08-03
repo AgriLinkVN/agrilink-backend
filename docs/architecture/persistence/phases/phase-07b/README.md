@@ -1,8 +1,8 @@
 # Persistence Phase 7B: Compliance And Traceability Specification
 
 - Status: Owner decisions recorded on 2026-08-02
-- Implementation status: Blocked pending specification PR merge, approved read-only
-  inventories and conditional gates
+- Implementation status: Blocked pending approved read-only inventories and
+  conditional gates
 - Phase type: planning and contract definition
 - Base: `develop` at `4a16970`
 - Dependencies: Phase 6 PR #89 and Phase 7A PR #90, both merged with successful CI
@@ -64,6 +64,20 @@ environment, not evidence about production.
   and approved.
 - No Payment Owner authority was exercised; no payment behavior was approved.
 
+## Post-Specification Inventory Audit
+
+- Inventory evidence: [deployed inventory package](evidence/deployed-inventory/README.md).
+- Verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+- No environment had both environment-specific authorization and a dedicated
+  read-only credential, so no PostgreSQL session was opened.
+- P7B-11 requires reconciliation because the Storage Phase 9 command family is a
+  verified CLI consumer of the legacy source; deployed table/data evidence remains
+  incomplete.
+- P7B-15 retains the approved staged reconciliation path because both conflicting
+  mappings remain in source; deployed field/data evidence remains incomplete.
+- P7B-18 cleanup remains disabled because no exact duration is configured.
+- No per-environment JSON exists because no environment was eligible for inventory.
+
 ## Documents
 
 - [Decision pack](decision-pack.md)
@@ -72,6 +86,7 @@ environment, not evidence about production.
 - [Acceptance criteria](acceptance-criteria.md)
 - [Implementation plan](implementation-plan.md)
 - [Open decisions](open-decisions.md)
+- [Post-specification inventory](evidence/deployed-inventory/README.md)
 
 ## Database Safety Record
 
@@ -91,8 +106,9 @@ environment, not evidence about production.
 The applicable, non-deferred Phase 7B scope may move to an implementation branch
 only when:
 
-1. PR #91 is reviewed and merged into a current `develop`.
-2. Approved read-only inventories resolve the P7B-11 and P7B-15 conditional branches.
+1. PR #91 remains verified as merged into the implementation branch base.
+2. Approved read-only inventories resolve the remaining deployed-data branches for
+   P7B-11 and P7B-15.
 3. The implementation scope explicitly excludes Dispute and every payment side effect.
 4. Exact per-class retention durations are approved before cleanup is enabled.
 5. Any proposed migration has inventory-derived up/down, reconciliation and

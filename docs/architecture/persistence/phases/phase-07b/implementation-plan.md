@@ -1,7 +1,7 @@
 # Phase 7B Implementation Plan
 
-Status: `OWNER_DECISIONS_RECORDED`; execution remains blocked by PR merge,
-read-only inventory and conditional gates.
+Status: `OWNER_DECISIONS_RECORDED`; execution remains blocked by read-only inventory
+and conditional gates.
 
 ## Preconditions
 
@@ -15,6 +15,16 @@ read-only inventory and conditional gates.
 - Fresh approved read-only deployed inventories exist where migration decisions
   depend on deployed schema/data.
 - No implementation edits the merged canonical baseline migration.
+
+## Post-Specification Gate Status
+
+- Verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+- Evidence: [read-only inventory package](evidence/deployed-inventory/README.md).
+- No database session was opened; required deployed inventories are incomplete.
+- P7B-11 has a verified CLI consumer and requires reconciliation review.
+- P7B-15 keeps the staged reconciliation path but lacks deployed row/schema evidence.
+- Retention cleanup, migration generation, write enablement and implementation
+  branch creation remain blocked.
 
 ## Steps
 
