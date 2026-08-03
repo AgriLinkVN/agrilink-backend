@@ -542,14 +542,31 @@ The original outcomes above remain unchanged. The read-only inventory attempt an
 source audit are recorded in the
 [inventory evidence package](evidence/deployed-inventory/README.md).
 
-| Decision | Inventory resolution                    | Evidence reference                                                                                                      | Remaining condition                   | Implementation effect                                            |
-| -------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
-| P7B-11   | `P7B-11_RECONCILIATION_REQUIRED`        | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-11-legacy-quality-certificates) | `P7B-11_BLOCKED_INCOMPLETE_INVENTORY` | Do not retire the legacy declaration or Storage rollout consumer |
-| P7B-15   | `P7B-15_STAGED_RECONCILIATION_REQUIRED` | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-15-traceability-reconciliation) | `P7B-15_BLOCKED_INCOMPLETE_INVENTORY` | Preserve staged path; no migration or dual-write                 |
-| P7B-18   | `P7B-18_POLICY_MODEL_APPROVED`          | [retention gate](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-18-retention-gate)                      | `RETENTION_DURATION_NOT_CONFIGURED`   | Cleanup, purge and destructive deletion stay disabled            |
-| P7B-19   | `READ_ONLY_INVENTORY_NOT_EXECUTED`      | [authorization matrix](evidence/deployed-inventory/README.md#authorization-matrix)                                      | safe environment access is incomplete | P7B-19 remains inventory-only authorization                      |
+| Decision | Inventory resolution                    | Evidence reference                                                                                                      | Remaining condition                              | Implementation effect                                            |
+| -------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| P7B-11   | `P7B-11_RECONCILIATION_REQUIRED`        | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-11-legacy-quality-certificates) | `P7B-11_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY` | Do not retire the legacy declaration or Storage rollout consumer |
+| P7B-15   | `P7B-15_STAGED_RECONCILIATION_REQUIRED` | [conditional resolution](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-15-traceability-reconciliation) | `P7B-15_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY` | Preserve staged path; no migration or dual-write                 |
+| P7B-18   | `P7B-18_POLICY_MODEL_APPROVED`          | [retention gate](evidence/deployed-inventory/conditional-gate-resolution.md#p7b-18-retention-gate)                      | `RETENTION_DURATION_NOT_CONFIGURED`              | Cleanup, purge and destructive deletion stay disabled            |
+| P7B-19   | `LOCAL_READ_ONLY_INVENTORY_EXECUTED`    | [authorization matrix](evidence/deployed-inventory/README.md#authorization-matrix)                                      | production read-only access is incomplete        | P7B-19 remains inventory-only authorization                      |
 
 Overall inventory verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+
+## Environment Decisions
+
+On 2026-08-04, Mai Nguyễn Tiến Đạt approved the following in the capacities of
+Project Owner, Architecture Owner, Database Owner for this academic project and
+Environment Operator for `local-protected`:
+
+- `local-protected`: exists, required for P7B-11/P7B-15, and authorized for an
+  operator-run read-only transaction. The sanitized inventory is complete with
+  schema-precondition blockers.
+- `staging`: does not exist and is `NOT_APPLICABLE_APPROVED`.
+- `production`: exists, is required for the future rollout and remains
+  `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`. The application credential is not
+  approved for inventory.
+
+These environment decisions supplement P7B-19 without changing its original
+outcome or granting migration approval.
 
 ## P1 Decisions
 

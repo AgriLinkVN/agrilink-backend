@@ -4,12 +4,13 @@ Status: `BLOCKED_INCOMPLETE_DEPLOYED_INVENTORY`
 
 ## Evidence Classes
 
-| Evidence class                       | Accepted use                                | Limitation                                           |
-| ------------------------------------ | ------------------------------------------- | ---------------------------------------------------- |
-| Current source and registries        | mapping, ownership and consumer evidence    | cannot prove deployed schema or rows                 |
-| Canonical baseline v2                | approved clean-database inclusion           | cannot prove an existing environment matches it      |
-| Historical local reconciliation      | prior local shape and zero-row observation  | not current and not production evidence              |
-| Current deployed PostgreSQL metadata | required for P7B-11/P7B-15 data conclusions | unavailable because access safety gates did not pass |
+| Evidence class                   | Accepted use                               | Limitation                                      |
+| -------------------------------- | ------------------------------------------ | ----------------------------------------------- |
+| Current source and registries    | mapping, ownership and consumer evidence   | cannot prove deployed schema or rows            |
+| Canonical baseline v2            | approved clean-database inclusion          | cannot prove an existing environment matches it |
+| Historical local reconciliation  | prior local shape and zero-row observation | not current and not production evidence         |
+| Current local-protected metadata | local schema and aggregate evidence        | captured read-only; not production evidence     |
+| Current production metadata      | required for cross-environment conclusions | unavailable because safe access is missing      |
 
 ## Source-To-Database Comparison
 
@@ -24,6 +25,22 @@ Status: `BLOCKED_INCOMPLETE_DEPLOYED_INVENTORY`
 Runtime and CLI entity registries use the same composition registry. The Storage
 Phase 9 commands are a separate CLI data consumer and include a
 `quality_certificates` source descriptor even though that entity is not registered.
+
+## Local-Protected Inventory
+
+| Capability                 | Table exists | Exact rows | Local schema status                                                                    | Local decision impact                                       |
+| -------------------------- | ------------ | ---------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Legacy quality certificate | no           | not run    | table absent                                                                           | local evidence captured; production still required          |
+| Product certification      | yes          | 0          | canonical table exists but `stored_file_id` and its relationship are absent            | local parity mismatch; no local rows require reconciliation |
+| Traceability               | yes          | 0          | mapping-A shape; string product/producer IDs; mapping-B batch/order-item fields absent | staged reconciliation remains required                      |
+| Incident                   | yes          | 0          | existing runtime mapping; no trigger or RLS protection                                 | no local lifecycle data; domain/schema review still needed  |
+| Technical audit            | yes          | 0          | no compliance correlation, operation, retention or legal-hold columns                  | compliance-ledger gate remains                              |
+
+The final local session used 45 reviewed statements in a repeatable-read, read-only
+transaction and ended with explicit rollback. Direct Traceability orphan queries
+were not run because the observed ID types were incompatible or not proven safe.
+The exact zero-row result means no local orphan row exists, but that implication is
+recorded separately from query output.
 
 ## Source References
 
@@ -52,9 +69,9 @@ Phase 9 commands are a separate CLI data consumer and include a
 - The Storage Phase 9 `plan`, `apply`, `finalize` and `verify` command family
   contains a `quality_certificates` source descriptor.
 - The descriptor is consumer evidence only. It does not prove table existence,
-  rows, product scope or a deployed dependency.
-- No database conclusion can be made about identifiers, nulls, timestamps, status
-  distribution or stored-file references.
+  rows, product scope or a production dependency.
+- `local-protected` has no `quality_certificates` table. This does not authorize
+  retirement because the CLI consumer remains and production is not inventoried.
 
 ### Product Certifications
 
@@ -62,8 +79,9 @@ Phase 9 commands are a separate CLI data consumer and include a
   its module mapping.
 - Baseline v2 includes the table and private stored-file relationship.
 - The central declaration is a compatibility re-export, not a second mapping.
-- Current table existence, row count, status distribution, uniqueness and private
-  file null count remain unknown.
+- `local-protected` contains the table with zero rows, but its schema lacks
+  `stored_file_id`, the related index and foreign key expected by the canonical
+  mapping. Production parity remains unknown.
 
 ### Traceability
 
@@ -74,40 +92,44 @@ Phase 9 commands are a separate CLI data consumer and include a
 - Baseline v2 excludes `traceability_records`.
 - The mounted service throws explicit unimplemented errors before repository work,
   so active application writes are not proven.
-- A historical local snapshot recorded mapping-A-like columns and zero rows. It is
-  not accepted as current or rollout-environment inventory.
-- Current QR duplicates, null producer/product/batch fields, orphan aggregates,
-  constraints, indexes and data-loss risks remain unknown.
+- Current `local-protected` evidence confirms a mapping-A-like schema and zero rows.
+- QR duplicate and mapping-A null aggregates are zero. Mapping-B batch/order-item
+  fields are absent.
+- Direct orphan queries were skipped after the reviewed product query exposed an
+  incompatible UUID/string comparison. The exact empty table independently proves
+  no local orphan rows, but production data-loss risks remain unknown.
 
 ### Incident Reports
 
 - Runtime/CLI and baseline include the existing mapping.
 - Source persists shipment/reporter IDs, mutable string status, private-unsafe URL
   array and created/resolved timestamps.
-- Current rows, non-approved statuses, nulls, evidence usage and timestamp
-  consistency remain unknown because no aggregate query ran.
+- `local-protected` contains zero rows. All reviewed null, evidence-reference,
+  lifecycle-status and timestamp-consistency aggregates are zero.
 
 ### Audit Logs
 
 - Runtime/CLI and baseline include the Admin technical-audit mapping.
 - Source has no correlation ID, operation key, retention/legal-hold field or
   update/delete prevention mechanism.
-- Current rows, trigger protection, constraints and null aggregates remain unknown.
+- `local-protected` contains zero rows, one primary-key constraint, no non-internal
+  triggers and no RLS.
+- Correlation, operation-key, retention and legal-hold columns are absent.
 - Raw changes JSON and network/personal fields were not read.
 
 ## Related-Table Discovery
 
-Database-wide discovery for names containing traceability, certification,
-certificate, compliance, incident or audit was not executed. Source evidence also
-references `stored_files`, product/profile certification fields and deferred
-`disputes`; similar names are not treated as the same capability.
+Local discovery for names containing traceability, certification, certificate,
+compliance, incident or audit returned only the four present target tables. Similar
+names were not treated as the same capability, and production discovery was not
+executed.
 
 ## Unproven Schema Assumptions
 
-- Whether any rollout environment has `quality_certificates` or rows in it.
-- Whether deployed `product_certifications` matches canonical baseline v2.
-- Which Traceability mapping, if either, matches each rollout environment.
-- Whether Traceability rows require producer/batch reconstruction.
+- Whether production has `quality_certificates` or rows in it.
+- Whether production `product_certifications` matches canonical baseline v2.
+- Which Traceability shape and rows exist in production.
+- Whether production Traceability data requires producer/batch reconstruction.
 - Whether incident statuses fit the approved lifecycle.
 - Whether audit tables contain compliance-grade controls or alternate evidence stores.
-- Whether staging or production currently exists and is part of rollout.
+- Production constraints, indexes, triggers, RLS and aggregate data state.

@@ -68,15 +68,18 @@ environment, not evidence about production.
 
 - Inventory evidence: [deployed inventory package](evidence/deployed-inventory/README.md).
 - Verdict: `PHASE_7B_INVENTORY_BLOCKED`.
-- No environment had both environment-specific authorization and a dedicated
-  read-only credential, so no PostgreSQL session was opened.
+- Secondary status: `LOCAL_PROTECTED_INVENTORY_READY_FOR_REVIEW`.
+- The approved local operator completed a repeatable-read, read-only inventory and
+  rolled it back. Staging is approved not applicable.
+- Production exists, is required for the future rollout and remains unexamined
+  because only the application credential is currently available.
 - P7B-11 requires reconciliation because the Storage Phase 9 command family is a
   verified CLI consumer of the legacy source; deployed table/data evidence remains
   incomplete.
-- P7B-15 retains the approved staged reconciliation path because both conflicting
-  mappings remain in source; deployed field/data evidence remains incomplete.
+- P7B-15 retains the approved staged reconciliation path. Local has a zero-row
+  mapping-A-like table with type/schema divergence; production evidence is missing.
 - P7B-18 cleanup remains disabled because no exact duration is configured.
-- No per-environment JSON exists because no environment was eligible for inventory.
+- Sanitized local evidence is stored without connection details or raw rows.
 
 ## Documents
 
@@ -90,7 +93,7 @@ environment, not evidence about production.
 
 ## Database Safety Record
 
-- Protected database accessed: `NO`.
+- Protected database accessed: `YES`, local-only approved read-only inventory.
 - Railway production accessed: `NO`.
 - DDL or DML executed: `NO`.
 - Migration generated or applied: `NO`.
@@ -98,6 +101,8 @@ environment, not evidence about production.
 - The merged canonical baseline migration was not modified and must remain immutable.
 - P7B-19 authorizes deployed inventory collection in read-only mode for each rollout
   environment, subject to operational access authorization and secret-safe capture.
+- The local session executed 45 reviewed statements and ended with explicit
+  rollback; DDL, DML, raw-row export and secret exposure were zero.
 - Any approved Traceability migration must follow inventory, additive, copy,
   verify, compatibility and finalize stages with evidence-preserving rollback.
 
