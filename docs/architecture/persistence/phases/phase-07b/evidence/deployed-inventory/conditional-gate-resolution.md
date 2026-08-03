@@ -12,10 +12,13 @@ original P0 outcome.
 - Verified source evidence: no runtime/CLI entity registration, but the executable
   Storage Phase 9 command family contains a legacy `quality_certificates` data
   source and therefore remains a CLI consumer.
-- Deployed evidence: unavailable for every required environment.
+- Local evidence: `P7B-11_LOCAL_EVIDENCE_CAPTURED`; the table is absent from
+  `local-protected`, while the Storage Phase 9 CLI consumer remains.
+- Environment scope: staging is approved not applicable; production is required
+  and not inventoried.
 - Resolution: `P7B-11_RECONCILIATION_REQUIRED`.
-- Remaining condition: `P7B-11_BLOCKED_INCOMPLETE_INVENTORY` for table existence,
-  rows, schema and deployed dependency classification.
+- Remaining condition: `P7B-11_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY` for
+  production table existence, rows, schema and dependency classification.
 - Implementation effect: do not retire the declaration or CLI descriptor. A future
   implementation review must classify any deployed rows and decide whether the CLI
   dependency is removed, reconciled into Products or preserved for a distinct
@@ -27,13 +30,15 @@ original P0 outcome.
 - Verified source evidence: two incompatible declarations; mapping A is runtime/CLI
   registered, mapping B is legacy-only, baseline v2 excludes the table and mounted
   service methods are unimplemented.
-- Historical evidence: one prior local snapshot recorded mapping-A-like schema and
-  zero rows; it is not current deployed evidence.
+- Local evidence: `traceability_records` exists with exact zero rows and a
+  mapping-A-like schema. Mapping-B batch/order-item fields are absent. Product and
+  producer IDs use strings; the referenced product identifier uses UUID, so the
+  reviewed orphan query was not type-safe and was skipped.
 - Resolution: `P7B-15_STAGED_RECONCILIATION_REQUIRED`.
 - Required path: inventory, additive, copy, verify, compatibility, finalize.
-- Remaining condition: `P7B-15_BLOCKED_INCOMPLETE_INVENTORY` for actual fields,
-  rows, duplicate QR codes, null product/producer/batch values, orphans and unknown
-  consumers in every rollout environment.
+- Remaining condition: `P7B-15_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY` for
+  production fields, rows, duplicate QR codes, null product/producer/batch values,
+  orphans and unknown consumers.
 - Migration effect: no migration may be designed or generated from this package.
   Do not dual-write, invent producer/batch values or normalize unknown fields.
 
@@ -51,16 +56,38 @@ cleanup scheduling, hard-delete and destructive down migration remain blocked.
 ## P7B-19 Inventory Authorization
 
 - Original outcome: `APPROVED_FOR_READ_ONLY_INVENTORY`.
-- This package did not use that authorization because no environment passed the
-  operational-access and read-only-credential gates.
+- The approved local operator used this authorization on 2026-08-04. The final
+  local capture confirmed read-only/repeatable-read enforcement, executed only
+  reviewed allowlisted statements and ended with rollback.
+- This authorization was not used for production. The application credential was
+  neither inspected nor used.
 - P7B-19 does not approve DDL, DML, migration, seed, synchronize, onboarding apply,
   application bootstrap or production mutation.
+
+## Process Deviation Review
+
+- Decision: `PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`.
+- Reviewer: Mai Nguyễn Tiến Đạt.
+- Capacity: Project Owner / Architecture Owner / Database Owner.
+- Review date: 2026-08-04.
+- The deviating statement was a metadata-only `SELECT` over
+  `pg_catalog.pg_class` and `pg_catalog.pg_namespace` with the same projections,
+  join, predicates and ordering as the reviewed Section 4 estimate. Only whitespace
+  and line layout differed.
+- PostgreSQL confirmed read-only and repeatable-read transaction settings. The
+  bounded transaction ended with rollback and had zero side effects.
+- Its output was not used by the sanitized artifact or the P7B-11/P7B-15
+  conclusions. The later final capture used 45 reviewed-pack statements.
+- No clean rerun is required. The process history remains disclosed, and the
+  production inventory blockers are unchanged.
 
 ## Readiness Decision
 
 `PHASE_7B_INVENTORY_BLOCKED`
 
-Required rollout environments are incomplete, deployed schema blockers remain
-unknown and no current read-only PostgreSQL snapshot exists. Source/domain planning
-may continue only where it does not depend on deployed schema. Production
-implementation, migration and deployment remain unauthorized.
+Local evidence is ready for review and staging is not applicable, but required
+production inventory is missing. Source/domain planning may continue only where it
+does not depend on production schema. Production implementation, migration and
+deployment remain unauthorized.
+
+Secondary status: `LOCAL_PROTECTED_INVENTORY_READY_FOR_REVIEW`.

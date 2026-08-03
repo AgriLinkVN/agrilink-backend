@@ -7,9 +7,10 @@ are ready for scoped implementation planning only after PR merge and branch gate
 Dispute scenarios are deferred. Migration/reconciliation scenarios remain blocked
 by approved read-only inventory and a separate migration review.
 
-The [post-specification inventory audit](evidence/deployed-inventory/README.md) did
-not open a database session because required read-only access was unavailable. The
-status column therefore represents planning readiness only; no scenario is `PASS`.
+The [post-specification inventory audit](evidence/deployed-inventory/README.md)
+captured local-protected evidence and approved staging not applicable. Production
+inventory remains blocked, so the status column still represents planning readiness
+only; no scenario is `PASS`.
 
 | ID      | Category               | Requirement                             | Given                                                                    | When                                      | Then                                                                      | Decision dependency                    | Status                              |
 | ------- | ---------------------- | --------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------- |
@@ -76,8 +77,8 @@ planned test, not a PASS result or authorization to access a protected database.
 - Unit, integration, E2E, OpenAPI and schema-parity command output.
 - Deterministic concurrency/idempotency test output.
 - Evidence privacy/authorization review.
-- Protected database access statement and, only after approval, read-only deployed
-  inventories captured without secrets.
+- Protected database access statement, sanitized local evidence and required
+  production inventory captured only after separate safe-access approval.
 
 ## Exit Gate
 

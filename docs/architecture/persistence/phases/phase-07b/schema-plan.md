@@ -134,20 +134,20 @@ The implementation review should consider, but must not generate before approval
 
 ## Migration Gate
 
-The [post-specification inventory audit](evidence/deployed-inventory/README.md) did
-not open a database session because no required environment had an approved
-read-only credential. Source evidence confirms a legacy certificate CLI consumer
-and the two Traceability mappings, but deployed table, row and constraint evidence
-remains unknown.
+The [post-specification inventory audit](evidence/deployed-inventory/README.md)
+captured current local-protected metadata and aggregates in an approved read-only
+transaction. Staging is approved not applicable. Production is required but was not
+accessed because no approved read-only credential or operator execution exists.
 
 - P7B-11: `P7B-11_RECONCILIATION_REQUIRED` and
-  `P7B-11_BLOCKED_INCOMPLETE_INVENTORY`.
+  `P7B-11_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY`.
 - P7B-15: `P7B-15_STAGED_RECONCILIATION_REQUIRED` and
-  `P7B-15_BLOCKED_INCOMPLETE_INVENTORY`.
+  `P7B-15_BLOCKED_INCOMPLETE_PRODUCTION_INVENTORY`.
 - P7B-18: `RETENTION_CLEANUP_DISABLED`.
 - P7B-19: read-only inventory authorization only.
 
-Migration generation remains blocked until approved read-only inventories are
-attached, P7B-11/P7B-15 conditional branches are resolved and an exact up/down
-data-loss review is accepted separately. P7B-19 authorizes inventory only. The
-merged baseline migration must not be edited.
+Migration generation remains blocked until sanitized production inventory is
+attached, P7B-11/P7B-15 production branches are reviewed and an exact up/down
+data-loss review is accepted separately. Local zero-row evidence does not approve a
+global retirement or migration. P7B-19 authorizes inventory only. The merged
+baseline migration must not be edited.

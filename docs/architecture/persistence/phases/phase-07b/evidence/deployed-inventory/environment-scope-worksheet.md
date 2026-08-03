@@ -1,86 +1,73 @@
 # Phase 7B Environment Scope Worksheet
 
-Status: `OWNER_CONFIRMATION_AND_ACCESS_REQUIRED`
+Status: `ENVIRONMENT_DECISIONS_RECORDED`
 
-This worksheet prepares operational decisions without granting access. Repository
-documentation proves a local protected topology and describes a Railway production
-topology, but it does not prove that staging or production is currently deployed or
-included in the approved Phase 7B rollout.
+## Approval Record
 
-## Allowed Statuses
+- Decision date: 2026-08-04
+- Approver: Mai Nguyễn Tiến Đạt
+- Approval capacity: Project Owner, Architecture Owner, Database Owner for this
+  academic project, and Environment Operator for `local-protected`
 
-- `REQUIRED_READY`
-- `REQUIRED_AUTHORIZATION_MISSING`
-- `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`
-- `REQUIRED_OPERATOR_OUTPUT_MISSING`
-- `NOT_APPLICABLE_APPROVAL_REQUIRED`
-- `NOT_APPLICABLE_APPROVED`
-- `UNKNOWN_TOPOLOGY`
+These decisions define Phase 7B inventory scope. They do not authorize migration,
+implementation, deployment or a production connection.
 
 ## Worksheet
 
-| Environment alias | Exists  | Part of approved rollout | Operational owner            | Operational authorization | Dedicated read-only credential | Alternative operator-run inventory | Required for P7B-11 | Required for P7B-15 | Status                                  | Blocker                                                                 |
-| ----------------- | ------- | ------------------------ | ---------------------------- | ------------------------- | ------------------------------ | ---------------------------------- | ------------------- | ------------------- | --------------------------------------- | ----------------------------------------------------------------------- |
-| `local-protected` | YES     | YES                      | Database Owner               | P7B-19 policy only        | NO                             | Available; output missing          | YES                 | YES                 | `REQUIRED_READ_ONLY_CREDENTIAL_MISSING` | Dedicated credential or approved operator-run sanitized output missing  |
-| `staging`         | UNKNOWN | UNKNOWN                  | Unassigned                   | NO                        | NO                             | Not arranged                       | UNKNOWN             | UNKNOWN             | `UNKNOWN_TOPOLOGY`                      | Existence, rollout applicability and operational owner unconfirmed      |
-| `production`      | UNKNOWN | UNKNOWN                  | Railway/DB owner unconfirmed | NO                        | NO                             | Not arranged                       | UNKNOWN             | UNKNOWN             | `UNKNOWN_TOPOLOGY`                      | Deployment, rollout applicability, authorization and credential unknown |
+| Environment alias | Exists | Phase 7B rollout evidence | Decision                  | Operational owner   | Operator              | Execution method                              | P7B-11 required | P7B-15 required | Inventory performed | Status                                              |
+| ----------------- | ------ | ------------------------- | ------------------------- | ------------------- | --------------------- | --------------------------------------------- | --------------- | --------------- | ------------------- | --------------------------------------------------- |
+| `local-protected` | YES    | YES                       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | Mai Nguyễn Tiến Đạt   | `APPROVED_OPERATOR_RUN_READ_ONLY_TRANSACTION` | YES             | YES             | YES                 | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS` |
+| `staging`         | NO     | NO                        | `NOT_APPLICABLE_APPROVED` | `NOT_APPLICABLE`    | `NOT_APPLICABLE`      | `NOT_APPLICABLE`                              | NO              | NO              | NO                  | `NOT_APPLICABLE_APPROVED`                           |
+| `production`      | YES    | YES, future rollout       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | not approved for task | `APPLICATION_DATABASE_URL_ONLY`               | YES             | YES             | NO                  | `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`             |
 
-No additional rollout environment is proven by current repository or deployment
-documentation. A newly identified environment must be added by safe alias before an
-inventory request is approved.
+## Local-Protected Authorization
 
-## Interpretation
+- Status before execution: `REQUIRED_READY`.
+- Authorization: metadata and aggregate inventory only.
+- Read-only enforcement: PostgreSQL `READ ONLY` transaction required.
+- Isolation: `REPEATABLE READ`.
+- Application bootstrap, TypeORM CLI, migration, seed, synchronization and raw-row
+  export were prohibited.
+- Final capture: 45 allowlisted statements, explicit rollback, zero DDL, zero DML,
+  zero raw rows and zero secrets.
+- Evidence: [sanitized local inventory](local-protected.json).
 
-- P7B-19 authorizes read-only inventory as a policy outcome; it does not supply
-  environment-specific operational authorization.
-- `local-protected` remains required because the merged inventory evidence already
-  treats it as the protected local evidence environment for P7B-11 and P7B-15.
-- Railway documentation is a deployment runbook, not proof that a production
-  database exists or may be accessed.
-- Staging must remain `UNKNOWN_TOPOLOGY` until an owner confirms whether it exists
-  and whether it is part of the rollout.
-- `NOT_APPLICABLE_APPROVED` may be recorded only after the owner decision below is
-  completed. Absence of credentials is not proof that an environment is not
-  applicable.
+The local inventory is complete for review. Schema-dependent aggregate checks that
+were not type-safe are recorded as blockers rather than rewritten or forced.
+Preliminary parser diagnostics remained allowlisted and read-only, but one catalog
+query was not byte-identical to the reviewed pack. Its 2026-08-04 review concluded
+`PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`: the difference was whitespace-only,
+the output did not influence committed evidence, and no clean rerun is required.
 
-## Owner Decision Entries
+## Staging Decision
 
-Complete one entry per environment whose topology or rollout applicability is
-unknown. Do not replace an unknown with an assumption.
+- Exists: `NO`.
+- Part of rollout: `NO`.
+- Decision: `NOT_APPLICABLE_APPROVED`.
+- Approval date: 2026-08-04.
+- Rationale: the project has no separate staging database. The current topology has
+  a local database and one Railway database connected directly to the backend
+  deployment.
 
-| Field                    | Required value                                      |
-| ------------------------ | --------------------------------------------------- |
-| Environment alias        | Safe alias only                                     |
-| Exists                   | `YES` or `NO`                                       |
-| Part of approved rollout | `YES` or `NO`                                       |
-| Decision                 | `REQUIRED` or `NOT_APPLICABLE_APPROVED`             |
-| Operational owner        | Named accountable role                              |
-| Approver                 | Authorized owner                                    |
-| Approval capacity        | Project/Architecture/Database/Environment authority |
-| Approval date            | ISO date                                            |
-| Evidence/rationale       | Non-sensitive deployment or scope evidence          |
-| P7B-11 impact            | Required inventory or excluded by approval          |
-| P7B-15 impact            | Required inventory or excluded by approval          |
+Staging is not an inventory blocker and was not connected.
 
-### Pending Staging Decision
+## Production Decision
 
-- Environment alias: `staging`
-- Exists: `UNKNOWN`
-- Part of approved rollout: `UNKNOWN`
-- Decision: pending owner confirmation
-- Status until decision: `UNKNOWN_TOPOLOGY`
+- Exists: `YES`.
+- Platform classification: Railway PostgreSQL connected directly to the backend.
+- Part of future Phase 7B rollout: `YES`.
+- Decision: `REQUIRED`.
+- Credential state: `APPLICATION_DATABASE_URL_ONLY`.
+- Status: `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`.
+- Inventory performed: `NO`.
+- Connection attempted: `NO`.
 
-### Pending Production Decision
+The application credential was not inspected or used. Production remains the
+cross-environment blocker until a dedicated read-only credential or separately
+approved database-operator execution is available.
 
-- Environment alias: `production`
-- Exists: `UNKNOWN`
-- Part of approved rollout: `UNKNOWN`
-- Decision: pending owner confirmation
-- Status until decision: `UNKNOWN_TOPOLOGY`
+## Remaining Access Decision
 
-## Exit Conditions
-
-An environment may become `REQUIRED_READY` only when its existence and rollout
-scope are approved, an operational owner is assigned, explicit authorization is
-recorded, and either a dedicated read-only credential or an approved database
-operator is ready to return sanitized output using the linked pack.
+Only production remains in the required inventory set. Credential provisioning is
+an operational/DBA task outside this repository. P7B-19 remains read-only inventory
+authorization and is not migration approval.

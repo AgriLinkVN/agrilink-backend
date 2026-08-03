@@ -19,10 +19,14 @@ and conditional gates.
 ## Post-Specification Gate Status
 
 - Verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+- Secondary status: `LOCAL_PROTECTED_INVENTORY_READY_FOR_REVIEW`.
 - Evidence: [read-only inventory package](evidence/deployed-inventory/README.md).
-- No database session was opened; required deployed inventories are incomplete.
+- Local-protected inventory is complete and staging is approved not applicable.
+- Production is required and remains unexamined because safe read-only access is
+  missing.
 - P7B-11 has a verified CLI consumer and requires reconciliation review.
-- P7B-15 keeps the staged reconciliation path but lacks deployed row/schema evidence.
+- P7B-15 keeps the staged reconciliation path; local is empty but has mapping/type
+  divergence, and production evidence is missing.
 - Retention cleanup, migration generation, write enablement and implementation
   branch creation remain blocked.
 
