@@ -4,7 +4,10 @@ Status: `PHASE_7B_INVENTORY_BLOCKED`
 
 This evidence package records the post-specification inventory authorized by
 P7B-19. Local-protected evidence is complete for review, staging is approved not
-applicable, and production remains blocked by missing read-only access.
+applicable, and production bounded access is approved while dedicated read-only
+credential provisioning remains pending.
+
+Secondary production status: `PRODUCTION_ACCESS_APPROVED_CREDENTIAL_PENDING`.
 
 ## Phase Dependency
 
@@ -26,14 +29,16 @@ applicable, and production remains blocked by missing read-only access.
 
 ## Authorization Matrix
 
-| Environment alias | Owner decision              | Operational authorization           | Connection | Inventory status                                    |
-| ----------------- | --------------------------- | ----------------------------------- | ---------- | --------------------------------------------------- |
-| `local-protected` | required                    | approved operator-run read-only     | completed  | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS` |
-| `staging`         | not applicable, approved    | not applicable                      | none       | `NOT_APPLICABLE_APPROVED`                           |
-| `production`      | required for future rollout | application credential only; unsafe | none       | `REQUIRED_READ_ONLY_CREDENTIAL_MISSING`             |
+| Environment alias | Owner decision              | Operational authorization                             | Connection | Inventory status                                     |
+| ----------------- | --------------------------- | ----------------------------------------------------- | ---------- | ---------------------------------------------------- |
+| `local-protected` | required                    | approved operator-run read-only                       | completed  | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS`  |
+| `staging`         | not applicable, approved    | not applicable                                        | none       | `NOT_APPLICABLE_APPROVED`                            |
+| `production`      | required for future rollout | bounded access approved; dedicated credential pending | none       | `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING` |
 
 The environment decisions were approved on 2026-08-04. P7B-19 does not convert the
 production application credential into an approved inventory credential.
+Production authorization requires the dedicated credential alias
+`AGRILINK_PRODUCTION_READONLY_DATABASE_URL`; its value is not recorded here.
 
 ## Planned Command Allowlist
 
@@ -133,6 +138,7 @@ result-use difference.
 - [Conditional gate resolution](conditional-gate-resolution.md)
 - [Sanitized local-protected inventory](local-protected.json)
 - [Environment scope worksheet](environment-scope-worksheet.md)
+- [Production access approval](production-access-approval.md)
 - [Operator instructions](operator-instructions.md)
 - [Operator read-only query pack](operator-query-pack.md)
 - [Sanitized output template](operator-output-template.json)
@@ -141,11 +147,16 @@ result-use difference.
 ## Operational Access Preparation
 
 The local operator authorization has been exercised and closed. Staging is approved
-not applicable. The operator pack remains preparation-only for production, which
-must not be accessed with the application credential.
+not applicable. The operator pack is authorized for production only during the
+documented window after the dedicated credential is provisioned and validated.
+Until then it remains preparation-only, and the application credential is always
+prohibited.
 
 ## Operator Handoff
 
-Production requires a dedicated read-only credential or separately approved
-database-operator execution. Until sanitized production evidence is reviewed,
-P7B-11 and P7B-15 remain blocked across the complete rollout scope.
+Production bounded access is approved for the documented window, but the dedicated
+read-only credential has not been provisioned or validated. The application
+`DATABASE_URL` remains prohibited, the production database has not been accessed,
+and no production inventory is complete. Until sanitized production evidence is
+manually reviewed, P7B-11 and P7B-15 remain blocked across the complete rollout
+scope. Migration and implementation remain unauthorized.

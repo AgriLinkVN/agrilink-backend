@@ -62,3 +62,32 @@ infrastructure value.
 Approval of this checklist authorizes only the bounded inventory session. It does
 not approve migration, seed, synchronization, application startup, implementation
 or deployment.
+
+## Linked Production Approval Record
+
+The generic checklist above remains a secret-free reusable template. The approved
+production decision is recorded separately in the
+[Phase 7B production inventory access approval](production-access-approval.md).
+
+- Environment alias: `production`.
+- Exists: `YES`.
+- Phase 7B rollout: `YES`.
+- Operator: Mai Nguyễn Tiến Đạt.
+- Approver: Mai Nguyễn Tiến Đạt.
+- Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
+- Credential alias only: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
+- Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Access window: `2026-08-04T23:00:00+07:00` through
+  `2026-08-05T00:00:00+07:00`, maximum 60 minutes.
+- Metadata-only approval: `YES`.
+- Aggregate-only approval: `YES`.
+- Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
+- Transaction closure: `ROLLBACK` required.
+- Connection closure: required immediately after rollback.
+- Secret persistence: prohibited in terminal history, files, logs and screenshots.
+- Credential revocation or retention decision: `PENDING`.
+- Inventory completed: `NO`.
+
+Bounded access is approved, but execution remains blocked until the dedicated
+credential is externally provisioned and its PostgreSQL-level restrictions are
+validated. The application `DATABASE_URL` remains prohibited.
