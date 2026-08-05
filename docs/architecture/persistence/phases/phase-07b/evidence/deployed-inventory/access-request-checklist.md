@@ -77,8 +77,8 @@ production decision is recorded separately in the
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Credential alias only: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
 - Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Access window: `2026-08-04T23:00:00+07:00` through
-  `2026-08-05T00:00:00+07:00`, maximum 60 minutes.
+- Access window: `2026-08-05T21:00:00+07:00` through
+  `2026-08-05T22:00:00+07:00`, maximum 60 minutes.
 - Metadata-only approval: `YES`.
 - Aggregate-only approval: `YES`.
 - Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
@@ -87,6 +87,17 @@ production decision is recorded separately in the
 - Secret persistence: prohibited in terminal history, files, logs and screenshots.
 - Credential revocation or retention decision: `PENDING`.
 - Inventory completed: `NO`.
+
+Previous access-window history:
+
+- Window: `2026-08-04T23:00:00+07:00` through
+  `2026-08-05T00:00:00+07:00`.
+- Result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Renewal reason: the window expired before the dedicated PostgreSQL read-only
+  credential was provisioned.
 
 Bounded access is approved, but execution remains blocked until the dedicated
 credential is externally provisioned and its PostgreSQL-level restrictions are

@@ -66,8 +66,8 @@ Staging is not an inventory blocker and was not connected.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Credential alias: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
 - Credential provision: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Access window: `2026-08-04T23:00:00+07:00` through
-  `2026-08-05T00:00:00+07:00`, maximum 60 minutes.
+- Access window: `2026-08-05T21:00:00+07:00` through
+  `2026-08-05T22:00:00+07:00`, maximum 60 minutes.
 - Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
 - Session closure: `ROLLBACK_CLOSE_CONNECTION_CONFIRM_NO_CREDENTIAL_PERSISTENCE`.
 - Status: `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING`.
@@ -79,6 +79,18 @@ The bounded access decision is recorded in the
 credential has not been provisioned or validated, so production execution remains
 blocked. The application credential was not inspected or used and remains
 prohibited.
+
+## Production Access Window History
+
+- Previous window: `2026-08-04T23:00:00+07:00` through
+  `2026-08-05T00:00:00+07:00`.
+- Previous result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Renewal reason: the previous window expired before the dedicated PostgreSQL
+  read-only credential was provisioned. No production connection or database query
+  occurred during that window.
 
 ## Remaining Access Decision
 

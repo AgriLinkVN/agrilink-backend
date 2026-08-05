@@ -40,6 +40,20 @@ production application credential into an approved inventory credential.
 Production authorization requires the dedicated credential alias
 `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`; its value is not recorded here.
 
+## Production Access Window
+
+- Current start: `2026-08-05T21:00:00+07:00`.
+- Current end: `2026-08-05T22:00:00+07:00`.
+- Timezone: `Asia/Ho_Chi_Minh`.
+- Maximum duration: 60 minutes.
+- Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+
+The previous window, `2026-08-04T23:00:00+07:00` through
+`2026-08-05T00:00:00+07:00`, ended as `EXPIRED_WITHOUT_CONNECTION`. Production was
+not accessed, SQL execution was zero, and the dedicated credential was not
+provisioned. The window was renewed because it expired before credential
+provisioning; no production connection or database query occurred.
+
 ## Planned Command Allowlist
 
 | Purpose                    | Category    | Planned command class                                | Executed |
