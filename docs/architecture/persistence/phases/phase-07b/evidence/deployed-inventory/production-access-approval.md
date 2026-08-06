@@ -37,18 +37,30 @@ Mai Nguyễn Tiến Đạt
 
 ## Access Window
 
-- Start: `2026-08-05T21:00:00+07:00`.
-- End: `2026-08-05T22:00:00+07:00`.
+- Start: `2026-08-06T21:00:00+07:00`.
+- End: `2026-08-06T22:00:00+07:00`.
 - Timezone: `Asia/Ho_Chi_Minh`.
 - Maximum duration: 60 minutes.
 
 No connection is permitted before or after this window.
 
-Reason for renewal: the previous approved window expired before the dedicated
-PostgreSQL read-only credential was provisioned. No production connection or
-database query occurred during the previous window.
+Reason for renewal: the previous approved window expired before dedicated
+credential provisioning was completed. No production connection, SQL execution or
+credential provisioning occurred.
 
 ## Access Window History
+
+- Previous start: `2026-08-05T21:00:00+07:00`.
+- Previous end: `2026-08-05T22:00:00+07:00`.
+- Previous result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Reason: The previous approved window expired before dedicated credential
+  provisioning was completed. No production connection, SQL execution or
+  credential provisioning occurred.
+
+Earlier access-window history:
 
 - Previous start: `2026-08-04T23:00:00+07:00`.
 - Previous end: `2026-08-05T00:00:00+07:00`.
