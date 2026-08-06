@@ -77,8 +77,8 @@ production decision is recorded separately in the
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Credential alias only: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
 - Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Access window: `2026-08-06T21:00:00+07:00` through
-  `2026-08-06T22:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 60 minutes.
+- Access window: `2026-08-07T21:00:00+07:00` through
+  `2026-08-07T22:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 60 minutes.
 - Metadata-only approval: `YES`.
 - Aggregate-only approval: `YES`.
 - Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
@@ -90,6 +90,21 @@ production decision is recorded separately in the
 
 Previous access-window history:
 
+- Window: `2026-08-06T21:00:00+07:00` through
+  `2026-08-06T22:00:00+07:00`.
+- Result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Role created: `NO`.
+- Migration: `0`.
+- Renewal reason: the approved window expired before dedicated PostgreSQL
+  read-only credential provisioning was completed. No production connection, SQL
+  execution, role creation or credential provisioning occurred.
+
+Earlier access-window history:
+
 - Window: `2026-08-05T21:00:00+07:00` through
   `2026-08-05T22:00:00+07:00`.
 - Result: `EXPIRED_WITHOUT_CONNECTION`.
@@ -100,7 +115,7 @@ Previous access-window history:
   provisioning was completed. No production connection, SQL execution or
   credential provisioning occurred.
 
-Earlier access-window history:
+Oldest access-window history:
 
 - Window: `2026-08-04T23:00:00+07:00` through
   `2026-08-05T00:00:00+07:00`.
