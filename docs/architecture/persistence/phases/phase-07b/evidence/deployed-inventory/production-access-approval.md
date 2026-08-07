@@ -5,6 +5,7 @@ Status: `APPROVED_PENDING_DEDICATED_READ_ONLY_CREDENTIAL`
 ## Approval Record
 
 - Approval date: 2026-08-04.
+- Current access-window renewal date: 2026-08-08.
 - Approver: Mai Nguyễn Tiến Đạt.
 - Approval capacity:
   - Project Owner.
@@ -17,7 +18,9 @@ Status: `APPROVED_PENDING_DEDICATED_READ_ONLY_CREDENTIAL`
 - Platform: Railway PostgreSQL connected to the deployed AgriLink backend.
 - Part of Phase 7B rollout: `YES`.
 - Inventory decision: `REQUIRED`.
+- Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
+- Dedicated role: `agrilink_inventory_reader`.
 - Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
 
 ## Scope
@@ -37,18 +40,39 @@ Mai Nguyễn Tiến Đạt
 
 ## Access Window
 
-- Start: `2026-08-07T21:00:00+07:00`.
-- End: `2026-08-07T22:00:00+07:00`.
+- Start: `2026-08-08T19:00:00+07:00`.
+- End: `2026-08-08T23:00:00+07:00`.
 - Timezone: `Asia/Ho_Chi_Minh`.
-- Maximum duration: 60 minutes.
+- Maximum duration: 240 minutes.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
+- Production inventory: `NOT_STARTED`.
 
 No connection is permitted before or after this window.
 
-Reason for renewal: the previous approved window expired before dedicated
-credential provisioning was completed. No production connection, SQL execution or
-credential provisioning occurred.
+Reason for renewal: the approved 2026-08-07 window expired before dedicated
+PostgreSQL read-only credential provisioning and production inventory were
+performed. No production connection, SQL execution, role creation, credential
+provisioning, migration or inventory occurred during that window.
 
 ## Access Window History
+
+- Previous start: `2026-08-07T21:00:00+07:00`.
+- Previous end: `2026-08-07T22:00:00+07:00`.
+- Previous result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Role created: `NO`.
+- Production inventory executed: `NO`.
+- Migration: `0`.
+- Reason: The approved 2026-08-07 window expired before dedicated PostgreSQL
+  read-only credential provisioning and production inventory were performed. No
+  production connection, SQL execution, role creation, credential provisioning,
+  migration or inventory occurred during that window.
+
+Earlier access-window history:
 
 - Previous start: `2026-08-06T21:00:00+07:00`.
 - Previous end: `2026-08-06T22:00:00+07:00`.
@@ -63,7 +87,7 @@ credential provisioning occurred.
   credential provisioning was completed. No production connection, SQL execution,
   role creation or credential provisioning occurred.
 
-Earlier access-window history:
+Older access-window history:
 
 - Previous start: `2026-08-05T21:00:00+07:00`.
 - Previous end: `2026-08-05T22:00:00+07:00`.
@@ -87,11 +111,30 @@ Oldest access-window history:
 ## Credential Requirements
 
 - A dedicated PostgreSQL read-only credential is required.
+- Dedicated role: `agrilink_inventory_reader`.
 - Credential alias: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
+- Application credential: `DATABASE_URL = PROHIBITED_FOR_INVENTORY`.
 - The credential value must never be committed, printed or copied into evidence.
 - The application `DATABASE_URL` is prohibited.
 - Credential provisioning is an external Railway/PostgreSQL operational task.
 - This repository task does not create users, roles, grants or permissions.
+
+## Authorized Provisioning Scope
+
+Only after this authorization PR is reviewed and merged, and only during the
+approved access window, Stage A may:
+
+- create the single dedicated role `agrilink_inventory_reader`;
+- configure read-only role settings;
+- grant database `CONNECT`;
+- grant application-schema `USAGE`;
+- revoke direct schema `CREATE` from the dedicated role;
+- grant table `SELECT` only for approved inventory tables that exist;
+- validate privileges using catalog metadata.
+
+These are approved credential-provisioning operations only. They do not authorize
+application schema changes. The provisioning connection and inventory connection
+must remain separate, and the DBA connection must not run inventory queries.
 
 ## Required PostgreSQL-Level Controls
 
@@ -144,8 +187,9 @@ ROLLBACK;
 
 Policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
 
-Only `production.json` may be created. The artifact must be generated from the
-existing sanitized output template.
+Only the future production inventory task may create `production.json`. This
+documentation-only authorization task must not create it. The artifact must be
+generated from the existing sanitized output template.
 
 Before commit, a human must manually review it for:
 
@@ -202,11 +246,10 @@ infrastructure details. Its current status is `PENDING`.
 - `UPDATE`;
 - `DELETE`;
 - `TRUNCATE`;
-- `CREATE`;
-- `ALTER`;
-- `DROP`;
-- `GRANT`;
-- `REVOKE`;
+- application schema `CREATE`, `ALTER` or `DROP`;
+- role creation other than the single approved dedicated role;
+- grants outside database `CONNECT`, schema `USAGE` and approved-table `SELECT`;
+- permission changes outside the dedicated role;
 - `COPY`;
 - `CALL`;
 - `DO`;
@@ -216,8 +259,10 @@ infrastructure details. Its current status is `PENDING`.
 
 ## Approval Boundary
 
-This approval authorizes only a bounded production inventory session after the
-dedicated read-only credential has been provisioned and validated.
+After this authorization PR is reviewed and merged, this approval authorizes only
+the bounded Stage A credential provisioning and Stage B read-only production
+inventory activities documented above. Stage B must use
+`AGRILINK_PRODUCTION_READONLY_DATABASE_URL`; it must not use the DBA connection.
 
 It does not authorize:
 
@@ -228,3 +273,18 @@ It does not authorize:
 - data correction;
 - schema change;
 - credential creation through this repository task.
+
+## Phase Status
+
+- Phase verdict: `PHASE_7B_INVENTORY_BLOCKED`.
+- Credential status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Production inventory: `NOT_STARTED`.
+- P7B-11: `BLOCKED_PENDING_PRODUCTION_INVENTORY`.
+- P7B-15: `BLOCKED_PENDING_PRODUCTION_INVENTORY`.
+- P7B-18: `P7B-18_POLICY_MODEL_APPROVED`.
+- Retention duration: `RETENTION_DURATION_NOT_CONFIGURED`.
+- Retention cleanup: `RETENTION_CLEANUP_DISABLED`.
+- Legal hold: `LEGAL_HOLD_REQUIRED`.
+- Cascade hard-delete: `CASCADE_HARD_DELETE_PROHIBITED`.
+- Migration: `NOT_AUTHORIZED`.
+- Implementation branch: `NOT_AUTHORIZED`.
