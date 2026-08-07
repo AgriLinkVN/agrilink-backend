@@ -42,21 +42,32 @@ Production authorization requires the dedicated credential alias
 
 ## Production Access Window
 
-- Current start: `2026-08-07T21:00:00+07:00`.
-- Current end: `2026-08-07T22:00:00+07:00`.
+- Current start: `2026-08-08T19:00:00+07:00`.
+- Current end: `2026-08-08T23:00:00+07:00`.
 - Timezone: `Asia/Ho_Chi_Minh`.
-- Maximum duration: 60 minutes.
+- Maximum duration: 240 minutes.
+- Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
+- Dedicated role: `agrilink_inventory_reader`.
 - Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
+- Production inventory: `NOT_STARTED`.
 
-The previous window, `2026-08-06T21:00:00+07:00` through
-`2026-08-06T22:00:00+07:00`, ended as `EXPIRED_WITHOUT_CONNECTION`. Production and
+The previous window, `2026-08-07T21:00:00+07:00` through
+`2026-08-07T22:00:00+07:00`, ended as `EXPIRED_WITHOUT_CONNECTION`. Production and
 Railway were not accessed, SQL execution was zero, the dedicated credential was
-not provisioned, no role was created, and migration execution was zero. The
-approved window expired before dedicated PostgreSQL read-only credential
-provisioning was completed. No production connection, SQL execution, role creation
-or credential provisioning occurred.
+not provisioned, no role was created, production inventory was not executed, and
+migration execution was zero. The approved window expired before dedicated
+PostgreSQL read-only credential provisioning and production inventory were
+performed. No production connection, SQL execution, role creation, credential
+provisioning, migration or inventory occurred during that window.
 
-Earlier access-window history: `2026-08-05T21:00:00+07:00` through
+Earlier access-window history: `2026-08-06T21:00:00+07:00` through
+`2026-08-06T22:00:00+07:00` ended as `EXPIRED_WITHOUT_CONNECTION`. Production and
+Railway were not accessed, SQL execution was zero, the dedicated credential was
+not provisioned, no role was created, and migration execution was zero.
+
+Older access-window history: `2026-08-05T21:00:00+07:00` through
 `2026-08-05T22:00:00+07:00` ended as `EXPIRED_WITHOUT_CONNECTION`. Production was
 not accessed, SQL execution was zero, and the dedicated credential was not
 provisioned.
@@ -65,6 +76,26 @@ Oldest access-window history: `2026-08-04T23:00:00+07:00` through
 `2026-08-05T00:00:00+07:00` ended as `EXPIRED_WITHOUT_CONNECTION`. Production was
 not accessed, SQL execution was zero, and the dedicated credential was not
 provisioned.
+
+## Authorized Production Activities
+
+Only after this authorization PR is reviewed and merged, Stage A may provision the
+single `agrilink_inventory_reader` role, configure read-only settings, grant
+database `CONNECT`, grant schema `USAGE`, revoke direct schema `CREATE`, grant
+`SELECT` only on approved existing inventory tables, and validate privileges from
+catalog metadata. These provisioning operations do not authorize application
+schema changes.
+
+Stage B must use `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`, not the DBA or
+application connection. It is limited to the five approved inventory tables,
+related-name catalog discovery, metadata and aggregates. It must use a
+repeatable-read, read-only transaction with bounded timeouts and finish with
+`ROLLBACK`. Raw-row and private-data reads remain prohibited.
+
+Output remains `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`, and only the future
+inventory task may create `production.json`. Provisioning and inventory connections
+must remain separate. Session closure remains
+`ROLLBACK_CLOSE_CONNECTION_CONFIRM_NO_CREDENTIAL_PERSISTENCE`.
 
 ## Planned Command Allowlist
 
@@ -186,3 +217,9 @@ read-only credential has not been provisioned or validated. The application
 and no production inventory is complete. Until sanitized production evidence is
 manually reviewed, P7B-11 and P7B-15 remain blocked across the complete rollout
 scope. Migration and implementation remain unauthorized.
+
+P7B-11 and P7B-15 remain `BLOCKED_PENDING_PRODUCTION_INVENTORY`. P7B-18 remains
+`P7B-18_POLICY_MODEL_APPROVED`, with `RETENTION_DURATION_NOT_CONFIGURED`,
+`RETENTION_CLEANUP_DISABLED`, `LEGAL_HOLD_REQUIRED` and
+`CASCADE_HARD_DELETE_PROHIBITED`. Production inventory remains `NOT_STARTED`, and
+an implementation branch remains `NOT_AUTHORIZED`.

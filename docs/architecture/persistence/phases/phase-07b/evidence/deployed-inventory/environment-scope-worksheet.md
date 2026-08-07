@@ -63,15 +63,21 @@ Staging is not an inventory blocker and was not connected.
 - Part of future Phase 7B rollout: `YES`.
 - Decision: `REQUIRED`.
 - Operational authorization: `BOUNDED_ACCESS_APPROVED`.
+- Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
+- Dedicated role: `agrilink_inventory_reader`.
 - Credential alias: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
 - Credential provision: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Access window: `2026-08-07T21:00:00+07:00` through
-  `2026-08-07T22:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 60 minutes.
+- Application credential: `DATABASE_URL = PROHIBITED_FOR_INVENTORY`.
+- Access window: `2026-08-08T19:00:00+07:00` through
+  `2026-08-08T23:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 240 minutes.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
 - Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
 - Session closure: `ROLLBACK_CLOSE_CONNECTION_CONFIRM_NO_CREDENTIAL_PERSISTENCE`.
 - Status: `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING`.
 - Inventory performed: `NO`.
+- Production inventory: `NOT_STARTED`.
 - Connection attempted: `NO`.
 
 The bounded access decision is recorded in the
@@ -81,6 +87,23 @@ blocked. The application credential was not inspected or used and remains
 prohibited.
 
 ## Production Access Window History
+
+- Previous window: `2026-08-07T21:00:00+07:00` through
+  `2026-08-07T22:00:00+07:00`.
+- Previous result: `EXPIRED_WITHOUT_CONNECTION`.
+- Production accessed: `NO`.
+- Railway accessed: `NO`.
+- SQL executed: `0`.
+- Credential provisioned: `NO`.
+- Role created: `NO`.
+- Production inventory executed: `NO`.
+- Migration: `0`.
+- Reason: The approved 2026-08-07 window expired before dedicated PostgreSQL
+  read-only credential provisioning and production inventory were performed. No
+  production connection, SQL execution, role creation, credential provisioning,
+  migration or inventory occurred during that window.
+
+Earlier access-window history:
 
 - Previous window: `2026-08-06T21:00:00+07:00` through
   `2026-08-06T22:00:00+07:00`.
@@ -95,7 +118,7 @@ prohibited.
   credential provisioning was completed. No production connection, SQL execution,
   role creation or credential provisioning occurred.
 
-Earlier access-window history:
+Older access-window history:
 
 - Previous window: `2026-08-05T21:00:00+07:00` through
   `2026-08-05T22:00:00+07:00`.
@@ -125,3 +148,15 @@ Only production remains in the required inventory set. Its bounded access is
 approved, while credential provisioning and privilege validation remain external
 operational/DBA tasks. P7B-19 remains read-only inventory authorization and is not
 migration approval.
+
+After this authorization PR is reviewed and merged, Stage A may provision only the
+dedicated `agrilink_inventory_reader` role using the bounded grants documented in
+the production approval. Stage B must use the dedicated credential and reviewed
+read-only query pack; the DBA connection must not run inventory queries.
+
+The phase verdict remains `PHASE_7B_INVENTORY_BLOCKED`. P7B-11 and P7B-15 are
+`BLOCKED_PENDING_PRODUCTION_INVENTORY`. P7B-18 remains
+`P7B-18_POLICY_MODEL_APPROVED`, with `RETENTION_DURATION_NOT_CONFIGURED`,
+`RETENTION_CLEANUP_DISABLED`, `LEGAL_HOLD_REQUIRED` and
+`CASCADE_HARD_DELETE_PROHIBITED`. Migration and an implementation branch remain
+`NOT_AUTHORIZED`.
