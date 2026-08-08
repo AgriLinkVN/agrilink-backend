@@ -105,9 +105,19 @@ production decision is recorded separately in the
 - Transaction closure: `ROLLBACK` required.
 - Connection closure: required immediately after rollback.
 - Secret persistence: prohibited in terminal history, files, logs and screenshots.
-- Credential revocation or retention decision: `PENDING`.
-- Inventory completed: `NO`.
+- Credential lifecycle closure:
+  `CREDENTIAL_LOGIN_VALIDITY=EXPIRED_BY_CONFIGURED_VALID_UNTIL`.
+- `CREDENTIAL_VALID_UNTIL=2026-08-08T23:00:00+07:00`.
+- `FURTHER_PRODUCTION_CONNECTION_AUTHORIZED=NO`.
+- `CREDENTIAL_VALUE_PERSISTED=NO`.
+- `ROLE_OBJECT_POST_WINDOW_STATE=NOT_RECHECKED_NO_CONNECTION_AUTHORIZED`.
+- `ROLE_OBJECT_RETENTION_DECISION=NO_IMMEDIATE_ACTION_REQUIRED_FOR_INVENTORY_CLOSURE`.
+- Inventory completed: `YES`.
 - Production inventory: `COMPLETE_AND_REVIEWED`.
+
+The configured login validity ended at the approved window boundary. This record
+does not claim the role was dropped or no longer exists, and no post-window
+database verification was performed or authorized.
 
 Previous access-window history:
 

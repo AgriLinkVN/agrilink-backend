@@ -4,8 +4,8 @@ Status: `PHASE_7B_PRODUCTION_INVENTORY_RECORDED_READY_FOR_REVIEW`
 
 This evidence package records the post-specification inventory authorized by
 P7B-19. Local-protected evidence is complete for review, staging is approved not
-applicable, and production bounded access is approved while dedicated read-only
-credential provisioning remains pending.
+applicable, and the approved production bounded inventory access is complete and
+closed.
 
 Secondary production status: `COMPLETE_AND_REVIEWED`.
 
@@ -22,6 +22,20 @@ Secondary production status: `COMPLETE_AND_REVIEWED`.
 - Reviewed statements: `59`; executed: `33`; skipped table absent: `22`;
   skipped not applicable: `4`; failed: `0`.
 - DDL: `0`; DML: `0`; migration: `0`; raw rows exported: `0`; PII read: `0`.
+
+## Production Credential Lifecycle Closure
+
+- `CREDENTIAL_LOGIN_VALIDITY=EXPIRED_BY_CONFIGURED_VALID_UNTIL`.
+- `CREDENTIAL_VALID_UNTIL=2026-08-08T23:00:00+07:00`.
+- `FURTHER_PRODUCTION_CONNECTION_AUTHORIZED=NO`.
+- `CREDENTIAL_VALUE_PERSISTED=NO`.
+- `ROLE_OBJECT_POST_WINDOW_STATE=NOT_RECHECKED_NO_CONNECTION_AUTHORIZED`.
+- `ROLE_OBJECT_RETENTION_DECISION=NO_IMMEDIATE_ACTION_REQUIRED_FOR_INVENTORY_CLOSURE`.
+
+This closure is based on the already-recorded validated `VALID UNTIL`
+configuration at the approved window boundary. It does not claim that the role
+was dropped, that it no longer exists, or that a post-window database verification
+was performed.
 
 ## Reconciliation Status
 

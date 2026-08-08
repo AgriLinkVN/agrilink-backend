@@ -257,13 +257,19 @@ After `ROLLBACK`:
 
 Closure policy: `ROLLBACK_CLOSE_CONNECTION_CONFIRM_NO_CREDENTIAL_PERSISTENCE`.
 
-## Revocation And Expiry
+## Credential Lifecycle Closure
 
-The dedicated credential should be time-limited or revoked after inventory unless
-it is retained under an approved read-only operational policy.
+- `CREDENTIAL_LOGIN_VALIDITY=EXPIRED_BY_CONFIGURED_VALID_UNTIL`.
+- `CREDENTIAL_VALID_UNTIL=2026-08-08T23:00:00+07:00`.
+- `FURTHER_PRODUCTION_CONNECTION_AUTHORIZED=NO`.
+- `CREDENTIAL_VALUE_PERSISTED=NO`.
+- `ROLE_OBJECT_POST_WINDOW_STATE=NOT_RECHECKED_NO_CONNECTION_AUTHORIZED`.
+- `ROLE_OBJECT_RETENTION_DECISION=NO_IMMEDIATE_ACTION_REQUIRED_FOR_INVENTORY_CLOSURE`.
 
-The revocation or retention decision must be recorded without exposing
-infrastructure details. Its current status is `PENDING`.
+The dedicated credential's already-validated configured login validity ended at
+the approved window boundary. This record does not claim the PostgreSQL role was
+dropped or no longer exists. No post-window database verification was performed;
+no production connection is authorized to perform one.
 
 ## Prohibited Operations
 
