@@ -2,10 +2,24 @@
 
 Status: `ENVIRONMENT_DECISIONS_RECORDED`
 
+## Production Inventory Completion
+
+- Environment alias: `production`.
+- Inventory status: `COMPLETE_AND_REVIEWED`.
+- Access type: `DEDICATED_READ_ONLY_INVENTORY`.
+- Transaction: `REPEATABLE_READ_READ_ONLY`; termination: `ROLLBACK`.
+- Connection: `CLOSED_WITHIN_APPROVED_WINDOW`.
+- Application `DATABASE_URL` used: `NO`; DBA credential used: `NO`.
+- Reviewed/executed/skipped-table-absent/skipped-not-applicable/failed:
+  `59` / `33` / `22` / `4` / `0`.
+- DDL/DML/migration/raw rows exported/PII read: `0` / `0` / `0` / `0` / `0`.
+- Evidence review: `PRODUCTION_JSON_MANUAL_REVIEW_CONFIRMED=true` and
+  `PRODUCTION_JSON_AUTOMATED_SCAN_CLEAN=true`.
+
 ## Approval Record
 
 - Decision date: 2026-08-04
-- Approver: Mai Nguyễn Tiến Đạt
+- Approver: `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER`
 - Approval capacity: Project Owner, Architecture Owner, Database Owner for this
   academic project, and Environment Operator for `local-protected`
 - Production access approval capacity: Project Owner, Architecture Owner, Database
@@ -21,9 +35,9 @@ validated, and during the approved access window.
 
 | Environment alias | Exists | Phase 7B rollout evidence | Decision                  | Operational owner   | Operator            | Execution method                              | P7B-11 required | P7B-15 required | Inventory performed | Status                                               |
 | ----------------- | ------ | ------------------------- | ------------------------- | ------------------- | ------------------- | --------------------------------------------- | --------------- | --------------- | ------------------- | ---------------------------------------------------- |
-| `local-protected` | YES    | YES                       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | Mai Nguyễn Tiến Đạt | `APPROVED_OPERATOR_RUN_READ_ONLY_TRANSACTION` | YES             | YES             | YES                 | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS`  |
+| `local-protected` | YES    | YES                       | `REQUIRED`                | `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER` | `APPROVED_LOCAL_INVENTORY_OPERATOR` | `APPROVED_OPERATOR_RUN_READ_ONLY_TRANSACTION` | YES             | YES             | YES                 | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS`  |
 | `staging`         | NO     | NO                        | `NOT_APPLICABLE_APPROVED` | `NOT_APPLICABLE`    | `NOT_APPLICABLE`    | `NOT_APPLICABLE`                              | NO              | NO              | NO                  | `NOT_APPLICABLE_APPROVED`                            |
-| `production`      | YES    | YES, future rollout       | `REQUIRED`                | Mai Nguyễn Tiến Đạt | Mai Nguyễn Tiến Đạt | `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`   | YES             | YES             | NO                  | `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING` |
+| `production`      | YES    | YES, future rollout       | `REQUIRED`                | `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER` | `APPROVED_PRODUCTION_INVENTORY_OPERATOR` | `DEDICATED_READ_ONLY_INVENTORY`                | YES             | YES             | YES                 | `COMPLETE_AND_REVIEWED`                              |
 
 ## Local-Protected Authorization
 
@@ -67,17 +81,17 @@ Staging is not an inventory blocker and was not connected.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Dedicated role: `agrilink_inventory_reader`.
 - Credential alias: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
-- Credential provision: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Credential provision: `EXECUTED_FOR_APPROVED_INVENTORY`.
 - Application credential: `DATABASE_URL = PROHIBITED_FOR_INVENTORY`.
 - Access window: `2026-08-08T19:00:00+07:00` through
   `2026-08-08T23:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 240 minutes.
-- Production accessed: `NO`.
+- Production accessed: `YES`.
 - Railway accessed: `NO`.
 - Output policy: `SANITIZED_JSON_MANUAL_REVIEW_BEFORE_COMMIT`.
 - Session closure: `ROLLBACK_CLOSE_CONNECTION_CONFIRM_NO_CREDENTIAL_PERSISTENCE`.
-- Status: `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING`.
+- Status: `COMPLETE_AND_REVIEWED`.
 - Inventory performed: `NO`.
-- Production inventory: `NOT_STARTED`.
+- Production inventory: `COMPLETE_AND_REVIEWED`.
 - Connection attempted: `NO`.
 
 The bounded access decision is recorded in the
@@ -154,9 +168,10 @@ dedicated `agrilink_inventory_reader` role using the bounded grants documented i
 the production approval. Stage B must use the dedicated credential and reviewed
 read-only query pack; the DBA connection must not run inventory queries.
 
-The phase verdict remains `PHASE_7B_INVENTORY_BLOCKED`. P7B-11 and P7B-15 are
-`BLOCKED_PENDING_PRODUCTION_INVENTORY`. P7B-18 remains
+Production inventory is `COMPLETE_AND_REVIEWED`. P7B-11 is
+`RECONCILIATION_REQUIRED_SOURCE_CONSUMER_DISPOSITION_PENDING`; P7B-15 is
+`STAGED_RECONCILIATION_REQUIRED_ENVIRONMENT_DIVERGENCE_CONFIRMED`. P7B-18 remains
 `P7B-18_POLICY_MODEL_APPROVED`, with `RETENTION_DURATION_NOT_CONFIGURED`,
 `RETENTION_CLEANUP_DISABLED`, `LEGAL_HOLD_REQUIRED` and
-`CASCADE_HARD_DELETE_PROHIBITED`. Migration and an implementation branch remain
-`NOT_AUTHORIZED`.
+`CASCADE_HARD_DELETE_PROHIBITED`. Implementation remains
+`BLOCKED_PENDING_RECONCILIATION_DECISIONS`.

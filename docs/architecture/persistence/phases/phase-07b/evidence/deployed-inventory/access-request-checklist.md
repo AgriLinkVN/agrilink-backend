@@ -2,6 +2,21 @@
 
 Status: `TEMPLATE_NOT_AUTHORIZATION`
 
+## Production Execution Closure Record
+
+The current production access record is closed successfully. This closure does
+not modify the reusable checklist or prior expired-window history.
+
+- Production accessed: `YES`.
+- Access: `DEDICATED_READ_ONLY_INVENTORY`.
+- Reviewed statements: `59`; executed: `33`; skipped table absent: `22`;
+  skipped not applicable: `4`; failed: `0`.
+- DDL: `0`; DML: `0`; transaction: `ROLLED_BACK`.
+- Connection: `CLOSED_WITHIN_APPROVED_WINDOW`.
+- Application credential: `NOT_USED`; credential values: `NOT_RECORDED`.
+- Sanitization: `PRODUCTION_JSON_MANUAL_REVIEW_CONFIRMED=true` and
+  `PRODUCTION_JSON_AUTOMATED_SCAN_CLEAN=true`.
+
 Complete this checklist outside the repository approval workflow for each required
 environment. It must not contain a credential, connection string or sensitive
 infrastructure value.
@@ -72,17 +87,17 @@ production decision is recorded separately in the
 - Environment alias: `production`.
 - Exists: `YES`.
 - Phase 7B rollout: `YES`.
-- Operator: Mai Nguyễn Tiến Đạt.
-- Approver: Mai Nguyễn Tiến Đạt.
+- Operator: `APPROVED_PRODUCTION_INVENTORY_OPERATOR`.
+- Approver: `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER`.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
 - Dedicated role: `agrilink_inventory_reader`.
 - Credential alias only: `AGRILINK_PRODUCTION_READONLY_DATABASE_URL`.
-- Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Credential provision status: `EXECUTED_FOR_APPROVED_INVENTORY`.
 - Application credential: `DATABASE_URL = PROHIBITED_FOR_INVENTORY`.
 - Access window: `2026-08-08T19:00:00+07:00` through
   `2026-08-08T23:00:00+07:00`, timezone `Asia/Ho_Chi_Minh`, maximum 240 minutes.
-- Production accessed: `NO`.
+- Production accessed: `YES`.
 - Railway accessed: `NO`.
 - Metadata-only approval: `YES`.
 - Aggregate-only approval: `YES`.
@@ -92,7 +107,7 @@ production decision is recorded separately in the
 - Secret persistence: prohibited in terminal history, files, logs and screenshots.
 - Credential revocation or retention decision: `PENDING`.
 - Inventory completed: `NO`.
-- Production inventory: `NOT_STARTED`.
+- Production inventory: `COMPLETE_AND_REVIEWED`.
 
 Previous access-window history:
 
@@ -161,6 +176,7 @@ validation. Stage B must use `AGRILINK_PRODUCTION_READONLY_DATABASE_URL` in a
 repeatable-read, read-only transaction and end with `ROLLBACK`. Provisioning and
 inventory connections must remain separate.
 
-Phase status remains `PHASE_7B_INVENTORY_BLOCKED`. P7B-11 and P7B-15 remain
-`BLOCKED_PENDING_PRODUCTION_INVENTORY`; migration and an implementation branch are
-`NOT_AUTHORIZED`.
+Production inventory is `COMPLETE_AND_REVIEWED`. P7B-11 is
+`RECONCILIATION_REQUIRED_SOURCE_CONSUMER_DISPOSITION_PENDING`; P7B-15 is
+`STAGED_RECONCILIATION_REQUIRED_ENVIRONMENT_DIVERGENCE_CONFIRMED`; implementation
+is `BLOCKED_PENDING_RECONCILIATION_DECISIONS`.

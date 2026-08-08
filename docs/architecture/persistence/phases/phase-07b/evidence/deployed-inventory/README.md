@@ -1,13 +1,40 @@
 # Phase 7B Read-Only Deployed Inventory
 
-Status: `PHASE_7B_INVENTORY_BLOCKED`
+Status: `PHASE_7B_PRODUCTION_INVENTORY_RECORDED_READY_FOR_REVIEW`
 
 This evidence package records the post-specification inventory authorized by
 P7B-19. Local-protected evidence is complete for review, staging is approved not
 applicable, and production bounded access is approved while dedicated read-only
 credential provisioning remains pending.
 
-Secondary production status: `PRODUCTION_ACCESS_APPROVED_CREDENTIAL_PENDING`.
+Secondary production status: `COMPLETE_AND_REVIEWED`.
+
+## Production Inventory Completion Record
+
+- `PRODUCTION_JSON_MANUAL_REVIEW_CONFIRMED=true`.
+- `PRODUCTION_JSON_AUTOMATED_SCAN_CLEAN=true`.
+- `PRODUCTION_INVENTORY_STATUS=COMPLETE_AND_REVIEWED`.
+- Access type: `DEDICATED_READ_ONLY_INVENTORY`.
+- Application `DATABASE_URL` used: `NO`.
+- DBA credential used for inventory: `NO`.
+- Inventory transaction: `REPEATABLE_READ_READ_ONLY`; termination: `ROLLBACK`.
+- Connection closure: `CLOSED_WITHIN_APPROVED_WINDOW`.
+- Reviewed statements: `59`; executed: `33`; skipped table absent: `22`;
+  skipped not applicable: `4`; failed: `0`.
+- DDL: `0`; DML: `0`; migration: `0`; raw rows exported: `0`; PII read: `0`.
+
+## Reconciliation Status
+
+- `DATABASE_DEPLOYMENT_STATE=ABSENT_IN_LOCAL_PROTECTED_AND_PRODUCTION` for
+  `quality_certificates`; `SOURCE_CONSUMER_STATE=STILL_PRESENT`;
+  `P7B_11_STATUS=RECONCILIATION_REQUIRED_SOURCE_CONSUMER_DISPOSITION_PENDING`.
+- `LOCAL_PROTECTED=PRESENT_MAPPING_A_LIKE`; `PRODUCTION=TABLE_NOT_PRESENT` for
+  `traceability_records`;
+  `P7B_15_STATUS=STAGED_RECONCILIATION_REQUIRED_ENVIRONMENT_DIVERGENCE_CONFIRMED`.
+- `P7B_18_STATUS=P7B-18_POLICY_MODEL_APPROVED`;
+  `RETENTION_DURATION_NOT_CONFIGURED`; `RETENTION_CLEANUP_DISABLED`;
+  `LEGAL_HOLD_REQUIRED`; `CASCADE_HARD_DELETE_PROHIBITED`.
+- `PHASE_7B_IMPLEMENTATION_STATUS=BLOCKED_PENDING_RECONCILIATION_DECISIONS`.
 
 ## Phase Dependency
 
@@ -33,7 +60,7 @@ Secondary production status: `PRODUCTION_ACCESS_APPROVED_CREDENTIAL_PENDING`.
 | ----------------- | --------------------------- | ----------------------------------------------------- | ---------- | ---------------------------------------------------- |
 | `local-protected` | required                    | approved operator-run read-only                       | completed  | `REQUIRED_INVENTORY_COMPLETED_WITH_SCHEMA_BLOCKERS`  |
 | `staging`         | not applicable, approved    | not applicable                                        | none       | `NOT_APPLICABLE_APPROVED`                            |
-| `production`      | required for future rollout | bounded access approved; dedicated credential pending | none       | `REQUIRED_READ_ONLY_CREDENTIAL_PROVISIONING_PENDING` |
+| `production`      | required for future rollout | dedicated read-only inventory completed               | completed  | `COMPLETE_AND_REVIEWED`                              |
 
 The environment decisions were approved on 2026-08-04. P7B-19 does not convert the
 production application credential into an approved inventory credential.
@@ -48,10 +75,10 @@ Production authorization requires the dedicated credential alias
 - Maximum duration: 240 minutes.
 - Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
 - Dedicated role: `agrilink_inventory_reader`.
-- Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Production accessed: `NO`.
+- Credential provision status: `EXECUTED_FOR_APPROVED_INVENTORY`.
+- Production accessed: `YES`.
 - Railway accessed: `NO`.
-- Production inventory: `NOT_STARTED`.
+- Production inventory: `COMPLETE_AND_REVIEWED`.
 
 The previous window, `2026-08-07T21:00:00+07:00` through
 `2026-08-07T22:00:00+07:00`, ended as `EXPIRED_WITHOUT_CONNECTION`. Production and
@@ -140,7 +167,7 @@ the process blocker without changing the capture artifact or its disclosed histo
 ## Process Deviation Review
 
 - Decision: `PROCESS_DEVIATION_REVIEWED_AND_ACCEPTED`.
-- Reviewer: Mai Nguyễn Tiến Đạt.
+- Reviewer: `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER`.
 - Capacity: Project Owner / Architecture Owner / Database Owner.
 - Review date: 2026-08-04.
 - Statement class: `SELECT`, catalog estimate only.
@@ -211,15 +238,8 @@ prohibited.
 
 ## Operator Handoff
 
-Production bounded access is approved for the documented window, but the dedicated
-read-only credential has not been provisioned or validated. The application
-`DATABASE_URL` remains prohibited, the production database has not been accessed,
-and no production inventory is complete. Until sanitized production evidence is
-manually reviewed, P7B-11 and P7B-15 remain blocked across the complete rollout
-scope. Migration and implementation remain unauthorized.
-
-P7B-11 and P7B-15 remain `BLOCKED_PENDING_PRODUCTION_INVENTORY`. P7B-18 remains
-`P7B-18_POLICY_MODEL_APPROVED`, with `RETENTION_DURATION_NOT_CONFIGURED`,
-`RETENTION_CLEANUP_DISABLED`, `LEGAL_HOLD_REQUIRED` and
-`CASCADE_HARD_DELETE_PROHIBITED`. Production inventory remains `NOT_STARTED`, and
-an implementation branch remains `NOT_AUTHORIZED`.
+Production inventory has completed under the documented bounded read-only access
+window and its sanitized evidence has passed manual and automated review. The
+application `DATABASE_URL` and DBA credential remain prohibited for inventory.
+P7B-11 and P7B-15 remain blocked only pending reconciliation decisions; migration
+and implementation remain unauthorized.

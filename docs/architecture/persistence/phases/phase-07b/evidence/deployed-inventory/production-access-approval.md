@@ -1,12 +1,46 @@
 # Phase 7B Production Inventory Access Approval
 
-Status: `APPROVED_PENDING_DEDICATED_READ_ONLY_CREDENTIAL`
+Status: `EXECUTED_CLOSED_COMPLETE_AND_REVIEWED`
+
+## Execution Closure
+
+- Production accessed: `YES`.
+- Access: `DEDICATED_READ_ONLY_INVENTORY`.
+- Reviewed statements: `59`; executed: `33`; skipped table absent: `22`;
+  skipped not applicable: `4`; failed: `0`.
+- DDL: `0`; DML: `0`; migration: `0`; raw rows exported: `0`; PII read: `0`.
+- Transaction: `REPEATABLE_READ_READ_ONLY`, terminated with `ROLLBACK`.
+- Connection: `CLOSED_WITHIN_APPROVED_WINDOW`.
+- Application credential: `NOT_USED`; DBA credential used for inventory: `NO`;
+  credential values: `NOT_RECORDED`.
+- `PRODUCTION_JSON_MANUAL_REVIEW_CONFIRMED=true`.
+- `PRODUCTION_JSON_AUTOMATED_SCAN_CLEAN=true`.
+- `PRODUCTION_INVENTORY_STATUS=COMPLETE_AND_REVIEWED`.
+
+Production evidence records `quality_certificates=TABLE_NOT_PRESENT`,
+`product_certifications=PRESENT`, `traceability_records=TABLE_NOT_PRESENT`,
+`incident_reports=PRESENT`, and `audit_logs=PRESENT`.
+
+`P7B_11_STATUS=RECONCILIATION_REQUIRED_SOURCE_CONSUMER_DISPOSITION_PENDING`:
+`DATABASE_DEPLOYMENT_STATE=ABSENT_IN_LOCAL_PROTECTED_AND_PRODUCTION` while
+`SOURCE_CONSUMER_STATE=STILL_PRESENT`. No source consumer is retired by this
+record.
+
+`P7B_15_STATUS=STAGED_RECONCILIATION_REQUIRED_ENVIRONMENT_DIVERGENCE_CONFIRMED`:
+`LOCAL_PROTECTED=PRESENT_MAPPING_A_LIKE` and `PRODUCTION=TABLE_NOT_PRESENT`.
+No canonical mapping is selected by this record.
+
+`P7B_18_STATUS=P7B-18_POLICY_MODEL_APPROVED` remains unchanged:
+`RETENTION_DURATION_NOT_CONFIGURED`; `RETENTION_CLEANUP_DISABLED`;
+`LEGAL_HOLD_REQUIRED`; `CASCADE_HARD_DELETE_PROHIBITED`.
+
+`PHASE_7B_IMPLEMENTATION_STATUS=BLOCKED_PENDING_RECONCILIATION_DECISIONS`.
 
 ## Approval Record
 
 - Approval date: 2026-08-04.
 - Current access-window renewal date: 2026-08-08.
-- Approver: Mai Nguyễn Tiến Đạt.
+- Approver: `PROJECT_ARCHITECTURE_AND_DATABASE_OWNER`.
 - Approval capacity:
   - Project Owner.
   - Architecture Owner.
@@ -21,7 +55,7 @@ Status: `APPROVED_PENDING_DEDICATED_READ_ONLY_CREDENTIAL`
 - Purpose: `PHASE_7B_PRODUCTION_CREDENTIAL_PROVISIONING_AND_READ_ONLY_INVENTORY`.
 - Execution method: `DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL`.
 - Dedicated role: `agrilink_inventory_reader`.
-- Credential provision status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
+- Credential provision status: `EXECUTED_FOR_APPROVED_INVENTORY`.
 
 ## Scope
 
@@ -36,7 +70,7 @@ This approval permits metadata and aggregate inventory only for:
 
 ## Approved Operator
 
-Mai Nguyễn Tiến Đạt
+`APPROVED_PRODUCTION_INVENTORY_OPERATOR`
 
 ## Access Window
 
@@ -44,9 +78,9 @@ Mai Nguyễn Tiến Đạt
 - End: `2026-08-08T23:00:00+07:00`.
 - Timezone: `Asia/Ho_Chi_Minh`.
 - Maximum duration: 240 minutes.
-- Production accessed: `NO`.
+- Production accessed: `YES`.
 - Railway accessed: `NO`.
-- Production inventory: `NOT_STARTED`.
+- Production inventory: `COMPLETE_AND_REVIEWED`.
 
 No connection is permitted before or after this window.
 
@@ -276,11 +310,11 @@ It does not authorize:
 
 ## Phase Status
 
-- Phase verdict: `PHASE_7B_INVENTORY_BLOCKED`.
-- Credential status: `PENDING_EXTERNAL_OPERATIONAL_PROVISIONING`.
-- Production inventory: `NOT_STARTED`.
-- P7B-11: `BLOCKED_PENDING_PRODUCTION_INVENTORY`.
-- P7B-15: `BLOCKED_PENDING_PRODUCTION_INVENTORY`.
+- Phase verdict: `PHASE_7B_PRODUCTION_INVENTORY_RECORDED_READY_FOR_REVIEW`.
+- Credential status: `EXECUTED_FOR_APPROVED_INVENTORY`.
+- Production inventory: `COMPLETE_AND_REVIEWED`.
+- P7B-11: `RECONCILIATION_REQUIRED_SOURCE_CONSUMER_DISPOSITION_PENDING`.
+- P7B-15: `STAGED_RECONCILIATION_REQUIRED_ENVIRONMENT_DIVERGENCE_CONFIRMED`.
 - P7B-18: `P7B-18_POLICY_MODEL_APPROVED`.
 - Retention duration: `RETENTION_DURATION_NOT_CONFIGURED`.
 - Retention cleanup: `RETENTION_CLEANUP_DISABLED`.
