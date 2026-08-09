@@ -25,7 +25,8 @@ import { Product } from "../modules/products/infrastructure/persistence/entities
 import { Wishlist } from "../modules/products/infrastructure/persistence/entities/wishlist.entity";
 import { Review } from "../modules/reviews/infrastructure/persistence/entities/review.entity";
 import { StoredFileEntity } from "../modules/storage/infrastructure/persistence/stored-file.entity";
-import { TraceabilityRecord } from "../modules/traceability/entities/traceability-record.entity";
+import { TraceabilityBatch } from "../modules/traceability/entities/traceability-batch.entity";
+import { TraceabilityEvent } from "../modules/traceability/entities/traceability-event.entity";
 import { OtpVerification } from "../modules/auth/infrastructure/persistence/entities/otp-verification.entity";
 import { RefreshToken } from "../modules/auth/infrastructure/persistence/entities/refresh-token.entity";
 import { User } from "../modules/users/infrastructure/persistence/entities/user.entity";
@@ -94,7 +95,8 @@ export const RUNTIME_ENTITY_ENTRIES = Object.freeze([
   entry("wishlists", Wishlist, true),
   entry("reviews", Review, true),
   entry("stored_files", StoredFileEntity, true),
-  entry("traceability_records", TraceabilityRecord, false),
+  entry("traceability_batches", TraceabilityBatch, false),
+  entry("traceability_events", TraceabilityEvent, false),
   entry('orders', OrderOrmEntity, true),
   entry('order_items', OrderItemOrmEntity, true),
   entry('order_status_history', OrderStatusHistoryOrmEntity, true),

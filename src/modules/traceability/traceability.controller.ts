@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TraceabilityService } from './traceability.service';
-import { CreateTraceabilityDto } from './dto/create-traceability.dto';
+import { AppendTraceabilityEventDto, CreateTraceabilityDto } from './dto/create-traceability.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -43,5 +43,13 @@ export class TraceabilityController {
     @Body() dto: CreateTraceabilityDto,
   ) {
     return this.traceabilityService.create(producerId, dto);
+  }
+
+  @Post('batches/:batchId/events')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.FARMER, UserRole.COOPERATIVE, UserRole.ADMIN)
+  @ApiBearerAuth('access-token')
+  appendEvent(@Param('batchId', ParseUuidPipe) batchId: string, @Body() dto: AppendTraceabilityEventDto) {
+    return this.traceabilityService.appendEvent(batchId, dto);
   }
 }

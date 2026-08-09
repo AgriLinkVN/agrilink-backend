@@ -1,6 +1,7 @@
 import {
   assertAllowedExternalSource,
   downloadExternalSource,
+  PRIVATE_DOCUMENT_SOURCES,
   rolloutDataSource,
 } from './storage-phase9-rollout';
 
@@ -12,6 +13,10 @@ describe('Storage Phase 9 rollout source policy', () => {
   it('always disables schema synchronization and query logging', () => {
     expect(rolloutDataSource.options.synchronize).toBe(false);
     expect(rolloutDataSource.options.logging).toBe(false);
+  });
+
+  it('does not retain quality_certificates as a persistence target', () => {
+    expect(PRIVATE_DOCUMENT_SOURCES.map((source) => source.table)).not.toContain('quality_certificates');
   });
 
   it('rejects external hosts outside the approved provider list', () => {

@@ -8,12 +8,12 @@ describe('Persistence architecture Phase 0 baseline', () => {
 
     expect(result.violations).toEqual([]);
     expect(result.summary).toEqual({
-      writableMappings: 50,
+      writableMappings: 49,
       viewMappings: 0,
       physicalTables: 48,
-      duplicateTables: 2,
-      centralMappings: 10,
-      moduleMappings: 40,
+      duplicateTables: 1,
+      centralMappings: 8,
+      moduleMappings: 41,
       centralImportEdges: 2,
       crossModuleInfrastructureEdges: 0,
       foreignForFeatureRegistrations: 1,

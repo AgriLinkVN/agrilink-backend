@@ -494,6 +494,21 @@ records `PHASE_7B_RECONCILIATION_STATUS=DECISIONS_READY_FOR_HUMAN_APPROVAL` and
 authorize runtime changes, database access, SQL, DDL, DML, migration, seed or
 application bootstrap.
 
+#### Approved Implementation Handoff
+
+`P7B_11_IMPLEMENTATION_STATUS=IMPLEMENTED_SOURCE_RETIREMENT`; legacy
+`quality_certificates` source and the Storage Phase 9 descriptor are removed;
+Products-owned `product_certifications` remains canonical.
+
+`P7B_15_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_DISPOSABLE_MIGRATION_VERIFICATION`.
+Traceability now has one writable mapping per canonical table: `traceability_batches`
+and `traceability_events`; the legacy `traceability_records` mappings are removed.
+`TRACEABILITY_WRITABLE_MAPPING_COUNT=1` for each canonical table.
+
+`MIGRATION_FILES_CREATED=1`; it is additive and must be verified only on a
+disposable database. `PROTECTED_LOCAL_DB_ACCESSED=NO` and
+`PRODUCTION_DB_ACCESSED=NO`. P7B-18 controls remain unchanged.
+
 ### P7B-16: Traceability Append-Only Contract
 
 - **Question:** Are trace events immutable, and how are sequence and corrections represented?
