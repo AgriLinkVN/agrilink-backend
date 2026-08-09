@@ -1,9 +1,9 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "CreateCommerceBoundariesV21800000001000",
-  "fingerprint": "be704d36ffb557680535c6aa69b949f37b9ff843c2b523e224e96119da381d64",
-  "objectCount": 644,
+  "migration": "CreateCanonicalBaselineV21800000000000",
+  "fingerprint": "63c998213d165cafbfae239a0aad2b9c02506c0f3934dd25dc869b66d5797d27",
+  "objectCount": 678,
   "snapshot": {
     "schema": "public",
     "schemas": [
@@ -7861,6 +7861,444 @@
             "primary": false,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"UQ_5aff9a6d272a5cedf54d7aaf617\" ON system_configs USING btree (key)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "traceability_batches",
+        "columns": [
+          {
+            "name": "batch_code",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 100,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "producer_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "product_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "qr_code",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 100,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "traceability_batches",
+            "name": "traceability_batches_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_batches",
+            "name": "UQ_traceability_batches_batch_code",
+            "type": "unique-constraint",
+            "columns": [
+              "batch_code"
+            ],
+            "definition": "UNIQUE (batch_code)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_batches",
+            "name": "UQ_traceability_batches_qr_code",
+            "type": "unique-constraint",
+            "columns": [
+              "qr_code"
+            ],
+            "definition": "UNIQUE (qr_code)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "traceability_batches",
+            "name": "UQ_traceability_batches_batch_code",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_traceability_batches_batch_code\" ON traceability_batches USING btree (batch_code)",
+            "predicate": null
+          },
+          {
+            "table": "traceability_batches",
+            "name": "UQ_traceability_batches_qr_code",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_traceability_batches_qr_code\" ON traceability_batches USING btree (qr_code)",
+            "predicate": null
+          },
+          {
+            "table": "traceability_batches",
+            "name": "traceability_batches_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX traceability_batches_pkey ON traceability_batches USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "traceability_events",
+        "columns": [
+          {
+            "name": "batch_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "event_kind",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 64,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "evidence_file_ids",
+            "dataType": "ARRAY",
+            "udtSchema": "pg_catalog",
+            "udtName": "_uuid",
+            "nullable": false,
+            "default": "'{}'::uuid[]",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "occurred_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "operation_key",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": 128,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "payload",
+            "dataType": "jsonb",
+            "udtSchema": "pg_catalog",
+            "udtName": "jsonb",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "sequence",
+            "dataType": "integer",
+            "udtSchema": "pg_catalog",
+            "udtName": "int4",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": 32,
+            "numericScale": 0,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "supersedes_event_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "traceability_events",
+            "name": "CHK_traceability_events_event_kind",
+            "type": "check-constraint",
+            "columns": [
+              "event_kind"
+            ],
+            "definition": "CHECK (event_kind::text = ANY (ARRAY['BATCH_CREATED'::character varying, 'PLANTED'::character varying, 'HARVESTED'::character varying, 'QUALITY_TESTED'::character varying, 'SHIPPED'::character varying, 'CORRECTED'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_events",
+            "name": "FK_traceability_events_batch",
+            "type": "foreign-key",
+            "columns": [
+              "batch_id"
+            ],
+            "definition": "FOREIGN KEY (batch_id) REFERENCES traceability_batches(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "traceability_batches",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_events",
+            "name": "FK_traceability_events_supersedes",
+            "type": "foreign-key",
+            "columns": [
+              "supersedes_event_id"
+            ],
+            "definition": "FOREIGN KEY (supersedes_event_id) REFERENCES traceability_events(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "traceability_events",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_events",
+            "name": "traceability_events_pkey",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_events",
+            "name": "UQ_traceability_events_batch_sequence",
+            "type": "unique-constraint",
+            "columns": [
+              "batch_id",
+              "sequence"
+            ],
+            "definition": "UNIQUE (batch_id, sequence)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "traceability_events",
+            "name": "UQ_traceability_events_operation_key",
+            "type": "unique-constraint",
+            "columns": [
+              "operation_key"
+            ],
+            "definition": "UNIQUE (operation_key)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "traceability_events",
+            "name": "IDX_traceability_events_batch_sequence",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX \"IDX_traceability_events_batch_sequence\" ON traceability_events USING btree (batch_id, sequence)",
+            "predicate": null
+          },
+          {
+            "table": "traceability_events",
+            "name": "UQ_traceability_events_batch_sequence",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_traceability_events_batch_sequence\" ON traceability_events USING btree (batch_id, sequence)",
+            "predicate": null
+          },
+          {
+            "table": "traceability_events",
+            "name": "UQ_traceability_events_operation_key",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_traceability_events_operation_key\" ON traceability_events USING btree (operation_key)",
+            "predicate": null
+          },
+          {
+            "table": "traceability_events",
+            "name": "traceability_events_pkey",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX traceability_events_pkey ON traceability_events USING btree (id)",
             "predicate": null
           }
         ]

@@ -24,6 +24,7 @@
     "test:persistence-phase-5": "jest --config ./test/jest-persistence-phase-5.json --runInBand",
     "test:persistence-phase-6": "jest --config ./test/jest-persistence-phase-6.json --runInBand",
     "test:persistence-phase-7a": "jest --config ./test/jest-persistence-phase-7a.json --runInBand",
+    "test:persistence-phase-7b:postgres": "jest --config ./test/jest-persistence-phase-7b.json --runInBand",
     "test:storage": "jest --testPathPattern=src/modules/storage",
     "test:storage:e2e": "jest --config ./test/jest-e2e.json --testPathPattern=storage.e2e-spec.ts",
     "test:storage:contract": "jest --testPathPattern=supabase-storage.contract.spec.ts",
