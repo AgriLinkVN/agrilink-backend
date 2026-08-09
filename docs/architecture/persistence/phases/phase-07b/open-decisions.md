@@ -21,11 +21,11 @@ this document authorizes DDL, DML, migration execution or production mutation.
 | P7B-08 | Evidence immutability                    | Compliance Owner, Security Owner, Database Owner     | `APPROVED`                         |
 | P7B-09 | Evidence replacement and correction      | Compliance Owner, Security Owner                     | `APPROVED`                         |
 | P7B-10 | Quality Certificate ownership            | Product Owner, Architecture Owner, Compliance Owner  | `APPROVED`                         |
-| P7B-11 | Legacy `quality_certificates` scope      | Product Owner, Database Owner, Compliance Owner      | `APPROVED_CONDITIONALLY`           |
+| P7B-11 | Legacy `quality_certificates` scope      | Product Owner, Database Owner, Compliance Owner      | `READY_FOR_HUMAN_APPROVAL`          |
 | P7B-12 | Certificate verification and revocation  | Product Owner, Compliance Owner, Security Owner      | `APPROVED`                         |
 | P7B-13 | Certifier role governance                | Security Owner, Product Owner, Compliance Owner      | `APPROVED`                         |
 | P7B-14 | Traceability canonical mapping           | Product Owner, Architecture Owner, Database Owner    | `APPROVED`                         |
-| P7B-15 | Traceability reconciliation strategy     | Database Owner, Architecture Owner                   | `APPROVED_CONDITIONALLY`           |
+| P7B-15 | Traceability reconciliation strategy     | Database Owner, Architecture Owner                   | `READY_FOR_HUMAN_APPROVAL`          |
 | P7B-16 | Traceability append-only contract        | Product Owner, Compliance Owner, Architecture Owner  | `APPROVED`                         |
 | P7B-17 | Audit evidence persistence               | Architecture Owner, Compliance Owner, Security Owner | `APPROVED`                         |
 | P7B-18 | Retention and hard-delete policy         | Compliance Owner, Security Owner, Database Owner     | `APPROVED_CONDITIONALLY`           |
@@ -311,29 +311,41 @@ this document authorizes DDL, DML, migration execution or production mutation.
 ### P7B-11: Legacy Quality Certificates Scope
 
 - **Question:** Is `quality_certificates` a duplicate, an organization credential or deployed legacy data?
-- **Why it blocks:** The table is absent from baseline but a historical Storage
-  migration conditionally supports it.
-- **Observed evidence:** Entity fields overlap product certificates; migration
-  `src/database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments.ts:117`
-  checks table existence.
+- **Why it blocked:** The table was absent from baseline but a historical Storage
+  migration and CLI command family conditionally supported it.
+- **Evidence basis:** The merged local-protected and production inventory artifacts
+  both classify `quality_certificates` as `TABLE_NOT_PRESENT`. The production
+  artifact classifies `product_certifications` as present. The source scan found
+  one legacy declaration at `src/database/entities/quality-certificate.entity.ts`;
+  it is not in `src/database/entity-registry.ts`, no module registers it with
+  `TypeOrmModule.forFeature`, and no repository, service, controller or normal
+  request path imports it. The only executable consumer is the optional
+  `quality_certificate` descriptor in the Storage Phase 9 rollout CLI at
+  `src/scripts/storage-phase9-rollout.ts`; its `plan`, `apply`, `finalize` and
+  `verify` modes skip the descriptor when the table is absent. The conditional
+  private-document migration is migration-only compatibility code. Tests and
+  documentation references are non-runtime evidence only.
+- **Canonical replacement and owner:** `product_certifications` is runtime
+  registered and has Products application ports, use cases, TypeORM repository
+  adapter and presentation endpoints. P7B-10 and `schema-plan.md` confirm that
+  Products owns product certifications.
 - **Options:** Retire declaration; reconcile into Products; preserve as distinct renamed aggregate.
 - **Trade-offs:** Retirement is safest without rows. Deployed rows require lossless
   inventory and backfill before retirement.
-- **Recommendation:** Treat as unverified legacy until approved deployed inventory proves otherwise.
+- **Recommendation:** Retire the legacy source consumer disposition; do not create,
+  deploy or migrate the absent table.
 - **Required approver groups:** Product Owner, Database Owner, Compliance Owner.
-- **Selected option:** Conditional A/B/C.
-- **Outcome:** `APPROVED_CONDITIONALLY`
-- **Approval note:** Retire the legacy declaration only if every approved deployed
-  inventory proves no data and no runtime consumer. If evidence exists, stop and
-  review reconciliation option B or C before implementation.
-- **Approver:** Mai Nguyễn Tiến Đạt.
-- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
-  Owner and Security/Compliance Owner for this academic project.
-- **Approval date:** 2026-08-02.
-- **Implementation impact:** Controls whether any legacy adapter remains.
-- **Migration impact:** Controls no-op retirement versus copy/verify migration.
-- **API impact:** Prevents an unapproved second certificate API.
-- **Test impact:** Requires deployed-row fixture/reconciliation tests if retained.
+- **Proposed decision:**
+  `P7B_11_DECISION=RETIRE_LEGACY_QUALITY_CERTIFICATES_SOURCE_CONSUMER`.
+- **Decision status:** `P7B_11_DECISION_STATUS=READY_FOR_HUMAN_APPROVAL`.
+- **Deployment state:**
+  `DATABASE_DEPLOYMENT_STATE=ABSENT_IN_LOCAL_PROTECTED_AND_PRODUCTION`.
+- **Implementation consequences:**
+  `CANONICAL_REPLACEMENT=product_certifications`;
+  `LEGACY_SOURCE_ACTION=REMOVE_OR_REWRITE_STORAGE_PHASE_9_CONSUMER_DURING_IMPLEMENTATION`;
+  `DATABASE_MIGRATION_REQUIRED=NO_FOR_QUALITY_CERTIFICATES_RETIREMENT`. This
+  documentation decision neither removes the CLI consumer nor authorizes any
+  implementation, migration, bootstrap, DDL or DML.
 
 ### P7B-12: Certificate Verification And Revocation
 
@@ -412,28 +424,75 @@ this document authorizes DDL, DML, migration execution or production mutation.
 ### P7B-15: Traceability Reconciliation Strategy
 
 - **Question:** How are duplicate mappings and any deployed rows migrated without loss?
-- **Why it blocks:** The checked-in local snapshot is not production evidence and
-  only proves one zero-row local extra at capture time.
-- **Observed evidence:** Baseline excludes the table; local reconciliation lists
-  `traceability_records` as a known preserved extra with zero rows.
+- **Why it blocked:** The two writable source mappings are incompatible and the
+  local-protected schema is not automatically canonical.
+- **Source inventory:** Mapping A is
+  `src/modules/traceability/entities/traceability-record.entity.ts`, registered
+  by `src/database/entity-registry.ts` and `TraceabilityModule`. It is a
+  Traceability-owned, mutable product/producer/location row with scalar
+  `product_id` and `producer_id`, unique QR, agronomy fields, JSON certifications
+  and `created_at`/`updated_at`. The mounted service repository is its only
+  repository consumer; controller request paths exist, but all service methods
+  explicitly throw `TODO`, so there is no successful normal persistence path.
+  It has no batch, order/shipment or typed-event representation.
+
+  Mapping B is `src/database/entities/traceability-record.entity.ts`. It is an
+  unregistered legacy declaration with no module, repository, service, controller
+  or CLI consumer. It uses product/order-item scalar IDs, batch code, QR, agronomy
+  and quality-test fields with `issued_at`/`created_at`; it has no producer,
+  shipment, typed-event, projection or lifecycle-status representation. Its
+  product/order-item/batch shape conflicts with Mapping A's producer/location and
+  mutable-row shape. Neither mapping has a status model; Mapping A's `updated_at`
+  is mutation metadata, not an event history or projection.
+- **Deployed evidence:** The merged production inventory says
+  `PRODUCTION_LEGACY_TABLE_STATE=TABLE_NOT_PRESENT`. The approved local-protected
+  artifact says `LOCAL_PROTECTED_LEGACY_STATE=PRESENT_MAPPING_A_LIKE` and records
+  an exact zero row count at capture. No local database was queried for this
+  decision. `ENVIRONMENT_DIVERGENCE_CONFIRMED=true`.
+- **Approved target evidence:** P7B-14 selected immutable batch identity plus
+  typed events, and P7B-16/`decision-pack.md` require deterministic public and
+  private projections. Therefore
+  `CANONICAL_TRACEABILITY_MODEL=BATCH_PLUS_TYPED_EVENTS_PLUS_DETERMINISTIC_PROJECTION`.
 - **Options:** Retire when empty; copy into canonical model; compatibility read adapter.
 - **Trade-offs:** Empty retirement is simple only with approved inventories.
   Copy requires deterministic mapping for conflicting/null fields.
-- **Recommendation:** Inventory, additive, copy, verify, compatibility, finalize.
+- **Recommendation:** Adopt the approved canonical model with staged
+  inventory/additive/copy/verify/compatibility/finalize reconciliation.
 - **Required approver groups:** Database Owner, Architecture Owner.
-- **Selected option:** Staged B+C.
-- **Outcome:** `APPROVED_CONDITIONALLY`
-- **Approval note:** Use inventory, additive, copy, verify, compatibility and
-  finalize. Direct retirement is permitted only when every approved inventory
-  proves the source empty.
-- **Approver:** Mai Nguyễn Tiến Đạt.
-- **Approver capacity:** Project Owner, Product Owner, Architecture Owner, Database
-  Owner and Security/Compliance Owner for this academic project.
-- **Approval date:** 2026-08-02.
-- **Implementation impact:** Controls adapter cutover and write enablement.
-- **Migration impact:** Defines staged up/down strategy and reconciliation evidence.
-- **API impact:** Requires old `/trace` compatibility until parity passes.
-- **Test impact:** Requires dual-schema fixtures, copy verification and rollback.
+- **Proposed decision:**
+  `P7B_15_DECISION=ADOPT_BATCH_TYPED_EVENTS_DETERMINISTIC_PROJECTION_CANONICAL_MODEL`.
+- **Decision status:** `P7B_15_DECISION_STATUS=READY_FOR_HUMAN_APPROVAL`.
+- **Reconciliation strategy:** `RECONCILIATION_STRATEGY=STAGED`. Production has
+  no `traceability_records` rows to migrate from that absent table; this does not
+  waive a future canonical schema/application migration. Local-protected remains
+  `READ_ONLY_NO_MUTATION`: do not drop, alter, truncate or migrate its preserved
+  table. Implementation must choose one canonical writable mapping, prevent
+  incompatible mappings from remaining writable in parallel, use scalar IDs and
+  typed ports across contexts, and retain staged reconciliation. It must not use
+  cross-owner repositories/entities or pass raw TypeORM primitives across a
+  bounded-context boundary.
+
+#### Reconciliation Package Controls
+
+`P7B-18_POLICY_MODEL_APPROVED`; `RETENTION_DURATION_NOT_CONFIGURED`;
+`RETENTION_CLEANUP_DISABLED`; `LEGAL_HOLD_REQUIRED`; and
+`CASCADE_HARD_DELETE_PROHIBITED` remain unchanged. No retention duration is
+selected by this reconciliation package.
+
+All implementation remains bound by one canonical writable mapping per table;
+domain/application layers must not import TypeORM; and bounded contexts must use
+scalar IDs and typed ports rather than cross-owner repositories/entities or raw
+TypeORM primitives. Existing ownership remains: Products owns product
+certifications, Compliance owns Incident, and Incident is separate from deferred
+Dispute.
+
+The absent production table does not prove traceability unnecessary, and the
+local-protected zero-row capture is evidence only for its capture time. A future
+canonical schema/application migration still needs separate approval. This package
+records `PHASE_7B_RECONCILIATION_STATUS=DECISIONS_READY_FOR_HUMAN_APPROVAL` and
+`PHASE_7B_IMPLEMENTATION_STATUS=BLOCKED_PENDING_DECISION_PR_MERGE`. It does not
+authorize runtime changes, database access, SQL, DDL, DML, migration, seed or
+application bootstrap.
 
 ### P7B-16: Traceability Append-Only Contract
 
