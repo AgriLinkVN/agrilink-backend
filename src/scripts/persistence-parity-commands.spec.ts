@@ -6,6 +6,11 @@ import {
   assertTypeOrmCompatibilityParity,
   verifyCanonicalParity,
 } from "../database/reconciliation/parity-verifier";
+import { readCatalogManifest } from "../database/reconciliation/baseline-artifacts";
+import {
+  getMigrationNames,
+  V2_MIGRATIONS,
+} from "../database/migration-registry";
 
 type Parity = Awaited<ReturnType<typeof verifyCanonicalParity>>;
 
@@ -39,6 +44,13 @@ describe("persistence parity commands", () => {
     expect(() => assertCatalogParity(parity)).not.toThrow();
     expect(() => assertTypeOrmCompatibilityParity(parity)).toThrow(
       "TypeORM compatibility parity failed",
+    );
+  });
+
+  it("labels the catalog with the latest represented v2 migration", () => {
+    const migrationNames = getMigrationNames(V2_MIGRATIONS);
+    expect(readCatalogManifest().migration).toBe(
+      migrationNames[migrationNames.length - 1],
     );
   });
 });

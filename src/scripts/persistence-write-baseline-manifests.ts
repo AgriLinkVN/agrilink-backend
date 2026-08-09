@@ -20,6 +20,10 @@ import {
   CLI_ENTITY_REGISTRY,
   excludeDeferredEntitiesFromSchemaBuild,
 } from "../database/entity-registry";
+import {
+  getMigrationNames,
+  V2_MIGRATIONS,
+} from "../database/migration-registry";
 
 dotenv.config();
 
@@ -231,6 +235,8 @@ const COMPATIBILITY_OBJECTS: readonly CompatibilitySeed[] = [
 ] as const;
 
 const OUTPUT = path.join(process.cwd(), "docs/architecture/persistence");
+const V2_CATALOG_MIGRATION =
+  getMigrationNames(V2_MIGRATIONS)[V2_MIGRATIONS.length - 1];
 
 async function main(): Promise<void> {
   if (!process.argv.includes("--write")) {
@@ -288,7 +294,7 @@ async function main(): Promise<void> {
       {
         version: 1,
         lineage: "v2",
-        migration: "CreateCanonicalBaselineV21800000000000",
+        migration: V2_CATALOG_MIGRATION,
         fingerprint: catalogFingerprint(snapshot),
         objectCount: catalogObjectCount(snapshot),
         snapshot,

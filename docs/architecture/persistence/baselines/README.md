@@ -9,4 +9,9 @@ multiple persistence phases:
 - `local-agrilink-db-reconciliation.json`: read-only local reconciliation
   snapshot; it is not production truth.
 
+The `migration` field in a canonical catalog artifact identifies the latest
+ordered v2 migration whose applied schema is represented by that snapshot. It
+is lineage metadata, not the lineage-root identifier and not an instruction to
+execute migrations.
+
 Baseline data is not rewritten during documentation reorganization.

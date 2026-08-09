@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "CreateCanonicalBaselineV21800000000000",
+  "migration": "CreateTraceabilityEventModelV21800000002000",
   "fingerprint": "63c998213d165cafbfae239a0aad2b9c02506c0f3934dd25dc869b66d5797d27",
   "objectCount": 678,
   "snapshot": {
