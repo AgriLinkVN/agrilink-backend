@@ -494,6 +494,52 @@ records `PHASE_7B_RECONCILIATION_STATUS=DECISIONS_READY_FOR_HUMAN_APPROVAL` and
 authorize runtime changes, database access, SQL, DDL, DML, migration, seed or
 application bootstrap.
 
+#### Approved Implementation Handoff
+
+`P7B_11_IMPLEMENTATION_STATUS=IMPLEMENTED_SOURCE_RETIREMENT`; legacy
+`quality_certificates` source and the Storage Phase 9 descriptor are removed;
+Products-owned `product_certifications` remains canonical.
+
+`P7B_15_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_DISPOSABLE_MIGRATION_VERIFICATION`.
+Traceability now has one writable mapping per canonical table: `traceability_batches`
+and `traceability_events`; the legacy `traceability_records` mappings are removed.
+`TRACEABILITY_WRITABLE_MAPPING_COUNT=1` for each canonical table.
+
+`MIGRATION_FILES_CREATED=1`; it is additive and must be verified only on a
+disposable database. `PROTECTED_LOCAL_DB_ACCESSED=NO` and
+`PRODUCTION_DB_ACCESSED=NO`. P7B-18 controls remain unchanged.
+
+#### Post-P7B-26 Hardening Evidence
+
+PR #103 was human-reviewed and merged into `develop`, so
+`P7B26_STATUS=APPROVED_MERGED`,
+`LEGACY_TRACE_API_STATUS=RETIRED_BY_P7B26`, and
+`API_COMPATIBILITY_STATUS=LEGACY_CONTRACT_RETIREMENT_APPROVED`. The canonical
+batch-create plus typed-event-append contract is documented in OpenAPI. Client
+migration is required if the retired request shape is consumed; no claim is made
+about whether such clients exist.
+
+`P7B_11_IMPLEMENTATION_STATUS=IMPLEMENTED_SOURCE_RETIREMENT` and
+`P7B_15_IMPLEMENTATION_STATUS=IMPLEMENTED_AND_DISPOSABLE_DB_VERIFIED`.
+Verification against an isolated PostgreSQL 16 container recorded:
+
+- `CREATE_ATOMICITY=PASS`
+- `CREATE_IDEMPOTENCY_CONCURRENCY=PASS`
+- `APPEND_SEQUENCE_CONCURRENCY=PASS_ROW_LOCK_PLUS_UNIQUE_CONSTRAINT`
+- `APPEND_IDEMPOTENCY_CONCURRENCY=PASS`
+- `MIGRATION_DISPOSABLE_VERIFICATION=PASS_FIRST_RUN_AND_ZERO_PENDING_SECOND_RUN`
+- `CATALOG_PARITY=PASS`
+- `TYPEORM_PARITY=PASS`
+- `TRACEABILITY_WRITABLE_MAPPING_COUNT_PER_TABLE=1`
+- `PROTECTED_LOCAL_DB_ACCESSED=NO`
+- `PRODUCTION_DB_ACCESSED=NO`
+
+P7B-18 remains exactly `P7B-18_POLICY_MODEL_APPROVED`,
+`RETENTION_DURATION_NOT_CONFIGURED`, `RETENTION_CLEANUP_DISABLED`,
+`LEGAL_HOLD_REQUIRED`, and `CASCADE_HARD_DELETE_PROHIBITED`. The Phase 7B
+traceability migration therefore remains fail-closed on `down()` and does not
+perform destructive evidence rollback.
+
 ### P7B-16: Traceability Append-Only Contract
 
 - **Question:** Are trace events immutable, and how are sequence and corrections represented?

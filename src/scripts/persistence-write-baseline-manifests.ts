@@ -12,8 +12,6 @@ import {
 import { assertDisposableDatabaseTarget } from "../database/reconciliation/database-target.guard";
 import {
   CompatibilityObjectType,
-  getCompatibilityObjectDefinition,
-  TypeOrmCompatibilityEntry,
   TypeOrmCompatibilityManifest,
   verifyTypeOrmCompatibilityParity,
 } from "../database/reconciliation/typeorm-compatibility-parity";
@@ -22,6 +20,10 @@ import {
   CLI_ENTITY_REGISTRY,
   excludeDeferredEntitiesFromSchemaBuild,
 } from "../database/entity-registry";
+import {
+  getMigrationNames,
+  V2_MIGRATIONS,
+} from "../database/migration-registry";
 
 dotenv.config();
 
@@ -233,6 +235,8 @@ const COMPATIBILITY_OBJECTS: readonly CompatibilitySeed[] = [
 ] as const;
 
 const OUTPUT = path.join(process.cwd(), "docs/architecture/persistence");
+const V2_CATALOG_MIGRATION =
+  getMigrationNames(V2_MIGRATIONS)[V2_MIGRATIONS.length - 1];
 
 async function main(): Promise<void> {
   if (!process.argv.includes("--write")) {
@@ -251,39 +255,31 @@ async function main(): Promise<void> {
   try {
     const snapshot = await captureCatalogSnapshot(dataSource);
     const schemaSql = await dataSource.driver.createSchemaBuilder().log();
-    const entries = COMPATIBILITY_OBJECTS.map(
-      (seed): TypeOrmCompatibilityEntry => {
-        const definition = getCompatibilityObjectDefinition(snapshot, {
-          schema: "public",
-          ...seed,
-        });
-        if (!definition) {
-          throw new Error(
-            `Compatibility catalog object is missing: ${seed.objectName}`,
-          );
-        }
-        return {
-          schema: "public",
-          ...seed,
-          expectedDefinition: definition,
-          reason:
-            "Required by baseline v2 but not yet represented by current entity metadata",
-          expiresAt: "2027-12-31",
-          source:
-            "src/database/migrations-v2/1800000000000-CreateCanonicalBaselineV2.ts",
-        };
-      },
+    const manifestPath = path.join(
+      OUTPUT,
+      "typeorm-compatibility-manifest.json",
     );
-    const manifest: TypeOrmCompatibilityManifest = { version: 1, entries };
+    const manifest = readJson<TypeOrmCompatibilityManifest>(manifestPath);
+    const knownCompatibilityKeys = new Set(
+      COMPATIBILITY_OBJECTS.map(
+        ({ table, objectType, objectName }) =>
+          `${table}:${objectType}:${objectName}`,
+      ),
+    );
+    for (const entry of manifest.entries) {
+      const key = `${entry.table}:${entry.objectType}:${entry.objectName}`;
+      if (!knownCompatibilityKeys.has(key)) {
+        throw new Error(`Unrecognized reviewed compatibility object: ${key}`);
+      }
+    }
     const compatibility = verifyTypeOrmCompatibilityParity(
       schemaSql.upQueries.map(({ query }) => query),
       snapshot,
       manifest,
     );
     if (
-      compatibility.rawDiffCount !== COMPATIBILITY_OBJECTS.length ||
-      compatibility.reviewedCompatibilityCount !==
-        COMPATIBILITY_OBJECTS.length ||
+      compatibility.rawDiffCount !== manifest.entries.length ||
+      compatibility.reviewedCompatibilityCount !== manifest.entries.length ||
       compatibility.unexpected.length > 0 ||
       compatibility.staleManifestEntries.length > 0 ||
       compatibility.catalogMismatches.length > 0
@@ -298,16 +294,13 @@ async function main(): Promise<void> {
       {
         version: 1,
         lineage: "v2",
-        migration: "CreateCanonicalBaselineV21800000000000",
+        migration: V2_CATALOG_MIGRATION,
         fingerprint: catalogFingerprint(snapshot),
         objectCount: catalogObjectCount(snapshot),
         snapshot,
       },
     );
-    writeJson(
-      path.join(OUTPUT, "typeorm-compatibility-manifest.json"),
-      manifest,
-    );
+    writeJson(manifestPath, manifest);
     process.stdout.write(
       JSON.stringify({
         database,
@@ -320,6 +313,10 @@ async function main(): Promise<void> {
   } finally {
     await dataSource.destroy();
   }
+}
+
+function readJson<T>(file: string): T {
+  return JSON.parse(fs.readFileSync(file, "utf8")) as T;
 }
 
 function writeJson(file: string, value: unknown): void {

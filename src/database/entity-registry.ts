@@ -25,7 +25,8 @@ import { Product } from "../modules/products/infrastructure/persistence/entities
 import { Wishlist } from "../modules/products/infrastructure/persistence/entities/wishlist.entity";
 import { Review } from "../modules/reviews/infrastructure/persistence/entities/review.entity";
 import { StoredFileEntity } from "../modules/storage/infrastructure/persistence/stored-file.entity";
-import { TraceabilityRecord } from "../modules/traceability/entities/traceability-record.entity";
+import { TraceabilityBatch } from "../modules/traceability/entities/traceability-batch.entity";
+import { TraceabilityEvent } from "../modules/traceability/entities/traceability-event.entity";
 import { OtpVerification } from "../modules/auth/infrastructure/persistence/entities/otp-verification.entity";
 import { RefreshToken } from "../modules/auth/infrastructure/persistence/entities/refresh-token.entity";
 import { User } from "../modules/users/infrastructure/persistence/entities/user.entity";
@@ -33,13 +34,13 @@ import { CooperativeProfile } from "../modules/profiles/infrastructure/persisten
 import { EnterpriseProfile } from "../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
 import { FarmerProfile } from "../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity";
 import { SupplierProfile } from "../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
-import { OrderOrmEntity } from '../modules/orders/infrastructure/persistence/entities/order.orm-entity';
-import { OrderItemOrmEntity } from '../modules/orders/infrastructure/persistence/entities/order-item.orm-entity';
-import { OrderStatusHistoryOrmEntity } from '../modules/orders/infrastructure/persistence/entities/order-status-history.orm-entity';
-import { PaymentOrmEntity } from '../modules/payments/infrastructure/persistence/entities/payment.orm-entity';
-import { PurchaseRequestOrmEntity } from '../modules/contracts/infrastructure/persistence/entities/purchase-request.orm-entity';
-import { ContractOrmEntity } from '../modules/contracts/infrastructure/persistence/entities/contract.orm-entity';
-import { CommerceOperationOrmEntity } from '../modules/commerce/infrastructure/persistence/entities/commerce-operation.orm-entity';
+import { OrderOrmEntity } from "../modules/orders/infrastructure/persistence/entities/order.orm-entity";
+import { OrderItemOrmEntity } from "../modules/orders/infrastructure/persistence/entities/order-item.orm-entity";
+import { OrderStatusHistoryOrmEntity } from "../modules/orders/infrastructure/persistence/entities/order-status-history.orm-entity";
+import { PaymentOrmEntity } from "../modules/payments/infrastructure/persistence/entities/payment.orm-entity";
+import { PurchaseRequestOrmEntity } from "../modules/contracts/infrastructure/persistence/entities/purchase-request.orm-entity";
+import { ContractOrmEntity } from "../modules/contracts/infrastructure/persistence/entities/contract.orm-entity";
+import { CommerceOperationOrmEntity } from "../modules/commerce/infrastructure/persistence/entities/commerce-operation.orm-entity";
 
 export interface RegisteredEntity {
   readonly key: `public.${string}`;
@@ -94,14 +95,15 @@ export const RUNTIME_ENTITY_ENTRIES = Object.freeze([
   entry("wishlists", Wishlist, true),
   entry("reviews", Review, true),
   entry("stored_files", StoredFileEntity, true),
-  entry("traceability_records", TraceabilityRecord, false),
-  entry('orders', OrderOrmEntity, true),
-  entry('order_items', OrderItemOrmEntity, true),
-  entry('order_status_history', OrderStatusHistoryOrmEntity, true),
-  entry('payments', PaymentOrmEntity, true),
-  entry('purchase_requests', PurchaseRequestOrmEntity, true),
-  entry('contracts', ContractOrmEntity, true),
-  entry('commerce_operations', CommerceOperationOrmEntity, true),
+  entry("traceability_batches", TraceabilityBatch, true),
+  entry("traceability_events", TraceabilityEvent, true),
+  entry("orders", OrderOrmEntity, true),
+  entry("order_items", OrderItemOrmEntity, true),
+  entry("order_status_history", OrderStatusHistoryOrmEntity, true),
+  entry("payments", PaymentOrmEntity, true),
+  entry("purchase_requests", PurchaseRequestOrmEntity, true),
+  entry("contracts", ContractOrmEntity, true),
+  entry("commerce_operations", CommerceOperationOrmEntity, true),
 ] as const);
 
 export const RUNTIME_ENTITY_REGISTRY = Object.freeze(

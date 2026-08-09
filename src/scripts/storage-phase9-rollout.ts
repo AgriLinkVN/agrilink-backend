@@ -73,31 +73,6 @@ export const PRIVATE_DOCUMENT_SOURCES: SourceDefinition[] = [
       WHERE certification.document_url IS NOT NULL
     `,
   },
-  {
-    key: 'quality_certificate',
-    table: 'quality_certificates',
-    sourceColumn: 'document_url',
-    targetColumn: 'stored_file_id',
-    assetType: 'CERTIFICATION',
-    resourceType: 'QUALITY_CERTIFICATE',
-    ownerExpression: 'legacy.issued_to',
-    resourceExpression: 'legacy.id',
-    approvedExpression: "legacy.status = 'active'",
-    rejectedExpression:
-      "legacy.status = 'revoked' OR legacy.revoked_reason IS NOT NULL",
-    optional: true,
-    selectSql: `
-      SELECT certificate.id::text AS "recordId",
-        certificate.issued_to::text AS "ownerId",
-        certificate.id::text AS "resourceId",
-        certificate.document_url AS "source",
-        certificate.stored_file_id::text AS "storedFileId",
-        (certificate.status = 'active') AS "approved",
-        (certificate.status = 'revoked' OR certificate.revoked_reason IS NOT NULL) AS "rejected"
-      FROM quality_certificates certificate
-      WHERE certificate.document_url IS NOT NULL
-    `,
-  },
   profileSource(
     'farmer_cccd_front',
     'farmer_profiles',
