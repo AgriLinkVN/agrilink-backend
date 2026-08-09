@@ -652,6 +652,134 @@ outcome or granting migration approval.
 | P7B-23 | API compatibility and error envelope   | Deprecate misnamed route; add backward-compatible optional error code             | Defines frontend migration and OpenAPI tests         |
 | P7B-24 | Public certificate/trace privacy       | Publish allow-listed metadata only; private files remain signed and authorized    | Defines public projection and security tests         |
 | P7B-25 | Pagination and non-core producer roles | Use deterministic cursors and approve Supplier/Enterprise capabilities explicitly | Defines query indexes, DTOs and role matrix          |
+| P7B-26 | Legacy Traceability API compatibility  | Retire the nonfunctional legacy contract and adopt the approved canonical API       | Requires human approval before PR #102 may resume    |
+
+### P7B-26: Legacy Traceability API Compatibility
+
+Status: `TRACEABILITY_API_DECISION_STATUS=READY_FOR_HUMAN_APPROVAL`.
+
+#### Problem
+
+PR #102 implements the approved batch-plus-typed-events model, but its proposed
+`POST /trace` request is not backward compatible with the checked-in OpenAPI
+baseline. P7B-15 requires explicit compatibility or an explicit retirement
+decision; a source-only implementation must not silently reinterpret legacy facts.
+
+#### Legacy API Contract
+
+The `origin/develop` OpenAPI baseline and `CreateTraceabilityDto` define the
+following `POST /api/v1/trace` request:
+
+| Field | Requirement | Validation/shape |
+| ----- | ----------- | ---------------- |
+| `productId` | required | UUID string |
+| `qrCode` | optional | string; described as auto-generated when omitted |
+| `farmLocation` | optional | string |
+| `farmingMethod` | optional | string |
+| `plantedDate` | optional | ISO date string |
+| `harvestedDate` | optional | ISO date string |
+| `pesticidesUsed` | optional | string |
+| `certifications` | optional | object |
+| `notes` | optional | string |
+
+The controller advertises `201 Traceability record created`, but does not attach a
+response schema to OpenAPI. The service TypeScript signature promises the legacy
+`TraceabilityRecord` entity: `id`, `productId`, `qrCode`, `producerId`, the seven
+optional legacy facts above, `createdAt` and `updatedAt`. This is a declared source
+shape only; no successful response was produced by the implementation.
+
+The legacy GET surface is `GET /api/v1/trace/{qrCode}` and
+`GET /api/v1/trace/product/{productId}`. Their OpenAPI responses likewise have no
+concrete response schema.
+
+#### Legacy Runtime Evidence
+
+`TraceabilityService.findByQrCode`, `findByProduct` and `create` each immediately
+throw an explicit `TODO: implement` error in merged `origin/develop`. The injected
+repository is never called. Therefore
+`NO_SUCCESSFUL_LEGACY_PERSISTENCE_PATH_CONFIRMED`; this is not evidence that no
+clients exist.
+
+#### Deployed Evidence
+
+The merged sanitized production inventory records
+`traceability_records=TABLE_NOT_PRESENT`. The approved local-protected inventory
+records `traceability_records=PRESENT_MAPPING_A_LIKE` with
+`rowCountType=EXACT` and `rowCount=0` at capture. No database was queried for this
+decision, and the protected local mapping is not treated as canonical.
+
+#### Canonical API Contract
+
+PR #102 proposes Traceability-owned `traceability_batches` and
+`traceability_events`. Canonical batch facts are `productId`, server-authenticated
+`producerId`, `batchCode` and `qrCode`. Event writes carry `kind`, `occurredAt`,
+typed payload facts, `evidenceFileIds` and `operationKey`. The governing model
+remains `BATCH_PLUS_TYPED_EVENTS_PLUS_DETERMINISTIC_PROJECTION`; no
+`traceability_records` dual write is permitted.
+
+#### Compatibility Matrix
+
+| Legacy/new field | Canonical equivalent | Classification | Semantics preserved | Decision required |
+| ---------------- | -------------------- | -------------- | ------------------- | ----------------- |
+| `productId` | batch `productId` | `DIRECT` | yes | no |
+| `qrCode` when supplied | batch `qrCode` | `DIRECT` | yes | no |
+| omitted `qrCode` | no approved generation rule | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `farmLocation` | no approved canonical batch/event field | `NO_CANONICAL_EQUIVALENT` | no | yes |
+| `farmingMethod` | no approved typed-event payload | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `plantedDate` | could resemble `PLANTED.occurredAt`, but time/zone and occurrence semantics are unspecified | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `harvestedDate` | could resemble `HARVESTED.occurredAt`, but time/zone and occurrence semantics are unspecified | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `pesticidesUsed` | no approved typed-event payload | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `certifications` | no approved trace event; overlaps Products-owned certification concerns | `SEMANTICALLY_AMBIGUOUS` | unproven | yes |
+| `notes` | no typed canonical equivalent | `NO_CANONICAL_EQUIVALENT` | no | yes |
+| new `batchCode` | no legacy equivalent or approved derivation | `SEMANTICALLY_AMBIGUOUS` | not applicable | yes |
+| new `operationKey` | no legacy body field; canonical idempotency input | `NO_CANONICAL_EQUIVALENT` | not applicable | yes |
+| authenticated `producerId` | current-user subject | `SERVER_INTERNAL_ONLY` | yes | no |
+
+#### Options
+
+| Option | Assessment | Trade-off | Status |
+| ------ | ---------- | --------- | ------ |
+| A — preserve the legacy API through an adapter | Direct mapping exists only for `productId` and supplied `qrCode`; other facts would require invented meanings or a generic dumping event | Preserves request syntax but weakens the typed-event model and cannot prove semantic parity | `REJECTED_NOT_DETERMINISTIC` |
+| B — expand the canonical taxonomy | Some legacy facts may become legitimate domain events after payload, privacy, ownership and time semantics are approved | Could preserve useful facts, but expands P7B-16 and cannot be approved implicitly by compatibility work | `DEFERRED_REQUIRES_SEPARATE_DOMAIN_APPROVAL` |
+| C — retire the nonfunctional legacy contract | Makes the already-approved canonical API the supported contract | Requires coordinated client changes for any consumer of the old shape | `RECOMMENDED_READY_FOR_HUMAN_APPROVAL` |
+
+#### Recommended Decision
+
+`TRACEABILITY_API_DECISION=RETIRE_NONFUNCTIONAL_LEGACY_TRACE_CONTRACT_AND_ADOPT_CANONICAL_API`.
+
+Option C is the safest recommendation because no successful legacy persistence
+implementation exists, production has no legacy table, the approved local capture
+contains zero legacy rows, legacy-to-event mappings are ambiguous, and P7B-14,
+P7B-15 and P7B-16 already approve the canonical model. This recommendation does
+not claim that no clients exist.
+
+#### Client / FE Consequences
+
+If retirement is approved, every frontend or other client using the old request
+shape must migrate to the canonical contract. Repository documentation identifies
+a mock Traceability frontend, not a proven API consumer; no complete client
+inventory is available. This decision task changes no frontend code.
+
+#### Migration Consequences
+
+`DATABASE_DATA_MIGRATION_FROM_PRODUCTION_TRACEABILITY_RECORDS_REQUIRED=NO` because
+the approved production inventory classifies that table as absent. This does not
+waive canonical schema migration, disposable-database verification, staged rollout
+or protected-local read-only constraints.
+
+#### Human Approval Required
+
+`TRACEABILITY_API_DECISION_STATUS=READY_FOR_HUMAN_APPROVAL`. Only the named human
+owner groups may approve retirement and the client transition. This record does
+not authorize implementation.
+
+#### Implementation Blocker
+
+`PHASE_7B_IMPLEMENTATION_STATUS=BLOCKED_PENDING_TRACEABILITY_API_DECISION_PR_MERGE`.
+PR #102 remains blocked and must not resume until this decision PR is reviewed and
+merged. P7B-18 remains unchanged: `P7B-18_POLICY_MODEL_APPROVED`,
+`RETENTION_DURATION_NOT_CONFIGURED`, `RETENTION_CLEANUP_DISABLED`,
+`LEGAL_HOLD_REQUIRED`, and `CASCADE_HARD_DELETE_PROHIBITED`.
 
 ## Approval Record Rule
 
