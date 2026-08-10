@@ -1,0 +1,137 @@
+# Phase 8 Static Seed Inventory
+
+## Evidence Boundary
+
+- Source base: `b59c191b04d4cffd251319b9bffbdb3202fa99ca` on `develop`.
+- Ownership source: `docs/architecture/persistence/entity-ownership.json`.
+- Method: file-name search, seed/fixture/mock-data text search, TypeORM access
+  search, write-primitive search, and static caller/import inspection.
+- Database evidence: none. No seed, migration, SQL, application bootstrap, or
+  database connection was executed for this inventory.
+- Inclusion: seed payloads, write-capable seed functions/adapters, seed runners,
+  startup seed hooks, reusable multi-table test fixtures, and business-data
+  migration/rollout backfills.
+- Exclusion: ordinary one-test Arrange data, mocks that do not persist data,
+  schema-only migrations, migration-ledger bookkeeping, and seed unit specs
+  that contain no seed payload or database write. These remain source evidence
+  but are not counted as executable seed sources.
+
+## Summary
+
+| Metric | Count |
+| --- | ---: |
+| Seed or seed-like sources | 15 |
+| `REFERENCE_SEED` | 2 |
+| `DEV_SEED` | 8 |
+| `TEST_SEED` | 1 |
+| `BOOTSTRAP_OR_STARTUP_SEED` | 2 |
+| `MIGRATION_DATA_BACKFILL` | 2 |
+| `UNKNOWN_REQUIRES_REVIEW` | 0 |
+| Cross-owner sources | 7 |
+| Central ordinary seed sources writing multiple owners | 3 |
+
+The cross-owner count includes test and migration-only sources because their
+current behavior crosses owner tables; their classification determines whether
+that crossing is a seed-boundary violation or a separately governed fixture or
+backfill. The three central ordinary seed sources are `src/database/seeds/seed.ts`,
+`src/database/dev-seed.service.ts`, and
+`src/database/seeds/admin-dev.seed.ts`.
+
+## Inventory
+
+| Seed Source | Classification | Writes | Owner(s) | Current Boundary | Idempotent | Dependency | Risk | Proposed Disposition |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `src/database/seeds/provinces.seed.ts` | `REFERENCE_SEED` | Payload only; 34 province records consumed by the central CLI runner | geography | Central database seed data | N/A as data-only source | None proven | Reference data is outside its owner module and overlaps a separate 10-province development seed. | `MOVE_TO_OWNER_MODULE` |
+| `src/modules/products/infrastructure/database/seeds/product-category.seed.ts` | `REFERENCE_SEED` | `product_categories` | products | Owner module | Yes by per-slug find/merge/save | Parent category before its children | Uses raw `DataSource`/repository primitives but stays within owner tables. Classification/environment contract is implicit. | `REWRITE_REQUIRED` |
+| `src/modules/geography/seeds/province.seed.ts` | `DEV_SEED` | `provinces` (10-record subset) | geography | Owner module | Partial: whole-table count guard | None proven | Any existing province suppresses all missing records; overlaps the 34-record reference payload and has no caller found. | `RETIRE_CANDIDATE` |
+| `src/modules/users/infrastructure/database/seeds/user.seed.ts` | `DEV_SEED` | `users` | users | Owner module | Yes for duplicate prevention by phone/email; existing passwords are updated | None proven | Demo credentials are mixed into the central `npm run seed` path; no explicit `DEV` contract at the runner boundary. | `REWRITE_REQUIRED` |
+| `src/modules/users/seeds/seller.seed.ts` | `DEV_SEED` | `users` | users | Owner module | Partial: exactly three matches skip; a partial match attempts to save all three | None proven | No executable caller found; overlaps other demo-user sources and partial state can cause duplicate/unique-key failure. | `RETIRE_CANDIDATE` |
+| `src/modules/products/infrastructure/database/seeds/product.seed.ts` | `DEV_SEED` | `products`, `product_images`; reads `product_categories`, `provinces` and caller-supplied users | products; reads geography and users | Products module with foreign Geography entity import | Partial: any Product row suppresses the entire group | Users/sellers + product categories + provinces -> products -> images | No executable caller found; directly imports a foreign persistence entity and skips missing products when any product exists. | `RETIRE_CANDIDATE` |
+| `src/modules/products/infrastructure/database/seeds/product-development-seed.service.ts` | `DEV_SEED` | Indirectly requests `product_categories`, `products`, `product_images` | products | Owner application/infrastructure seed service | Partial: categories converge, but any Product row suppresses all mock products | Categories and three pre-existing fixed seller IDs -> products -> images | The only occurrences of seller IDs `...0001`/`...0002`/`...0003` are in this file; no matching user writer was found. Reset is destructive. | `REWRITE_REQUIRED` |
+| `src/modules/products/infrastructure/repositories/typeorm-product.repository.ts` (seed methods) | `DEV_SEED` | `product_categories`, `products`, `product_images`; reset clears certifications/images and truncates products | products | Seed-specific methods embedded in the general owner repository | No independently: bulk saves have no key guard; caller count guard provides only partial protection | Called by `ProductDevelopmentSeedService` | Seed/reset persistence is coupled to the runtime repository; reset uses `TRUNCATE ... CASCADE`. | `REWRITE_REQUIRED` |
+| `src/database/dev-seed.service.ts` | `DEV_SEED` | Inserts/updates 23 tables across users, addresses, profiles, products, forum, reviews, ads, cooperatives, audit, and notifications; optional reset also deletes owner tables | users, profiles, logistics, products, forum, reviews, ads, cooperatives, admin, notifications | Central database service registered by `AppModule` | Partial: mixed natural-key and whole-table count guards prevent most exact second-run duplicates but do not converge partial groups | Users first; categories -> products -> images/certifications; users/products -> reviews and other groups; packages -> campaigns; posts -> comments/likes; listings -> contributions | Central multi-owner writes/imports; raw SQL; reset swallows missing-table errors, deletes `review` rather than canonical `reviews`, and includes `ad_events` although it does not seed events. | `REWRITE_REQUIRED` |
+| `src/database/seeds/admin-dev.seed.ts` | `DEV_SEED` | `users`, four profile tables, `products`, `product_images` | users, profiles, products | Central standalone/admin development seed | Yes for observed natural-key checks | Users -> profiles/products -> images; geography identifiers require review | Multi-owner foreign entity imports. Direct CLI mode has no shared seed guard and defaults the database name to protected `agrilink_db`. | `REWRITE_REQUIRED` |
+| `src/database/seeds/seed.ts` | `BOOTSTRAP_OR_STARTUP_SEED` | Directly writes `provinces`; invokes category and demo-user writers | geography, products, users | Central CLI behind `npm run seed` | Mixed: province code upsert and child duplicate guards | No data dependency proven among current order categories -> provinces -> users | Runner contains Geography business writes, mixes reference and DEV payloads, and blocks production but does not block the protected local database name. | `REWRITE_REQUIRED` |
+| `src/main.ts` (development seed block) | `BOOTSTRAP_OR_STARTUP_SEED` | Indirectly invokes Products development seed, then central comprehensive development seed | products plus all owners reached by `DevSeedService` | Application startup composition root | Inherits partial guarantees of both invoked groups | `PRODUCT_DEV_SEED=true`; Products seed runs before `DevSeedService` | Two overlapping product/category paths run during non-production application bootstrap. Explicit production guard exists, but a non-production protected database is not excluded here. | `REQUIRES_HUMAN_DECISION` |
+| `src/database/reconciliation/clean-v2-runtime-baseline.ts` (`seedRuntimeFixture`) | `TEST_SEED` | `users`, `farmer_profiles`, `product_categories`, `products`, `reviews`, `notifications`, `provinces`, `districts`, `stored_files`, `ad_packages`, `ad_campaigns`, `forum_posts`, `system_configs`, `audit_logs`, `incident_reports` | users, profiles, products, reviews, notifications, geography, storage, ads, forum, admin, compliance | Central reusable clean-v2 verification fixture | No: fixed IDs with plain inserts require an empty database | Ordered FK fixture inserts; users/categories precede products; province precedes district; package precedes campaign | Multi-owner raw SQL is acceptable only as an isolated test fixture. The helper accepts a `DataSource`; disposable targeting is enforced by its current caller, not inside the helper. | `KEEP_AS_TEST_FIXTURE` |
+| `src/database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments.ts` | `MIGRATION_DATA_BACKFILL` | Inserts `stored_files`; updates product certifications, profile document links, and conditional legacy quality certificates | storage, products, profiles, conditional compliance | Historical migration | Yes for duplicate prevention by null predicates and `ON CONFLICT (object_key) DO NOTHING`; migration ledger remains authoritative | Source product/profile/certificate row -> stored file -> source link | Multi-owner data movement is migration-governed. It must not be extracted or treated as a normal seed. | `KEEP_AS_MIGRATION_BACKFILL` |
+| `src/scripts/storage-phase9-rollout.ts` | `MIGRATION_DATA_BACKFILL` | Inserts/updates `stored_files`; links/finalizes product certification and four profile tables | storage, products, profiles | Explicit operational rollout command | Partial: linked rows are skipped, but provider upload and database transaction are not one atomic operation | Legacy private-document source -> provider object/stored file -> owner-table link -> finalize | Cross-owner operational backfill with external provider side effects; it is not a seed and requires its own rollout controls. | `KEEP_AS_MIGRATION_BACKFILL` |
+
+## Ownership And Execution Detail
+
+| Source group | Writes only owner tables | Foreign entity/repository import | Raw TypeORM primitive | Production startup reachable |
+| --- | --- | --- | --- | --- |
+| Owner-local reference/dev functions | Yes, except `product.seed.ts` reads Geography via its entity | `product.seed.ts` imports `Province`; otherwise owner-local | `DataSource.getRepository`, repository save/update/count/find | No direct startup; some are called by runner/service paths |
+| Products development service | Yes | No foreign entity/repository; uses owner ports | Service: no. Adapter: repository methods and raw truncate | No when `NODE_ENV=production`; reachable in non-production startup when opted in |
+| Central `DevSeedService` | No | Imports entities from ten owners | `DataSource.getRepository`, raw query/delete/insert | No when `NODE_ENV=production`; reachable in non-production startup when opted in |
+| Central admin development seed | No | Imports Users, Profiles, and Products entities | Direct `DataSource`/repositories | Not from application startup; directly executable as CLI |
+| Central CLI runner | No | Imports Geography entity and invokes Products/Users seed functions | Direct `DataSource`, repository, schema query | Not application startup; `assertSeedEnvironment` rejects production |
+| Clean-v2 fixture | No, intentionally test-wide | Imports entities/repositories across owners | Transactional raw SQL and repositories | No current production caller; current verification caller creates a guarded disposable DB |
+| Historical/operational backfills | No, migration/rollout-wide | Migration uses `QueryRunner`; rollout uses central `DataSource` | Raw SQL, `QueryRunner`, external provider API | Not application startup; separately executable migration/rollout commands |
+
+## Dependency DAG Evidence
+
+Only edges with direct source evidence are accepted. `A -> B` means B requires
+rows or stable keys produced by A.
+
+| Edge | Static evidence |
+| --- | --- |
+| Users -> Profiles | Central and admin development seeders create users, then use their IDs for farmer/cooperative/enterprise/supplier/logistics profiles. |
+| Users -> Products | Product rows use seller IDs. `DevSeedService` resolves seeded users first; the Products startup service instead hard-codes three IDs with no matching writer found. |
+| Product Categories -> Products | All product seed paths resolve category IDs/slugs before saving products. |
+| Provinces -> Products | `product.seed.ts` loads `Province` rows and assigns `provinceId`; this edge applies only to that currently uncalled source. |
+| Products -> Product Images | Both Products seed paths save the Product before its primary image. |
+| Products -> Product Certifications | `DevSeedService` saves selected certifications after each Product. |
+| Users + Products -> Reviews | `DevSeedService` uses reviewer user IDs and seeded Product IDs. |
+| Users -> Forum Posts; Forum Posts -> Comments/Likes | Authors are seeded users; comment/like rows use the saved post ID. |
+| Users + Ad Packages -> Ad Campaigns | Campaigns use supplier IDs and package IDs loaded after package seeding. |
+| Users -> Cooperative Members/Bulk Listings/Harvest Schedules | Cooperative/farmer user IDs are passed into each group. |
+| Bulk Listings -> Bulk Listing Contributions | Contributions use the newly saved listing ID. |
+| Products -> Harvest Schedules | The central development seed passes `products[0].id` into schedule rows. |
+| Users -> Audit Logs/Notifications | Both groups persist seeded user IDs. |
+| Province -> District | The clean-v2 test fixture inserts its Province before the District referencing it. |
+| Source private document -> Stored File -> source-table link | Migration and rollout backfills create/locate `stored_files` before updating the owning source row. This is a migration DAG, not a seed DAG. |
+
+The following dependencies cannot be approved from current static evidence:
+
+- `DEPENDENCY_REQUIRES_REVIEW`: Products startup seed -> fixed seller users.
+  The fixed IDs appear only in the Products seed service, while the subsequent
+  central development user seed creates generated IDs.
+- `DEPENDENCY_REQUIRES_REVIEW`: Geography -> central development addresses and
+  profiles. Those sources use numeric province/district literals, while the
+  canonical Geography entities use UUID identifiers; no compatible producing
+  seed group is proven.
+- `DEPENDENCY_REQUIRES_REVIEW`: central CLI order
+  `product_categories -> provinces -> users`. Source proves this sequence but
+  no dependency among those three groups.
+- `DEPENDENCY_REQUIRES_REVIEW`: Product development seed followed by
+  `DevSeedService`. Both write categories/products, but the ordering appears to
+  be overlap rather than an explicit contract.
+
+## Evidence-Supported Risks
+
+- Central ordinary seed sources write between three and ten bounded contexts.
+- Development/demo data is reachable from non-production application startup;
+  the standalone admin seed defaults to the protected local database name.
+- `count() > 0` group guards avoid some duplicate second runs but silently
+  preserve partially seeded groups.
+- `seedSellers` can attempt all three inserts after a partial match.
+- The Products startup seed uses fixed seller IDs for which no writer exists in
+  repository source and runs before the comprehensive user seed.
+- Current order is encoded in function calls, not a declared/cycle-checked DAG.
+- Central seed code imports foreign entities and uses raw repositories/SQL.
+- Seed/reset operations are embedded in the normal Products repository,
+  including `TRUNCATE TABLE products CASCADE`.
+- Reference, development, bootstrap, test fixture, and migration backfill
+  concerns have no common machine-readable classification contract.
+- Historical migration and Storage rollout data movement could be mistaken for
+  ordinary seed work without the explicit backfill classification.
+- No current seed DataSource enables `synchronize`; the Phase 8 invariant must
+  preserve that state. The stale `seed-synchronize` exception text in
+  `exceptions.json` no longer matches `src/database/seeds/seed.ts` and requires
+  separate registry review, not runtime change in this kickoff.
+
+## Static Disposition Boundary
+
+Every disposition above is a proposal for human review. This document does not
+authorize moving, rewriting, deleting, executing, or retiring any source.

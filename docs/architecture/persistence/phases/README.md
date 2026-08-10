@@ -10,7 +10,8 @@
 | [05](phase-05/README.md)   | Products, Wishlist, Certifications And Reviews | Complete                 | PR #85 / `b901393` | [Implementation report](phase-05/implementation-report.md)  |
 | [06](phase-06/README.md)   | Commerce And Transaction Boundaries            | Complete                 | PR #89 / `924e2a6` | [Implementation report](phase-06/implementation-report.md)  |
 | [07A](phase-07a/README.md) | Operations Boundaries                          | Complete                 | PR #90 / `4a16970` | [Implementation report](phase-07a/implementation-report.md) |
-| [07B](phase-07b/README.md) | Compliance And Traceability Specification      | Owner decisions recorded | PR #91             | [Decision pack](phase-07b/decision-pack.md)                 |
+| [07B](phase-07b/README.md) | Compliance And Traceability                    | Implementation complete  | PR #102 / `b59c191` | [Implementation plan](phase-07b/implementation-plan.md)     |
+| [08](phase-08/README.md)   | Module-Owned Seeders                           | Inventory and design      | Kickoff PR          | [Seed inventory](phase-08/seed-inventory.md)                |
 
 Future phases remain governed by the
 [persistence roadmap](../roadmap.md). A phase must not start until the previous
