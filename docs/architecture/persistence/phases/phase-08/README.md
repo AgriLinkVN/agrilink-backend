@@ -35,13 +35,13 @@ The static inventory is recorded in [seed-inventory.md](seed-inventory.md).
 
 ## Non-Goals
 
-- No seed refactor, movement, deletion, retirement, or execution.
-- No entity, repository, service, application bootstrap, configuration, or
-  production deployment change.
+- No business seed payload movement, deletion, retirement, or execution.
+- Runtime changes remain limited to shared seed contracts, fail-closed safety
+  checks, entrypoint hardening, and orchestration foundation.
 - No migration generation, execution, rewrite, or reinterpretation as a
   normal seeder.
 - No ownership decision changes. The current ownership registry remains
-  canonical for this kickoff.
+  canonical for Phase 8.
 - No database connection, SQL, DDL, DML, schema synchronization, or inspection
   of protected or production environments.
 - No approval of any proposed disposition in the inventory.
@@ -123,7 +123,7 @@ classification, owner, dependencies, and execution contract. It must reject
 duplicate group IDs, missing dependencies, cycles, and classification mixing
 that is not explicitly authorized for the target environment.
 
-Static evidence currently proves these main dependency families:
+The kickoff inventory provides evidence for these main dependency families:
 
 ```text
 Users ---------------------> Profiles
@@ -141,7 +141,7 @@ Bulk Listings -------------> Bulk Listing Contributions
 
 The Geography-to-profile/address relationship and the fixed seller IDs used by
 the product startup seed require review; they are not promoted to approved DAG
-edges by this kickoff. File-level edge evidence is in the inventory.
+edges by the foundation. File-level edge evidence is in the inventory.
 
 ## Idempotency Rule
 
@@ -182,7 +182,8 @@ its `DataSource`.
 
 ## Exit Criteria
 
-All exit gates remain open in this kickoff PR:
+The P8-03 foundation does not complete the phase-level exit gates. They remain
+open until the existing business seed paths are migrated and verified:
 
 - [ ] `ALL_EXECUTABLE_SEEDERS_CLASSIFIED`
 - [ ] `ALL_SEEDED_TABLES_HAVE_ONE_OWNER`
@@ -211,7 +212,7 @@ review.
 | P8-04 | Move/rewrite approved reference seeds under their owners.                        | `NOT_STARTED`                                          |
 | P8-05 | Move/rewrite development seeds under their owners.                               | `NOT_STARTED`                                          |
 | P8-06 | Isolate reusable test fixtures from production/development seeds.                | `NOT_STARTED`                                          |
-| P8-07 | Implement cycle-checked dependency DAG orchestration.                            | `NOT_STARTED`                                          |
+| P8-07 | Migrate existing business seed paths into module-owned DAG orchestration.        | `NOT_STARTED`                                          |
 | P8-08 | Verify per-record convergence, retry behavior, and second-run idempotency.       | `NOT_STARTED`                                          |
 | P8-09 | Run clean and repeated seed verification on disposable databases only.           | `NOT_STARTED`                                          |
 | P8-10 | Retire superseded central writes and keep any central runner orchestration-only. | `NOT_STARTED`                                          |
@@ -227,7 +228,9 @@ P8_03_SEED_FOUNDATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 SEED_CONTRACTS_IMPLEMENTED=YES
 SEED_CLASSIFICATION_IMPLEMENTED=YES
 SEED_DAG_VALIDATOR_IMPLEMENTED=YES
+DAG_VALIDATION_FOUNDATION=IMPLEMENTED
 SEED_ENVIRONMENT_GUARD_IMPLEMENTED=YES
+VERIFIED_TARGET_PROPAGATED_TO_SEED_GROUP=YES
 PROTECTED_LOCAL_SEED_EXECUTION_BLOCKED=YES
 PRODUCTION_SEED_EXECUTION_BLOCKED=YES
 

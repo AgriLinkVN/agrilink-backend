@@ -23,7 +23,7 @@ export class SeedOrchestrator {
     );
 
     for (const group of plan) {
-      await group.execute();
+      await group.execute(safeTarget);
     }
 
     return plan.map((group) => group.metadata.id);

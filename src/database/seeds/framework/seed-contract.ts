@@ -4,6 +4,19 @@ export enum SeedClassification {
   TEST = "TEST",
 }
 
+export type SeedNodeEnvironment = "development" | "test";
+
+/**
+ * Narrow execution facts returned by the shared fail-closed safety guard.
+ * Owner-local implementations receive no raw environment or persistence
+ * framework primitives through the central orchestration contract.
+ */
+export interface SeedExecutionContext {
+  readonly nodeEnv: SeedNodeEnvironment;
+  readonly databaseName: string;
+  readonly classifications: readonly SeedClassification[];
+}
+
 export interface SeedGroupMetadata {
   readonly id: string;
   readonly owner: string;
@@ -18,5 +31,5 @@ export interface SeedGroupMetadata {
  */
 export interface SeedGroup {
   readonly metadata: SeedGroupMetadata;
-  execute(): Promise<void>;
+  execute(context: SeedExecutionContext): Promise<void>;
 }

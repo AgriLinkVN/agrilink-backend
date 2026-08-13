@@ -1,5 +1,6 @@
 import {
   SeedClassification,
+  SeedExecutionContext,
   SeedGroup,
   SeedGroupMetadata,
 } from "./seed-contract";
@@ -8,7 +9,7 @@ import { SeedOrchestrator } from "./seed-orchestrator";
 function group(
   id: string,
   classification: SeedClassification,
-  execute: jest.Mock<Promise<void>, []>,
+  execute: jest.Mock<Promise<void>, [SeedExecutionContext]>,
   dependencies: readonly string[] = [],
 ): SeedGroup {
   const metadata: SeedGroupMetadata = {
@@ -27,8 +28,12 @@ describe("SeedOrchestrator classification selection", () => {
   };
 
   it("invokes only explicitly selected classifications", async () => {
-    const referenceExecute = jest.fn<Promise<void>, []>().mockResolvedValue();
-    const devExecute = jest.fn<Promise<void>, []>().mockResolvedValue();
+    const referenceExecute = jest
+      .fn<Promise<void>, [SeedExecutionContext]>()
+      .mockResolvedValue();
+    const devExecute = jest
+      .fn<Promise<void>, [SeedExecutionContext]>()
+      .mockResolvedValue();
     const orchestrator = new SeedOrchestrator([
       group(
         "products.reference",
@@ -46,15 +51,20 @@ describe("SeedOrchestrator classification selection", () => {
     ).resolves.toEqual(["products.dev"]);
 
     expect(devExecute).toHaveBeenCalledTimes(1);
+    expect(devExecute).toHaveBeenCalledWith({
+      nodeEnv: "development",
+      databaseName: "agrilink_persistence_test_orchestrator",
+      classifications: [SeedClassification.DEV],
+    });
     expect(referenceExecute).not.toHaveBeenCalled();
   });
 
-  it("requires REFERENCE to be explicitly included and preserves DAG order", async () => {
+  it("passes one normalized verified context while preserving DAG order", async () => {
     const calls: string[] = [];
-    const referenceExecute = jest.fn(async () => {
+    const referenceExecute = jest.fn(async (_context: SeedExecutionContext) => {
       calls.push("reference");
     });
-    const devExecute = jest.fn(async () => {
+    const devExecute = jest.fn(async (_context: SeedExecutionContext) => {
       calls.push("dev");
     });
     const orchestrator = new SeedOrchestrator([
@@ -71,14 +81,28 @@ describe("SeedOrchestrator classification selection", () => {
     await expect(
       orchestrator.execute({
         environment,
-        classifications: [SeedClassification.DEV, SeedClassification.REFERENCE],
+        classifications: [
+          SeedClassification.REFERENCE,
+          SeedClassification.DEV,
+          SeedClassification.REFERENCE,
+        ],
       }),
     ).resolves.toEqual(["products.reference", "products.dev"]);
+
     expect(calls).toEqual(["reference", "dev"]);
+    const verifiedContext = referenceExecute.mock.calls[0][0];
+    expect(verifiedContext).toEqual({
+      nodeEnv: "development",
+      databaseName: "agrilink_persistence_test_orchestrator",
+      classifications: [SeedClassification.DEV, SeedClassification.REFERENCE],
+    });
+    expect(devExecute.mock.calls[0][0]).toBe(verifiedContext);
   });
 
   it("runs TEST groups only for an explicit test target", async () => {
-    const testExecute = jest.fn<Promise<void>, []>().mockResolvedValue();
+    const testExecute = jest
+      .fn<Promise<void>, [SeedExecutionContext]>()
+      .mockResolvedValue();
     const orchestrator = new SeedOrchestrator([
       group("products.test", SeedClassification.TEST, testExecute),
     ]);
@@ -93,5 +117,10 @@ describe("SeedOrchestrator classification selection", () => {
       }),
     ).resolves.toEqual(["products.test"]);
     expect(testExecute).toHaveBeenCalledTimes(1);
+    expect(testExecute).toHaveBeenCalledWith({
+      nodeEnv: "test",
+      databaseName: "agrilink_persistence_test_orchestrator_test",
+      classifications: [SeedClassification.TEST],
+    });
   });
 });

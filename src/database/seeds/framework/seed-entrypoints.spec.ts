@@ -11,10 +11,14 @@ describe("legacy seed entrypoint safety regressions", () => {
     join(__dirname, "..", "..", "..", "main.ts"),
     "utf8",
   );
-  const contractSource = readFileSync(
-    join(__dirname, "seed-contract.ts"),
-    "utf8",
-  );
+  const frameworkContractSource = [
+    "seed-contract.ts",
+    "seed-environment.guard.ts",
+    "seed-metadata.ts",
+    "seed-orchestrator.ts",
+  ]
+    .map((file) => readFileSync(join(__dirname, file), "utf8"))
+    .join("\n");
   const orchestratorSource = readFileSync(
     join(__dirname, "seed-orchestrator.ts"),
     "utf8",
@@ -50,11 +54,16 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(guard).toBeLessThan(mainSource.indexOf(".seedAll("));
   });
 
-  it("keeps seed contracts persistence-framework neutral", () => {
-    expect(contractSource).not.toMatch(
+  it("keeps seed framework contracts persistence-framework neutral", () => {
+    expect(frameworkContractSource).not.toMatch(
       /from ["'](?:typeorm|@nestjs\/typeorm)["']/,
     );
-    expect(contractSource).not.toMatch(/entities|repositories/i);
+    expect(frameworkContractSource).not.toMatch(
+      /\b(?:DataSource|EntityManager|QueryRunner|Repository)\b/,
+    );
+    expect(frameworkContractSource).not.toMatch(
+      /modules\/.*\/(?:entities|repositories)\//,
+    );
   });
 
   it("keeps the new orchestrator free of business persistence writes", () => {

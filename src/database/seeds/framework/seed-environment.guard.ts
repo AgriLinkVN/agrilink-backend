@@ -1,16 +1,12 @@
 import { assertDisposableDatabaseTarget } from "../../reconciliation/database-target.guard";
-import { SeedClassification } from "./seed-contract";
-
-type SeedNodeEnvironment = "development" | "test";
+import {
+  SeedClassification,
+  SeedExecutionContext,
+  SeedNodeEnvironment,
+} from "./seed-contract";
 
 export interface SeedExecutionSafetyRequest {
   readonly environment: Record<string, unknown>;
-  readonly classifications: readonly SeedClassification[];
-}
-
-export interface SafeSeedExecutionTarget {
-  readonly nodeEnv: SeedNodeEnvironment;
-  readonly databaseName: string;
   readonly classifications: readonly SeedClassification[];
 }
 
@@ -119,7 +115,7 @@ function validateClassificationSelection(
 
 export function assertSeedExecutionSafety(
   request: SeedExecutionSafetyRequest,
-): SafeSeedExecutionTarget {
+): SeedExecutionContext {
   const nodeEnv = resolveNodeEnvironment(request.environment);
   const databaseName = resolveExplicitDatabaseName(request.environment);
   assertDisposableDatabaseTarget(databaseName);
