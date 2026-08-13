@@ -1,9 +1,11 @@
 # Phase 8 - Module-Owned Seeders
 
-- Phase status: `INVENTORY_AND_DESIGN`
-- Implementation authorized: `NO`
-- Kickoff type: documentation and static source inventory only
-- Base: `develop` at `b59c191b04d4cffd251319b9bffbdb3202fa99ca`
+- Phase status: `IMPLEMENTATION_IN_PROGRESS`
+- Implementation authorized: `P8-03_FOUNDATION_ONLY`
+- Current implementation: shared contracts, safety guard, DAG validation, and
+  orchestration-only foundation; no business seed payload migration
+- Implementation base: `develop` at Phase 8 kickoff merge commit
+  `3595b710f5bf53b94c1c0e80ea71431b12eb0a81` (PR #104)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -94,11 +96,11 @@ is a precondition, and missing schema must fail closed.
 
 ## Seed Classifications
 
-| Classification | Contract |
-| --- | --- |
-| `REFERENCE` | Stable domain/reference catalog approved for an explicitly allowed environment. |
-| `DEV` | Demo, sandbox, dashboard, or developer-convenience data; never production-safe by implication. |
-| `TEST` | Deterministic fixture data scoped to disposable automated-test databases. |
+| Classification | Contract                                                                                       |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| `REFERENCE`    | Stable domain/reference catalog approved for an explicitly allowed environment.                |
+| `DEV`          | Demo, sandbox, dashboard, or developer-convenience data; never production-safe by implication. |
+| `TEST`         | Deterministic fixture data scoped to disposable automated-test databases.                      |
 
 `BOOTSTRAP_OR_STARTUP_SEED` identifies an execution path and must delegate to
 one or more of the three data classifications above. `MIGRATION_DATA_BACKFILL`
@@ -163,19 +165,20 @@ edges by this kickoff. File-level edge evidence is in the inventory.
 - `MIGRATIONS_EXECUTED=0`
 - `SYNCHRONIZE=NO`
 
-Future Phase 8 execution must use a database name accepted by the repository's
+Phase 8 execution must use a database name accepted by the repository's
 disposable-target guard and must keep development/test seed flags false in
-production. The current standalone admin development seed defaults to
-`agrilink_db` when environment values are absent; static evidence records this
-as a risk, not as permission to run it.
+production. The kickoff inventory recorded that the standalone admin
+development seed defaulted to `agrilink_db`; the P8-03 safety foundation removes
+that fallback and requires an explicit disposable target before constructing
+its `DataSource`.
 
 ## Entry Criteria
 
-| Gate | Kickoff evidence |
-| --- | --- |
-| `PHASE_7B_SOURCE_IMPLEMENTATION_MERGED` | PR #102 is merged into `develop`; merge commit `b59c191b04d4cffd251319b9bffbdb3202fa99ca`. |
-| `PERSISTENCE_AUDIT_GREEN` | Static audit passed with zero violations during kickoff validation; no database execution was permitted. |
-| `OWNERSHIP_REGISTRY_AVAILABLE` | `docs/architecture/persistence/entity-ownership.json` is present and used as the canonical ownership source. |
+| Gate                                    | Kickoff evidence                                                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `PHASE_7B_SOURCE_IMPLEMENTATION_MERGED` | PR #102 is merged into `develop`; merge commit `b59c191b04d4cffd251319b9bffbdb3202fa99ca`.                   |
+| `PERSISTENCE_AUDIT_GREEN`               | Static audit passed with zero violations during kickoff validation; no database execution was permitted.     |
+| `OWNERSHIP_REGISTRY_AVAILABLE`          | `docs/architecture/persistence/entity-ownership.json` is present and used as the canonical ownership source. |
 
 ## Exit Criteria
 
@@ -193,30 +196,52 @@ All exit gates remain open in this kickoff PR:
 - [ ] `NO_PROTECTED_LOCAL_DB_MUTATION`
 - [ ] `CENTRAL_SEEDER_ORCHESTRATION_ONLY`
 
-## Future Implementation Plan
+## Implementation Plan
 
-This sequence is a planning contract. No step is implemented or authorized by
-this PR.
+This sequence remains the Phase 8 planning contract. The merged kickoff PR
+approved the inventory boundary; this first implementation change establishes
+only the P8-03 runway. Per-source ownership migration remains subject to human
+review.
 
-| Step | Planned outcome | Status |
-| --- | --- | --- |
-| P8-01 | Approve the static seed inventory and its inclusion boundary. | `NOT_STARTED` |
-| P8-02 | Approve one seed owner and classification for every seeded table/group. | `NOT_STARTED` |
-| P8-03 | Define owner-local seed contracts and runner metadata. | `NOT_STARTED` |
-| P8-04 | Move/rewrite approved reference seeds under their owners. | `NOT_STARTED` |
-| P8-05 | Move/rewrite development seeds under their owners. | `NOT_STARTED` |
-| P8-06 | Isolate reusable test fixtures from production/development seeds. | `NOT_STARTED` |
-| P8-07 | Implement cycle-checked dependency DAG orchestration. | `NOT_STARTED` |
-| P8-08 | Verify per-record convergence, retry behavior, and second-run idempotency. | `NOT_STARTED` |
-| P8-09 | Run clean and repeated seed verification on disposable databases only. | `NOT_STARTED` |
-| P8-10 | Retire superseded central writes and keep any central runner orchestration-only. | `NOT_STARTED` |
+| Step  | Planned outcome                                                                  | Status                                                 |
+| ----- | -------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| P8-01 | Approve the static seed inventory and its inclusion boundary.                    | `APPROVED_BY_MERGED_KICKOFF_PR`                        |
+| P8-02 | Approve one seed owner and classification for every seeded table/group.          | `INVENTORY_ACCEPTED_PENDING_PER_SOURCE_IMPLEMENTATION` |
+| P8-03 | Define owner-local seed contracts and runner metadata.                           | `IMPLEMENTED_PENDING_HUMAN_REVIEW`                     |
+| P8-04 | Move/rewrite approved reference seeds under their owners.                        | `NOT_STARTED`                                          |
+| P8-05 | Move/rewrite development seeds under their owners.                               | `NOT_STARTED`                                          |
+| P8-06 | Isolate reusable test fixtures from production/development seeds.                | `NOT_STARTED`                                          |
+| P8-07 | Implement cycle-checked dependency DAG orchestration.                            | `NOT_STARTED`                                          |
+| P8-08 | Verify per-record convergence, retry behavior, and second-run idempotency.       | `NOT_STARTED`                                          |
+| P8-09 | Run clean and repeated seed verification on disposable databases only.           | `NOT_STARTED`                                          |
+| P8-10 | Retire superseded central writes and keep any central runner orchestration-only. | `NOT_STARTED`                                          |
 
 ## Implementation Status
 
 ```text
-PHASE_8_STATUS=INVENTORY_AND_DESIGN
-IMPLEMENTATION_AUTHORIZED=NO
+PHASE_8_STATUS=IMPLEMENTATION_IN_PROGRESS
+P8_01_INVENTORY_STATUS=APPROVED_BY_MERGED_KICKOFF_PR
+P8_02_OWNERSHIP_STATUS=INVENTORY_ACCEPTED_PENDING_PER_SOURCE_IMPLEMENTATION
+P8_03_SEED_FOUNDATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+SEED_CONTRACTS_IMPLEMENTED=YES
+SEED_CLASSIFICATION_IMPLEMENTED=YES
+SEED_DAG_VALIDATOR_IMPLEMENTED=YES
+SEED_ENVIRONMENT_GUARD_IMPLEMENTED=YES
+PROTECTED_LOCAL_SEED_EXECUTION_BLOCKED=YES
+PRODUCTION_SEED_EXECUTION_BLOCKED=YES
+
+P8_04_REFERENCE_SEEDS_STATUS=NOT_STARTED
+P8_05_DEV_SEEDS_STATUS=NOT_STARTED
+P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
+P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
+P8_08_IDEMPOTENCY_STATUS=NOT_STARTED
+P8_09_DISPOSABLE_DB_VERIFICATION_STATUS=NOT_STARTED
+P8_10_CENTRAL_WRITE_RETIREMENT_STATUS=NOT_STARTED
 ```
 
-Human review and explicit approval are required before a Phase 8
-implementation branch may change seed runtime behavior.
+The legacy central runner, comprehensive development service, and admin
+development seed still contain business writes. They are guarded by the shared
+fail-closed target safety model and remain scheduled for per-owner migration or
+retirement in P8-04, P8-05, and P8-10. The orchestration-only exit criterion is
+therefore intentionally still open.

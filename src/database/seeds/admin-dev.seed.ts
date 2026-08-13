@@ -19,10 +19,21 @@ import { Product } from "../../modules/products/infrastructure/persistence/entit
 import { UserRole, UserStatus, ProductStatus, SellerType, ProductUnit, FarmingType } from "../../common/enums";
 import * as bcrypt from "bcryptjs";
 import * as dotenv from "dotenv";
+import { parseDatabaseEnvironment } from "../../config/database-environment";
+import { SeedClassification } from "./framework/seed-contract";
+import { assertSeedExecutionSafety } from "./framework/seed-environment.guard";
 
 dotenv.config();
 
 export async function seedAdminDevData(ds: DataSource): Promise<void> {
+  assertSeedExecutionSafety({
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      DB_NAME: ds.options.database,
+    },
+    classifications: [SeedClassification.DEV],
+  });
+
   const userRepo = ds.getRepository(User);
   const farmerRepo = ds.getRepository(FarmerProfile);
   const coopRepo = ds.getRepository(CooperativeProfile);
@@ -172,6 +183,15 @@ export async function seedAdminDevData(ds: DataSource): Promise<void> {
 
 // ─── Run directly if called as script ───────────────────────────
 if (require.main === module) {
+  const safeTarget = assertSeedExecutionSafety({
+    environment: process.env,
+    classifications: [SeedClassification.DEV],
+  });
+  const database = parseDatabaseEnvironment(process.env);
+  if (database.database !== safeTarget.databaseName) {
+    throw new Error("Seed safety target does not match database configuration");
+  }
+
   // Lazy imports for CLI — only loaded when running standalone
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { ProductCategory } = require("../../modules/products/infrastructure/persistence/entities/product-category.entity");
@@ -182,11 +202,12 @@ if (require.main === module) {
 
   const ds = new DataSource({
     type: "postgres",
-    host: process.env.DB_HOST ?? "localhost",
-    port: parseInt(process.env.DB_PORT ?? "5432", 10),
-    database: process.env.DB_NAME ?? "agrilink_db",
-    username: process.env.DB_USER ?? "agrilink",
-    password: process.env.DB_PASS ?? "agrilink_dev_2025",
+    host: database.host,
+    port: database.port,
+    database: database.database,
+    username: database.username,
+    password: database.password,
+    schema: database.schema,
     entities: [User, FarmerProfile, CooperativeProfile, EnterpriseProfile, SupplierProfile, Product, ProductCategory, ProductImage, ProductCertification],
     synchronize: false,
   });

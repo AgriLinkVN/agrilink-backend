@@ -143,10 +143,3 @@ export function parseDatabaseEnvironment(
     productDevSeedReset,
   };
 }
-
-export function assertSeedEnvironment(env: DatabaseEnvironment): void {
-  const parsed = parseDatabaseEnvironment(env);
-  if (parsed.nodeEnv === "production") {
-    throw new Error("Database seed is disabled in production.");
-  }
-}

@@ -33,6 +33,8 @@ import {
   AdType, AdStatus, SupplierType, NotifType,
 } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
+import { SeedClassification } from './seeds/framework/seed-contract';
+import { assertSeedExecutionSafety } from './seeds/framework/seed-environment.guard';
 
 @Injectable()
 export class DevSeedService {
@@ -45,6 +47,14 @@ export class DevSeedService {
   }
 
   async seedAll(options: { reset?: boolean } = {}): Promise<void> {
+    assertSeedExecutionSafety({
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        DB_NAME: this.ds.options.database,
+      },
+      classifications: [SeedClassification.DEV],
+    });
+
     if (options.reset) {
       await this.resetAll();
     }

@@ -6,9 +6,10 @@
 import "reflect-metadata";
 import * as dotenv from "dotenv";
 import { DataSource } from "typeorm";
-import { assertSeedEnvironment } from "../../config/database-environment";
 import { RUNTIME_ENTITY_REGISTRY } from "../entity-registry";
 import { createDataSourceOptions } from "../data-source-options";
+import { SeedClassification } from "./framework/seed-contract";
+import { assertSeedExecutionSafety } from "./framework/seed-environment.guard";
 
 // Entities
 import { Province } from "../../modules/geography/entities/province.entity";
@@ -20,7 +21,10 @@ import { seedUsers } from "../../modules/users/infrastructure/database/seeds/use
 
 dotenv.config();
 
-assertSeedEnvironment(process.env);
+assertSeedExecutionSafety({
+  environment: process.env,
+  classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
+});
 
 const AppDataSource = new DataSource(
   createDataSourceOptions(process.env, {

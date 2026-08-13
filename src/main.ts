@@ -15,6 +15,9 @@ import {
   buildCorsOptions,
   parseCorsOrigins,
 } from './config/http-security.config';
+import { parseEnvBoolean } from './config/parse-env-boolean';
+import { SeedClassification } from './database/seeds/framework/seed-contract';
+import { assertSeedExecutionSafety } from './database/seeds/framework/seed-environment.guard';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -22,6 +25,23 @@ dns.setDefaultResultOrder('ipv4first');
 initSentry();
 
 async function bootstrap() {
+  const productDevSeed = parseEnvBoolean(
+    process.env.PRODUCT_DEV_SEED,
+    'PRODUCT_DEV_SEED',
+    false,
+  );
+  const productDevSeedReset = parseEnvBoolean(
+    process.env.PRODUCT_DEV_SEED_RESET,
+    'PRODUCT_DEV_SEED_RESET',
+    false,
+  );
+  if (productDevSeed || productDevSeedReset) {
+    assertSeedExecutionSafety({
+      environment: process.env,
+      classifications: [SeedClassification.DEV],
+    });
+  }
+
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
@@ -102,13 +122,10 @@ async function bootstrap() {
   });
 
   // Development data is opt-in so a local restart never resets records.
-  if (
-    process.env.NODE_ENV !== 'production' &&
-    process.env.PRODUCT_DEV_SEED === 'true'
-  ) {
+  if (process.env.NODE_ENV !== 'production' && productDevSeed) {
     const productSeedService = app.get(ProductDevelopmentSeedService);
     const result = await productSeedService.seedForDevelopment({
-      reset: process.env.PRODUCT_DEV_SEED_RESET === 'true',
+      reset: productDevSeedReset,
     });
     console.log(
       `[Seed] products: ${result.seeded} inserted, ${result.skipped} skipped, ${result.deleted} deleted`,
@@ -117,7 +134,7 @@ async function bootstrap() {
     // Comprehensive dev seed — users, profiles, forum, reviews, ads, etc.
     const devSeed = app.get(DevSeedService);
     await devSeed.seedAll({
-      reset: process.env.PRODUCT_DEV_SEED_RESET === 'true',
+      reset: productDevSeedReset,
     });
   }
 
