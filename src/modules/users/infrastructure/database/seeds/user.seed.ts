@@ -6,10 +6,14 @@ import {
   SeedExecutionContext,
   SeedGroup,
   SeedGroupMetadata,
+  SeedGroupResult,
+  SeedOutputBinding,
 } from "../../../../../database/seeds/framework/seed-contract";
 import { User } from "../../persistence/entities/user.entity";
 
 const DECLARED_DEV_PASSWORD = "demo123";
+
+export const USER_ID_BY_EMAIL_OUTPUT_KIND = "user.id.by-email";
 
 export interface UserDevSeedData {
   readonly phone: string;
@@ -118,7 +122,8 @@ export async function reconcileUserDevSeeds(
   writer: UserDevSeedWriter,
   passwordHash: string,
   records: readonly UserDevSeedData[] = userDevSeedData,
-): Promise<void> {
+): Promise<readonly SeedOutputBinding[]> {
+  const outputs: SeedOutputBinding[] = [];
   for (const record of records) {
     const phoneMatch = await writer.findByPhone(record.phone);
     const emailMatch = await writer.findByEmail(record.email);
@@ -130,12 +135,20 @@ export async function reconcileUserDevSeeds(
 
     const writeData: UserDevWriteData = { ...record, passwordHash };
     const existing = phoneMatch ?? emailMatch;
+    let userId: string;
     if (existing) {
       await writer.update(existing.id, writeData);
+      userId = existing.id;
     } else {
-      await writer.create(writeData);
+      userId = (await writer.create(writeData)).id;
     }
+    outputs.push({
+      kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
+      key: record.email,
+      value: userId,
+    });
   }
+  return outputs;
 }
 
 export class UsersDevSeedGroup implements SeedGroup {
@@ -146,13 +159,14 @@ export class UsersDevSeedGroup implements SeedGroup {
     private readonly passwordHasher: UserDevPasswordHasher,
   ) {}
 
-  async execute(context: SeedExecutionContext): Promise<void> {
+  async execute(context: SeedExecutionContext): Promise<SeedGroupResult> {
     if (!context.classifications.includes(SeedClassification.DEV)) {
       throw new Error(`${this.metadata.id} requires explicit DEV selection`);
     }
 
     const passwordHash = await this.passwordHasher.hash(DECLARED_DEV_PASSWORD);
-    await reconcileUserDevSeeds(this.writer, passwordHash);
+    const outputs = await reconcileUserDevSeeds(this.writer, passwordHash);
+    return { outputs };
   }
 }
 

@@ -1,4 +1,5 @@
 import { SeedClassification, SeedGroup } from "./seed-contract";
+import { SeedOutputRegistry } from "./seed-dependency-outputs";
 import {
   assertSeedExecutionSafety,
   SeedExecutionSafetyRequest,
@@ -21,9 +22,15 @@ export class SeedOrchestrator {
       this.groups,
       safeTarget.classifications,
     );
+    const outputRegistry = new SeedOutputRegistry();
 
     for (const group of plan) {
-      await group.execute(safeTarget);
+      const context = Object.freeze({
+        ...safeTarget,
+        dependencies: outputRegistry.viewFor(group.metadata),
+      });
+      const result = await group.execute(context);
+      outputRegistry.register(group.metadata.id, result);
     }
 
     return plan.map((group) => group.metadata.id);

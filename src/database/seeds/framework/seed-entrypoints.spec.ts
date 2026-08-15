@@ -13,6 +13,7 @@ describe("legacy seed entrypoint safety regressions", () => {
   );
   const frameworkContractSource = [
     "seed-contract.ts",
+    "seed-dependency-outputs.ts",
     "seed-environment.guard.ts",
     "seed-metadata.ts",
     "seed-orchestrator.ts",

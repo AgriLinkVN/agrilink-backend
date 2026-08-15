@@ -2,7 +2,9 @@ import {
   SeedClassification,
   SeedExecutionContext,
 } from "../../../../../database/seeds/framework/seed-contract";
+import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
 import {
+  CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
   ProductCategoryReferenceSeedWriter,
   ProductCategoryReferenceWriteData,
   ProductsCategoryReferenceSeedGroup,
@@ -13,6 +15,7 @@ const referenceContext: SeedExecutionContext = {
   nodeEnv: "test",
   databaseName: "agrilink_test_disposable",
   classifications: [SeedClassification.REFERENCE],
+  dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
 };
 
 function createWriter(existingSlugs: readonly string[] = []): {
@@ -94,17 +97,25 @@ describe("ProductsCategoryReferenceSeedGroup", () => {
     const state = createWriter([existingSlug]);
     const group = new ProductsCategoryReferenceSeedGroup(state.writer);
 
-    await group.execute(referenceContext);
+    const firstResult = await group.execute(referenceContext);
 
     expect(state.finds).toHaveLength(37);
     expect(state.updates.map(({ slug }) => slug)).toEqual([existingSlug]);
     expect(state.creates).toHaveLength(36);
     expect(state.rows.size).toBe(37);
+    expect(firstResult.outputs).toEqual(
+      productCategoryReferenceSeedData.map(({ slug }) => ({
+        kind: CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+        key: slug,
+        value: `category-${slug}`,
+      })),
+    );
 
-    await group.execute(referenceContext);
+    const secondResult = await group.execute(referenceContext);
 
     expect(state.creates).toHaveLength(36);
     expect(state.updates).toHaveLength(38);
+    expect(secondResult).toEqual(firstResult);
   });
 
   it("refuses execution without explicit REFERENCE selection", async () => {

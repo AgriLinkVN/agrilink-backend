@@ -2,7 +2,9 @@ import {
   SeedClassification,
   SeedExecutionContext,
 } from "../../../../../database/seeds/framework/seed-contract";
+import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
 import {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
   UserDevPasswordHasher,
   UserDevSeedWriter,
   UserDevWriteData,
@@ -14,6 +16,7 @@ const devContext: SeedExecutionContext = {
   nodeEnv: "development",
   databaseName: "agrilink_dev_disposable",
   classifications: [SeedClassification.DEV],
+  dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
 };
 
 interface InMemoryUser {
@@ -32,14 +35,10 @@ function createWriter(initialRows: readonly InMemoryUser[] = []): {
   const updates: UserDevWriteData[] = [];
   const writer: UserDevSeedWriter = {
     async findByPhone(phone) {
-      return (
-        [...rows.values()].find((row) => row.data.phone === phone) ?? null
-      );
+      return [...rows.values()].find((row) => row.data.phone === phone) ?? null;
     },
     async findByEmail(email) {
-      return (
-        [...rows.values()].find((row) => row.data.email === email) ?? null
-      );
+      return [...rows.values()].find((row) => row.data.email === email) ?? null;
     },
     async create(data) {
       creates.push(data);
@@ -127,23 +126,55 @@ describe("UsersDevSeedGroup", () => {
     const { hasher, credentials } = createHasher(passwordHash);
     const group = new UsersDevSeedGroup(state.writer, hasher);
 
-    await group.execute(devContext);
+    const firstResult = await group.execute(devContext);
 
     expect(state.updates).toHaveLength(1);
     expect(state.updates[0]).toEqual({ ...first, passwordHash });
     expect(state.creates).toHaveLength(6);
     expect(state.rows.size).toBe(7);
+    expect(firstResult.outputs).toHaveLength(7);
+    expect(firstResult.outputs).toEqual(
+      userDevSeedData.map(({ email }, index) => ({
+        kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
+        key: email,
+        value: index === 0 ? "existing-admin" : `user-${index + 1}`,
+      })),
+    );
 
-    await group.execute(devContext);
+    const secondResult = await group.execute(devContext);
 
     expect(state.creates).toHaveLength(6);
     expect(state.updates).toHaveLength(8);
     expect(credentials).toEqual(["demo123", "demo123"]);
+    expect(secondResult).toEqual(firstResult);
     expect(
       [...state.rows.values()].every(
         ({ data }) => data.passwordHash === passwordHash,
       ),
     ).toBe(true);
+  });
+
+  it("publishes all seven email-to-ID bindings without secret values", async () => {
+    const state = createWriter();
+    const { hasher } = createHasher("sensitive-password-hash");
+
+    const result = await new UsersDevSeedGroup(state.writer, hasher).execute(
+      devContext,
+    );
+
+    expect(result.outputs).toHaveLength(7);
+    expect(
+      result.outputs.every(
+        ({ kind, key, value }) =>
+          kind === USER_ID_BY_EMAIL_OUTPUT_KIND &&
+          userDevSeedData.some(({ email }) => email === key) &&
+          typeof value === "string" &&
+          String(value).startsWith("user-"),
+      ),
+    ).toBe(true);
+    expect(JSON.stringify(result.outputs)).not.toMatch(
+      /demo123|password|hash|credential|token|secret/i,
+    );
   });
 
   it("updates one user when phone and email resolve to the same identity", async () => {

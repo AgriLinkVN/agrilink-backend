@@ -1,8 +1,8 @@
 import { assertDisposableDatabaseTarget } from "../../reconciliation/database-target.guard";
 import {
   SeedClassification,
-  SeedExecutionContext,
   SeedNodeEnvironment,
+  VerifiedSeedExecutionTarget,
 } from "./seed-contract";
 
 export interface SeedExecutionSafetyRequest {
@@ -115,7 +115,7 @@ function validateClassificationSelection(
 
 export function assertSeedExecutionSafety(
   request: SeedExecutionSafetyRequest,
-): SeedExecutionContext {
+): VerifiedSeedExecutionTarget {
   const nodeEnv = resolveNodeEnvironment(request.environment);
   const databaseName = resolveExplicitDatabaseName(request.environment);
   assertDisposableDatabaseTarget(databaseName);

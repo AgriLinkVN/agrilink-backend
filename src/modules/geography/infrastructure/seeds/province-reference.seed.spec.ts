@@ -2,8 +2,10 @@ import {
   SeedClassification,
   SeedExecutionContext,
 } from "../../../../database/seeds/framework/seed-contract";
+import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../database/seeds/framework/seed-dependency-outputs";
 import {
   GeographyProvinceReferenceSeedGroup,
+  PROVINCE_ID_BY_CODE_OUTPUT_KIND,
   ProvinceReferenceSeedWriter,
   provinceReferenceSeedData,
 } from "./province-reference.seed";
@@ -12,6 +14,7 @@ const referenceContext: SeedExecutionContext = {
   nodeEnv: "test",
   databaseName: "agrilink_test_disposable",
   classifications: [SeedClassification.REFERENCE],
+  dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
 };
 
 function createWriter(existingCodes: readonly string[] = []): {
@@ -70,17 +73,25 @@ describe("GeographyProvinceReferenceSeedGroup", () => {
     const state = createWriter([firstCode]);
     const group = new GeographyProvinceReferenceSeedGroup(state.writer);
 
-    await group.execute(referenceContext);
+    const firstResult = await group.execute(referenceContext);
 
     expect(state.finds).toHaveLength(34);
     expect(state.updates).toEqual([firstCode]);
     expect(state.creates).toHaveLength(33);
     expect(state.codes.size).toBe(34);
+    expect(firstResult.outputs).toEqual(
+      provinceReferenceSeedData.map(({ code }) => ({
+        kind: PROVINCE_ID_BY_CODE_OUTPUT_KIND,
+        key: code,
+        value: `province-${code}`,
+      })),
+    );
 
-    await group.execute(referenceContext);
+    const secondResult = await group.execute(referenceContext);
 
     expect(state.creates).toHaveLength(33);
     expect(state.updates).toHaveLength(35);
+    expect(secondResult).toEqual(firstResult);
   });
 
   it("refuses execution without explicit REFERENCE selection", async () => {

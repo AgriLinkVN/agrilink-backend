@@ -1,11 +1,12 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8-05A_GEOGRAPHY_AND_USERS_DEV_SEEDS_ONLY`
-- Current implementation: shared contracts, safety guard, DAG validation,
-  two owner-local REFERENCE groups, and the first focused DEV ownership slice
-- Implementation base: `develop` at Phase 8 reference merge commit
-  `d2afcc9117a90b8687fcd526149664c59bd45855` (PR #106)
+- Implementation authorized: `P8_05B0_SEED_DEPENDENCY_OUTPUT_CONTRACT`
+- Current implementation: scalar-only dependency outputs, dependency-scoped
+  lookup, two owner-local REFERENCE groups, and the first focused DEV ownership
+  slice
+- Implementation base: `develop` at P8-05A merge commit
+  `2a416f1dc5bfe6e40a8ffe38a99e3078e6c4ecbd` (PR #107)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -18,6 +19,8 @@ mapping. A central runner may remain, but only as an ordering and invocation
 mechanism for module-owned seed contracts.
 
 The static inventory is recorded in [seed-inventory.md](seed-inventory.md).
+The scalar dependency decision is recorded in
+[seed-dependency-contract.md](seed-dependency-contract.md).
 
 ## Scope
 
@@ -82,6 +85,14 @@ convergent recovery from a partially seeded database.
 Every prerequisite is explicit, deterministic, and cycle-checked. Incidental
 module import order, object enumeration order, or startup provider order is not
 a seed dependency contract.
+
+### DEPENDENCY_OUTPUTS_ARE_SCALAR_AND_SCOPED
+
+Generated identifiers cross SeedGroup boundaries only as validated
+`string | number | boolean` bindings. A consumer can read outputs only from
+producer group IDs declared in its dependency metadata. The execution-local
+registry is in memory and never transports entities, repositories, persistence
+adapters, credentials, or secrets.
 
 ### NO_PROTECTED_ENVIRONMENT_EXECUTION_DURING_REFACTOR
 
@@ -236,7 +247,9 @@ PRODUCTION_SEED_EXECUTION_BLOCKED=YES
 
 P8_04_REFERENCE_SEEDS_STATUS=IMPLEMENTED_BY_MERGED_PR_106
 P8_05_DEV_SEEDS_STATUS=IN_PROGRESS
-P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_107
+P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05B_PRODUCTS_DEV_STATUS=BLOCKED_PENDING_DEPENDENCY_OUTPUT_CONTRACT_MERGE
 P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
 P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
 P8_08_IDEMPOTENCY_STATUS=NOT_STARTED

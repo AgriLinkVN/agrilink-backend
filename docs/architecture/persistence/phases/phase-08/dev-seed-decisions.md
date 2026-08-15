@@ -21,18 +21,18 @@ those identifiers. The canonical `geography.reference.provinces` group is the
 sole province payload and represents the 34 provincial-level administrative
 units after the 2025 reorganization.
 
-| Legacy code | Legacy name | Mapping type                     | Canonical code | Canonical name        | Canonical slug |
-| ----------- | ----------- | -------------------------------- | -------------- | --------------------- | -------------- |
-| `LD`        | Lâm Đồng    | `EXACT_CURRENT_IDENTITY`         | `68`           | Tỉnh Lâm Đồng         | `lam-dong`     |
-| `DL`        | Đắk Lắk     | `EXACT_CURRENT_IDENTITY`         | `66`           | Tỉnh Đắk Lắk          | `dak-lak`      |
-| `TG`        | Tiền Giang  | `ADMINISTRATIVE_SUCCESSOR_2025` | `82`           | Tỉnh Đồng Tháp        | `dong-thap`    |
-| `BT`        | Bến Tre     | `ADMINISTRATIVE_SUCCESSOR_2025` | `86`           | Tỉnh Vĩnh Long        | `vinh-long`    |
-| `ST`        | Sóc Trăng   | `ADMINISTRATIVE_SUCCESSOR_2025` | `92`           | Thành phố Cần Thơ     | `can-tho`      |
-| `BTN`       | Bình Thuận  | `ADMINISTRATIVE_SUCCESSOR_2025` | `68`           | Tỉnh Lâm Đồng         | `lam-dong`     |
-| `LA`        | Long An     | `ADMINISTRATIVE_SUCCESSOR_2025` | `80`           | Tỉnh Tây Ninh         | `tay-ninh`     |
-| `CT`        | Cần Thơ     | `EXACT_CURRENT_IDENTITY`         | `92`           | Thành phố Cần Thơ     | `can-tho`      |
-| `HN`        | Hà Nội      | `EXACT_CURRENT_IDENTITY`         | `01`           | Thành phố Hà Nội      | `ha-noi`       |
-| `DN`        | Đà Nẵng     | `EXACT_CURRENT_IDENTITY`         | `48`           | Thành phố Đà Nẵng     | `da-nang`      |
+| Legacy code | Legacy name | Mapping type                    | Canonical code | Canonical name    | Canonical slug |
+| ----------- | ----------- | ------------------------------- | -------------- | ----------------- | -------------- |
+| `LD`        | Lâm Đồng    | `EXACT_CURRENT_IDENTITY`        | `68`           | Tỉnh Lâm Đồng     | `lam-dong`     |
+| `DL`        | Đắk Lắk     | `EXACT_CURRENT_IDENTITY`        | `66`           | Tỉnh Đắk Lắk      | `dak-lak`      |
+| `TG`        | Tiền Giang  | `ADMINISTRATIVE_SUCCESSOR_2025` | `82`           | Tỉnh Đồng Tháp    | `dong-thap`    |
+| `BT`        | Bến Tre     | `ADMINISTRATIVE_SUCCESSOR_2025` | `86`           | Tỉnh Vĩnh Long    | `vinh-long`    |
+| `ST`        | Sóc Trăng   | `ADMINISTRATIVE_SUCCESSOR_2025` | `92`           | Thành phố Cần Thơ | `can-tho`      |
+| `BTN`       | Bình Thuận  | `ADMINISTRATIVE_SUCCESSOR_2025` | `68`           | Tỉnh Lâm Đồng     | `lam-dong`     |
+| `LA`        | Long An     | `ADMINISTRATIVE_SUCCESSOR_2025` | `80`           | Tỉnh Tây Ninh     | `tay-ninh`     |
+| `CT`        | Cần Thơ     | `EXACT_CURRENT_IDENTITY`        | `92`           | Thành phố Cần Thơ | `can-tho`      |
+| `HN`        | Hà Nội      | `EXACT_CURRENT_IDENTITY`        | `01`           | Thành phố Hà Nội  | `ha-noi`       |
+| `DN`        | Đà Nẵng     | `EXACT_CURRENT_IDENTITY`        | `48`           | Thành phố Đà Nẵng | `da-nang`      |
 
 This decision does not treat legacy DEV codes as canonical-equivalent keys and
 does not introduce aliases into `Province.code`. Retirement is authorized by
@@ -75,3 +75,40 @@ payload and the seller payload. The existing `admin@agrilink.vn` email also
 appears in `admin-dev.seed.ts` and `DevSeedService`; those central payloads are
 unchanged and remain P8-05C/P8-05D debt. P8-05A introduces no duplicate user
 payload.
+
+## P8-05B0 Seed Dependency Output Decision
+
+```text
+APPROVED_ARCHITECTURE=SEEDGROUP_SCALAR_DEPENDENCY_OUTPUTS_WITH_DEPENDENCY_SCOPED_LOOKUP
+SEED_DEPENDENCY_OUTPUT_MODEL=SCALAR_DEPENDENCY_SCOPED
+OUTPUT_SCOPE=PRODUCER_GROUP_ID_PLUS_KIND_PLUS_STABLE_KEY
+OUTPUT_REGISTRY_PERSISTENCE=IN_MEMORY_EXECUTION_ONLY
+UNDECLARED_DEPENDENCY_ACCESS=FAIL_CLOSED
+MISSING_REQUIRED_OUTPUT=FAIL_CLOSED
+OUTPUT_TYPE_MISMATCH=FAIL_CLOSED
+OUTPUT_COLLISION=FAIL_CLOSED_PER_PRODUCER_KIND_KEY
+ENTITY_TRANSPORT=PROHIBITED
+REPOSITORY_TRANSPORT=PROHIBITED
+SECRET_TRANSPORT=PROHIBITED
+
+USER_DEV_OUTPUT_KIND=user.id.by-email
+USER_DEV_OUTPUT_COUNT=7
+PROVINCE_OUTPUT_KIND=province.id.by-code
+PROVINCE_OUTPUT_COUNT=34
+CATEGORY_OUTPUT_KIND=category.id.by-slug
+CATEGORY_OUTPUT_COUNT=37
+
+P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05B_PRODUCTS_DEV_STATUS=BLOCKED_PENDING_DEPENDENCY_OUTPUT_CONTRACT_MERGE
+PRODUCT_DEV_STABLE_KEY=UNRESOLVED
+PRODUCT_IMAGE_DEV_STABLE_KEY=UNRESOLVED
+```
+
+The orchestrator owns an execution-local registry and supplies each group with
+a read-only snapshot limited to producer IDs in that group's declared
+dependencies. This unblocks generated owner ID handoff without allowing
+cross-owner entity or repository access. Full rationale and trade-offs are in
+`seed-dependency-contract.md`.
+
+P8-05B0 does not implement Products DEV behavior, retire Product/Seller sources,
+invent Product SKU values, or change destructive reset/startup behavior.
