@@ -1,11 +1,11 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8-04_REFERENCE_SEEDS_ONLY`
+- Implementation authorized: `P8-05A_GEOGRAPHY_AND_USERS_DEV_SEEDS_ONLY`
 - Current implementation: shared contracts, safety guard, DAG validation,
-  orchestration foundation, and the two approved owner-local REFERENCE groups
-- Implementation base: `develop` at Phase 8 foundation merge commit
-  `fafd7da62128bca07c6be559106316b56fab30c7` (PR #105)
+  two owner-local REFERENCE groups, and the first focused DEV ownership slice
+- Implementation base: `develop` at Phase 8 reference merge commit
+  `d2afcc9117a90b8687fcd526149664c59bd45855` (PR #106)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -209,8 +209,8 @@ review.
 | P8-01 | Approve the static seed inventory and its inclusion boundary.                    | `APPROVED_BY_MERGED_KICKOFF_PR`                        |
 | P8-02 | Approve one seed owner and classification for every seeded table/group.          | `INVENTORY_ACCEPTED_PENDING_PER_SOURCE_IMPLEMENTATION` |
 | P8-03 | Define owner-local seed contracts and runner metadata.                           | `IMPLEMENTED_BY_MERGED_PR_105`                         |
-| P8-04 | Move/rewrite approved reference seeds under their owners.                        | `IMPLEMENTED_PENDING_HUMAN_REVIEW`                     |
-| P8-05 | Move/rewrite development seeds under their owners.                               | `NOT_STARTED`                                          |
+| P8-04 | Move/rewrite approved reference seeds under their owners.                        | `IMPLEMENTED_BY_MERGED_PR_106`                         |
+| P8-05 | Move/rewrite development seeds under their owners.                               | `IN_PROGRESS`                                          |
 | P8-06 | Isolate reusable test fixtures from production/development seeds.                | `NOT_STARTED`                                          |
 | P8-07 | Migrate existing business seed paths into module-owned DAG orchestration.        | `NOT_STARTED`                                          |
 | P8-08 | Verify per-record convergence, retry behavior, and second-run idempotency.       | `NOT_STARTED`                                          |
@@ -234,8 +234,9 @@ VERIFIED_TARGET_PROPAGATED_TO_SEED_GROUP=YES
 PROTECTED_LOCAL_SEED_EXECUTION_BLOCKED=YES
 PRODUCTION_SEED_EXECUTION_BLOCKED=YES
 
-P8_04_REFERENCE_SEEDS_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
-P8_05_DEV_SEEDS_STATUS=NOT_STARTED
+P8_04_REFERENCE_SEEDS_STATUS=IMPLEMENTED_BY_MERGED_PR_106
+P8_05_DEV_SEEDS_STATUS=IN_PROGRESS
+P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
 P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
 P8_08_IDEMPOTENCY_STATUS=NOT_STARTED
@@ -245,15 +246,17 @@ P8_10_CENTRAL_WRITE_RETIREMENT_STATUS=NOT_STARTED
 GEOGRAPHY_REFERENCE_SEED_OWNER=geography
 PRODUCTS_REFERENCE_SEED_OWNER=products
 REFERENCE_SEED_GROUPS=2
+USERS_DEV_SEED_OWNER=users
+USERS_DEV_SEED_GROUP=users.dev.users
+GEOGRAPHY_DEV_PROVINCE_SEED=RETIRED_REDUNDANT
 ```
 
-The legacy central runner, comprehensive development service, and admin
-development seed still contain business writes. They are guarded by the shared
-fail-closed target safety model and remain scheduled for per-owner migration or
-retirement in P8-05, P8-07, and P8-10. The central CLI now delegates its
-REFERENCE selection to the owner-local Geography and Products groups, but still
-invokes the legacy Users DEV writer. The Products development path retains a
-temporary owner-local category compatibility bridge until P8-07; it does not
-duplicate the payload. The orchestration-only exit criterion is therefore
-intentionally still open, and P8-08 remains `NOT_STARTED` until runtime and
-disposable-database idempotency verification is authorized.
+The comprehensive development service and admin development seed still contain
+business writes. They are guarded by the shared fail-closed target safety model
+and remain scheduled for per-owner migration or retirement in later P8-05
+slices, P8-07, and P8-10. The central CLI delegates its explicit REFERENCE and
+DEV selections to owner-local Geography, Products, and Users groups. Products
+development behavior and its legacy Geography-name mapping remain deferred to
+P8-05B. The orchestration-only phase exit criterion is still open, and P8-08
+remains `NOT_STARTED` until runtime and disposable-database idempotency
+verification is authorized.

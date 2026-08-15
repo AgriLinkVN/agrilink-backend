@@ -15,7 +15,7 @@ import { SeedOrchestrator } from "./framework/seed-orchestrator";
 // Seeds
 import { createGeographyProvinceReferenceSeedGroup } from "../../modules/geography/infrastructure/seeds/province-reference.seed";
 import { createProductsCategoryReferenceSeedGroup } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
-import { seedUsers } from "../../modules/users/infrastructure/database/seeds/user.seed";
+import { createUsersDevSeedGroup } from "../../modules/users/infrastructure/database/seeds/user.seed";
 
 dotenv.config();
 
@@ -66,17 +66,15 @@ async function runSeed() {
   await assertMigratedSeedSchema(AppDataSource);
   console.log("✅ Kết nối DB thành công\n");
 
-  const referenceSeedOrchestrator = new SeedOrchestrator([
+  const seedOrchestrator = new SeedOrchestrator([
     createGeographyProvinceReferenceSeedGroup(AppDataSource),
     createProductsCategoryReferenceSeedGroup(AppDataSource),
+    createUsersDevSeedGroup(AppDataSource),
   ]);
-  await referenceSeedOrchestrator.execute({
+  await seedOrchestrator.execute({
     environment: process.env,
-    classifications: [SeedClassification.REFERENCE],
+    classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
   });
-
-  console.log("🌱 Bắt đầu seed người dùng...");
-  await seedUsers(AppDataSource);
 
   // Products được seed riêng qua endpoint POST /products/seed (50 mock products)
 

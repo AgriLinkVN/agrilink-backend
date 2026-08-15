@@ -52,5 +52,10 @@ describe("P8-04 reference seed registration", () => {
   it("keeps the canonical province payload only in Geography", () => {
     expect(provinceReferenceSeedData).toHaveLength(34);
     expect(existsSync(join(__dirname, "provinces.seed.ts"))).toBe(false);
+    expect(
+      existsSync(
+        join(__dirname, "../../modules/geography/seeds/province.seed.ts"),
+      ),
+    ).toBe(false);
   });
 });
