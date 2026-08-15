@@ -4,6 +4,8 @@ import {
   SeedExecutionContext,
   SeedGroup,
   SeedGroupMetadata,
+  SeedGroupResult,
+  SeedOutputBinding,
 } from "../../../../../database/seeds/framework/seed-contract";
 import { ProductCategory } from "../../persistence/entities/product-category.entity";
 
@@ -193,6 +195,8 @@ export const PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA: SeedGroupMetadata = {
   description: "Canonical product category hierarchy",
 };
 
+export const CATEGORY_ID_BY_SLUG_OUTPUT_KIND = "category.id.by-slug";
+
 export interface ProductCategoryReferenceRecord {
   readonly id: string;
 }
@@ -216,8 +220,9 @@ export interface ProductCategoryReferenceSeedWriter {
 export async function reconcileProductCategoryReferences(
   writer: ProductCategoryReferenceSeedWriter,
   records: readonly ProductCategoryReferenceSeedData[] = productCategoryReferenceSeedData,
-): Promise<void> {
+): Promise<readonly SeedOutputBinding[]> {
   const resolvedIds = new Map<string, string>();
+  const outputs: SeedOutputBinding[] = [];
 
   for (const record of records) {
     const parentId = record.parentSlug
@@ -237,14 +242,21 @@ export async function reconcileProductCategoryReferences(
       isActive: true,
     };
     const existing = await writer.findBySlug(record.slug);
+    let categoryId: string;
     if (existing) {
       await writer.update(existing.id, writeData);
-      resolvedIds.set(record.slug, existing.id);
+      categoryId = existing.id;
     } else {
-      const created = await writer.create(writeData);
-      resolvedIds.set(record.slug, created.id);
+      categoryId = (await writer.create(writeData)).id;
     }
+    resolvedIds.set(record.slug, categoryId);
+    outputs.push({
+      kind: CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+      key: record.slug,
+      value: categoryId,
+    });
   }
+  return outputs;
 }
 
 export class ProductsCategoryReferenceSeedGroup implements SeedGroup {
@@ -252,14 +264,15 @@ export class ProductsCategoryReferenceSeedGroup implements SeedGroup {
 
   constructor(private readonly writer: ProductCategoryReferenceSeedWriter) {}
 
-  async execute(context: SeedExecutionContext): Promise<void> {
+  async execute(context: SeedExecutionContext): Promise<SeedGroupResult> {
     if (!context.classifications.includes(SeedClassification.REFERENCE)) {
       throw new Error(
         `${this.metadata.id} requires explicit REFERENCE selection`,
       );
     }
 
-    await reconcileProductCategoryReferences(this.writer);
+    const outputs = await reconcileProductCategoryReferences(this.writer);
+    return { outputs };
   }
 }
 

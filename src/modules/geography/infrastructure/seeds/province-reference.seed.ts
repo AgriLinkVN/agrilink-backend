@@ -5,6 +5,8 @@ import {
   SeedExecutionContext,
   SeedGroup,
   SeedGroupMetadata,
+  SeedGroupResult,
+  SeedOutputBinding,
 } from "../../../../database/seeds/framework/seed-contract";
 import { Province } from "../../entities/province.entity";
 
@@ -345,6 +347,8 @@ export const GEOGRAPHY_PROVINCE_REFERENCE_SEED_METADATA: SeedGroupMetadata = {
   description: "Canonical Vietnamese province reference catalog",
 };
 
+export const PROVINCE_ID_BY_CODE_OUTPUT_KIND = "province.id.by-code";
+
 export interface ProvinceReferenceRecord {
   readonly id: string;
 }
@@ -358,15 +362,24 @@ export interface ProvinceReferenceSeedWriter {
 export async function reconcileProvinceReferences(
   writer: ProvinceReferenceSeedWriter,
   records: readonly ProvinceSeedData[] = provinceReferenceSeedData,
-): Promise<void> {
+): Promise<readonly SeedOutputBinding[]> {
+  const outputs: SeedOutputBinding[] = [];
   for (const record of records) {
     const existing = await writer.findByCode(record.code);
+    let provinceId: string;
     if (existing) {
       await writer.update(existing.id, record);
+      provinceId = existing.id;
     } else {
-      await writer.create(record);
+      provinceId = (await writer.create(record)).id;
     }
+    outputs.push({
+      kind: PROVINCE_ID_BY_CODE_OUTPUT_KIND,
+      key: record.code,
+      value: provinceId,
+    });
   }
+  return outputs;
 }
 
 export class GeographyProvinceReferenceSeedGroup implements SeedGroup {
@@ -374,14 +387,15 @@ export class GeographyProvinceReferenceSeedGroup implements SeedGroup {
 
   constructor(private readonly writer: ProvinceReferenceSeedWriter) {}
 
-  async execute(context: SeedExecutionContext): Promise<void> {
+  async execute(context: SeedExecutionContext): Promise<SeedGroupResult> {
     if (!context.classifications.includes(SeedClassification.REFERENCE)) {
       throw new Error(
         `${this.metadata.id} requires explicit REFERENCE selection`,
       );
     }
 
-    await reconcileProvinceReferences(this.writer);
+    const outputs = await reconcileProvinceReferences(this.writer);
+    return { outputs };
   }
 }
 
