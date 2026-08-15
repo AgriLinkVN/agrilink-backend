@@ -175,13 +175,38 @@ explicit dependents during one in-memory orchestration run:
 
 Outputs contain only `string`, `number`, or `boolean` values. The registry is
 not persisted, and consumers cannot access undeclared, unrelated, future, or
-self outputs. P8-05B Products implementation remains blocked until this focused
-contract change is merged; its stable Product and Product Image keys remain
-unresolved.
+self outputs. This focused contract was merged in PR #108 and is the handoff
+used by the P8-05B implementation below.
+
+## P8-05B Products DEV Implementation Overlay
+
+P8-05B replaces the startup-reachable Products development implementation with
+the single owner-local `products.dev.products` SeedGroup. The group reconciles
+54 records independently by explicit `DEV-*` SKU, resolves seller and category
+IDs only through the merged dependency-output contract, and returns no outputs.
+It has no Geography dependency because the canonical payload does not persist a
+location.
+
+| Historical source or concern | Original inventory disposition | Current disposition | Current owner/group |
+| ---------------------------- | ------------------------------ | ------------------- | ------------------- |
+| `src/modules/products/infrastructure/database/seeds/product.seed.ts` | `RETIRE_CANDIDATE` | `RETIRED_SUPERSEDED` after exact audit of all 16 historical names | products; no surviving group |
+| `src/modules/users/seeds/seller.seed.ts` | `DEFERRED_TO_P8_05B` | `RETIRED_WITH_SUPERSEDED_PRODUCT_PATH` after its sole type consumer was retired | users; no new seller group |
+| `src/modules/products/infrastructure/database/seeds/product-development-seed.service.ts` | `REWRITE_REQUIRED` | `CANONICAL_PRODUCTS_DEV_SEEDGROUP` | products / `products.dev.products` |
+| `src/modules/products/infrastructure/repositories/typeorm-product.repository.ts` seed methods | `REWRITE_REQUIRED` | `MOVED_TO_OWNER_LOCAL_SEED_ADAPTER`; all five seed-only methods removed from the normal repository | products / `products.dev.products` |
+| `src/database/dev-seed.service.ts` Product section | `REWRITE_REQUIRED` | P8-05C debt unchanged; startup passes `skipProducts=true` after the canonical group runs | central multi-owner service; no SeedGroup yet |
+
+The dedicated Products seed adapter reconciles one intended primary-image slot
+per seeded SKU. Zero primary rows creates the slot, one reconciles it, and more
+than one fails closed. It never truncates Products or deletes unrelated rows.
+The former Product reset switch is retired and fails before application
+bootstrap. The central seed CLI does not gain a Products DEV execution path.
 
 ## Static Disposition Boundary
 
 P8-04 dispositions for the two approved reference sources were implemented by
-merged PR #106. P8-05A dispositions above are implemented by merged PR #107.
-All other DEV, TEST, startup, and migration/backfill dispositions remain
-proposals and are not authorized by this change.
+merged PR #106. P8-05A dispositions above are implemented by merged PR #107,
+and the dependency-output contract is implemented by merged PR #108. P8-05B
+Products dispositions are implemented pending human review. Central
+`DevSeedService` decomposition, admin DEV decomposition, TEST fixtures, and
+migration/backfill dispositions remain unchanged and are not authorized by
+this change.

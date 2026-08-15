@@ -10,10 +10,17 @@ import {
   SeedOutputBinding,
 } from "../../../../../database/seeds/framework/seed-contract";
 import { User } from "../../persistence/entities/user.entity";
+import {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
+  USERS_DEV_SEED_GROUP_ID,
+} from "../../../application/contracts/user-seed-output.contract";
+
+export {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
+  USERS_DEV_SEED_GROUP_ID,
+} from "../../../application/contracts/user-seed-output.contract";
 
 const DECLARED_DEV_PASSWORD = "demo123";
-
-export const USER_ID_BY_EMAIL_OUTPUT_KIND = "user.id.by-email";
 
 export interface UserDevSeedData {
   readonly phone: string;
@@ -92,7 +99,7 @@ export const userDevSeedData: readonly UserDevSeedData[] = [
 ];
 
 export const USERS_DEV_SEED_METADATA: SeedGroupMetadata = {
-  id: "users.dev.users",
+  id: USERS_DEV_SEED_GROUP_ID,
   owner: "users",
   classification: SeedClassification.DEV,
   dependencies: [],

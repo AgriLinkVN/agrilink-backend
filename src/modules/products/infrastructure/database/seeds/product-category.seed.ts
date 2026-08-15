@@ -8,6 +8,15 @@ import {
   SeedOutputBinding,
 } from "../../../../../database/seeds/framework/seed-contract";
 import { ProductCategory } from "../../persistence/entities/product-category.entity";
+import {
+  CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+  PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
+} from "../../../application/contracts/product-seed-output.contract";
+
+export {
+  CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+  PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
+} from "../../../application/contracts/product-seed-output.contract";
 
 export interface ProductCategoryReferenceSeedData {
   readonly name: string;
@@ -188,14 +197,12 @@ export const productCategoryReferenceSeedData: readonly ProductCategoryReference
   ];
 
 export const PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA: SeedGroupMetadata = {
-  id: "products.reference.categories",
+  id: PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
   owner: "products",
   classification: SeedClassification.REFERENCE,
   dependencies: [],
   description: "Canonical product category hierarchy",
 };
-
-export const CATEGORY_ID_BY_SLUG_OUTPUT_KIND = "category.id.by-slug";
 
 export interface ProductCategoryReferenceRecord {
   readonly id: string;
