@@ -45,6 +45,13 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(guard).toBeLessThan(cliSource.indexOf("new DataSource"));
   });
 
+  it("delegates Users DEV persistence through explicit owner-group selection", () => {
+    expect(cliSource).toContain("createUsersDevSeedGroup(AppDataSource)");
+    expect(cliSource).toContain("SeedClassification.REFERENCE");
+    expect(cliSource).toContain("SeedClassification.DEV");
+    expect(cliSource).not.toMatch(/\bseedUsers\s*\(/);
+  });
+
   it("guards startup seeding before application database bootstrap", () => {
     const guard = mainSource.indexOf("assertSeedExecutionSafety({");
     expect(guard).toBeGreaterThan(-1);
