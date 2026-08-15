@@ -1,12 +1,12 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8_05B_PRODUCTS_DEV_SEED_OWNERSHIP`
+- Implementation authorized: `P8_05C0_CENTRAL_DEVSEEDSERVICE_DECOMPOSITION_PLAN`
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, Users DEV, and canonical Products
-  DEV ownership
-- Implementation base: `develop` at P8-05B0 merge commit
-  `053426def9471c4b83afd732dd9efb21c87c41ef` (PR #108)
+  DEV ownership; central `DevSeedService` decomposition is statically planned
+- Implementation base: `develop` at P8-05B merge commit
+  `366585a9a4c76899c0717d94f4307aa66b22cebd` (PR #109)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -21,6 +21,8 @@ mechanism for module-owned seed contracts.
 The static inventory is recorded in [seed-inventory.md](seed-inventory.md).
 The scalar dependency decision is recorded in
 [seed-dependency-contract.md](seed-dependency-contract.md).
+The complete central development-service plan is recorded in
+[dev-seed-service-decomposition.md](dev-seed-service-decomposition.md).
 
 ## Scope
 
@@ -249,7 +251,10 @@ P8_04_REFERENCE_SEEDS_STATUS=IMPLEMENTED_BY_MERGED_PR_106
 P8_05_DEV_SEEDS_STATUS=IN_PROGRESS
 P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_107
 P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_BY_MERGED_PR_108
-P8_05B_PRODUCTS_DEV_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05B_PRODUCTS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_109
+P8_05C0_DEVSEEDSERVICE_PLAN_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=NOT_STARTED
+P8_05D_ADMIN_DEV_STATUS=NOT_STARTED
 P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
 P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
 P8_08_IDEMPOTENCY_STATUS=NOT_STARTED
@@ -267,8 +272,11 @@ GEOGRAPHY_DEV_PROVINCE_SEED=RETIRED_REDUNDANT
 The comprehensive development service and admin development seed still contain
 business writes. They are guarded by the shared fail-closed target safety model
 and remain scheduled for per-owner migration or retirement in later P8-05
-slices, P8-07, and P8-10. The central CLI delegates its explicit REFERENCE and
-DEV selections to owner-local Geography, Products, and Users groups. Products
+slices, P8-07, and P8-10. P8-05C0 has now audited all 23 central-service tables,
+assigned their 10 canonical owners, defined the scalar dependency DAG, and
+split implementation into four blocked, reviewable slices. That plan does not
+authorize business-code changes. The central CLI delegates its explicit
+REFERENCE and DEV selections to owner-local Geography, Products, and Users groups. Products
 development now runs as the owner-local `products.dev.products` group after its
 Users and Product Category dependencies. Its legacy Product/Seller sources are
 retired, and its old Geography-name behavior is not migrated because the
@@ -277,4 +285,5 @@ development service remains P8-05C debt; startup skips only its overlapping
 Product/category/image write section after canonical Products DEV has run. The
 orchestration-only phase exit criterion is still open, and P8-08 remains
 `NOT_STARTED` until runtime and disposable-database idempotency verification is
-authorized.
+authorized. The standalone admin development source remains explicitly deferred
+to P8-05D.
