@@ -22,7 +22,6 @@ import {
   PRODUCT_MODERATION_REPOSITORY,
   PRODUCT_REPOSITORY,
   PRODUCT_REVIEW_QUERY,
-  PRODUCT_SEED_REPOSITORY,
   PRODUCT_WISHLIST_REPOSITORY,
 } from './application/ports/outbound/product-repository.port';
 import {
@@ -33,7 +32,11 @@ import { PRODUCT_REVIEW_READER } from './application/ports/inbound/product-revie
 import { PRODUCT_COMMERCE_READER } from './application/ports/inbound/product-commerce.port';
 import { ProductBoundaryService } from './application/services/product-boundary.service';
 import { TypeOrmProductRepository } from './infrastructure/repositories/typeorm-product.repository';
-import { ProductDevelopmentSeedService } from './infrastructure/database/seeds/product-development-seed.service';
+import {
+  PRODUCT_DEV_SEED_WRITER,
+  ProductDevelopmentSeedService,
+} from './infrastructure/database/seeds/product-development-seed.service';
+import { TypeOrmProductDevSeedWriter } from './infrastructure/database/seeds/typeorm-product-dev-seed.writer';
 import {
   AddProductCertificationUseCase,
   AddProductImageUseCase,
@@ -71,6 +74,7 @@ import {
   controllers: [ProductsController, WishlistController],
   providers: [
     TypeOrmProductRepository,
+    TypeOrmProductDevSeedWriter,
     ProductDevelopmentSeedService,
     ProductsService,
     ProductBoundaryService,
@@ -109,7 +113,10 @@ import {
       provide: PRODUCT_WISHLIST_REPOSITORY,
       useExisting: TypeOrmProductRepository,
     },
-    { provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository },
+    {
+      provide: PRODUCT_DEV_SEED_WRITER,
+      useExisting: TypeOrmProductDevSeedWriter,
+    },
     { provide: PRODUCT_REVIEW_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_COMMERCE_QUERY, useExisting: TypeOrmProductRepository },
     { provide: PRODUCT_ADMIN_QUERY, useExisting: TypeOrmProductRepository },

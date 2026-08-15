@@ -23,7 +23,6 @@ export const PRODUCT_CERTIFICATION_REPOSITORY = Symbol(
   'PRODUCT_CERTIFICATION_REPOSITORY',
 );
 export const PRODUCT_WISHLIST_REPOSITORY = Symbol('PRODUCT_WISHLIST_REPOSITORY');
-export const PRODUCT_SEED_REPOSITORY = Symbol('PRODUCT_SEED_REPOSITORY');
 export const PRODUCT_REVIEW_QUERY = Symbol('PRODUCT_REVIEW_QUERY');
 export const PRODUCT_COMMERCE_QUERY = Symbol('PRODUCT_COMMERCE_QUERY');
 export const PRODUCT_ADMIN_QUERY = Symbol('PRODUCT_ADMIN_QUERY');
@@ -127,17 +126,6 @@ export interface ProductWishlistRepositoryPort {
     query: WishlistQueryInput,
   ): Promise<{ data: ProductModel[]; total: number; page: number; limit: number }>;
   getWishlistedIds(userId: string): Promise<string[]>;
-}
-
-export interface ProductSeedRepositoryPort {
-  seedCategories(): Promise<void>;
-  countProducts(): Promise<number>;
-  resetProducts(): Promise<number>;
-  saveSeedProducts(products: Array<Partial<ProductModel>>): Promise<ProductModel[]>;
-  savePrimaryImagesForProducts(
-    products: ProductModel[],
-    imageUrl: string,
-  ): Promise<void>;
 }
 
 export interface ProductReviewQueryPort {

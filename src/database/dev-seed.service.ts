@@ -36,6 +36,31 @@ import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
 import { SeedClassification } from './seeds/framework/seed-contract';
 import { assertSeedExecutionSafety } from './seeds/framework/seed-environment.guard';
 
+export interface DevSeedExecutionOptions {
+  readonly reset?: boolean;
+  readonly skipProducts?: boolean;
+}
+
+export interface DevSeedProductActions {
+  readonly seed: () => Promise<Product[]>;
+  readonly loadExisting: () => Promise<Product[]>;
+}
+
+export async function resolveDevSeedProductsForOrchestration(
+  options: DevSeedExecutionOptions,
+  actions: DevSeedProductActions,
+): Promise<Product[]> {
+  if (!options.skipProducts) return actions.seed();
+
+  const products = await actions.loadExisting();
+  if (products.length === 0) {
+    throw new Error(
+      'DevSeedService requires canonical Products DEV rows when skipProducts=true',
+    );
+  }
+  return products;
+}
+
 @Injectable()
 export class DevSeedService {
   private readonly logger = new Logger(DevSeedService.name);
@@ -46,7 +71,7 @@ export class DevSeedService {
     this.passwordHash = bcrypt.hashSync(this.PASSWORD, bcrypt.genSaltSync(10));
   }
 
-  async seedAll(options: { reset?: boolean } = {}): Promise<void> {
+  async seedAll(options: DevSeedExecutionOptions = {}): Promise<void> {
     assertSeedExecutionSafety({
       environment: {
         NODE_ENV: process.env.NODE_ENV,
@@ -84,9 +109,15 @@ export class DevSeedService {
     log.log(`[Seed] role profiles + KYC seeded`);
 
     // ── 3. Product categories + Products + Images ──────────────
-    // categories seeded by ProductDevelopmentSeedService - just products
-    const products = await this.seedProducts();
-    log.log(`[Seed] ${products.length} demo products seeded`);
+    const products = await resolveDevSeedProductsForOrchestration(options, {
+      seed: () => this.seedProducts(),
+      loadExisting: () => this.ds.getRepository(Product).find(),
+    });
+    log.log(
+      options.skipProducts
+        ? `[Seed] ${products.length} canonical demo products reused`
+        : `[Seed] ${products.length} demo products seeded`,
+    );
 
     // ── 4. Forum ──────────────────────────────────────────────
     const posts = await this.seedForum(FARMER.id, COOP.id, BUYER.id, products);

@@ -33,7 +33,6 @@ import {
   ProductRepositoryPort,
   ProductReviewQueryPort,
   ProductCommerceQueryPort,
-  ProductSeedRepositoryPort,
   ProductWishlistRepositoryPort,
 } from '../../application/ports/outbound/product-repository.port';
 import { Product } from '../persistence/entities/product.entity';
@@ -41,7 +40,6 @@ import { ProductCategory } from '../persistence/entities/product-category.entity
 import { ProductCertification } from '../persistence/entities/product-certification.entity';
 import { ProductImage } from '../persistence/entities/product-image.entity';
 import { Wishlist } from '../persistence/entities/wishlist.entity';
-import { seedProductCategories } from '../database/seeds/product-category.seed';
 import { ProductCommercePriceIncompatibleError } from '../../application/ports/inbound/product-commerce.port';
 
 @Injectable()
@@ -54,7 +52,6 @@ export class TypeOrmProductRepository
     ProductImageRepositoryPort,
     ProductCertificationRepositoryPort,
     ProductWishlistRepositoryPort,
-    ProductSeedRepositoryPort,
     ProductReviewQueryPort,
     ProductCommerceQueryPort,
     ProductAdminQueryPort,
@@ -618,48 +615,6 @@ export class TypeOrmProductRepository
       select: ['productId'],
     });
     return items.map((item) => item.productId);
-  }
-
-  async seedCategories(): Promise<void> {
-    await seedProductCategories(this.dataSource);
-  }
-
-  async countProducts(): Promise<number> {
-    return this.productRepo.count();
-  }
-
-  async resetProducts(): Promise<number> {
-    const deleted = await this.productRepo.count();
-    await this.certRepo.clear();
-    await this.imageRepo.clear();
-    await this.productRepo.query('TRUNCATE TABLE products CASCADE');
-    return deleted;
-  }
-
-  async saveSeedProducts(
-    products: Array<Partial<ProductModel>>,
-  ): Promise<ProductModel[]> {
-    return this.productRepo.save(
-      products.map((product) =>
-        this.productRepo.create(product as Partial<Product>),
-      ),
-    );
-  }
-
-  async savePrimaryImagesForProducts(
-    products: ProductModel[],
-    imageUrl: string,
-  ): Promise<void> {
-    await this.imageRepo.save(
-      products.map((product) =>
-        this.imageRepo.create({
-          productId: product.id,
-          imageUrl,
-          isPrimary: true,
-          sortOrder: 0,
-        }),
-      ),
-    );
   }
 
   private toOptionalDate(value: Date | string | null | undefined): Date | null {

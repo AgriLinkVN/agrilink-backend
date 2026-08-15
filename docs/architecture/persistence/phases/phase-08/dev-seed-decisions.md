@@ -98,10 +98,10 @@ PROVINCE_OUTPUT_COUNT=34
 CATEGORY_OUTPUT_KIND=category.id.by-slug
 CATEGORY_OUTPUT_COUNT=37
 
-P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
-P8_05B_PRODUCTS_DEV_STATUS=BLOCKED_PENDING_DEPENDENCY_OUTPUT_CONTRACT_MERGE
-PRODUCT_DEV_STABLE_KEY=UNRESOLVED
-PRODUCT_IMAGE_DEV_STABLE_KEY=UNRESOLVED
+P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_BY_MERGED_PR_108
+P8_05B_PRODUCTS_DEV_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+PRODUCT_DEV_STABLE_KEY=sku
+PRODUCT_IMAGE_DEV_STABLE_KEY=SEEDED_PRODUCT_SKU_PLUS_PRIMARY_SLOT
 ```
 
 The orchestrator owns an execution-local registry and supplies each group with
@@ -110,5 +110,108 @@ dependencies. This unblocks generated owner ID handoff without allowing
 cross-owner entity or repository access. Full rationale and trade-offs are in
 `seed-dependency-contract.md`.
 
-P8-05B0 does not implement Products DEV behavior, retire Product/Seller sources,
-invent Product SKU values, or change destructive reset/startup behavior.
+PR #108 did not implement Products DEV behavior, retire Product/Seller sources,
+invent Product SKU values, or change destructive reset/startup behavior. Its
+merged output contract is the architecture used by the P8-05B implementation
+recorded below.
+
+## P8-05B Products Development Decision
+
+```text
+P8_05B_CANONICAL_PRODUCTS_DEV_PATH=PRODUCT_DEVELOPMENT_SEED_SERVICE_REWRITTEN_AS_SEEDGROUP
+PRODUCTS_DEV_GROUP_ID=products.dev.products
+PRODUCTS_DEV_OWNER=products
+
+LEGACY_PRODUCT_SEED_DECISION=RETIRE_SUPERSEDED
+SELLER_DEV_SEED_DECISION=RETIRE_WITH_SUPERSEDED_PRODUCT_PATH
+
+PRODUCT_DEV_STABLE_KEY=sku
+PRODUCT_DEV_SKU_COUNT=54
+PRODUCT_DEV_SKU_NULL_COUNT=0
+PRODUCT_DEV_DUPLICATE_SKU_COUNT=0
+PRODUCT_DEV_IDEMPOTENCY=PER_RECORD_CREATE_OR_RECONCILE_BY_SKU
+
+PRODUCT_IMAGE_DEV_STABLE_KEY=SEEDED_PRODUCT_SKU_PLUS_PRIMARY_SLOT
+PRODUCT_IMAGE_DEV_IDEMPOTENCY=ONE_PRIMARY_SLOT_PER_SEEDED_PRODUCT
+MULTIPLE_PRIMARY_IMAGES_POLICY=FAIL_CLOSED
+
+PRODUCT_DEV_SELLER_DEPENDENCY=users.dev.users/user.id.by-email
+PRODUCT_DEV_CATEGORY_DEPENDENCY=products.reference.categories/category.id.by-slug
+PRODUCT_DEV_GEOGRAPHY_DEPENDENCY=NONE_FOR_CANONICAL_PATH
+PRODUCT_DEV_LEGACY_GEOGRAPHY_MAPPING_STATUS=RESOLVED_BY_RETIRING_DEAD_LEGACY_GEOGRAPHY_BEHAVIOR
+
+DESTRUCTIVE_RESET_STATUS=PRODUCT_DEV_RESET_RETIRED_FAIL_CLOSED_BEFORE_BOOTSTRAP
+DEVSEEDSERVICE_PRODUCT_EXECUTION_UNDER_PRODUCT_DEV_STARTUP=0
+```
+
+The canonical payload keeps its 54 existing Product names, descriptions,
+prices, categories, quantities, and dates, and adds one explicit source-stable
+`DEV-*` SKU to each record. Products resolve three seller UUIDs from
+`users.dev.users` by email and category UUIDs from
+`products.reference.categories` by slug. No User or Geography persistence
+adapter crosses the Products boundary. The canonical payload does not persist
+`provinceId`, so it has no Geography dependency.
+
+Each seeded Product owns one intended primary image slot. The owner-local seed
+writer creates the slot when absent, updates the existing slot when present,
+and fails closed if more than one primary image exists. It never deletes
+unrelated images or Products. Product DEV reset is retired; setting
+`PRODUCT_DEV_SEED_RESET` fails before application bootstrap.
+
+### Legacy Product Payload Audit
+
+Exact names—not fuzzy similarity—were compared across the 16-row legacy source,
+the 54-row canonical source, and the 18-row central `DevSeedService` payload.
+
+```text
+LEGACY_PRODUCT_RECORD_COUNT=16
+LEGACY_PRODUCT_EXACT_ACTIVE_MATCHES=2
+LEGACY_PRODUCT_EXACT_CENTRAL_MATCHES=10
+LEGACY_PRODUCT_HISTORICAL_ONLY_COUNT=5
+LEGACY_PRODUCT_REQUIRES_HUMAN_DECISION_COUNT=0
+```
+
+| Legacy exact name | Active exact | Central exact | Classification |
+| --- | --- | --- | --- |
+| Xoài cát Hòa Lộc | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Sầu riêng Ri6 | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Bưởi da xanh | No | No | `HISTORICAL_DEAD_ONLY` |
+| Thanh long ruột đỏ | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Dưa hấu không hạt | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Rau muống hữu cơ | No | No | `HISTORICAL_DEAD_ONLY` |
+| Cà rốt Đà Lạt | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Nấm bào ngư xám | No | No | `HISTORICAL_DEAD_ONLY` |
+| Gạo ST25 đặc sản | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Gạo Jasmine thơm | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Cà phê Arabica Cầu Đất | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+| Cà phê Robusta Buôn Ma Thuột | Yes | No | `ACTIVE_CANONICAL_EQUIVALENT` |
+| Tiêu đen Phú Quốc | Yes | Yes | `ACTIVE_CANONICAL_EQUIVALENT` |
+| Nghệ tươi vàng | No | No | `HISTORICAL_DEAD_ONLY` |
+| Hạt điều rang muối | No | No | `HISTORICAL_DEAD_ONLY` |
+| Đậu phộng rang | No | Yes | `CENTRAL_ONLY_EQUIVALENT` |
+
+The five historical-only demo records and the legacy per-image/Province-name
+behavior had no executable or test consumer. They are documented rather than
+migrated solely to preserve dead code. Retiring `product.seed.ts` removes the
+only `SeededSellers` consumer, so the uncalled three-seller source is retired
+without creating `users.dev.sellers`.
+
+### Repository And Startup Disposition
+
+```text
+seedCategories=REMOVED_FROM_NORMAL_PRODUCT_REPOSITORY
+countProducts=REMOVED_FROM_NORMAL_PRODUCT_REPOSITORY
+saveSeedProducts=REMOVED_FROM_NORMAL_PRODUCT_REPOSITORY
+savePrimaryImagesForProducts=REMOVED_FROM_NORMAL_PRODUCT_REPOSITORY
+resetProducts=REMOVED_FROM_NORMAL_PRODUCT_REPOSITORY
+PRODUCT_DEV_SEED_WRITES=DEDICATED_OWNER_LOCAL_TYPEORM_ADAPTER
+CENTRAL_CLI_NEW_PRODUCTS_DEV_EXECUTION=NO
+CENTRAL_DEV_SEED_SERVICE_DECOMPOSITION=0
+```
+
+Opt-in startup now runs Product Categories, Users DEV, and canonical Products
+DEV in one `SeedOrchestrator` execution. It then invokes the still-central
+development service with `skipProducts=true`, reusing canonical Product rows
+for downstream Forum/Review/Cooperative fixtures without running its overlapping
+Product/category/image write section. Decomposition of that service remains
+P8-05C debt.

@@ -9,7 +9,10 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { initSentry } from './config/sentry.config';
 import * as cookieParser from 'cookie-parser';
 import * as dns from 'dns';
+import { DataSource } from 'typeorm';
 import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
+import { createProductsCategoryReferenceSeedGroup } from '@modules/products/infrastructure/database/seeds/product-category.seed';
+import { createUsersDevSeedGroup } from '@modules/users/infrastructure/database/seeds/user.seed';
 import { DevSeedService } from './database/dev-seed.service';
 import {
   buildCorsOptions,
@@ -18,6 +21,7 @@ import {
 import { parseEnvBoolean } from './config/parse-env-boolean';
 import { SeedClassification } from './database/seeds/framework/seed-contract';
 import { assertSeedExecutionSafety } from './database/seeds/framework/seed-environment.guard';
+import { SeedOrchestrator } from './database/seeds/framework/seed-orchestrator';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -38,8 +42,13 @@ async function bootstrap() {
   if (productDevSeed || productDevSeedReset) {
     assertSeedExecutionSafety({
       environment: process.env,
-      classifications: [SeedClassification.DEV],
+      classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
     });
+  }
+  if (productDevSeedReset) {
+    throw new Error(
+      'PRODUCT_DEV_SEED_RESET is retired; Products DEV seeding is convergent and non-destructive',
+    );
   }
 
   const app = await NestFactory.create(AppModule);
@@ -123,18 +132,22 @@ async function bootstrap() {
 
   // Development data is opt-in so a local restart never resets records.
   if (process.env.NODE_ENV !== 'production' && productDevSeed) {
-    const productSeedService = app.get(ProductDevelopmentSeedService);
-    const result = await productSeedService.seedForDevelopment({
-      reset: productDevSeedReset,
+    const dataSource = app.get(DataSource);
+    const seedOrchestrator = new SeedOrchestrator([
+      createProductsCategoryReferenceSeedGroup(dataSource),
+      createUsersDevSeedGroup(dataSource),
+      app.get(ProductDevelopmentSeedService),
+    ]);
+    await seedOrchestrator.execute({
+      environment: process.env,
+      classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
     });
-    console.log(
-      `[Seed] products: ${result.seeded} inserted, ${result.skipped} skipped, ${result.deleted} deleted`,
-    );
+    console.log('[Seed] canonical Products DEV group reconciled');
 
     // Comprehensive dev seed — users, profiles, forum, reviews, ads, etc.
     const devSeed = app.get(DevSeedService);
     await devSeed.seedAll({
-      reset: productDevSeedReset,
+      skipProducts: true,
     });
   }
 

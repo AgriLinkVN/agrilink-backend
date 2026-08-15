@@ -58,8 +58,29 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(guard).toBeGreaterThan(-1);
     expect(mainSource).toContain("parseEnvBoolean(");
     expect(guard).toBeLessThan(mainSource.indexOf("NestFactory.create"));
-    expect(guard).toBeLessThan(mainSource.indexOf(".seedForDevelopment("));
+    expect(guard).toBeLessThan(
+      mainSource.indexOf("const seedOrchestrator = new SeedOrchestrator"),
+    );
     expect(guard).toBeLessThan(mainSource.indexOf(".seedAll("));
+  });
+
+  it("runs one canonical Product DEV group and skips central Product writes", () => {
+    expect(
+      mainSource.match(/app\.get\(ProductDevelopmentSeedService\)/g),
+    ).toHaveLength(1);
+    expect(mainSource).toContain("createProductsCategoryReferenceSeedGroup");
+    expect(mainSource).toContain("createUsersDevSeedGroup");
+    expect(mainSource).toContain("skipProducts: true");
+    expect(mainSource).not.toContain("seedForDevelopment(");
+    expect(cliSource).not.toContain("ProductDevelopmentSeedService");
+  });
+
+  it("retires destructive Product reset before application bootstrap", () => {
+    const resetFailure = mainSource.indexOf(
+      "PRODUCT_DEV_SEED_RESET is retired",
+    );
+    expect(resetFailure).toBeGreaterThan(-1);
+    expect(resetFailure).toBeLessThan(mainSource.indexOf("NestFactory.create"));
   });
 
   it("keeps seed framework contracts persistence-framework neutral", () => {
