@@ -10,13 +10,11 @@ import { RUNTIME_ENTITY_REGISTRY } from "../entity-registry";
 import { createDataSourceOptions } from "../data-source-options";
 import { SeedClassification } from "./framework/seed-contract";
 import { assertSeedExecutionSafety } from "./framework/seed-environment.guard";
-
-// Entities
-import { Province } from "../../modules/geography/entities/province.entity";
+import { SeedOrchestrator } from "./framework/seed-orchestrator";
 
 // Seeds
-import { provinceSeedData } from "./provinces.seed";
-import { seedProductCategories } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
+import { createGeographyProvinceReferenceSeedGroup } from "../../modules/geography/infrastructure/seeds/province-reference.seed";
+import { createProductsCategoryReferenceSeedGroup } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
 import { seedUsers } from "../../modules/users/infrastructure/database/seeds/user.seed";
 
 dotenv.config();
@@ -62,49 +60,20 @@ async function assertMigratedSeedSchema(ds: DataSource): Promise<void> {
   }
 }
 
-async function seedProvinces(ds: DataSource): Promise<void> {
-  const repo = ds.getRepository(Province);
-  console.log(`🌱 Seeding ${provinceSeedData.length} tỉnh/thành...`);
-
-  for (const data of provinceSeedData) {
-    const existing = await repo.findOne({ where: { code: data.code } });
-    if (existing) {
-      await repo.update(existing.id, {
-        name: data.name,
-        nameEn: data.nameEn,
-        slug: data.slug,
-        region: data.region,
-        lat: data.lat,
-        lng: data.lng,
-      });
-      console.log(`  ✓ Cập nhật: [${data.code}] ${data.name}`);
-    } else {
-      const province = repo.create({
-        name: data.name,
-        nameEn: data.nameEn,
-        code: data.code,
-        slug: data.slug,
-        region: data.region,
-        lat: data.lat,
-        lng: data.lng,
-      });
-      await repo.save(province);
-      console.log(`  + Thêm mới: [${data.code}] ${data.name}`);
-    }
-  }
-
-  const count = await repo.count();
-  console.log(`  Tổng tỉnh/thành trong DB: ${count}`);
-}
-
 async function runSeed() {
   console.log("🌱 Khởi tạo kết nối DB...");
   await AppDataSource.initialize();
   await assertMigratedSeedSchema(AppDataSource);
   console.log("✅ Kết nối DB thành công\n");
 
-  await seedProductCategories(AppDataSource);
-  await seedProvinces(AppDataSource);
+  const referenceSeedOrchestrator = new SeedOrchestrator([
+    createGeographyProvinceReferenceSeedGroup(AppDataSource),
+    createProductsCategoryReferenceSeedGroup(AppDataSource),
+  ]);
+  await referenceSeedOrchestrator.execute({
+    environment: process.env,
+    classifications: [SeedClassification.REFERENCE],
+  });
 
   console.log("🌱 Bắt đầu seed người dùng...");
   await seedUsers(AppDataSource);
