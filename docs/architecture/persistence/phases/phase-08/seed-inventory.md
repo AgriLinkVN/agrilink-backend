@@ -206,7 +206,28 @@ bootstrap. The central seed CLI does not gain a Products DEV execution path.
 P8-04 dispositions for the two approved reference sources were implemented by
 merged PR #106. P8-05A dispositions above are implemented by merged PR #107,
 and the dependency-output contract is implemented by merged PR #108. P8-05B
-Products dispositions are implemented pending human review. Central
-`DevSeedService` decomposition, admin DEV decomposition, TEST fixtures, and
-migration/backfill dispositions remain unchanged and are not authorized by
-this change.
+Products dispositions were implemented by merged PR #109.
+
+## P8-05C0 Central DevSeedService Planning Overlay
+
+The complete static audit and decomposition is recorded in
+[dev-seed-service-decomposition.md](dev-seed-service-decomposition.md). It maps
+all 23 business tables written by `src/database/dev-seed.service.ts` to their
+10 canonical owners, records exact overlap with the merged Users, Product
+Categories, and Products groups, and defines four implementation slices with
+their identity, Geography, dependency, and schema blockers.
+
+```text
+CURRENT_DISPOSITION=DECOMPOSITION_PLAN_APPROVED_PENDING_IMPLEMENTATION
+CENTRAL_DEV_CLASSIFICATION=DEV
+CENTRAL_DEV_TABLES=23
+CENTRAL_DEV_TARGET_OWNERS=10
+P8_05C_IMPLEMENTATION_CHANGES=0
+ADMIN_DEV_TARGET_PHASE=P8_05D
+```
+
+The candidate owner groups and dependency DAG are planning decisions only.
+No central business write has moved or been retired, no unresolved natural key
+has been invented, and no database operation was authorized. Admin DEV
+decomposition, TEST fixtures, and migration/backfill dispositions remain
+unchanged by P8-05C0.
