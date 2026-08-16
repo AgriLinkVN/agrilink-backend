@@ -749,3 +749,55 @@ P8_05C1_EXIT_GATE=SATISFIED_IN_SOURCE_PENDING_HUMAN_REVIEW
 
 No database, seed, migration, synchronization, SQL, DDL, or DML command was
 executed. Disposable-database verification remains a later explicit gate.
+
+## P8-05C2A Product-Dependent Decision Overlay
+
+The authoritative Product, Review, Certification, Cooperative Member, Bulk
+Listing, Contribution, Harvest, and determinism decisions are recorded in
+[dev-seed-c2-decisions.md](dev-seed-c2-decisions.md). This overlay preserves
+the historical P8-05C0 evidence and records the current decision result after
+PR #112 implemented C1.
+
+```text
+P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_112
+P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+| Original C2 blocker | C2A decision | Status |
+| --- | --- | --- |
+| decide all 20 central Products | 11 map to existing SKUs, five receive proposed new SKUs, four retain seller/price conflicts requiring human choice | `STILL_BLOCKED` |
+| Product Certification identity | Product UUID plus explicit deterministic certificate number; 0 creates, 1 reconciles, more than 1 fails closed | `RESOLVED` |
+| nine positional Review Product references | all nine map by comment evidence to explicit Product SKUs | `RESOLVED` |
+| Cooperative Member identity | current source has one explicit member; migration proves cooperative/farmer pair unique | `RESOLVED` |
+| Bulk Listing identity | generated UUID and non-unique display title are the only candidates | `STILL_BLOCKED` |
+| duplicate Listing/Farmer contributions | two rows share the pair and no persisted distinguishing business component exists | `STILL_BLOCKED` |
+| three positional Harvest Product references | all three map by crop/notes evidence to `DEV-XOAI-HOA-LOC-001` | `RESOLVED` |
+| Harvest Schedule identity | User/Product/date is not schema- or domain-proven unique | `STILL_BLOCKED` |
+| C2 execution-time identity | four certificate numbers become explicit deterministic values; member join time is create-only non-identity and preserved on reconciliation | `RESOLVED` |
+
+The implementation boundary is split so that Product output, Reviews, and
+Cooperative operations can be reviewed independently. No split is currently
+authorized: C2B retains four Product decisions, C2C depends on the unimplemented
+C2B output, and C2D retains three domain/stable-key blockers.
+
+```text
+P8_05C2B_PRODUCTS_EXTENSION=PRODUCTS_CERTIFICATIONS_AND_PRODUCT_ID_BY_SKU
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2B_BLOCKERS=CP-03,CP-12,CP-13,CP-17
+
+P8_05C2C_REVIEWS=EXPLICIT_REVIEWER_EMAIL_AND_PRODUCT_SKU_FIXTURES
+P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2C_BLOCKERS=PRODUCT_ID_BY_SKU_OUTPUT_NOT_IMPLEMENTED; P8_05C2B_BLOCKED
+
+P8_05C2D_COOPERATIVES=MEMBERS_LISTINGS_CONTRIBUTIONS_AND_HARVEST
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_IDENTITY; CONTRIBUTION_IDENTITY; HARVEST_IDENTITY
+
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2A_DECISIONS_BLOCKED
+STOP_REASON=PRODUCT_SELLER_OR_PRICE_CONFLICTS_AND_COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_HUMAN_OR_DOMAIN_DECISION
+```
+
+No Product, Review, Cooperative, C3, C4, admin DEV, schema, or migration source
+is changed by C2A. The temporary `legacy.dev.remaining` group remains active.
