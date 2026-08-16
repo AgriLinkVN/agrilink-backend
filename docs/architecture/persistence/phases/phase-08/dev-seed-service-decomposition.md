@@ -834,3 +834,68 @@ STOP_REASON=COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_DOMAIN_DECISION
 
 No Product, Review, Cooperative, C3, C4, admin DEV, schema, or migration source
 is changed by C2A. The temporary `legacy.dev.remaining` group remains active.
+
+## P8-05C2B Products Implementation Overlay
+
+C2B moves the approved Product-owned writes while preserving C2A history and
+the unresolved C2D decisions. The canonical Products group now reconciles 63
+Products, their managed primary image slots, and four deterministic
+Certifications before publishing all 63 `product.id.by-sku` bindings.
+
+| Central source/write section | C2B disposition | Current result |
+| --- | --- | --- |
+| `seedProducts` / `products` | `MIGRATED` | 54 canonical definitions preserved; nine approved definitions added under `products.dev.products` |
+| `seedProducts` / `product_images` | `MIGRATED` | canonical primary-slot convergence retained; seven source-specific C2B images added; violation Products declare no image |
+| `seedProducts` / `product_certifications` | `MIGRATED` | four deterministic Product-ID/certificate-number fixtures with fail-closed preflight |
+| `seedCategories` / `product_categories` | `RETIRED_DUPLICATE` | only `products.reference.categories` produces the 37-row catalog |
+| `seedViolations` / `products` | `MIGRATED` | two suspended SKU fixtures owned by Products; central Product write removed |
+| C2B tables in `resetAll` | `RETIRED` | Product Categories, Products, Product Images, and Product Certifications removed from central destructive targets |
+
+`seedViolations` contained Product creation only. Its removal does not remove a
+co-located Audit Log or Notification write: those C4 fixtures live in the
+independent `seedAuditLogs` and `seedNotifications` methods and remain
+temporarily reachable.
+
+```text
+PRODUCT_WRITE_PORTION=RETIRED
+C4_SIDE_EFFECT_PORTION=INDEPENDENT_AUDIT_AND_NOTIFICATION_METHODS_RETAINED_TEMPORARILY
+
+P8_05C2B_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=9
+P8_05C2B_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+P8_05C2B_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=10
+P8_05C2B_CENTRAL_BUSINESS_TABLES_REMAINING=12
+
+CENTRAL_CATEGORY_BUSINESS_WRITES=0
+CENTRAL_PRODUCT_BUSINESS_WRITES=0
+CENTRAL_PRODUCT_IMAGE_BUSINESS_WRITES=0
+CENTRAL_PRODUCT_CERTIFICATION_BUSINESS_WRITES=0
+VIOLATION_PRODUCT_WRITES_AFTER_C2B=0
+```
+
+The nine remaining normal methods are `seedForum`, `seedReviews`,
+`seedAdPackages`, `seedAdCampaigns`, `seedCoopMembers`, `seedBulkListings`,
+`seedHarvestSchedules`, `seedAuditLogs`, and `seedNotifications`. Review and
+Harvest receive explicit scalar IDs only as transition wiring. Bulk Listing
+and Contribution receive no Product parameter. No C2C or C2D persistence
+ownership moves in this slice.
+
+```text
+TEMPORARY_LEGACY_CONTINUATION=YES
+TEMPORARY_LEGACY_GROUP_ID=legacy.dev.remaining
+TEMPORARY_LEGACY_DEPENDENCIES=users.dev.users,products.dev.products
+PRODUCT_SCALAR_IDS_PASSED_TO_LEGACY_CONTINUATION=8
+CENTRAL_POSITIONAL_PRODUCT_QUERY_DEPENDENCIES=0
+CENTRAL_PRODUCT_REPOSITORY_QUERIES_FOR_DEV_SEED=0
+
+P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_113
+P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2C_DECISION_STATUS=RESOLVED
+P8_05C2C_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_STABLE_KEY=NONE_PROVEN
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+```

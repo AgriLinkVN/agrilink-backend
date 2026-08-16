@@ -9,16 +9,22 @@ import {
   USER_ID_BY_EMAIL_OUTPUT_KIND,
   USERS_DEV_SEED_GROUP_ID,
 } from "../../modules/users/application/contracts/user-seed-output.contract";
-import { PRODUCTS_DEV_SEED_GROUP_ID } from "../../modules/products/application/contracts/product-seed-output.contract";
+import {
+  PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+  PRODUCTS_DEV_SEED_GROUP_ID,
+} from "../../modules/products/application/contracts/product-seed-output.contract";
 import {
   LEGACY_DEV_ACTOR_EMAILS,
+  LEGACY_DEV_PRODUCT_SKUS,
   LEGACY_REMAINING_DEV_SEED_METADATA,
   LEGACY_REMAINING_TARGET_RETIREMENT,
   LegacyDevActorIds,
+  LegacyDevProductIds,
   LegacyRemainingDevSeedContinuation,
   LegacyRemainingDevSeedGroup,
   TEMPORARY_LEGACY_CONTINUATION,
   resolveLegacyDevActorIds,
+  resolveLegacyDevProductIds,
 } from "./legacy-remaining-dev-seed.group";
 
 function createContext(
@@ -32,7 +38,13 @@ function createContext(
       value: `id:${email}`,
     })),
   });
-  registry.register(PRODUCTS_DEV_SEED_GROUP_ID, { outputs: [] });
+  registry.register(PRODUCTS_DEV_SEED_GROUP_ID, {
+    outputs: Object.values(LEGACY_DEV_PRODUCT_SKUS).map((sku) => ({
+      kind: PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+      key: sku,
+      value: `id:${sku}`,
+    })),
+  });
   return {
     nodeEnv: "development",
     databaseName: "agrilink_dev_disposable",
@@ -75,11 +87,31 @@ describe("LegacyRemainingDevSeedGroup", () => {
     ).toThrow("UNDECLARED_DEPENDENCY_LOOKUP");
   });
 
+  it("resolves only the eight explicitly allowlisted Product IDs", () => {
+    expect(resolveLegacyDevProductIds(createContext())).toEqual(
+      Object.fromEntries(
+        Object.entries(LEGACY_DEV_PRODUCT_SKUS).map(([alias, sku]) => [
+          alias,
+          `id:${sku}`,
+        ]),
+      ),
+    );
+    expect(Object.keys(LEGACY_DEV_PRODUCT_SKUS)).toHaveLength(8);
+  });
+
+  it("fails closed when Products output access is undeclared", () => {
+    expect(() =>
+      resolveLegacyDevProductIds(createContext([USERS_DEV_SEED_GROUP_ID])),
+    ).toThrow("UNDECLARED_DEPENDENCY_LOOKUP");
+  });
+
   it("calls only the narrow remaining C2/C3/C4 continuation", async () => {
     const calls: LegacyDevActorIds[] = [];
+    const productCalls: LegacyDevProductIds[] = [];
     const continuation: LegacyRemainingDevSeedContinuation = {
-      async seedRemainingLegacySections(actors) {
+      async seedRemainingLegacySections(actors, products) {
         calls.push(actors);
+        productCalls.push(products);
       },
     };
 
@@ -90,6 +122,11 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].FARMER).toBe("id:farmer@sandbox.com");
     expect(calls[0].ENTERPRISE).toBe("id:enterprise@agrilink.vn");
+    expect(productCalls).toHaveLength(1);
+    expect(productCalls[0].BUOI_DA_XANH_FARMER).toBe(
+      "id:DEV-BUOI-DA-XANH-FARMER-001",
+    );
+    expect(productCalls[0].XOAI_HOA_LOC).toBe("id:DEV-XOAI-HOA-LOC-001");
   });
 
   it("keeps migrated and deferred C1 paths out of central execution", () => {
@@ -108,5 +145,9 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(main).not.toMatch(/users\.dev\.addresses|logistics\.dev\.profile/);
     expect(main).toContain("new LegacyRemainingDevSeedGroup");
     expect(main).not.toContain("devSeed.seedAll");
+    expect(central).not.toMatch(
+      /getRepository\(Product\)|product-image\.entity|product-category\.entity|product-certification\.entity|products\[|productIds\[/,
+    );
+    expect(central).not.toMatch(/seedProducts|seedCategories|seedViolations/);
   });
 });

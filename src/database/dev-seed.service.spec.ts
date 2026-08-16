@@ -1,47 +1,38 @@
-import { Product } from "../modules/products/infrastructure/persistence/entities/product.entity";
-import { resolveDevSeedProductsForOrchestration } from "./dev-seed.service";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-describe("DevSeedService Product orchestration", () => {
-  it("skips the legacy Product write section after canonical Products DEV", async () => {
-    const canonicalProducts = [{ id: "product-1" } as Product];
-    const seed = jest.fn<Promise<Product[]>, []>();
-    const loadExisting = jest
-      .fn<Promise<Product[]>, []>()
-      .mockResolvedValue(canonicalProducts);
+describe("DevSeedService C2B transition", () => {
+  const source = readFileSync(join(__dirname, "dev-seed.service.ts"), "utf8");
 
-    await expect(
-      resolveDevSeedProductsForOrchestration(
-        { skipProducts: true },
-        { seed, loadExisting },
-      ),
-    ).resolves.toBe(canonicalProducts);
-    expect(seed).not.toHaveBeenCalled();
-    expect(loadExisting).toHaveBeenCalledTimes(1);
+  it("retires every central Product-owned write and repository query", () => {
+    expect(source).not.toMatch(
+      /getRepository\(Product\)|getRepository\(ProductImage\)|getRepository\(ProductCategory\)|getRepository\(ProductCertification\)/,
+    );
+    expect(source).not.toMatch(
+      /seedProducts|seedCategories|seedViolations|product-image\.entity|product-category\.entity|product-certification\.entity/,
+    );
+    expect(source).not.toMatch(
+      /product_certifications|product_images|\n\s+'products',/,
+    );
   });
 
-  it("preserves the legacy Product section outside canonical startup", async () => {
-    const seededProducts = [{ id: "legacy-product" } as Product];
-    const seed = jest
-      .fn<Promise<Product[]>, []>()
-      .mockResolvedValue(seededProducts);
-    const loadExisting = jest.fn<Promise<Product[]>, []>();
-
-    await expect(
-      resolveDevSeedProductsForOrchestration({}, { seed, loadExisting }),
-    ).resolves.toBe(seededProducts);
-    expect(seed).toHaveBeenCalledTimes(1);
-    expect(loadExisting).not.toHaveBeenCalled();
+  it("uses explicit scalar Product IDs for still-central Reviews and Harvests", () => {
+    expect(source).not.toMatch(
+      /products\[|productIds\[|\.slice\(0, 8\)|ProductStatus\.ACTIVE/,
+    );
+    expect(source).toContain("products.BUOI_DA_XANH_FARMER");
+    expect(source).toContain("products.CA_ROT_DA_LAT");
+    expect(source).toContain("products.XOAI_HOA_LOC");
   });
 
-  it("fails closed when canonical Product rows are unavailable", async () => {
-    await expect(
-      resolveDevSeedProductsForOrchestration(
-        { skipProducts: true },
-        {
-          seed: jest.fn<Promise<Product[]>, []>(),
-          loadExisting: jest.fn<Promise<Product[]>, []>().mockResolvedValue([]),
-        },
-      ),
-    ).rejects.toThrow("requires canonical Products DEV rows");
+  it("keeps C2C, C2D, C3, and C4 persistence sections reachable", () => {
+    expect(source).toContain("this.seedReviews");
+    expect(source).toContain("this.seedCoopMembers");
+    expect(source).toContain("this.seedBulkListings");
+    expect(source).toContain("this.seedHarvestSchedules");
+    expect(source).toContain("this.seedForum");
+    expect(source).toContain("this.seedAdPackages");
+    expect(source).toContain("this.seedAuditLogs");
+    expect(source).toContain("this.seedNotifications");
   });
 });
