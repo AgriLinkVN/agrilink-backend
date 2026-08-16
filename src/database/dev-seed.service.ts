@@ -1,19 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
 
-import { User } from '../modules/users/infrastructure/persistence/entities/user.entity';
-import { FarmerProfile } from '../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity';
-import { CooperativeProfile } from '../modules/profiles/infrastructure/persistence/entities/cooperative-profile.entity';
-import { EnterpriseProfile } from '../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity';
-import { SupplierProfile } from '../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity';
-import { LogisticsProfile } from './entities/logistics-profile.entity';
 import { Product } from '../modules/products/infrastructure/persistence/entities/product.entity';
 import { ProductImage } from '../modules/products/infrastructure/persistence/entities/product-image.entity';
 import { ProductCategory } from '../modules/products/infrastructure/persistence/entities/product-category.entity';
 import { ProductCertification } from '../modules/products/infrastructure/persistence/entities/product-certification.entity';
-import { Wishlist } from '../modules/products/infrastructure/persistence/entities/wishlist.entity';
 import { Review } from '../modules/reviews/infrastructure/persistence/entities/review.entity';
 import { ForumPost } from '../modules/forum/entities/forum-post.entity';
 import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
@@ -28,13 +20,12 @@ import { AuditLog } from '../modules/admin/entities/audit-log.entity';
 import { NotificationOrmEntity } from '../modules/notifications/infrastructure/persistence/notification.orm-entity';
 
 import {
-  UserRole, UserStatus, FarmingType, ProductUnit, ProductStatus,
+  FarmingType, ProductUnit, ProductStatus,
   SellerType, CertType, CertificationStatus,
-  AdType, AdStatus, SupplierType, NotifType,
+  AdType, AdStatus, NotifType,
 } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
-import { SeedClassification } from './seeds/framework/seed-contract';
-import { assertSeedExecutionSafety } from './seeds/framework/seed-environment.guard';
+import type { LegacyDevActorIds } from './seeds/legacy-remaining-dev-seed.group';
 
 export interface DevSeedExecutionOptions {
   readonly reset?: boolean;
@@ -64,102 +55,49 @@ export async function resolveDevSeedProductsForOrchestration(
 @Injectable()
 export class DevSeedService {
   private readonly logger = new Logger(DevSeedService.name);
-  private readonly PASSWORD = 'Test@1234';
-  private passwordHash: string;
 
-  constructor(@InjectDataSource() private readonly ds: DataSource) {
-    this.passwordHash = bcrypt.hashSync(this.PASSWORD, bcrypt.genSaltSync(10));
-  }
+  constructor(@InjectDataSource() private readonly ds: DataSource) {}
 
-  async seedAll(options: DevSeedExecutionOptions = {}): Promise<void> {
-    assertSeedExecutionSafety({
-      environment: {
-        NODE_ENV: process.env.NODE_ENV,
-        DB_NAME: this.ds.options.database,
-      },
-      classifications: [SeedClassification.DEV],
-    });
-
-    if (options.reset) {
-      await this.resetAll();
-    }
+  async seedRemainingLegacySections(users: LegacyDevActorIds): Promise<void> {
     const log = this.logger;
-
-    // ── 1. Users (must be first) ──────────────────────────────
-    const users = await this.seedUsers();
     const { ADMIN, FARMER, BUYER, ENTERPRISE, SUPPLIER, LOGISTICS, COOP, STATE_AGENCY } = users;
-    log.log(`[Seed] ${Object.keys(users).length} users ready`);
 
-    // ── 2. Addresses + Profiles + KYC ─────────────────────────
-    await this.seedAddress(ADMIN.id, 'Viện Quy hoạch, 65 Văn Miếu, Đống Đa', 1);
-    await this.seedAddress(FARMER.id, 'Thôn 3, xã Lạc Dương, Lâm Đồng', 2);
-    await this.seedAddress(BUYER.id, '123 Nguyễn Huệ, Quận 1, TP.HCM', 3);
-    await this.seedAddress(ENTERPRISE.id, 'Lô B4, Khu CN Thăng Long, Hà Nội', 1);
-    await this.seedAddress(SUPPLIER.id, 'KM5, Quốc lộ 14, Buôn Ma Thuột', 10);
-    await this.seedAddress(LOGISTICS.id, '456 Lê Lợi, Hải Châu, Đà Nẵng', 6);
-    await this.seedAddress(COOP.id, 'Ấp Mỹ Hòa, xã Mỹ Phong, Tiền Giang', 22);
-    await this.seedAddress(STATE_AGENCY.id, '16 Ngô Quyền, Hoàn Kiếm, Hà Nội', 1);
-    log.log(`[Seed] addresses seeded`);
-
-    await this.seedProfile(FARMER, 'farmer');
-    await this.seedProfile(COOP, 'cooperative');
-    await this.seedProfile(ENTERPRISE, 'enterprise');
-    await this.seedProfile(SUPPLIER, 'supplier');
-    await this.seedProfile(LOGISTICS, 'logistics');
-    log.log(`[Seed] role profiles + KYC seeded`);
-
-    // ── 3. Product categories + Products + Images ──────────────
-    const products = await resolveDevSeedProductsForOrchestration(options, {
-      seed: () => this.seedProducts(),
+    // Products are already reconciled by products.dev.products. This read is
+    // temporary C2 debt ordered by the compatibility group's Products edge.
+    const products = await resolveDevSeedProductsForOrchestration({ skipProducts: true }, {
+      seed: () => this.seedProducts(FARMER, COOP, SUPPLIER),
       loadExisting: () => this.ds.getRepository(Product).find(),
     });
-    log.log(
-      options.skipProducts
-        ? `[Seed] ${products.length} canonical demo products reused`
-        : `[Seed] ${products.length} demo products seeded`,
-    );
+    log.log(`[Seed] ${products.length} canonical demo products reused`);
 
-    // ── 4. Forum ──────────────────────────────────────────────
-    const posts = await this.seedForum(FARMER.id, COOP.id, BUYER.id, products);
+    const posts = await this.seedForum(FARMER, COOP, BUYER, products);
     log.log(`[Seed] ${posts.length} forum posts seeded`);
 
-    // ── 5. Reviews ────────────────────────────────────────────
-    const reviews = await this.seedReviews(FARMER.id, COOP.id, BUYER.id, ENTERPRISE.id, products);
+    const reviews = await this.seedReviews(FARMER, COOP, BUYER, ENTERPRISE, products);
     log.log(`[Seed] ${reviews.length} reviews seeded`);
 
-    // ── 6. Ads ────────────────────────────────────────────────
     await this.seedAdPackages();
-    await this.seedAdCampaigns(SUPPLIER.id, ADMIN.id);
+    await this.seedAdCampaigns(SUPPLIER, ADMIN);
     log.log(`[Seed] ads seeded`);
 
-    // ── 7. Cooperative data ───────────────────────────────────
-    const members = await this.seedCoopMembers(COOP.id, FARMER.id);
-    await this.seedBulkListings(COOP.id, FARMER.id, products);
-    await this.seedHarvestSchedules(COOP.id, FARMER.id, products[0].id);
+    const members = await this.seedCoopMembers(COOP, FARMER);
+    await this.seedBulkListings(COOP, FARMER, products);
+    await this.seedHarvestSchedules(COOP, FARMER, products[0].id);
     log.log(`[Seed] cooperative data seeded (${members} members)`);
 
-    // ── 8. Suspended products (for state_agency dashboard) ────
-    await this.seedViolations(products[products.length - 1].id, ADMIN.id);
+    await this.seedViolations(FARMER, SUPPLIER);
     log.log(`[Seed] violations seeded`);
 
-    // ── 9. Audit logs ─────────────────────────────────────────
-    await this.seedAuditLogs(ADMIN.id, STATE_AGENCY.id);
+    await this.seedAuditLogs(ADMIN, STATE_AGENCY);
     log.log(`[Seed] audit logs seeded`);
 
-    // ── 10. Notifications ─────────────────────────────────────
     await this.seedNotifications(users);
     log.log(`[Seed] notifications seeded`);
-
-    log.log('═══════════════════════════════════════════');
-    log.log(`[Seed] ALL DEMO DATA SEEDED SUCCESSFULLY`);
-    log.log(`[Seed] Login password for all: ${this.PASSWORD}`);
-    for (const [key, u] of Object.entries(users)) {
-      log.log(`[Seed]   ${key.padEnd(15)} ${u.phone.padEnd(15)} ${u.fullName}`);
-    }
-    log.log('═══════════════════════════════════════════');
   }
 
   private async resetAll(): Promise<void> {
+    // Temporary C2/C3/C4 reset debt. C1-owned and deferred targets are omitted;
+    // the method itself remains scheduled for retirement in P8-05C4.
     const tables = [
       'harvest_schedules', 'bulk_listing_contributions', 'bulk_listings',
       'cooperative_members', 'forum_likes', 'forum_comments', 'forum_posts',
@@ -167,188 +105,26 @@ export class DevSeedService {
       'ad_campaigns', 'ad_packages', 'ad_events',
       'product_certifications', 'product_images', 'products',
       'product_categories',
-      'farmer_profiles', 'cooperative_profiles', 'enterprise_profiles',
-      'supplier_profiles', 'logistics_profiles',
-      'user_addresses', 'notifications', 'audit_logs',
+      'notifications', 'audit_logs',
     ];
     for (const t of tables) {
       try { await this.ds.query(`DELETE FROM "${t}"`); } catch { /* skip non-existent */ }
     }
-    // Keep users (re-seed below)
-    await this.ds.query(`DELETE FROM "users"`);
-    this.logger.log('[Seed] All tables reset');
-  }
-
-  // ── USERS ────────────────────────────────────────────────────────────
-  private async seedUsers() {
-    const repo = this.ds.getRepository(User);
-    const ph = this.passwordHash;
-    const data = [
-      { phone: '+84905064606', email: 'admin@agrilink.vn', role: UserRole.ADMIN, status: UserStatus.ACTIVE, fullName: 'Admin Hệ thống AgriLink', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=AD' },
-      { phone: '+84905602427', email: 'farmer@sandbox.com', role: UserRole.FARMER, status: UserStatus.ACTIVE, fullName: 'Nguyễn Văn Nông', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=NVN' },
-      { phone: '+84909259456', email: 'buyer@sandbox.com', role: UserRole.BUYER, status: UserStatus.ACTIVE, fullName: 'Trần Thị Thu Mua', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=TTM' },
-      { phone: '+84902136212', email: 'enterprise@sandbox.com', role: UserRole.ENTERPRISE, status: UserStatus.ACTIVE, fullName: 'Doanh nghiệp Nông sản Việt', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=DNV' },
-      { phone: '+84905516850', email: 'supplier@sandbox.com', role: UserRole.SUPPLIER, status: UserStatus.ACTIVE, fullName: 'Nhà cung cấp Vật tư An Dân', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=NCC' },
-      { phone: '+84903730212', email: 'logistics@sandbox.com', role: UserRole.LOGISTICS, status: UserStatus.ACTIVE, fullName: 'Logistics Giao hàng Nhanh', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=GHN' },
-      { phone: '+84902372975', email: 'cooperative@sandbox.com', role: UserRole.COOPERATIVE, status: UserStatus.ACTIVE, fullName: 'HTX Nông nghiệp Xanh Tiền Giang', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=HTX' },
-      { phone: '+84907658754', email: 'state_agency@sandbox.com', role: UserRole.STATE_AGENCY, status: UserStatus.ACTIVE, fullName: 'Cơ quan Quản lý NN Nông thôn', isPhoneVerified: true, isEmailVerified: true, avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=SDA' },
-      { phone: '+84909000001', email: 'demo.farmer@sandbox.com', role: UserRole.FARMER, status: UserStatus.ACTIVE, fullName: 'Nông dân Demo Lâm Đồng', isPhoneVerified: true, isEmailVerified: true },
-      { phone: '+84909000002', email: 'demo.coop@sandbox.com', role: UserRole.COOPERATIVE, status: UserStatus.ACTIVE, fullName: 'HTX Demo Tiền Giang', isPhoneVerified: true, isEmailVerified: true },
-      { phone: '+84909000003', email: 'demo.supplier@sandbox.com', role: UserRole.SUPPLIER, status: UserStatus.ACTIVE, fullName: 'Nhà cung cấp Demo Đắk Lắk', isPhoneVerified: true, isEmailVerified: true },
-    ];
-
-    const result: Record<string, User> = {};
-    const keys = ['ADMIN', 'FARMER', 'BUYER', 'ENTERPRISE', 'SUPPLIER', 'LOGISTICS', 'COOP', 'STATE_AGENCY'];
-    for (let i = 0; i < keys.length; i++) {
-      const existing = await repo.findOne({ where: { phone: data[i].phone } });
-      if (existing) {
-        await repo.update(existing.id, { passwordHash: ph });
-        result[keys[i]] = existing;
-      } else {
-        result[keys[i]] = await repo.save(repo.create({ ...data[i], passwordHash: ph }));
-      }
-    }
-    // Demo seller users (index 8-10)
-    for (let i = 8; i < data.length; i++) {
-      const existing = await repo.findOne({ where: { phone: data[i].phone } });
-      if (!existing) await repo.save(repo.create({ ...data[i], passwordHash: ph }));
-    }
-    return result as Record<string, User>;
-  }
-
-  // ── ADDRESSES ────────────────────────────────────────────────────────
-  private async seedAddress(userId: string, addr: string, provinceId: number) {
-    const existing = await this.ds.query(`SELECT id FROM user_addresses WHERE user_id = $1 LIMIT 1`, [userId]);
-    if (existing.length === 0) {
-      await this.ds.query(
-        `INSERT INTO user_addresses (user_id, label, full_name, phone, address_line, province_id, is_default) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [userId, 'Địa chỉ chính', addr, '', addr, provinceId, true],
-      );
-    }
-  }
-
-  // ── ROLE PROFILES ────────────────────────────────────────────────────
-  private async seedProfile(user: User, type: string) {
-    const now = new Date();
-    switch (type) {
-      case 'farmer': {
-        const repo = this.ds.getRepository(FarmerProfile);
-        const existing = await repo.findOne({ where: { userId: user.id } });
-        if (!existing) {
-          await repo.save(repo.create({
-            userId: user.id,
-            cccdNumber: '079201012345',
-            cccdFrontUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=CCCD+Mat+truoc',
-            cccdBackUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=CCCD+Mat+sau',
-            residenceAddress: 'Thôn 3, xã Lạc Dương, Lâm Đồng',
-            ward: 'Lạc Dương',
-            isKycVerified: true,
-            verifiedAt: now,
-            bio: 'Nông dân sản xuất rau củ hữu cơ tại Lâm Đồng với hơn 10 năm kinh nghiệm. Diện tích canh tác 5ha.',
-            trustScore: 4.8,
-            totalSales: 156,
-            provinceId: 2,
-            districtId: null as any,
-          }));
-        }
-        break;
-      }
-      case 'cooperative': {
-        const repo = this.ds.getRepository(CooperativeProfile);
-        const existing = await repo.findOne({ where: { userId: user.id } });
-        if (!existing) {
-          await repo.save(repo.create({
-            userId: user.id,
-            cooperativeName: user.fullName!,
-            businessLicenseNumber: '1801234567',
-            taxCode: '1801234567',
-            cooperativeCertUrl: 'https://placehold.co/600x400/FFF3E0/E65100?text=Giay+phep+HTX',
-            businessLicenseUrl: 'https://placehold.co/600x400/FFF3E0/E65100?text=DKKD+HTX',
-            representativeName: 'Nguyễn Văn Xanh',
-            representativePhone: '+84902372975',
-            representativeCccd: '079201098765',
-            representativeCccdFrontUrl: 'https://placehold.co/600x400/E3F2FD/1565C0?text=CCCD+Mat+truoc',
-            representativeCccdBackUrl: 'https://placehold.co/600x400/E3F2FD/1565C0?text=CCCD+Mat+sau',
-            membersListUrl: 'https://placehold.co/800x600/F5F5F5/424242?text=Danh+sach+thanh+vien',
-            address: 'Ấp Mỹ Hòa, xã Mỹ Phong, Tiền Giang',
-            provinceId: 22,
-            totalMembers: 45,
-            isVerified: true,
-            verifiedBy: null,
-            verifiedAt: now,
-          }));
-        }
-        break;
-      }
-      case 'enterprise': {
-        const repo = this.ds.getRepository(EnterpriseProfile);
-        const existing = await repo.findOne({ where: { userId: user.id } });
-        if (!existing) {
-          await repo.save(repo.create({
-            userId: user.id,
-            companyName: user.fullName!,
-            taxCode: '0101234568',
-            businessLicenseUrl: 'https://placehold.co/600x400/E8F5E9/2E7D32?text=DKKD+Doanh+nghiep',
-            representativeName: 'Trần Văn Doanh',
-            representativePhone: '+84902136212',
-            address: 'Lô B4, Khu CN Thăng Long, Hà Nội',
-            provinceId: 1,
-            industry: 'Chế biến nông sản',
-            isVerified: true,
-          }));
-        }
-        break;
-      }
-      case 'supplier': {
-        const repo = this.ds.getRepository(SupplierProfile);
-        const existing = await repo.findOne({ where: { userId: user.id } });
-        if (!existing) {
-          await repo.save(repo.create({
-            userId: user.id,
-            companyName: user.fullName!,
-            taxCode: '4701234569',
-            address: 'KM5, Quốc lộ 14, Buôn Ma Thuột',
-            provinceId: 10,
-            supplierType: SupplierType.MIXED,
-            isVerified: true,
-            businessLicenseUrl: 'https://placehold.co/600x400/FFF3E0/E65100?text=DKKD+NCC',
-            verifiedBy: null,
-          }));
-        }
-        break;
-      }
-      case 'logistics': {
-        const repo = this.ds.getRepository(LogisticsProfile);
-        const existing = await repo.findOne({ where: { userId: user.id } });
-        if (!existing) {
-          await repo.save(repo.create({
-            userId: user.id,
-            companyName: user.fullName!,
-            vehicleTypes: ['Xe tải 5 tấn', 'Xe tải 10 tấn', 'Xe lạnh', 'Xe ba gác'],
-            operatingProvinces: [1, 2, 6, 7, 22, 23, 24, 10, 11, 12],
-            isVerified: true,
-          }));
-        }
-        break;
-      }
-    }
+    this.logger.log('[Seed] Remaining legacy tables reset');
   }
 
   // ── PRODUCTS ────────────────────────────────────────────────────────
-  private async seedProducts(): Promise<Product[]> {
+  private async seedProducts(farmerId: string, coopId: string, supplierId: string): Promise<Product[]> {
     const productRepo = this.ds.getRepository(Product);
     const imgRepo = this.ds.getRepository(ProductImage);
     const certRepo = this.ds.getRepository(ProductCertification);
     const categoryRepo = this.ds.getRepository(ProductCategory);
+    const farmer = { id: farmerId };
+    const coop = { id: coopId };
+    const supplier = { id: supplierId };
 
     const existingCount = await productRepo.count();
     if (existingCount > 0) return productRepo.find();
-
-    // Get users for sellerId
-    const users = await this.ds.getRepository(User).find();
-    const farmer = users.find(u => u.role === UserRole.FARMER)!;
-    const coop = users.find(u => u.role === UserRole.COOPERATIVE)!;
-    const supplier = users.find(u => u.role === UserRole.SUPPLIER)!;
 
     // Ensure categories exist
     await this.seedCategories(categoryRepo);
@@ -556,18 +332,14 @@ export class DevSeedService {
     const existing = await repo.count();
     if (existing > 0) return existing;
 
-    const allFarmers = await this.ds.getRepository(User).find({ where: { role: UserRole.FARMER } });
-    // Create members for each farmer (except the coop account itself)
-    for (const f of allFarmers.slice(0, 5)) {
-      await repo.save({
-        cooperativeId: coopId,
-        farmerId: f.id,
-        status: 'active',
-        role: 'Thành viên sản xuất',
-        joinedAt: new Date(),
-      } as any);
-    }
-    return allFarmers.slice(0, 5).length;
+    await repo.save({
+      cooperativeId: coopId,
+      farmerId,
+      status: 'active',
+      role: 'Thành viên sản xuất',
+      joinedAt: new Date(),
+    } as any);
+    return 1;
   }
 
   private async seedBulkListings(coopId: string, farmerId: string, products: Product[]) {
@@ -620,17 +392,13 @@ export class DevSeedService {
   }
 
   // ── VIOLATIONS ───────────────────────────────────────────────────────
-  private async seedViolations(productId: string, adminId: string) {
+  private async seedViolations(farmerId: string, supplierId: string) {
     const repo = this.ds.getRepository(Product);
     const existing = await repo.findOne({ where: { status: ProductStatus.SUSPENDED } });
     if (existing) return;
 
-    const users = await this.ds.getRepository(User).find();
-    const farmer = users.find(u => u.role === UserRole.FARMER)!;
-    const supplier = users.find(u => u.role === UserRole.SUPPLIER)!;
-
     await repo.save({
-      sellerId: farmer.id,
+      sellerId: farmerId,
       sellerType: SellerType.FARMER,
       name: 'Thuốc trừ sâu không tem nhãn',
       description: 'Thuốc BVTV không rõ nguồn gốc, vi phạm chất lượng',
@@ -642,7 +410,7 @@ export class DevSeedService {
       rejectionReason: 'Vi phạm chính sách chất lượng. Hàng hóa không rõ nguồn gốc, không tem nhãn phụ theo quy định.',
     });
     await repo.save({
-      sellerId: supplier.id,
+      sellerId: supplierId,
       sellerType: SellerType.SUPPLIER,
       name: 'Phân bón kém chất lượng',
       description: 'Phân bón NPK không đạt hàm lượng cam kết',
@@ -676,10 +444,13 @@ export class DevSeedService {
   }
 
   // ── NOTIFICATIONS ────────────────────────────────────────────────────
-  private async seedNotifications(users: Record<string, User>) {
+  private async seedNotifications(actors: LegacyDevActorIds) {
     const repo = this.ds.getRepository(NotificationOrmEntity);
     const existing = await repo.count();
     if (existing > 0) return;
+    const users = Object.fromEntries(
+      Object.entries(actors).map(([alias, id]) => [alias, { id }]),
+    ) as Record<keyof LegacyDevActorIds, { readonly id: string }>;
 
     const notifs = [
       { userId: users.FARMER.id, type: NotifType.NEW_ORDER, title: 'Đơn hàng mới #DH-001', body: 'Người mua Trần Thị Thu đã đặt 50kg xoài cát Hòa Lộc.' },

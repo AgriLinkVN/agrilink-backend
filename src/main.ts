@@ -13,7 +13,9 @@ import { DataSource } from 'typeorm';
 import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
 import { createProductsCategoryReferenceSeedGroup } from '@modules/products/infrastructure/database/seeds/product-category.seed';
 import { createUsersDevSeedGroup } from '@modules/users/infrastructure/database/seeds/user.seed';
+import { createProfilesRoleProfilesDevSeedGroup } from '@modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer';
 import { DevSeedService } from './database/dev-seed.service';
+import { LegacyRemainingDevSeedGroup } from './database/seeds/legacy-remaining-dev-seed.group';
 import {
   buildCorsOptions,
   parseCorsOrigins,
@@ -136,19 +138,15 @@ async function bootstrap() {
     const seedOrchestrator = new SeedOrchestrator([
       createProductsCategoryReferenceSeedGroup(dataSource),
       createUsersDevSeedGroup(dataSource),
+      createProfilesRoleProfilesDevSeedGroup(dataSource),
       app.get(ProductDevelopmentSeedService),
+      new LegacyRemainingDevSeedGroup(app.get(DevSeedService)),
     ]);
     await seedOrchestrator.execute({
       environment: process.env,
       classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
     });
-    console.log('[Seed] canonical Products DEV group reconciled');
-
-    // Comprehensive dev seed — users, profiles, forum, reviews, ads, etc.
-    const devSeed = app.get(DevSeedService);
-    await devSeed.seedAll({
-      skipProducts: true,
-    });
+    console.log('[Seed] canonical owner groups and legacy continuation reconciled');
   }
 
   await app.listen(port);

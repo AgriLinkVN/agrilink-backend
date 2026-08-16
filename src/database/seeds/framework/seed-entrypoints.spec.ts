@@ -11,6 +11,10 @@ describe("legacy seed entrypoint safety regressions", () => {
     join(__dirname, "..", "..", "..", "main.ts"),
     "utf8",
   );
+  const centralSource = readFileSync(
+    join(__dirname, "..", "..", "dev-seed.service.ts"),
+    "utf8",
+  );
   const frameworkContractSource = [
     "seed-contract.ts",
     "seed-dependency-outputs.ts",
@@ -61,16 +65,22 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(guard).toBeLessThan(
       mainSource.indexOf("const seedOrchestrator = new SeedOrchestrator"),
     );
-    expect(guard).toBeLessThan(mainSource.indexOf(".seedAll("));
+    expect(guard).toBeLessThan(
+      mainSource.indexOf("new LegacyRemainingDevSeedGroup"),
+    );
+    expect(mainSource).not.toContain(".seedAll(");
   });
 
-  it("runs one canonical Product DEV group and skips central Product writes", () => {
+  it("runs canonical owner groups and the central continuation in one DAG", () => {
     expect(
       mainSource.match(/app\.get\(ProductDevelopmentSeedService\)/g),
     ).toHaveLength(1);
     expect(mainSource).toContain("createProductsCategoryReferenceSeedGroup");
     expect(mainSource).toContain("createUsersDevSeedGroup");
-    expect(mainSource).toContain("skipProducts: true");
+    expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
+    expect(mainSource).toContain("new LegacyRemainingDevSeedGroup");
+    expect(centralSource).toContain("skipProducts: true");
+    expect(mainSource).not.toContain("devSeed.seedAll");
     expect(mainSource).not.toContain("seedForDevelopment(");
     expect(cliSource).not.toContain("ProductDevelopmentSeedService");
   });

@@ -91,9 +91,34 @@ describe("UsersDevSeedGroup", () => {
     const phones = userDevSeedData.map(({ phone }) => phone);
     const emails = userDevSeedData.map(({ email }) => email);
 
-    expect(userDevSeedData).toHaveLength(7);
+    expect(userDevSeedData).toHaveLength(10);
     expect(new Set(phones).size).toBe(userDevSeedData.length);
     expect(new Set(emails).size).toBe(userDevSeedData.length);
+
+    expect(emails).toEqual(
+      expect.arrayContaining([
+        "farmer@sandbox.com",
+        "cooperative@sandbox.com",
+        "state_agency@sandbox.com",
+      ]),
+    );
+    expect(emails).not.toEqual(
+      expect.arrayContaining([
+        "buyer@sandbox.com",
+        "enterprise@sandbox.com",
+        "supplier@sandbox.com",
+        "logistics@sandbox.com",
+        "demo.farmer@sandbox.com",
+        "demo.coop@sandbox.com",
+        "demo.supplier@sandbox.com",
+      ]),
+    );
+    expect(
+      userDevSeedData.filter(({ email }) => email === "admin@agrilink.vn"),
+    ).toHaveLength(1);
+    expect(
+      userDevSeedData.find(({ email }) => email === "admin@agrilink.vn")?.phone,
+    ).toBe("+84901111099");
   });
 
   it("requires explicit DEV selection", async () => {
@@ -130,9 +155,9 @@ describe("UsersDevSeedGroup", () => {
 
     expect(state.updates).toHaveLength(1);
     expect(state.updates[0]).toEqual({ ...first, passwordHash });
-    expect(state.creates).toHaveLength(6);
-    expect(state.rows.size).toBe(7);
-    expect(firstResult.outputs).toHaveLength(7);
+    expect(state.creates).toHaveLength(9);
+    expect(state.rows.size).toBe(10);
+    expect(firstResult.outputs).toHaveLength(10);
     expect(firstResult.outputs).toEqual(
       userDevSeedData.map(({ email }, index) => ({
         kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
@@ -143,8 +168,8 @@ describe("UsersDevSeedGroup", () => {
 
     const secondResult = await group.execute(devContext);
 
-    expect(state.creates).toHaveLength(6);
-    expect(state.updates).toHaveLength(8);
+    expect(state.creates).toHaveLength(9);
+    expect(state.updates).toHaveLength(11);
     expect(credentials).toEqual(["demo123", "demo123"]);
     expect(secondResult).toEqual(firstResult);
     expect(
@@ -154,7 +179,7 @@ describe("UsersDevSeedGroup", () => {
     ).toBe(true);
   });
 
-  it("publishes all seven email-to-ID bindings without secret values", async () => {
+  it("publishes all ten email-to-ID bindings without secret values", async () => {
     const state = createWriter();
     const { hasher } = createHasher("sensitive-password-hash");
 
@@ -162,7 +187,7 @@ describe("UsersDevSeedGroup", () => {
       devContext,
     );
 
-    expect(result.outputs).toHaveLength(7);
+    expect(result.outputs).toHaveLength(10);
     expect(
       result.outputs.every(
         ({ kind, key, value }) =>
