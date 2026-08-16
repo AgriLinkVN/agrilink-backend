@@ -1,13 +1,14 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8_05C1A_USER_ROOTED_IDENTITY_AND_GEOGRAPHY_DECISIONS`
+- Implementation authorized: `P8_05C2B_PRODUCTS_EXTENSION` after PR #113
+  merges; C2C waits for its Product output and C2D retains domain blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
   Products DEV, Profiles DEV ownership, and the temporary dependency-scoped
   central continuation; C1 deferred-table writes are retired
-- Implementation base: `develop` at P8-05C1A merge commit
-  `3737a8ee5afb70586a9890fec40c5e57b2f6c8f6` (PR #111)
+- Implementation base: `develop` at P8-05C1 merge commit
+  `b1988e27fcfeaf2c03baad762ff609c59ed18cd4` (PR #112)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -26,6 +27,8 @@ The complete central development-service plan is recorded in
 [dev-seed-service-decomposition.md](dev-seed-service-decomposition.md).
 The C1 User, Address, Profile, Logistics, and Geography decisions are recorded
 in [dev-seed-c1-decisions.md](dev-seed-c1-decisions.md).
+The Product-dependent C2 fixture audit and decisions are recorded in
+[dev-seed-c2-decisions.md](dev-seed-c2-decisions.md).
 
 ## Scope
 
@@ -259,7 +262,16 @@ P8_05C0_DEVSEEDSERVICE_PLAN_STATUS=IMPLEMENTED_BY_MERGED_PR_110
 P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=IN_PROGRESS
 P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_111
 P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
-P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_112
+P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2C_DECISION_STATUS=RESOLVED
+P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_PENDING_C2B_OUTPUT
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
@@ -298,11 +310,21 @@ orchestration-only phase exit criterion is still open, and P8-08 remains
 authorized. The standalone admin development source remains explicitly deferred
 to P8-05D.
 
-P8-05C1A resolves the C1 entry decisions without changing seed behavior. The
-future Users DEV payload keeps the seven merged identities, adds three
-source-proven distinct central identities, maps four semantic duplicates to
-existing canonical email outputs, and retires three declarations without a
-deterministic consumer. User Addresses use a seed-level default slot. Numeric
-Address/Profile/Logistics Geography-looking fields remain opaque legacy owner
-metadata, so the C1 DAG has no speculative Geography edge. C1 implementation
-remains `NOT_STARTED` until this decision PR is human-reviewed.
+P8-05C1A resolved the C1 entry decisions without changing seed behavior. PR
+#112 then implemented the ten-identity Users DEV payload and owner-local
+Profiles DEV group, retired the deferred Address and Logistics central writes,
+and retained `legacy.dev.remaining` as temporary C2/C3/C4 compatibility
+scaffolding. Numeric Address/Profile/Logistics Geography-looking fields remain
+opaque legacy owner metadata, so the C1 DAG has no speculative Geography edge.
+
+P8-05C2A statically audits every remaining Product-dependent fixture. It
+approves the `product.id.by-sku` contract, eleven ordinary Product mappings,
+nine new deterministic Product SKUs, all nine Review SKU mappings, all three
+Harvest SKU mappings, deterministic certification numbers, and the
+Cooperative Member pair key. Human review establishes seller ownership as
+identity-relevant and resolves the four former Product conflicts without
+changing the existing 54 Products. C2B is authorized to target 63 Product
+outputs after PR #113 merges. C2C's decision surface is resolved but waits for
+that output. Bulk Listing, Contribution, and Harvest stable identities remain
+C2D domain blockers, so whole-C2 authorization stays `NO` and
+`P8_05C2_IMPLEMENTATION_STATUS` remains `NOT_STARTED`.
