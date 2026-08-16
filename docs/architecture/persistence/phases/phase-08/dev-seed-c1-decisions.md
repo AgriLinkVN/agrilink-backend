@@ -4,8 +4,8 @@
 
 ```text
 DECISION_ID=P8_05C1A_USER_ROOTED_IDENTITY_AND_GEOGRAPHY_DECISIONS
-DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
-IMPLEMENTATION_STATUS=NOT_STARTED
+DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_111
+IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 CLASSIFICATION=DEV
 P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
 ```
@@ -374,3 +374,68 @@ SYNCHRONIZE=NO
 `admin-dev.seed.ts` remains unchanged. Its admin conflict and all dashboard
 fixture identities are deferred to P8-05D. TEST fixtures, migrations, and
 backfills remain outside P8-05C1.
+
+## P8-05C1B Implementation Overlay
+
+This overlay records the source implementation without rewriting the decision
+history. PR #111 merge commit
+`3737a8ee5afb70586a9890fec40c5e57b2f6c8f6` is the implementation baseline.
+
+Static evidence confirms that neither deferred table has an executable
+canonical mapping. `user_addresses` is absent from canonical baseline V2 and
+all migrations, has no runtime/CLI registration or repository owner, and
+remains a deferred Users mapping. `logistics_profiles` is also absent from the
+baseline and migrations; Phase 7A explicitly classifies it as `DORMANT_DEFER`
+with no runtime/CLI registration or owner repository. The approved seed-level
+identities remain future owner decisions, but do not authorize writes to
+absent, deferred tables. Both obsolete central DEV writes are retired without
+replacement execution, schema, or migration.
+
+```text
+USER_ADDRESSES_PERSISTENCE_STATUS=DEFERRED_NONCANONICAL_MAPPING
+LOGISTICS_PROFILES_PERSISTENCE_STATUS=DORMANT_NO_EXECUTION
+USER_ADDRESSES_C1_DISPOSITION=DEFER_SEED_EXECUTION_AND_RETIRE_LEGACY_CENTRAL_WRITE
+LOGISTICS_PROFILES_C1_DISPOSITION=DEFER_SEED_EXECUTION_AND_RETIRE_LEGACY_CENTRAL_WRITE
+
+P8_05C1B_USERS_STATUS=MIGRATED_TO_USERS_DEV_USERS
+P8_05C1B_ADDRESSES_STATUS=RETIRED_DUE_TO_DEFERRED_PERSISTENCE
+P8_05C1B_PROFILES_STATUS=MIGRATED_TO_PROFILES_DEV_ROLE_PROFILES
+P8_05C1B_LOGISTICS_STATUS=RETIRED_DUE_TO_DEFERRED_PERSISTENCE
+TEMPORARY_LEGACY_CONTINUATION_STATUS=ACTIVE_UNTIL_P8_05C4
+```
+
+`profiles.dev.role-profiles` owns only the four canonical Profile tables. It
+preflights User-ID and secondary-unique matches before its first write, fails
+closed on split identity, reconciles intended DEV fields per record, and keeps
+legacy province integers opaque. It consumes only declared
+`users.dev.users/user.id.by-email` bindings.
+
+`legacy.dev.remaining` is explicitly temporary migration scaffolding. It runs
+in the same DAG, depends on `users.dev.users` for scalar actor identities and
+`products.dev.products` for ordering before remaining Product-dependent
+fixtures, and invokes only still-unmigrated C2/C3/C4 sections. It exposes no
+global output registry and is scheduled for deletion in P8-05C4.
+
+```text
+FINAL_C1_USER_COUNT=10
+USER_DEV_OUTPUT_COUNT=10
+PROFILE_OWNER_GROUP=profiles.dev.role-profiles
+PROFILE_TABLE_COUNT=4
+GEOGRAPHY_DEPENDENCY=NONE
+TEMPORARY_LEGACY_CONTINUATION=YES
+TEMPORARY_LEGACY_GROUP_ID=legacy.dev.remaining
+TARGET_RETIREMENT=P8_05C4
+
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+DISPOSABLE_DATABASE_VERIFICATION=NOT_RUN
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+```

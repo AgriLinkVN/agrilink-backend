@@ -4,8 +4,8 @@
 
 ```text
 PLAN_ID=P8_05C0_CENTRAL_DEVSEEDSERVICE_DECOMPOSITION_PLAN
-PLAN_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
-IMPLEMENTATION_STATUS=NOT_STARTED
+PLAN_STATUS=IMPLEMENTED_BY_MERGED_PR_110
+IMPLEMENTATION_STATUS=IN_PROGRESS
 SOURCE=src/database/dev-seed.service.ts
 CLASSIFICATION=DEV
 ONE_TARGET_OWNER_PER_SEEDED_TABLE=YES
@@ -704,3 +704,48 @@ P8_05C1_IMPLEMENTATION_STATUS=NOT_STARTED
 Authorization means the documented C1B source implementation may begin after
 human review. It does not authorize schema changes, database execution, seed
 execution, or changes to `admin-dev.seed.ts`.
+
+## P8-05C1B Implementation Overlay
+
+The C1 implementation uses the reviewed decisions without changing C2, C3,
+C4, or admin DEV business payloads.
+
+| Central source | C1 target | Implementation status |
+| --- | --- | --- |
+| `seedUsers` / `users` | ten canonical identities and ten outputs in `users.dev.users` | `MIGRATED` |
+| `seedAddress` / `user_addresses` | no executable group; raw SELECT/INSERT removed | `DEFERRED_BY_PERSISTENCE_BOUNDARY`; central write `RETIRED` |
+| `seedProfile` / four canonical Profile tables | `profiles.dev.role-profiles` and owner-local adapter | `MIGRATED` |
+| `seedProfile` / `logistics_profiles` | no executable group under Phase 7A `DORMANT_DEFER` | `DEFERRED_BY_PERSISTENCE_BOUNDARY`; central write `RETIRED` |
+| C1 targets in `resetAll` | removed; later-owner reset debt remains central | `RETIRED` for C1 targets only |
+
+`legacy.dev.remaining` replaces the former direct central call during
+decomposition. It is not a canonical owner group. Its dependencies are
+`users.dev.users` and `products.dev.products`; it resolves the eight actor
+aliases only through scoped `user.id.by-email` bindings. The Products edge
+orders the existing repository load until C2 publishes approved Product
+identities. No orchestrator-global output access is introduced.
+
+The twelve remaining normal write methods are unchanged in ownership and stay
+assigned to C2/C3/C4: `seedProducts`, `seedCategories`, `seedForum`,
+`seedReviews`, `seedAdPackages`, `seedAdCampaigns`, `seedCoopMembers`,
+`seedBulkListings`, `seedHarvestSchedules`, `seedViolations`, `seedAuditLogs`,
+and `seedNotifications`. `resetAll` remains one destructive-write method for
+C4; only its retired C1 targets were removed. Minimal actor-parameter changes
+replace three unordered Users queries and are not later-owner migrations.
+
+```text
+P8_05C1_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=12
+P8_05C1_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+P8_05C1_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=13
+TEMPORARY_LEGACY_CONTINUATION=YES
+TEMPORARY_LEGACY_GROUP_ID=legacy.dev.remaining
+TEMPORARY_LEGACY_DEPENDENCIES=users.dev.users,products.dev.products
+TARGET_RETIREMENT=P8_05C4
+P8_05C2_BUSINESS_MIGRATIONS=0
+P8_05C3_BUSINESS_MIGRATIONS=0
+P8_05C4_LEAF_BUSINESS_MIGRATIONS=0
+P8_05C1_EXIT_GATE=SATISFIED_IN_SOURCE_PENDING_HUMAN_REVIEW
+```
+
+No database, seed, migration, synchronization, SQL, DDL, or DML command was
+executed. Disposable-database verification remains a later explicit gate.

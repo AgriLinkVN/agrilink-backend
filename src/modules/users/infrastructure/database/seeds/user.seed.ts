@@ -96,6 +96,33 @@ export const userDevSeedData: readonly UserDevSeedData[] = [
     isPhoneVerified: true,
     isEmailVerified: true,
   },
+  {
+    phone: "+84905602427",
+    email: "farmer@sandbox.com",
+    role: UserRole.FARMER,
+    status: UserStatus.ACTIVE,
+    fullName: "Nguyễn Văn Nông",
+    isPhoneVerified: true,
+    isEmailVerified: true,
+  },
+  {
+    phone: "+84902372975",
+    email: "cooperative@sandbox.com",
+    role: UserRole.COOPERATIVE,
+    status: UserStatus.ACTIVE,
+    fullName: "HTX Nông nghiệp Xanh Tiền Giang",
+    isPhoneVerified: true,
+    isEmailVerified: true,
+  },
+  {
+    phone: "+84907658754",
+    email: "state_agency@sandbox.com",
+    role: UserRole.STATE_AGENCY,
+    status: UserStatus.ACTIVE,
+    fullName: "Cơ quan Quản lý NN Nông thôn",
+    isPhoneVerified: true,
+    isEmailVerified: true,
+  },
 ];
 
 export const USERS_DEV_SEED_METADATA: SeedGroupMetadata = {

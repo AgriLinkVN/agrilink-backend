@@ -18,9 +18,10 @@ import {
 } from '../../../application/contracts/product-seed-output.contract';
 
 export const PRODUCT_DEV_SEED_WRITER = Symbol('PRODUCT_DEV_SEED_WRITER');
+export const PRODUCTS_DEV_SEED_GROUP_ID = 'products.dev.products';
 
 export const PRODUCTS_DEV_SEED_METADATA: SeedGroupMetadata = {
-  id: 'products.dev.products',
+  id: PRODUCTS_DEV_SEED_GROUP_ID,
   owner: 'products',
   classification: SeedClassification.DEV,
   dependencies: [PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID, USERS_DEV_SEED_GROUP_ID],

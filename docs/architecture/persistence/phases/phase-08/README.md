@@ -3,10 +3,11 @@
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
 - Implementation authorized: `P8_05C1A_USER_ROOTED_IDENTITY_AND_GEOGRAPHY_DECISIONS`
 - Current implementation: scalar-only dependency outputs, dependency-scoped
-  lookup, two owner-local REFERENCE groups, Users DEV, and canonical Products
-  DEV ownership; central decomposition and C1 entry decisions are documented
-- Implementation base: `develop` at P8-05C0 merge commit
-  `73de52dbd52f4e12a14c0a2fd6af8212a005510a` (PR #110)
+  lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
+  Products DEV, Profiles DEV ownership, and the temporary dependency-scoped
+  central continuation; C1 deferred-table writes are retired
+- Implementation base: `develop` at P8-05C1A merge commit
+  `3737a8ee5afb70586a9890fec40c5e57b2f6c8f6` (PR #111)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -255,10 +256,10 @@ P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_107
 P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_BY_MERGED_PR_108
 P8_05B_PRODUCTS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_109
 P8_05C0_DEVSEEDSERVICE_PLAN_STATUS=IMPLEMENTED_BY_MERGED_PR_110
-P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=NOT_STARTED
-P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=IN_PROGRESS
+P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_111
 P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
-P8_05C1_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
