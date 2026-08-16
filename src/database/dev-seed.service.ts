@@ -2,10 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { Product } from '../modules/products/infrastructure/persistence/entities/product.entity';
-import { ProductImage } from '../modules/products/infrastructure/persistence/entities/product-image.entity';
-import { ProductCategory } from '../modules/products/infrastructure/persistence/entities/product-category.entity';
-import { ProductCertification } from '../modules/products/infrastructure/persistence/entities/product-certification.entity';
 import { Review } from '../modules/reviews/infrastructure/persistence/entities/review.entity';
 import { ForumPost } from '../modules/forum/entities/forum-post.entity';
 import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
@@ -20,37 +16,14 @@ import { AuditLog } from '../modules/admin/entities/audit-log.entity';
 import { NotificationOrmEntity } from '../modules/notifications/infrastructure/persistence/notification.orm-entity';
 
 import {
-  FarmingType, ProductUnit, ProductStatus,
-  SellerType, CertType, CertificationStatus,
+  ProductUnit,
   AdType, AdStatus, NotifType,
 } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
-import type { LegacyDevActorIds } from './seeds/legacy-remaining-dev-seed.group';
-
-export interface DevSeedExecutionOptions {
-  readonly reset?: boolean;
-  readonly skipProducts?: boolean;
-}
-
-export interface DevSeedProductActions {
-  readonly seed: () => Promise<Product[]>;
-  readonly loadExisting: () => Promise<Product[]>;
-}
-
-export async function resolveDevSeedProductsForOrchestration(
-  options: DevSeedExecutionOptions,
-  actions: DevSeedProductActions,
-): Promise<Product[]> {
-  if (!options.skipProducts) return actions.seed();
-
-  const products = await actions.loadExisting();
-  if (products.length === 0) {
-    throw new Error(
-      'DevSeedService requires canonical Products DEV rows when skipProducts=true',
-    );
-  }
-  return products;
-}
+import type {
+  LegacyDevActorIds,
+  LegacyDevProductIds,
+} from './seeds/legacy-remaining-dev-seed.group';
 
 @Injectable()
 export class DevSeedService {
@@ -58,22 +31,17 @@ export class DevSeedService {
 
   constructor(@InjectDataSource() private readonly ds: DataSource) {}
 
-  async seedRemainingLegacySections(users: LegacyDevActorIds): Promise<void> {
+  async seedRemainingLegacySections(
+    users: LegacyDevActorIds,
+    products: LegacyDevProductIds,
+  ): Promise<void> {
     const log = this.logger;
-    const { ADMIN, FARMER, BUYER, ENTERPRISE, SUPPLIER, LOGISTICS, COOP, STATE_AGENCY } = users;
+    const { ADMIN, FARMER, BUYER, ENTERPRISE, SUPPLIER, COOP, STATE_AGENCY } = users;
 
-    // Products are already reconciled by products.dev.products. This read is
-    // temporary C2 debt ordered by the compatibility group's Products edge.
-    const products = await resolveDevSeedProductsForOrchestration({ skipProducts: true }, {
-      seed: () => this.seedProducts(FARMER, COOP, SUPPLIER),
-      loadExisting: () => this.ds.getRepository(Product).find(),
-    });
-    log.log(`[Seed] ${products.length} canonical demo products reused`);
-
-    const posts = await this.seedForum(FARMER, COOP, BUYER, products);
+    const posts = await this.seedForum(FARMER, COOP, BUYER);
     log.log(`[Seed] ${posts.length} forum posts seeded`);
 
-    const reviews = await this.seedReviews(FARMER, COOP, BUYER, ENTERPRISE, products);
+    const reviews = await this.seedReviews(FARMER, BUYER, ENTERPRISE, products);
     log.log(`[Seed] ${reviews.length} reviews seeded`);
 
     await this.seedAdPackages();
@@ -81,12 +49,9 @@ export class DevSeedService {
     log.log(`[Seed] ads seeded`);
 
     const members = await this.seedCoopMembers(COOP, FARMER);
-    await this.seedBulkListings(COOP, FARMER, products);
-    await this.seedHarvestSchedules(COOP, FARMER, products[0].id);
+    await this.seedBulkListings(COOP, FARMER);
+    await this.seedHarvestSchedules(FARMER, products.XOAI_HOA_LOC);
     log.log(`[Seed] cooperative data seeded (${members} members)`);
-
-    await this.seedViolations(FARMER, SUPPLIER);
-    log.log(`[Seed] violations seeded`);
 
     await this.seedAuditLogs(ADMIN, STATE_AGENCY);
     log.log(`[Seed] audit logs seeded`);
@@ -103,8 +68,6 @@ export class DevSeedService {
       'cooperative_members', 'forum_likes', 'forum_comments', 'forum_posts',
       'review',
       'ad_campaigns', 'ad_packages', 'ad_events',
-      'product_certifications', 'product_images', 'products',
-      'product_categories',
       'notifications', 'audit_logs',
     ];
     for (const t of tables) {
@@ -113,112 +76,8 @@ export class DevSeedService {
     this.logger.log('[Seed] Remaining legacy tables reset');
   }
 
-  // ── PRODUCTS ────────────────────────────────────────────────────────
-  private async seedProducts(farmerId: string, coopId: string, supplierId: string): Promise<Product[]> {
-    const productRepo = this.ds.getRepository(Product);
-    const imgRepo = this.ds.getRepository(ProductImage);
-    const certRepo = this.ds.getRepository(ProductCertification);
-    const categoryRepo = this.ds.getRepository(ProductCategory);
-    const farmer = { id: farmerId };
-    const coop = { id: coopId };
-    const supplier = { id: supplierId };
-
-    const existingCount = await productRepo.count();
-    if (existingCount > 0) return productRepo.find();
-
-    // Ensure categories exist
-    await this.seedCategories(categoryRepo);
-
-    const cats = await categoryRepo.find();
-    const catId = (slug: string): string | undefined => cats.find(c => c.slug === slug)?.id;
-
-    const TC = catId('trai-cay');
-    const RAU = catId('rau-cu-qua');
-    const GAO = catId('lua-gao-ngu-coc');
-    const CF = catId('ca-phe-che');
-    const GV = catId('gia-vi-thao-moc');
-    const HD = catId('hat-dau');
-    const MO = catId('mat-ong-dac-san');
-    const HOA = catId('hoa-cay-canh');
-
-    const specs: { sellerId: string; sellerType: SellerType; categoryId?: string; name: string; description: string; pricePerUnit: number; unit: ProductUnit; availableQuantity: number; minOrderQuantity: number; farmingType: FarmingType; status: ProductStatus; viewCount: number; harvestDate: string; img: string }[] = [
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: TC, name: 'Xoài cát Hòa Lộc', description: 'Xoài cát Hòa Lộc đặc sản Tiền Giang, ngọt thanh, ít xơ. VietGAP.', pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 10, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1284, harvestDate: '2026-06-15', img: 'https://images.unsplash.com/photo-1605027990121-3b2c6940a0bf?w=600' },
-      { sellerId: coop.id, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Sầu riêng Ri6', description: 'Sầu riêng Ri6 Cai Lậy, cơm vàng hạt lép, mùi thơm nồng.', pricePerUnit: 85000, unit: ProductUnit.KG, availableQuantity: 600, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 3250, harvestDate: '2026-07-15', img: 'https://images.unsplash.com/photo-1623691879411-c4a4d0bc3a6e?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: TC, name: 'Bưởi da xanh Bến Tre', description: 'Bưởi da xanh ruột hồng, không hạt, mọng nước.', pricePerUnit: 32000, unit: ProductUnit.KG, availableQuantity: 800, minOrderQuantity: 10, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1120, harvestDate: '2026-07-01', img: 'https://images.unsplash.com/photo-1576181256399-834e3b3a49bf?w=600' },
-      { sellerId: coop.id, sellerType: SellerType.COOPERATIVE, categoryId: TC, name: 'Thanh long ruột đỏ', description: 'Thanh long ruột đỏ Bình Thuận xuất khẩu, GlobalGAP.', pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 1000, minOrderQuantity: 50, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 2105, harvestDate: '2026-06-20', img: 'https://images.unsplash.com/photo-1527325678286-6dade1d6c4ce?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: TC, name: 'Dưa hấu không hạt', description: 'Dưa hấu không hạt Long An, ngọt sắc, vỏ mỏng.', pricePerUnit: 18000, unit: ProductUnit.KG, availableQuantity: 3000, minOrderQuantity: 30, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 987, harvestDate: '2026-06-10', img: 'https://images.unsplash.com/photo-1571575173700-afb9492e6a50?w=600' },
-      { sellerId: supplier.id, sellerType: SellerType.SUPPLIER, categoryId: TC, name: 'Vải thiều Lục Ngạn', description: 'Vải thiều Lục Ngạn Bắc Giang, xuất khẩu 30 quốc gia.', pricePerUnit: 42000, unit: ProductUnit.KG, availableQuantity: 1500, minOrderQuantity: 20, farmingType: FarmingType.GLOBALGAP, status: ProductStatus.ACTIVE, viewCount: 4120, harvestDate: '2026-06-05', img: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Rau muống hữu cơ Đà Lạt', description: 'Rau muống hữu cơ Đà Lạt, không thuốc trừ sâu.', pricePerUnit: 25000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 892, harvestDate: '2026-06-01', img: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: RAU, name: 'Cà rốt Đà Lạt', description: 'Cà rốt Đà Lạt ngọt giòn, VietGAP, tươi mỗi ngày.', pricePerUnit: 22000, unit: ProductUnit.KG, availableQuantity: 400, minOrderQuantity: 10, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 645, harvestDate: '2026-06-05', img: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: GAO, name: 'Gạo ST25 đặc sản', description: 'Gạo ST25 Sóc Trăng — gạo ngon nhất thế giới, VietGAP.', pricePerUnit: 28000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 20, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 5432, harvestDate: '2026-05-30', img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: GAO, name: 'Gạo Jasmine thơm', description: 'Gạo Jasmine thơm dẻo Cần Thơ, truyền thống.', pricePerUnit: 24000, unit: ProductUnit.KG, availableQuantity: 1500, minOrderQuantity: 20, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 3210, harvestDate: '2026-04-20', img: 'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: CF, name: 'Cà phê Arabica Cầu Đất', description: 'Cà phê Arabica Cầu Đất 1500m, hữu cơ, rang mộc.', pricePerUnit: 120000, unit: ProductUnit.KG, availableQuantity: 150, minOrderQuantity: 2, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 764, harvestDate: '2025-12-01', img: 'https://images.unsplash.com/photo-1442550528053-c431ecb55509?w=600' },
-      { sellerId: supplier.id, sellerType: SellerType.SUPPLIER, categoryId: CF, name: 'Cà phê Robusta BMT', description: 'Robusta Buôn Ma Thuột đậm vị, rang đậm.', pricePerUnit: 95000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 2890, harvestDate: '2025-12-15', img: 'https://images.unsplash.com/photo-1559525839-d9acfd564ca0?w=600' },
-      { sellerId: supplier.id, sellerType: SellerType.SUPPLIER, categoryId: GV, name: 'Tiêu đen Phú Quốc', description: 'Tiêu đen Phú Quốc OCOP 5 sao, hương vị đặc trưng.', pricePerUnit: 180000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 1, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 3210, harvestDate: '2026-03-01', img: 'https://images.unsplash.com/photo-1599582907898-5cdb44389b66?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: GV, name: 'Gừng tươi hữu cơ', description: 'Gừng tươi hữu cơ Kỳ Sơn, cay nồng, tinh dầu cao.', pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 400, minOrderQuantity: 5, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 1320, harvestDate: '2026-04-20', img: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600' },
-      { sellerId: coop.id, sellerType: SellerType.COOPERATIVE, categoryId: HD, name: 'Hạt điều rang muối W320', description: 'Hạt điều rang muối Bình Phước, W320, hạt to đều.', pricePerUnit: 180000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 2, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 3456, harvestDate: '2026-03-01', img: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: HD, name: 'Đậu phộng rang', description: 'Đậu phộng rang giòn truyền thống, Bình Định.', pricePerUnit: 55000, unit: ProductUnit.KG, availableQuantity: 1200, minOrderQuantity: 10, farmingType: FarmingType.TRADITIONAL, status: ProductStatus.ACTIVE, viewCount: 867, harvestDate: '2026-05-01', img: 'https://images.unsplash.com/photo-1567132875421-e84e6c8c0d56?w=600' },
-      { sellerId: coop.id, sellerType: SellerType.COOPERATIVE, categoryId: MO, name: 'Mật ong hoa nhãn', description: 'Mật ong hoa nhãn nguyên chất Hưng Yên, thơm ngọt.', pricePerUnit: 180000, unit: ProductUnit.LITER, availableQuantity: 200, minOrderQuantity: 1, farmingType: FarmingType.ORGANIC, status: ProductStatus.ACTIVE, viewCount: 2670, harvestDate: '2026-07-01', img: 'https://images.unsplash.com/photo-1587049352851-8d4e8915b9c1?w=600' },
-      { sellerId: farmer.id, sellerType: SellerType.FARMER, categoryId: HOA, name: 'Hoa cúc vàng Đà Lạt', description: 'Hoa cúc vàng tươi Đà Lạt, bó 20 cành.', pricePerUnit: 45000, unit: ProductUnit.BUNCH, availableQuantity: 500, minOrderQuantity: 5, farmingType: FarmingType.VIETGAP, status: ProductStatus.ACTIVE, viewCount: 1120, harvestDate: '2026-06-05', img: 'https://images.unsplash.com/photo-1597252294921-5e9a06c44a24?w=600' },
-    ];
-
-    const saved: Product[] = [];
-    for (const spec of specs) {
-      const { img, harvestDate, ...productData } = spec;
-      const product = await productRepo.save({
-        ...productData,
-        harvestDate: new Date(harvestDate),
-      });
-      await imgRepo.save({
-        productId: product.id,
-        imageUrl: img,
-        isPrimary: true,
-        sortOrder: 0,
-      });
-      saved.push(product);
-
-      // Add certifications for some
-      if ([0, 3, 5, 9].includes(saved.length - 1)) {
-        await certRepo.save({
-          productId: product.id,
-          certType: CertType.VIETGAP,
-          certNumber: `VG-${Date.now()}-${saved.length}`,
-          issuedBy: 'Bộ NN&PTNT',
-          issuedDate: new Date('2025-01-01'),
-          expiryDate: new Date('2027-01-01'),
-          documentUrl: 'https://placehold.co/600x400/E8F5E9/1B5E20?text=Chung+nhan+VietGAP',
-          isVerified: true,
-          status: CertificationStatus.VERIFIED,
-        });
-      }
-    }
-    return saved;
-  }
-
-  private async seedCategories(repo: any) {
-    const count = await repo.count();
-    if (count > 0) return;
-    // Similarly-named slug seeds from product-development-seed.service
-    // use sequential slug-based identifiers. We match those slugs here.
-    const cats = [
-      { name: 'Trái cây', slug: 'trai-cay', description: 'Trái cây tươi các loại', sortOrder: 1, isActive: true },
-      { name: 'Rau củ quả', slug: 'rau-cu-qua', description: 'Rau củ quả tươi sạch', sortOrder: 2, isActive: true },
-      { name: 'Lúa gạo & ngũ cốc', slug: 'lua-gao-ngu-coc', description: 'Gạo, nếp & ngũ cốc', sortOrder: 3, isActive: true },
-      { name: 'Cà phê & chè', slug: 'ca-phe-che', description: 'Cà phê, chè các loại', sortOrder: 4, isActive: true },
-      { name: 'Gia vị & thảo mộc', slug: 'gia-vi-thao-moc', description: 'Gia vị, thảo mộc tự nhiên', sortOrder: 5, isActive: true },
-      { name: 'Hạt & đậu', slug: 'hat-dau', description: 'Các loại hạt, đậu, mè', sortOrder: 6, isActive: true },
-      { name: 'Mật ong & đặc sản', slug: 'mat-ong-dac-san', description: 'Mật ong & đặc sản vùng miền', sortOrder: 7, isActive: true },
-      { name: 'Thủy sản', slug: 'thuy-san', description: 'Thủy hải sản tươi sống', sortOrder: 8, isActive: true },
-      { name: 'Gia súc gia cầm', slug: 'gia-suc-gia-cam', description: 'Thịt, trứng, sữa', sortOrder: 9, isActive: true },
-      { name: 'Hoa & cây cảnh', slug: 'hoa-cay-canh', description: 'Hoa tươi & cây cảnh', sortOrder: 10, isActive: true },
-    ];
-    for (const c of cats) {
-      await repo.save(repo.create(c));
-    }
-  }
-
   // ── FORUM ────────────────────────────────────────────────────────────
-  private async seedForum(farmerId: string, coopId: string, buyerId: string, products: Product[]) {
+  private async seedForum(farmerId: string, coopId: string, buyerId: string) {
     const postRepo = this.ds.getRepository(ForumPost);
     const commentRepo = this.ds.getRepository(ForumComment);
     const likeRepo = this.ds.getRepository(ForumLike);
@@ -267,22 +126,26 @@ export class DevSeedService {
   }
 
   // ── REVIEWS ─────────────────────────────────────────────────────────
-  private async seedReviews(farmerId: string, coopId: string, buyerId: string, enterpriseId: string, products: Product[]) {
+  private async seedReviews(
+    farmerId: string,
+    buyerId: string,
+    enterpriseId: string,
+    products: LegacyDevProductIds,
+  ) {
     const repo = this.ds.getRepository(Review);
     const existing = await repo.count();
     if (existing > 0) return [];
 
-    const productIds = products.filter(p => p.status === ProductStatus.ACTIVE).map(p => p.id).slice(0, 8);
     const reviews: { reviewerId: string; productId: string; rating: number; comment: string; isVerifiedPurchase: boolean }[] = [
-      { reviewerId: buyerId, productId: productIds[0], rating: 5, comment: 'Xoài rất ngọt, thơm, đóng gói cẩn thận. Giao hàng nhanh.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: productIds[0], rating: 4, comment: 'Chất lượng tốt, giá hợp lý. Sẽ đặt thêm cho nhà máy chế biến.', isVerifiedPurchase: true },
-      { reviewerId: buyerId, productId: productIds[1], rating: 5, comment: 'Sầu riêng Ri6 chuẩn vị Cai Lậy. Cơm vàng, hột lép, thơm nức.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: productIds[2], rating: 4, comment: 'Bưởi da xanh ngon, múi mọng nước. Giá hợp lý.', isVerifiedPurchase: false },
-      { reviewerId: buyerId, productId: productIds[3], rating: 5, comment: 'Thanh long đỏ đẹp, ngọt. Xuất khẩu như lời giới thiệu.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: productIds[4], rating: 3, comment: 'Dưa hấu ngon nhưng size hơi nhỏ so với yêu cầu.', isVerifiedPurchase: true },
-      { reviewerId: buyerId, productId: productIds[5], rating: 5, comment: 'Vải thiều Lục Ngạn chính gốc. Trái to, ngọt đậm. Rất hài lòng!', isVerifiedPurchase: true },
-      { reviewerId: farmerId, productId: productIds[6], rating: 4, comment: 'Rau muống tươi ngon, không thuốc. Gia đình tôi mua thường xuyên.', isVerifiedPurchase: false },
-      { reviewerId: buyerId, productId: productIds[7], rating: 5, comment: 'Cà rốt Đà Lạt ngọt giòn, làm salad rất ngon.', isVerifiedPurchase: true },
+      { reviewerId: buyerId, productId: products.XOAI_HOA_LOC, rating: 5, comment: 'Xoài rất ngọt, thơm, đóng gói cẩn thận. Giao hàng nhanh.', isVerifiedPurchase: true },
+      { reviewerId: enterpriseId, productId: products.XOAI_HOA_LOC, rating: 4, comment: 'Chất lượng tốt, giá hợp lý. Sẽ đặt thêm cho nhà máy chế biến.', isVerifiedPurchase: true },
+      { reviewerId: buyerId, productId: products.SAU_RIENG_RI6, rating: 5, comment: 'Sầu riêng Ri6 chuẩn vị Cai Lậy. Cơm vàng, hột lép, thơm nức.', isVerifiedPurchase: true },
+      { reviewerId: enterpriseId, productId: products.BUOI_DA_XANH_FARMER, rating: 4, comment: 'Bưởi da xanh ngon, múi mọng nước. Giá hợp lý.', isVerifiedPurchase: false },
+      { reviewerId: buyerId, productId: products.THANH_LONG_RUOT_DO, rating: 5, comment: 'Thanh long đỏ đẹp, ngọt. Xuất khẩu như lời giới thiệu.', isVerifiedPurchase: true },
+      { reviewerId: enterpriseId, productId: products.DUA_HAU_KHONG_HAT, rating: 3, comment: 'Dưa hấu ngon nhưng size hơi nhỏ so với yêu cầu.', isVerifiedPurchase: true },
+      { reviewerId: buyerId, productId: products.VAI_THIEU_LUC_NGAN, rating: 5, comment: 'Vải thiều Lục Ngạn chính gốc. Trái to, ngọt đậm. Rất hài lòng!', isVerifiedPurchase: true },
+      { reviewerId: farmerId, productId: products.RAU_MUONG_HUU_CO, rating: 4, comment: 'Rau muống tươi ngon, không thuốc. Gia đình tôi mua thường xuyên.', isVerifiedPurchase: false },
+      { reviewerId: buyerId, productId: products.CA_ROT_DA_LAT, rating: 5, comment: 'Cà rốt Đà Lạt ngọt giòn, làm salad rất ngon.', isVerifiedPurchase: true },
     ];
 
     for (const r of reviews) {
@@ -342,7 +205,7 @@ export class DevSeedService {
     return 1;
   }
 
-  private async seedBulkListings(coopId: string, farmerId: string, products: Product[]) {
+  private async seedBulkListings(coopId: string, farmerId: string) {
     const repo = this.ds.getRepository(BulkListingEntity);
     const contribRepo = this.ds.getRepository(BulkListingContributionEntity);
     const existing = await repo.count();
@@ -376,7 +239,7 @@ export class DevSeedService {
     } as any);
   }
 
-  private async seedHarvestSchedules(coopId: string, farmerId: string, productId: string) {
+  private async seedHarvestSchedules(farmerId: string, productId: string) {
     const repo = this.ds.getRepository(HarvestScheduleEntity);
     const existing = await repo.count();
     if (existing > 0) return;
@@ -389,38 +252,6 @@ export class DevSeedService {
     for (const s of schedules) {
       await repo.save(s as any);
     }
-  }
-
-  // ── VIOLATIONS ───────────────────────────────────────────────────────
-  private async seedViolations(farmerId: string, supplierId: string) {
-    const repo = this.ds.getRepository(Product);
-    const existing = await repo.findOne({ where: { status: ProductStatus.SUSPENDED } });
-    if (existing) return;
-
-    await repo.save({
-      sellerId: farmerId,
-      sellerType: SellerType.FARMER,
-      name: 'Thuốc trừ sâu không tem nhãn',
-      description: 'Thuốc BVTV không rõ nguồn gốc, vi phạm chất lượng',
-      price: 50000,
-      unit: ProductUnit.LITER,
-      stockQuantity: 100,
-      farmingType: FarmingType.TRADITIONAL,
-      status: ProductStatus.SUSPENDED,
-      rejectionReason: 'Vi phạm chính sách chất lượng. Hàng hóa không rõ nguồn gốc, không tem nhãn phụ theo quy định.',
-    });
-    await repo.save({
-      sellerId: supplierId,
-      sellerType: SellerType.SUPPLIER,
-      name: 'Phân bón kém chất lượng',
-      description: 'Phân bón NPK không đạt hàm lượng cam kết',
-      price: 120000,
-      unit: ProductUnit.KG,
-      stockQuantity: 500,
-      farmingType: FarmingType.TRADITIONAL,
-      status: ProductStatus.SUSPENDED,
-      rejectionReason: 'Hàm lượng NPK thực tế chỉ đạt 60% so với nhãn mác. Vi phạm QC 01-2025 về phân bón.',
-    });
   }
 
   // ── AUDIT LOGS ───────────────────────────────────────────────────────

@@ -1,7 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { FarmingType, ProductStatus, ProductUnit, SellerType } from '@common/enums';
 import {
-  EMPTY_SEED_GROUP_RESULT,
+  CertificationStatus,
+  CertType,
+  FarmingType,
+  ProductStatus,
+  ProductUnit,
+  SellerType,
+} from '@common/enums';
+import {
   SeedClassification,
   SeedExecutionContext,
   SeedGroup,
@@ -14,6 +20,7 @@ import {
 } from '../../../../users/application/contracts/user-seed-output.contract';
 import {
   CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+  PRODUCT_ID_BY_SKU_OUTPUT_KIND,
   PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
   PRODUCTS_DEV_SEED_GROUP_ID,
 } from '../../../application/contracts/product-seed-output.contract';
@@ -24,32 +31,42 @@ export const PRODUCTS_DEV_SEED_METADATA: SeedGroupMetadata = {
   id: PRODUCTS_DEV_SEED_GROUP_ID,
   owner: 'products',
   classification: SeedClassification.DEV,
-  dependencies: [PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID, USERS_DEV_SEED_GROUP_ID],
+  dependencies: [
+    PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
+    USERS_DEV_SEED_GROUP_ID,
+  ],
   description: 'Canonical Products development catalog',
 };
 
-export const PRODUCT_DEV_PRIMARY_IMAGE_URL = 'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=600&q=80';
+export const PRODUCT_DEV_PRIMARY_IMAGE_URL =
+  'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=600&q=80';
 
 export interface ProductDevSeedWriteData {
   readonly sku: string;
   readonly sellerId: string;
   readonly sellerType: SellerType;
-  readonly categoryId: string;
+  readonly categoryId: string | null;
   readonly name: string;
   readonly description: string;
   readonly pricePerUnit: number;
   readonly unit: ProductUnit;
   readonly availableQuantity: number;
-  readonly minOrderQuantity: number;
+  readonly minOrderQuantity: number | null;
   readonly farmingType: FarmingType;
   readonly status: ProductStatus;
   readonly viewCount: number;
-  readonly harvestDate: Date;
-  readonly expiryDate: Date;
+  readonly harvestDate: Date | null;
+  readonly expiryDate: Date | null;
+  readonly rejectionReason?: string | null;
 }
 
 export interface ProductDevSeedRecord {
   readonly id: string;
+}
+
+export interface ProductDevSeedDefinition extends ProductDevSeedWriteData {
+  /** Undefined uses the canonical fallback; null declares no managed image. */
+  readonly primaryImageUrl?: string | null;
 }
 
 export interface ProductDevPrimaryImageRecord {
@@ -64,18 +81,61 @@ export interface ProductDevPrimaryImageWriteData {
   readonly isPrimary: true;
 }
 
-export interface ProductDevSeedWriter {
-  findProductBySku(sku: string): Promise<ProductDevSeedRecord | null>;
-  createProduct(data: ProductDevSeedWriteData): Promise<ProductDevSeedRecord>;
-  updateProduct(id: string, data: ProductDevSeedWriteData): Promise<void>;
-  findPrimaryImages(productId: string): Promise<readonly ProductDevPrimaryImageRecord[]>;
-  createPrimaryImage(data: ProductDevPrimaryImageWriteData): Promise<void>;
-  updatePrimaryImage(id: string, data: ProductDevPrimaryImageWriteData): Promise<void>;
+export interface ProductDevCertificationRecord {
+  readonly id: string;
 }
 
-export function buildProductDevelopmentSeedData(context: SeedExecutionContext): readonly ProductDevSeedWriteData[] {
+export interface ProductDevCertificationWriteData {
+  readonly productId: string;
+  readonly certType: CertType;
+  readonly certNumber: string;
+  readonly issuedBy: string;
+  readonly issuedDate: Date;
+  readonly expiryDate: Date;
+  readonly documentUrl: string;
+  readonly isVerified: true;
+  readonly status: CertificationStatus.VERIFIED;
+}
+
+export interface ProductDevCertificationDefinition extends Omit<
+  ProductDevCertificationWriteData,
+  'productId'
+> {
+  readonly productSku: string;
+}
+
+export interface ProductDevSeedWriter {
+  findProductsBySku(sku: string): Promise<readonly ProductDevSeedRecord[]>;
+  createProduct(data: ProductDevSeedWriteData): Promise<ProductDevSeedRecord>;
+  updateProduct(id: string, data: ProductDevSeedWriteData): Promise<void>;
+  findPrimaryImages(
+    productId: string,
+  ): Promise<readonly ProductDevPrimaryImageRecord[]>;
+  createPrimaryImage(data: ProductDevPrimaryImageWriteData): Promise<void>;
+  updatePrimaryImage(
+    id: string,
+    data: ProductDevPrimaryImageWriteData,
+  ): Promise<void>;
+  findCertifications(
+    productId: string,
+    certNumber: string,
+  ): Promise<readonly ProductDevCertificationRecord[]>;
+  createCertification(data: ProductDevCertificationWriteData): Promise<void>;
+  updateCertification(
+    id: string,
+    data: ProductDevCertificationWriteData,
+  ): Promise<void>;
+}
+
+export function buildProductDevelopmentSeedData(
+  context: SeedExecutionContext,
+): readonly ProductDevSeedDefinition[] {
   const sellerId = (email: string): string =>
-    context.dependencies.requireString(USERS_DEV_SEED_GROUP_ID, USER_ID_BY_EMAIL_OUTPUT_KIND, email);
+    context.dependencies.requireString(
+      USERS_DEV_SEED_GROUP_ID,
+      USER_ID_BY_EMAIL_OUTPUT_KIND,
+      email,
+    );
   const categoryId = (slug: string): string =>
     context.dependencies.requireString(
       PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
@@ -86,6 +146,8 @@ export function buildProductDevelopmentSeedData(context: SeedExecutionContext): 
   const F = sellerId('farmer@agrilink.vn');
   const C = sellerId('cooperative@agrilink.vn');
   const S = sellerId('supplier@agrilink.vn');
+  const SANDBOX_F = sellerId('farmer@sandbox.com');
+  const SANDBOX_C = sellerId('cooperative@sandbox.com');
 
   const TC = categoryId('trai-cay');
   const RAU = categoryId('rau-cu-qua');
@@ -98,7 +160,7 @@ export function buildProductDevelopmentSeedData(context: SeedExecutionContext): 
   const MO = categoryId('mat-ong-dac-san');
   const HOA = categoryId('hoa-cay-canh');
 
-  const mockProducts: ProductDevSeedWriteData[] = [
+  const mockProducts: ProductDevSeedDefinition[] = [
     // ── Trái cây ──────────────────────────────────────────────
     {
       sellerId: F,
@@ -1091,6 +1153,181 @@ export function buildProductDevelopmentSeedData(context: SeedExecutionContext): 
       harvestDate: new Date('2026-06-04'),
       expiryDate: new Date('2026-06-11'),
     },
+
+    // ── P8-05C2B approved central Product additions ───────────
+    {
+      sellerId: SANDBOX_F,
+      sellerType: SellerType.FARMER,
+      categoryId: TC,
+      name: 'Bưởi da xanh Bến Tre',
+      sku: 'DEV-BUOI-DA-XANH-FARMER-001',
+      description: 'Bưởi da xanh ruột hồng, không hạt, mọng nước.',
+      pricePerUnit: 32000,
+      unit: ProductUnit.KG,
+      availableQuantity: 800,
+      minOrderQuantity: 10,
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.ACTIVE,
+      viewCount: 1120,
+      harvestDate: new Date('2026-07-01'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1576181256399-834e3b3a49bf?w=600',
+    },
+    {
+      sellerId: SANDBOX_F,
+      sellerType: SellerType.FARMER,
+      categoryId: RAU,
+      name: 'Cà rốt Đà Lạt',
+      sku: 'DEV-CA-ROT-DA-LAT-001',
+      description: 'Cà rốt Đà Lạt ngọt giòn, VietGAP, tươi mỗi ngày.',
+      pricePerUnit: 22000,
+      unit: ProductUnit.KG,
+      availableQuantity: 400,
+      minOrderQuantity: 10,
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.ACTIVE,
+      viewCount: 645,
+      harvestDate: new Date('2026-06-05'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600',
+    },
+    {
+      sellerId: SANDBOX_F,
+      sellerType: SellerType.FARMER,
+      categoryId: GAO,
+      name: 'Gạo Jasmine thơm',
+      sku: 'DEV-GAO-JASMINE-THOM-001',
+      description: 'Gạo Jasmine thơm dẻo Cần Thơ, truyền thống.',
+      pricePerUnit: 24000,
+      unit: ProductUnit.KG,
+      availableQuantity: 1500,
+      minOrderQuantity: 20,
+      farmingType: FarmingType.TRADITIONAL,
+      status: ProductStatus.ACTIVE,
+      viewCount: 3210,
+      harvestDate: new Date('2026-04-20'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?w=600',
+    },
+    {
+      sellerId: S,
+      sellerType: SellerType.SUPPLIER,
+      categoryId: CF,
+      name: 'Cà phê Robusta BMT',
+      sku: 'DEV-CA-PHE-ROBUSTA-SUPPLIER-001',
+      description: 'Robusta Buôn Ma Thuột đậm vị, rang đậm.',
+      pricePerUnit: 95000,
+      unit: ProductUnit.KG,
+      availableQuantity: 500,
+      minOrderQuantity: 5,
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.ACTIVE,
+      viewCount: 2890,
+      harvestDate: new Date('2025-12-15'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1559525839-d9acfd564ca0?w=600',
+    },
+    {
+      sellerId: S,
+      sellerType: SellerType.SUPPLIER,
+      categoryId: GV,
+      name: 'Tiêu đen Phú Quốc',
+      sku: 'DEV-TIEU-DEN-PHU-QUOC-SUPPLIER-001',
+      description: 'Tiêu đen Phú Quốc OCOP 5 sao, hương vị đặc trưng.',
+      pricePerUnit: 180000,
+      unit: ProductUnit.KG,
+      availableQuantity: 200,
+      minOrderQuantity: 1,
+      farmingType: FarmingType.TRADITIONAL,
+      status: ProductStatus.ACTIVE,
+      viewCount: 3210,
+      harvestDate: new Date('2026-03-01'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1599582907898-5cdb44389b66?w=600',
+    },
+    {
+      sellerId: SANDBOX_F,
+      sellerType: SellerType.FARMER,
+      categoryId: HD,
+      name: 'Đậu phộng rang',
+      sku: 'DEV-DAU-PHONG-RANG-001',
+      description: 'Đậu phộng rang giòn truyền thống, Bình Định.',
+      pricePerUnit: 55000,
+      unit: ProductUnit.KG,
+      availableQuantity: 1200,
+      minOrderQuantity: 10,
+      farmingType: FarmingType.TRADITIONAL,
+      status: ProductStatus.ACTIVE,
+      viewCount: 867,
+      harvestDate: new Date('2026-05-01'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1567132875421-e84e6c8c0d56?w=600',
+    },
+    {
+      sellerId: SANDBOX_C,
+      sellerType: SellerType.COOPERATIVE,
+      categoryId: MO,
+      name: 'Mật ong hoa nhãn',
+      sku: 'DEV-MAT-ONG-HOA-NHAN-COOP-001',
+      description: 'Mật ong hoa nhãn nguyên chất Hưng Yên, thơm ngọt.',
+      pricePerUnit: 180000,
+      unit: ProductUnit.LITER,
+      availableQuantity: 200,
+      minOrderQuantity: 1,
+      farmingType: FarmingType.ORGANIC,
+      status: ProductStatus.ACTIVE,
+      viewCount: 2670,
+      harvestDate: new Date('2026-07-01'),
+      expiryDate: null,
+      primaryImageUrl:
+        'https://images.unsplash.com/photo-1587049352851-8d4e8915b9c1?w=600',
+    },
+    {
+      sellerId: SANDBOX_F,
+      sellerType: SellerType.FARMER,
+      categoryId: null,
+      name: 'Thuốc trừ sâu không tem nhãn',
+      sku: 'DEV-VIOLATION-BVTV-KHONG-TEM-001',
+      description: 'Thuốc BVTV không rõ nguồn gốc, vi phạm chất lượng',
+      pricePerUnit: 50000,
+      unit: ProductUnit.LITER,
+      availableQuantity: 100,
+      minOrderQuantity: null,
+      farmingType: FarmingType.TRADITIONAL,
+      status: ProductStatus.SUSPENDED,
+      rejectionReason:
+        'Vi phạm chính sách chất lượng. Hàng hóa không rõ nguồn gốc, không tem nhãn phụ theo quy định.',
+      viewCount: 0,
+      harvestDate: null,
+      expiryDate: null,
+      primaryImageUrl: null,
+    },
+    {
+      sellerId: S,
+      sellerType: SellerType.SUPPLIER,
+      categoryId: null,
+      name: 'Phân bón kém chất lượng',
+      sku: 'DEV-VIOLATION-PHAN-BON-KEM-CHAT-LUONG-001',
+      description: 'Phân bón NPK không đạt hàm lượng cam kết',
+      pricePerUnit: 120000,
+      unit: ProductUnit.KG,
+      availableQuantity: 500,
+      minOrderQuantity: null,
+      farmingType: FarmingType.TRADITIONAL,
+      status: ProductStatus.SUSPENDED,
+      rejectionReason:
+        'Hàm lượng NPK thực tế chỉ đạt 60% so với nhãn mác. Vi phạm QC 01-2025 về phân bón.',
+      viewCount: 0,
+      harvestDate: null,
+      expiryDate: null,
+      primaryImageUrl: null,
+    },
   ];
 
   return mockProducts;
@@ -1098,26 +1335,60 @@ export function buildProductDevelopmentSeedData(context: SeedExecutionContext): 
 
 export async function reconcileProductDevelopmentSeeds(
   writer: ProductDevSeedWriter,
-  records: readonly ProductDevSeedWriteData[],
+  records: readonly ProductDevSeedDefinition[],
   primaryImageUrl: string = PRODUCT_DEV_PRIMARY_IMAGE_URL,
-): Promise<void> {
+): Promise<ReadonlyMap<string, string>> {
+  const inputSkus = new Set<string>();
   for (const record of records) {
-    const existing = await writer.findProductBySku(record.sku);
-    let productId: string;
-    if (existing) {
-      await writer.updateProduct(existing.id, record);
-      productId = existing.id;
-    } else {
-      productId = (await writer.createProduct(record)).id;
+    if (inputSkus.has(record.sku)) {
+      throw new Error(
+        `products.dev.products declares duplicate Product SKU ${record.sku}`,
+      );
     }
+    inputSkus.add(record.sku);
+  }
 
+  const productIds = new Map<string, string>();
+  for (const record of records) {
+    const { primaryImageUrl: _declaredImage, ...productData } = record;
+    const matches = await writer.findProductsBySku(record.sku);
+    if (matches.length > 1) {
+      throw new Error(
+        `products.dev.products found multiple Products for SKU ${record.sku}`,
+      );
+    }
+    let productId: string;
+    if (matches.length === 1) {
+      await writer.updateProduct(matches[0].id, productData);
+      productId = matches[0].id;
+    } else {
+      productId = (await writer.createProduct(productData)).id;
+    }
+    productIds.set(record.sku, productId);
+  }
+
+  for (const record of records) {
+    const intendedImageUrl =
+      record.primaryImageUrl === undefined
+        ? primaryImageUrl
+        : record.primaryImageUrl;
+    if (intendedImageUrl === null) continue;
+
+    const productId = productIds.get(record.sku);
+    if (!productId) {
+      throw new Error(
+        `products.dev.products missing reconciled Product ID for SKU ${record.sku}`,
+      );
+    }
     const primaryImages = await writer.findPrimaryImages(productId);
     if (primaryImages.length > 1) {
-      throw new Error(`products.dev.products found multiple primary images for SKU ${record.sku}`);
+      throw new Error(
+        `products.dev.products found multiple primary images for SKU ${record.sku}`,
+      );
     }
     const imageData: ProductDevPrimaryImageWriteData = {
       productId,
-      imageUrl: primaryImageUrl,
+      imageUrl: intendedImageUrl,
       altText: record.name,
       sortOrder: 0,
       isPrimary: true,
@@ -1126,6 +1397,95 @@ export async function reconcileProductDevelopmentSeeds(
       await writer.updatePrimaryImage(primaryImages[0].id, imageData);
     } else {
       await writer.createPrimaryImage(imageData);
+    }
+  }
+
+  return productIds;
+}
+
+export function buildProductDevelopmentCertificationData(): readonly ProductDevCertificationDefinition[] {
+  const shared = {
+    certType: CertType.VIETGAP,
+    issuedBy: 'Bộ NN&PTNT',
+    issuedDate: new Date('2025-01-01'),
+    expiryDate: new Date('2027-01-01'),
+    documentUrl:
+      'https://placehold.co/600x400/E8F5E9/1B5E20?text=Chung+nhan+VietGAP',
+    isVerified: true as const,
+    status: CertificationStatus.VERIFIED as const,
+  };
+  return [
+    {
+      ...shared,
+      productSku: 'DEV-XOAI-HOA-LOC-001',
+      certNumber: 'DEV-CERT-VIETGAP-XOAI-HOA-LOC-001',
+    },
+    {
+      ...shared,
+      productSku: 'DEV-THANH-LONG-RUOT-DO-001',
+      certNumber: 'DEV-CERT-VIETGAP-THANH-LONG-001',
+    },
+    {
+      ...shared,
+      productSku: 'DEV-VAI-THIEU-LUC-NGAN-001',
+      certNumber: 'DEV-CERT-VIETGAP-VAI-LUC-NGAN-001',
+    },
+    {
+      ...shared,
+      productSku: 'DEV-GAO-JASMINE-THOM-001',
+      certNumber: 'DEV-CERT-VIETGAP-GAO-JASMINE-001',
+    },
+  ];
+}
+
+export async function reconcileProductDevelopmentCertifications(
+  writer: ProductDevSeedWriter,
+  productIds: ReadonlyMap<string, string>,
+  definitions: readonly ProductDevCertificationDefinition[] = buildProductDevelopmentCertificationData(),
+): Promise<void> {
+  const identities = new Set<string>();
+  const preflight: Array<{
+    readonly matches: readonly ProductDevCertificationRecord[];
+    readonly data: ProductDevCertificationWriteData;
+  }> = [];
+
+  for (const definition of definitions) {
+    const productId = productIds.get(definition.productSku);
+    if (!productId) {
+      throw new Error(
+        `products.dev.products missing Product ID for certification SKU ${definition.productSku}`,
+      );
+    }
+    const identity = `${productId}\u0000${definition.certNumber}`;
+    if (identities.has(identity)) {
+      throw new Error(
+        `products.dev.products declares duplicate certification ${definition.certNumber} for SKU ${definition.productSku}`,
+      );
+    }
+    identities.add(identity);
+
+    const { productSku: _productSku, ...certification } = definition;
+    const data: ProductDevCertificationWriteData = {
+      productId,
+      ...certification,
+    };
+    const matches = await writer.findCertifications(
+      productId,
+      definition.certNumber,
+    );
+    if (matches.length > 1) {
+      throw new Error(
+        `products.dev.products found multiple certifications for SKU ${definition.productSku} and number ${definition.certNumber}`,
+      );
+    }
+    preflight.push({ matches, data });
+  }
+
+  for (const { matches, data } of preflight) {
+    if (matches.length === 1) {
+      await writer.updateCertification(matches[0].id, data);
+    } else {
+      await writer.createCertification(data);
     }
   }
 }
@@ -1144,7 +1504,17 @@ export class ProductDevelopmentSeedService implements SeedGroup {
       throw new Error(`${this.metadata.id} requires explicit DEV selection`);
     }
 
-    await reconcileProductDevelopmentSeeds(this.writer, buildProductDevelopmentSeedData(context));
-    return EMPTY_SEED_GROUP_RESULT;
+    const productIds = await reconcileProductDevelopmentSeeds(
+      this.writer,
+      buildProductDevelopmentSeedData(context),
+    );
+    await reconcileProductDevelopmentCertifications(this.writer, productIds);
+    return {
+      outputs: [...productIds].map(([key, value]) => ({
+        kind: PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+        key,
+        value,
+      })),
+    };
   }
 }

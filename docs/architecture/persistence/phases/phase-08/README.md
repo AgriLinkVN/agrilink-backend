@@ -1,14 +1,15 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8_05C2B_PRODUCTS_EXTENSION` after PR #113
-  merges; C2C waits for its Product output and C2D retains domain blockers
+- Implementation authorized: C2B is implemented pending human review; C2C
+  remains not started and C2D retains domain blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
-  Products DEV, Profiles DEV ownership, and the temporary dependency-scoped
-  central continuation; C1 deferred-table writes are retired
-- Implementation base: `develop` at P8-05C1 merge commit
-  `b1988e27fcfeaf2c03baad762ff609c59ed18cd4` (PR #112)
+  63-record Products DEV with four deterministic Certifications, Profiles DEV
+  ownership, and the temporary dependency-scoped central continuation; C1 and
+  C2B central writes are retired
+- Implementation base: `develop` at P8-05C2A merge commit
+  `9cf03b40e9d7e8abcaafcef06649f51738377f90` (PR #113)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -263,16 +264,19 @@ P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=IN_PROGRESS
 P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_111
 P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
 P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_112
-P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_113
 HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
 P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C2C_DECISION_STATUS=RESOLVED
 P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_PENDING_C2B_OUTPUT
+P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_SEPARATE_C2C_IMPLEMENTATION_AUTHORIZATION
+P8_05C2C_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05D_ADMIN_DEV_STATUS=NOT_STARTED
@@ -317,14 +321,12 @@ and retained `legacy.dev.remaining` as temporary C2/C3/C4 compatibility
 scaffolding. Numeric Address/Profile/Logistics Geography-looking fields remain
 opaque legacy owner metadata, so the C1 DAG has no speculative Geography edge.
 
-P8-05C2A statically audits every remaining Product-dependent fixture. It
-approves the `product.id.by-sku` contract, eleven ordinary Product mappings,
-nine new deterministic Product SKUs, all nine Review SKU mappings, all three
-Harvest SKU mappings, deterministic certification numbers, and the
-Cooperative Member pair key. Human review establishes seller ownership as
-identity-relevant and resolves the four former Product conflicts without
-changing the existing 54 Products. C2B is authorized to target 63 Product
-outputs after PR #113 merges. C2C's decision surface is resolved but waits for
-that output. Bulk Listing, Contribution, and Harvest stable identities remain
-C2D domain blockers, so whole-C2 authorization stays `NO` and
-`P8_05C2_IMPLEMENTATION_STATUS` remains `NOT_STARTED`.
+P8-05C2A was merged by PR #113. C2B now preserves the original 54 Product
+SKUs, adds the nine approved fixtures, publishes all 63 reconciled UUIDs by
+SKU, and owns four deterministic Product Certifications. Central
+Product/category/image/certification and violation-Product writes are retired.
+The temporary continuation consumes only eight allowlisted UUIDs for the
+still-central Review and Harvest sections; it performs no Product repository
+query or positional selection. C2C remains not started. Bulk Listing,
+Contribution, and Harvest stable identities remain C2D blockers, so whole-C2
+implementation is still in progress rather than complete.

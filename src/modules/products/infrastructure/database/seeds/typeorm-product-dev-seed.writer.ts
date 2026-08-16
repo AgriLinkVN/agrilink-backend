@@ -2,8 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Product } from "../../persistence/entities/product.entity";
+import { ProductCertification } from "../../persistence/entities/product-certification.entity";
 import { ProductImage } from "../../persistence/entities/product-image.entity";
 import {
+  ProductDevCertificationRecord,
+  ProductDevCertificationWriteData,
   ProductDevPrimaryImageRecord,
   ProductDevPrimaryImageWriteData,
   ProductDevSeedRecord,
@@ -18,10 +21,12 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly imageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductCertification)
+    private readonly certificationRepository: Repository<ProductCertification>,
   ) {}
 
-  findProductBySku(sku: string): Promise<ProductDevSeedRecord | null> {
-    return this.productRepository.findOne({
+  findProductsBySku(sku: string): Promise<readonly ProductDevSeedRecord[]> {
+    return this.productRepository.find({
       select: { id: true },
       where: { sku },
     });
@@ -58,5 +63,30 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
     data: ProductDevPrimaryImageWriteData,
   ): Promise<void> {
     await this.imageRepository.update(id, data);
+  }
+
+  findCertifications(
+    productId: string,
+    certNumber: string,
+  ): Promise<readonly ProductDevCertificationRecord[]> {
+    return this.certificationRepository.find({
+      select: { id: true },
+      where: { productId, certNumber },
+    });
+  }
+
+  async createCertification(
+    data: ProductDevCertificationWriteData,
+  ): Promise<void> {
+    await this.certificationRepository.save(
+      this.certificationRepository.create(data),
+    );
+  }
+
+  async updateCertification(
+    id: string,
+    data: ProductDevCertificationWriteData,
+  ): Promise<void> {
+    await this.certificationRepository.update(id, data);
   }
 }

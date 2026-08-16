@@ -79,7 +79,11 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(mainSource).toContain("createUsersDevSeedGroup");
     expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
     expect(mainSource).toContain("new LegacyRemainingDevSeedGroup");
-    expect(centralSource).toContain("skipProducts: true");
+    expect(centralSource).not.toContain("skipProducts: true");
+    expect(centralSource).toContain("products.XOAI_HOA_LOC");
+    expect(centralSource).not.toMatch(
+      /getRepository\(Product\)|products\[|productIds\[/,
+    );
     expect(mainSource).not.toContain("devSeed.seedAll");
     expect(mainSource).not.toContain("seedForDevelopment(");
     expect(cliSource).not.toContain("ProductDevelopmentSeedService");
