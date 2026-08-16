@@ -11,10 +11,13 @@ BASE_COMMIT=b1988e27fcfeaf2c03baad762ff609c59ed18cd4
 BASE_PR=112
 
 P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
-P8_05C2B_IMPLEMENTATION_AUTHORIZED=NO
+HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2C_DECISION_STATUS=RESOLVED
 P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2A_DECISION_READINESS=BLOCKED
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2A_DECISION_READINESS=C2B_AUTHORIZED_C2D_BLOCKED
 ```
 
 This is a static audit and decision record. It does not migrate business
@@ -120,26 +123,51 @@ map, the richer canonical description, expiry, name, and current canonical
 image slot remain authoritative; the central image is retired rather than
 overwriting the canonical record.
 
-| ID      | Canonical match candidate     | Evidence class            | Decision                                     | Canonical or proposed SKU             | Evidence / unresolved difference                                                                                 |
-| ------- | ----------------------------- | ------------------------- | -------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `CP-01` | Xoài cát Hòa Lộc loại 1       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-XOAI-HOA-LOC-001`                | all commercial fields, seller, date, category, farming, status and view count agree; canonical wording is richer |
-| `CP-02` | Sầu riêng Ri6 Cai Lậy         | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-SAU-RIENG-RI6-001`               | all commercial fields and seller/date/category agree; same Cai Lậy fixture                                       |
-| `CP-03` | Bưởi da xanh Bến Tre          | `PARTIAL_SEMANTIC_MATCH`  | `REQUIRES_HUMAN_DECISION`                    | candidate `DEV-BUOI-DA-XANH-001`      | all other fields agree, but central seller is Farmer and canonical seller is Cooperative                         |
-| `CP-04` | Thanh long ruột đỏ xuất khẩu  | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-THANH-LONG-RUOT-DO-001`          | all commercial fields, seller, date, category, farming, status and view count agree                              |
-| `CP-05` | Dưa hấu không hạt Long An     | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-DUA-HAU-KHONG-HAT-001`           | all commercial fields and seller/date/category agree; canonical name supplies location                           |
-| `CP-06` | Vải thiều Lục Ngạn Bắc Giang  | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-VAI-THIEU-LUC-NGAN-001`          | all commercial fields and supplier/date/category agree                                                           |
-| `CP-07` | Rau muống hữu cơ Đà Lạt       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-RAU-MUONG-HUU-CO-001`            | exact name plus all commercial fields, seller, date and category agree                                           |
-| `CP-08` | none                          | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-CA-ROT-DA-LAT-001`               | distinct retained fixture and Review consumer; no canonical carrot Product                                       |
-| `CP-09` | Gạo ST25 đặc sản Sóc Trăng    | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-GAO-ST25-001`                    | all commercial fields, seller, date, category, farming, status and view count agree                              |
-| `CP-10` | none                          | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-GAO-JASMINE-THOM-001`            | distinct retained fixture with certification; no canonical Jasmine Product                                       |
-| `CP-11` | Cà phê Arabica Cầu Đất Đà Lạt | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-CA-PHE-ARABICA-001`              | all commercial fields, seller, date, category, farming, status and view count agree                              |
-| `CP-12` | Cà phê Robusta Buôn Ma Thuột  | `PARTIAL_SEMANTIC_MATCH`  | `REQUIRES_HUMAN_DECISION`                    | candidate `DEV-CA-PHE-ROBUSTA-001`    | seller differs Supplier versus Cooperative and price differs 95,000 versus 75,000                                |
-| `CP-13` | Tiêu đen Phú Quốc             | `PARTIAL_SEMANTIC_MATCH`  | `REQUIRES_HUMAN_DECISION`                    | candidate `DEV-TIEU-DEN-PHU-QUOC-001` | all other fields agree, but central seller is Supplier and canonical seller is Cooperative                       |
-| `CP-14` | Gừng tươi hữu cơ Kỳ Sơn       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-GUNG-TUOI-HUU-CO-001`            | all commercial fields, seller, date, category, farming, status and view count agree                              |
-| `CP-15` | Hạt điều rang muối W320       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-HAT-DIEU-W320-001`               | exact name plus all commercial fields, seller, date and category agree                                           |
-| `CP-16` | Đậu phộng đỏ Bình Định        | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-DAU-PHONG-RANG-001`              | central row is a 55,000 roasted product; candidate is a distinct 35,000 raw red-peanut product                   |
-| `CP-17` | Mật ong hoa nhãn nguyên chất  | `PARTIAL_SEMANTIC_MATCH`  | `REQUIRES_HUMAN_DECISION`                    | candidate `DEV-MAT-ONG-HOA-NHAN-001`  | all other fields agree, but central seller is Cooperative and canonical seller is Farmer                         |
-| `CP-18` | Hoa cúc vàng Đà Lạt           | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-HOA-CUC-VANG-001`                | exact name plus all commercial fields, seller, date and category agree                                           |
+| ID      | Canonical match candidate     | Evidence class            | Decision                                     | Canonical or proposed SKU            | Evidence / unresolved difference                                                                                  |
+| ------- | ----------------------------- | ------------------------- | -------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `CP-01` | Xoài cát Hòa Lộc loại 1       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-XOAI-HOA-LOC-001`               | all commercial fields, seller, date, category, farming, status and view count agree; canonical wording is richer  |
+| `CP-02` | Sầu riêng Ri6 Cai Lậy         | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-SAU-RIENG-RI6-001`              | all commercial fields and seller/date/category agree; same Cai Lậy fixture                                        |
+| `CP-03` | Bưởi da xanh Bến Tre          | `PARTIAL_SEMANTIC_MATCH`  | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-BUOI-DA-XANH-FARMER-001`        | seller is identity-relevant; preserve the central Farmer payload without changing the Cooperative-owned Product   |
+| `CP-04` | Thanh long ruột đỏ xuất khẩu  | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-THANH-LONG-RUOT-DO-001`         | all commercial fields, seller, date, category, farming, status and view count agree                               |
+| `CP-05` | Dưa hấu không hạt Long An     | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-DUA-HAU-KHONG-HAT-001`          | all commercial fields and seller/date/category agree; canonical name supplies location                            |
+| `CP-06` | Vải thiều Lục Ngạn Bắc Giang  | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-VAI-THIEU-LUC-NGAN-001`         | all commercial fields and supplier/date/category agree                                                            |
+| `CP-07` | Rau muống hữu cơ Đà Lạt       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-RAU-MUONG-HUU-CO-001`           | exact name plus all commercial fields, seller, date and category agree                                            |
+| `CP-08` | none                          | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-CA-ROT-DA-LAT-001`              | distinct retained fixture and Review consumer; no canonical carrot Product                                        |
+| `CP-09` | Gạo ST25 đặc sản Sóc Trăng    | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-GAO-ST25-001`                   | all commercial fields, seller, date, category, farming, status and view count agree                               |
+| `CP-10` | none                          | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-GAO-JASMINE-THOM-001`           | distinct retained fixture with certification; no canonical Jasmine Product                                        |
+| `CP-11` | Cà phê Arabica Cầu Đất Đà Lạt | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-CA-PHE-ARABICA-001`             | all commercial fields, seller, date, category, farming, status and view count agree                               |
+| `CP-12` | Cà phê Robusta Buôn Ma Thuột  | `PARTIAL_SEMANTIC_MATCH`  | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-CA-PHE-ROBUSTA-SUPPLIER-001`    | seller and price are identity-relevant; preserve the 95,000 Supplier payload and existing Cooperative Product     |
+| `CP-13` | Tiêu đen Phú Quốc             | `PARTIAL_SEMANTIC_MATCH`  | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-TIEU-DEN-PHU-QUOC-SUPPLIER-001` | seller is identity-relevant; preserve the central Supplier payload without changing the Cooperative-owned Product |
+| `CP-14` | Gừng tươi hữu cơ Kỳ Sơn       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-GUNG-TUOI-HUU-CO-001`           | all commercial fields, seller, date, category, farming, status and view count agree                               |
+| `CP-15` | Hạt điều rang muối W320       | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-HAT-DIEU-W320-001`              | exact name plus all commercial fields, seller, date and category agree                                            |
+| `CP-16` | Đậu phộng đỏ Bình Định        | `NO_CANONICAL_EQUIVALENT` | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-DAU-PHONG-RANG-001`             | central row is a 55,000 roasted product; candidate is a distinct 35,000 raw red-peanut product                    |
+| `CP-17` | Mật ong hoa nhãn nguyên chất  | `PARTIAL_SEMANTIC_MATCH`  | `ADD_TO_CANONICAL_PRODUCTS_DEV_WITH_NEW_SKU` | `DEV-MAT-ONG-HOA-NHAN-COOP-001`      | seller is identity-relevant; preserve the central Cooperative payload without changing the Farmer-owned Product   |
+| `CP-18` | Hoa cúc vàng Đà Lạt           | `PARTIAL_SEMANTIC_MATCH`  | `MAP_TO_EXISTING_CANONICAL_SKU`              | `DEV-HOA-CUC-VANG-001`               | exact name plus all commercial fields, seller, date and category agree                                            |
+
+### Human Product Decision Overlay
+
+Human review establishes that seller ownership is identity-relevant for DEV
+Product fixtures. A seller difference creates a distinct Product even when the
+name and other commercial fields match; a seller plus price difference is
+stronger distinct-fixture evidence. The pre-review blockers and candidate
+canonical SKUs remain recorded here rather than being erased.
+
+| ID      | Pre-review state                                                 | Human decision                             | New SKU                              | Existing SKU preserved unchanged |
+| ------- | ---------------------------------------------------------------- | ------------------------------------------ | ------------------------------------ | -------------------------------- |
+| `CP-03` | `REQUIRES_HUMAN_DECISION`; candidate `DEV-BUOI-DA-XANH-001`      | add distinct Farmer-owned Product          | `DEV-BUOI-DA-XANH-FARMER-001`        | `DEV-BUOI-DA-XANH-001`           |
+| `CP-12` | `REQUIRES_HUMAN_DECISION`; candidate `DEV-CA-PHE-ROBUSTA-001`    | add distinct Supplier-owned 95,000 Product | `DEV-CA-PHE-ROBUSTA-SUPPLIER-001`    | `DEV-CA-PHE-ROBUSTA-001`         |
+| `CP-13` | `REQUIRES_HUMAN_DECISION`; candidate `DEV-TIEU-DEN-PHU-QUOC-001` | add distinct Supplier-owned Product        | `DEV-TIEU-DEN-PHU-QUOC-SUPPLIER-001` | `DEV-TIEU-DEN-PHU-QUOC-001`      |
+| `CP-17` | `REQUIRES_HUMAN_DECISION`; candidate `DEV-MAT-ONG-HOA-NHAN-001`  | add distinct Cooperative-owned Product     | `DEV-MAT-ONG-HOA-NHAN-COOP-001`      | `DEV-MAT-ONG-HOA-NHAN-001`       |
+
+Each new Product preserves the complete central seller-owned payload,
+including price, unit, quantities, farming type, harvest date, description,
+view count, and source-specific primary image.
+
+```text
+HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
+NEW_HUMAN_APPROVED_PRODUCT_COUNT=4
+NEW_HUMAN_APPROVED_SKU_COLLISIONS=0
+```
 
 ```text
 ORDINARY_PRODUCT_COUNT=18
@@ -148,16 +176,17 @@ PARTIAL_SEMANTIC_MATCH_COUNT=15
 NO_CANONICAL_EQUIVALENT_COUNT=3
 
 ORDINARY_MAP_EXISTING_COUNT=11
-ORDINARY_ADD_NEW_COUNT=3
+ORDINARY_ADD_NEW_COUNT=7
 ORDINARY_RETIRE_COUNT=0
-ORDINARY_UNRESOLVED_COUNT=4
+ORDINARY_UNRESOLVED_COUNT=0
 ```
 
 All proposed SKUs are explicit, deterministic, below the Product column's
-50-character limit, and absent from the existing 54-SKU payload. For the three
-approved ordinary additions, C2B must preserve the source-specific image URL
-and nullable `expiryDate` rather than inventing an expiry. Existing 54 Product
-payloads and SKUs remain unchanged.
+50-character limit, unique across the nine approved additions, and absent from
+the existing 54-SKU payload. For the seven approved ordinary additions, C2B
+must preserve the source-specific image URL and nullable `expiryDate` rather
+than inventing an expiry. Existing 54 Product payloads and SKUs remain
+unchanged.
 
 ## 3. Violation Product Decisions
 
@@ -186,13 +215,14 @@ VIOLATION_UNRESOLVED_COUNT=0
 CENTRAL_PRODUCT_RECORD_COUNT=20
 CENTRAL_PRODUCT_DECISION_COUNT=20
 MAP_EXISTING_COUNT=11
-ADD_NEW_COUNT=5
+ADD_NEW_COUNT=9
 RETIRE_COUNT=0
-UNRESOLVED_COUNT=4
+UNRESOLVED_COUNT=0
 
 CURRENT_CANONICAL_PRODUCT_COUNT=54
-APPROVED_NEW_PRODUCTS=5
-TARGET_CANONICAL_PRODUCT_COUNT=59_APPROVED_MINIMUM; FINAL_COUNT_BLOCKED_BY_4_PRODUCT_DECISIONS
+APPROVED_NEW_PRODUCTS=9
+TARGET_CANONICAL_PRODUCT_COUNT=63
+PRODUCT_MAPPING_BLOCKER=NONE
 ```
 
 ## 4. Product Output Contract
@@ -207,7 +237,7 @@ reconcile flow. It must not perform a second global Product query for consumers.
 ```text
 PRODUCT_DEV_OUTPUT_REQUIRED=YES
 PRODUCT_DEV_OUTPUT_KIND=product.id.by-sku
-TARGET_PRODUCT_OUTPUT_COUNT=59_APPROVED_MINIMUM; FINAL_COUNT_BLOCKED_BY_4_PRODUCT_DECISIONS
+TARGET_PRODUCT_OUTPUT_COUNT=63
 PRODUCT_ENTITY_TRANSPORT=PROHIBITED
 PRODUCT_REPOSITORY_TRANSPORT=PROHIBITED
 ```
@@ -223,17 +253,17 @@ first eight UUIDs, and uses positions `0..7` in nine Review rows. The runtime
 Product at any position is indeterminate. The comments, however, uniquely name
 the intended fixture and provide evidence independent of position.
 
-| Fixture  | Reviewer email           | Rating | Comment intent                              | Current expression / effective position | Proposed Product SKU         | Decision / evidence                                                                            |
-| -------- | ------------------------ | -----: | ------------------------------------------- | --------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| `REV-01` | `buyer@agrilink.vn`      |      5 | sweet fragrant Xoài, careful packing        | `productIds[0]` / 0                     | `DEV-XOAI-HOA-LOC-001`       | `USE_PRODUCT_SKU`; comment explicitly names Xoài intent                                        |
-| `REV-02` | `enterprise@agrilink.vn` |      4 | quality/price suitable for processing plant | `productIds[0]` / 0                     | `DEV-XOAI-HOA-LOC-001`       | `USE_PRODUCT_SKU`; shares the explicitly named first Xoài fixture                              |
-| `REV-03` | `buyer@agrilink.vn`      |      5 | Ri6 Cai Lậy, yellow flesh/small seed        | `productIds[1]` / 1                     | `DEV-SAU-RIENG-RI6-001`      | `USE_PRODUCT_SKU`; comment uniquely names Ri6 Cai Lậy                                          |
-| `REV-04` | `enterprise@agrilink.vn` |      4 | juicy Bưởi da xanh                          | `productIds[2]` / 2                     | `DEV-BUOI-DA-XANH-001`       | `USE_PRODUCT_SKU`; comment uniquely names Bưởi; Review does not decide central seller conflict |
-| `REV-05` | `buyer@agrilink.vn`      |      5 | red dragon fruit/export quality             | `productIds[3]` / 3                     | `DEV-THANH-LONG-RUOT-DO-001` | `USE_PRODUCT_SKU`; comment uniquely names red dragon fruit                                     |
-| `REV-06` | `enterprise@agrilink.vn` |      3 | watermelon good but undersized              | `productIds[4]` / 4                     | `DEV-DUA-HAU-KHONG-HAT-001`  | `USE_PRODUCT_SKU`; comment uniquely names watermelon                                           |
-| `REV-07` | `buyer@agrilink.vn`      |      5 | authentic Lục Ngạn lychee                   | `productIds[5]` / 5                     | `DEV-VAI-THIEU-LUC-NGAN-001` | `USE_PRODUCT_SKU`; comment uniquely names origin/product                                       |
-| `REV-08` | `farmer@sandbox.com`     |      4 | fresh pesticide-free rau muống              | `productIds[6]` / 6                     | `DEV-RAU-MUONG-HUU-CO-001`   | `USE_PRODUCT_SKU`; comment uniquely names vegetable                                            |
-| `REV-09` | `buyer@agrilink.vn`      |      5 | crisp Đà Lạt carrot for salad               | `productIds[7]` / 7                     | `DEV-CA-ROT-DA-LAT-001`      | `USE_PRODUCT_SKU`; comment uniquely names approved new Product                                 |
+| Fixture  | Reviewer email           | Rating | Comment intent                              | Current expression / effective position | Proposed Product SKU          | Decision / evidence                                                                    |
+| -------- | ------------------------ | -----: | ------------------------------------------- | --------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
+| `REV-01` | `buyer@agrilink.vn`      |      5 | sweet fragrant Xoài, careful packing        | `productIds[0]` / 0                     | `DEV-XOAI-HOA-LOC-001`        | `USE_PRODUCT_SKU`; comment explicitly names Xoài intent                                |
+| `REV-02` | `enterprise@agrilink.vn` |      4 | quality/price suitable for processing plant | `productIds[0]` / 0                     | `DEV-XOAI-HOA-LOC-001`        | `USE_PRODUCT_SKU`; shares the explicitly named first Xoài fixture                      |
+| `REV-03` | `buyer@agrilink.vn`      |      5 | Ri6 Cai Lậy, yellow flesh/small seed        | `productIds[1]` / 1                     | `DEV-SAU-RIENG-RI6-001`       | `USE_PRODUCT_SKU`; comment uniquely names Ri6 Cai Lậy                                  |
+| `REV-04` | `enterprise@agrilink.vn` |      4 | juicy Bưởi da xanh                          | `productIds[2]` / 2                     | `DEV-BUOI-DA-XANH-FARMER-001` | `USE_PRODUCT_SKU`; preserves the original relationship to central Farmer-owned `CP-03` |
+| `REV-05` | `buyer@agrilink.vn`      |      5 | red dragon fruit/export quality             | `productIds[3]` / 3                     | `DEV-THANH-LONG-RUOT-DO-001`  | `USE_PRODUCT_SKU`; comment uniquely names red dragon fruit                             |
+| `REV-06` | `enterprise@agrilink.vn` |      3 | watermelon good but undersized              | `productIds[4]` / 4                     | `DEV-DUA-HAU-KHONG-HAT-001`   | `USE_PRODUCT_SKU`; comment uniquely names watermelon                                   |
+| `REV-07` | `buyer@agrilink.vn`      |      5 | authentic Lục Ngạn lychee                   | `productIds[5]` / 5                     | `DEV-VAI-THIEU-LUC-NGAN-001`  | `USE_PRODUCT_SKU`; comment uniquely names origin/product                               |
+| `REV-08` | `farmer@sandbox.com`     |      4 | fresh pesticide-free rau muống              | `productIds[6]` / 6                     | `DEV-RAU-MUONG-HUU-CO-001`    | `USE_PRODUCT_SKU`; comment uniquely names vegetable                                    |
+| `REV-09` | `buyer@agrilink.vn`      |      5 | crisp Đà Lạt carrot for salad               | `productIds[7]` / 7                     | `DEV-CA-ROT-DA-LAT-001`       | `USE_PRODUCT_SKU`; comment uniquely names approved new Product                         |
 
 `reviews` has the partial unique index
 `IDX_reviews_reviewer_product_unique(reviewer_id, product_id) WHERE
@@ -251,6 +281,7 @@ REVIEW_FIXTURE_COUNT=9
 REVIEW_STABLE_KEY=reviewer User ID + Product ID
 REVIEW_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
 REVIEW_POSITIONAL_MAPPING_STATUS=RESOLVED
+REVIEW_UNRESOLVED_PRODUCT_MAPPINGS=0
 ```
 
 ## 6. Product Certification Identity Decision
@@ -435,16 +466,27 @@ Cooperatives publish no outputs.
 The original C2 scope is too large for one reviewable implementation PR and
 Cooperative identity work remains substantial. Retain the three-way split.
 
-| Slice                         | Scope                                                       | Authorized | Blockers                                                                                | Exit gate                                                                                                                                                                  |
-| ----------------------------- | ----------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `P8-05C2B_PRODUCTS_EXTENSION` | Product map/add/retire, Certifications, `product.id.by-sku` | `NO`       | human decision for `CP-03`, `CP-12`, `CP-13`, `CP-17`                                   | all 20 Product decisions final; approved Products/certifications converge; Product output published; central Product/category/image/certification/violation writes retired |
-| `P8-05C2C_REVIEWS`            | explicit reviewer email and Product SKU fixtures            | `NO`       | decision surface is resolved, but producer output is not implemented and C2B is blocked | nine reviewer/Product pairs converge 0/1/>1; no Product query or array position; central Review write retired                                                              |
-| `P8-05C2D_COOPERATIVES`       | member, listings, contributions, harvest                    | `NO`       | Bulk Listing identity; Contribution domain identity; Harvest identity                   | every retained row has a proven key; declared scalar inputs only; no positional/unused Product dependency; central Cooperative writes retired                              |
+C2B is now authorized, but is not implemented here. Its exact future scope is
+to preserve the existing 54 SKUs, add the nine approved Products for a total
+of 63, publish all 63 reconciled UUIDs through `product.id.by-sku`, migrate the
+four Certifications with deterministic certificate numbers, and remove the
+central category/Product/image/certification/violation writes. It must retain
+owner boundaries and dependency-scoped scalar outputs.
+
+| Slice                         | Scope                                                       | Authorized | Blockers                                                              | Exit gate                                                                                                                                                            |
+| ----------------------------- | ----------------------------------------------------------- | ---------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `P8-05C2B_PRODUCTS_EXTENSION` | Product map/add/retire, Certifications, `product.id.by-sku` | `YES`      | none                                                                  | all 20 Product decisions final; 63 Products/certifications converge; Product output published; central Product/category/image/certification/violation writes retired |
+| `P8-05C2C_REVIEWS`            | explicit reviewer email and Product SKU fixtures            | `NO`       | decision surface resolved; `P8_05C2B_PRODUCT_OUTPUT_NOT_IMPLEMENTED`  | nine reviewer/Product pairs converge 0/1/>1; no Product query or array position; central Review write retired                                                        |
+| `P8-05C2D_COOPERATIVES`       | member, listings, contributions, harvest                    | `NO`       | Bulk Listing identity; Contribution domain identity; Harvest identity | every retained row has a proven key; declared scalar inputs only; no positional/unused Product dependency; central Cooperative writes retired                        |
 
 ```text
-P8_05C2B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2B_BLOCKERS=NONE
+P8_05C2C_DECISION_STATUS=RESOLVED
 P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2C_BLOCKERS=P8_05C2B_PRODUCT_OUTPUT_NOT_IMPLEMENTED
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_IDENTITY; BULK_CONTRIBUTION_IDENTITY; HARVEST_SCHEDULE_IDENTITY
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 ```
 
@@ -454,6 +496,8 @@ Chosen decisions:
 
 - Map only when the complete shared business payload proves the same intended
   fixture; preserve the canonical row when wording/image differs.
+- Treat different seller ownership as distinct DEV Product identity and add a
+  new SKU without mutating the other seller's canonical Product.
 - Add source-proven, non-equivalent Products with explicit SKUs and retain
   nullable fields rather than fabricating data.
 - Retain violation Products as explicit compliance/demo records with SKUs.
@@ -487,13 +531,19 @@ uniqueness becomes a domain invariant.
 Remaining blockers are deliberately narrow:
 
 ```text
-PRODUCT_MAPPING_BLOCKER=CP-03,CP-12,CP-13,CP-17
+PRODUCT_MAPPING_BLOCKER=NONE
 BULK_LISTING_IDENTITY_BLOCKER=UNRESOLVED
 BULK_CONTRIBUTION_IDENTITY_BLOCKER=UNRESOLVED
 HARVEST_SCHEDULE_IDENTITY_BLOCKER=UNRESOLVED
 
-P8_05C2A_DECISIONS_BLOCKED
-STOP_REASON=PRODUCT_SELLER_OR_PRICE_CONFLICTS_AND_COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_HUMAN_OR_DOMAIN_DECISION
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2C_DECISION_STATUS=RESOLVED
+P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_PENDING_C2B_OUTPUT
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
+STOP_REASON=COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_DOMAIN_DECISION
 ```
 
 ## Scope And Database Safety

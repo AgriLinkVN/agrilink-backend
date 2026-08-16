@@ -1,8 +1,8 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: no P8-05C2 implementation slice; C2A static
-  decisions are complete but retain named human/domain blockers
+- Implementation authorized: `P8_05C2B_PRODUCTS_EXTENSION` after PR #113
+  merges; C2C waits for its Product output and C2D retains domain blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
   Products DEV, Profiles DEV ownership, and the temporary dependency-scoped
@@ -264,6 +264,14 @@ P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_111
 P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
 P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_112
 P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2C_DECISION_STATUS=RESOLVED
+P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_PENDING_C2B_OUTPUT
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
@@ -311,10 +319,12 @@ opaque legacy owner metadata, so the C1 DAG has no speculative Geography edge.
 
 P8-05C2A statically audits every remaining Product-dependent fixture. It
 approves the `product.id.by-sku` contract, eleven ordinary Product mappings,
-five new deterministic Product SKUs, all nine Review SKU mappings, all three
+nine new deterministic Product SKUs, all nine Review SKU mappings, all three
 Harvest SKU mappings, deterministic certification numbers, and the
-Cooperative Member pair key. Four Product seller/price conflicts and the Bulk
-Listing, Contribution, and Harvest stable identities remain explicit human or
-domain blockers. Therefore no C2 implementation sub-slice is authorized by
-this documentation change and `P8_05C2_IMPLEMENTATION_STATUS` remains
-`NOT_STARTED`.
+Cooperative Member pair key. Human review establishes seller ownership as
+identity-relevant and resolves the four former Product conflicts without
+changing the existing 54 Products. C2B is authorized to target 63 Product
+outputs after PR #113 merges. C2C's decision surface is resolved but waits for
+that output. Bulk Listing, Contribution, and Harvest stable identities remain
+C2D domain blockers, so whole-C2 authorization stays `NO` and
+`P8_05C2_IMPLEMENTATION_STATUS` remains `NOT_STARTED`.

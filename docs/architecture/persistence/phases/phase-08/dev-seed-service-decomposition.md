@@ -766,7 +766,7 @@ P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
 
 | Original C2 blocker | C2A decision | Status |
 | --- | --- | --- |
-| decide all 20 central Products | 11 map to existing SKUs, five receive proposed new SKUs, four retain seller/price conflicts requiring human choice | `STILL_BLOCKED` |
+| decide all 20 central Products | 11 map to existing SKUs and nine receive approved new SKUs; seller ownership distinguishes the four formerly conflicting fixtures | `RESOLVED` |
 | Product Certification identity | Product UUID plus explicit deterministic certificate number; 0 creates, 1 reconciles, more than 1 fails closed | `RESOLVED` |
 | nine positional Review Product references | all nine map by comment evidence to explicit Product SKUs | `RESOLVED` |
 | Cooperative Member identity | current source has one explicit member; migration proves cooperative/farmer pair unique | `RESOLVED` |
@@ -776,27 +776,60 @@ P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
 | Harvest Schedule identity | User/Product/date is not schema- or domain-proven unique | `STILL_BLOCKED` |
 | C2 execution-time identity | four certificate numbers become explicit deterministic values; member join time is create-only non-identity and preserved on reconciliation | `RESOLVED` |
 
+### P8-05C2A Human Product Decision Overlay
+
+Human review resolves the four Product blockers by making seller ownership
+identity-relevant for DEV fixtures. `CP-03`, `CP-12`, `CP-13`, and `CP-17`
+become distinct additions with explicit seller-qualified SKUs; the four
+previous candidate SKUs and their existing canonical Products remain
+unchanged. `REV-04` follows retained `CP-03` through
+`DEV-BUOI-DA-XANH-FARMER-001`.
+
+```text
+HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
+NEW_HUMAN_APPROVED_PRODUCT_COUNT=4
+NEW_HUMAN_APPROVED_SKU_COLLISIONS=0
+PRODUCT_MAPPING_BLOCKER=NONE
+
+ORDINARY_MAP_EXISTING_COUNT=11
+ORDINARY_ADD_NEW_COUNT=7
+ORDINARY_RETIRE_COUNT=0
+ORDINARY_UNRESOLVED_COUNT=0
+VIOLATION_ADD_NEW_COUNT=2
+VIOLATION_UNRESOLVED_COUNT=0
+
+MAP_EXISTING_COUNT=11
+ADD_NEW_COUNT=9
+RETIRE_COUNT=0
+UNRESOLVED_COUNT=0
+CURRENT_CANONICAL_PRODUCT_COUNT=54
+TARGET_CANONICAL_PRODUCT_COUNT=63
+TARGET_PRODUCT_OUTPUT_COUNT=63
+```
+
 The implementation boundary is split so that Product output, Reviews, and
-Cooperative operations can be reviewed independently. No split is currently
-authorized: C2B retains four Product decisions, C2C depends on the unimplemented
-C2B output, and C2D retains three domain/stable-key blockers.
+Cooperative operations can be reviewed independently. C2B is authorized by the
+resolved Product decisions. C2C's decision surface is resolved but its runtime
+implementation waits for the C2B output. C2D retains three domain/stable-key
+blockers, so the whole C2 scope is not authorized.
 
 ```text
 P8_05C2B_PRODUCTS_EXTENSION=PRODUCTS_CERTIFICATIONS_AND_PRODUCT_ID_BY_SKU
-P8_05C2B_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2B_BLOCKERS=CP-03,CP-12,CP-13,CP-17
+P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2B_BLOCKERS=NONE
 
 P8_05C2C_REVIEWS=EXPLICIT_REVIEWER_EMAIL_AND_PRODUCT_SKU_FIXTURES
+P8_05C2C_DECISION_STATUS=RESOLVED
 P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2C_BLOCKERS=PRODUCT_ID_BY_SKU_OUTPUT_NOT_IMPLEMENTED; P8_05C2B_BLOCKED
+P8_05C2C_BLOCKERS=P8_05C2B_PRODUCT_OUTPUT_NOT_IMPLEMENTED
 
 P8_05C2D_COOPERATIVES=MEMBERS_LISTINGS_CONTRIBUTIONS_AND_HARVEST
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2D_BLOCKERS=BULK_LISTING_IDENTITY; CONTRIBUTION_IDENTITY; HARVEST_IDENTITY
+P8_05C2D_BLOCKERS=BULK_LISTING_IDENTITY; BULK_CONTRIBUTION_IDENTITY; HARVEST_SCHEDULE_IDENTITY
 
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2A_DECISIONS_BLOCKED
-STOP_REASON=PRODUCT_SELLER_OR_PRICE_CONFLICTS_AND_COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_HUMAN_OR_DOMAIN_DECISION
+P8_05C2D_DECISIONS_BLOCKED
+STOP_REASON=COOPERATIVE_OPERATION_STABLE_IDENTITIES_REQUIRE_DOMAIN_DECISION
 ```
 
 No Product, Review, Cooperative, C3, C4, admin DEV, schema, or migration source
