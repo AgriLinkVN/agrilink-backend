@@ -9,6 +9,7 @@ import { SeedOutputRegistry } from '../../../../../database/seeds/framework/seed
 import {
   CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
   PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
+  PRODUCTS_DEV_SEED_GROUP_ID,
 } from '../../../application/contracts/product-seed-output.contract';
 import {
   USER_ID_BY_EMAIL_OUTPUT_KIND,
@@ -155,8 +156,9 @@ function createWriter(initialProducts: readonly StoredProduct[] = []): {
 
 describe('ProductDevelopmentSeedService', () => {
   it('declares the one canonical Products-owned DEV group', () => {
+    expect(PRODUCTS_DEV_SEED_GROUP_ID).toBe('products.dev.products');
     expect(PRODUCTS_DEV_SEED_METADATA).toEqual({
-      id: 'products.dev.products',
+      id: PRODUCTS_DEV_SEED_GROUP_ID,
       owner: 'products',
       classification: SeedClassification.DEV,
       dependencies: [PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID, USERS_DEV_SEED_GROUP_ID],

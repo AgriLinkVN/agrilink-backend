@@ -10,7 +10,7 @@ import {
   USER_ID_BY_EMAIL_OUTPUT_KIND,
   USERS_DEV_SEED_GROUP_ID,
 } from "../../modules/users/application/contracts/user-seed-output.contract";
-import { PRODUCTS_DEV_SEED_GROUP_ID } from "../../modules/products/infrastructure/database/seeds/product-development-seed.service";
+import { PRODUCTS_DEV_SEED_GROUP_ID } from "../../modules/products/application/contracts/product-seed-output.contract";
 
 export const LEGACY_REMAINING_DEV_SEED_GROUP_ID = "legacy.dev.remaining";
 export const TEMPORARY_LEGACY_CONTINUATION = "YES";
