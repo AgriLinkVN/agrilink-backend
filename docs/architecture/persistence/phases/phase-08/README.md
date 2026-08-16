@@ -1,12 +1,12 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: `P8_05C0_CENTRAL_DEVSEEDSERVICE_DECOMPOSITION_PLAN`
+- Implementation authorized: `P8_05C1A_USER_ROOTED_IDENTITY_AND_GEOGRAPHY_DECISIONS`
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, Users DEV, and canonical Products
-  DEV ownership; central `DevSeedService` decomposition is statically planned
-- Implementation base: `develop` at P8-05B merge commit
-  `366585a9a4c76899c0717d94f4307aa66b22cebd` (PR #109)
+  DEV ownership; central decomposition and C1 entry decisions are documented
+- Implementation base: `develop` at P8-05C0 merge commit
+  `73de52dbd52f4e12a14c0a2fd6af8212a005510a` (PR #110)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -23,6 +23,8 @@ The scalar dependency decision is recorded in
 [seed-dependency-contract.md](seed-dependency-contract.md).
 The complete central development-service plan is recorded in
 [dev-seed-service-decomposition.md](dev-seed-service-decomposition.md).
+The C1 User, Address, Profile, Logistics, and Geography decisions are recorded
+in [dev-seed-c1-decisions.md](dev-seed-c1-decisions.md).
 
 ## Scope
 
@@ -252,8 +254,14 @@ P8_05_DEV_SEEDS_STATUS=IN_PROGRESS
 P8_05A_GEOGRAPHY_USERS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_107
 P8_05B0_DEPENDENCY_OUTPUT_CONTRACT_STATUS=IMPLEMENTED_BY_MERGED_PR_108
 P8_05B_PRODUCTS_DEV_STATUS=IMPLEMENTED_BY_MERGED_PR_109
-P8_05C0_DEVSEEDSERVICE_PLAN_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C0_DEVSEEDSERVICE_PLAN_STATUS=IMPLEMENTED_BY_MERGED_PR_110
 P8_05C_DEVSEEDSERVICE_DECOMPOSITION_STATUS=NOT_STARTED
+P8_05C1A_USER_GEOGRAPHY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C1_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05D_ADMIN_DEV_STATUS=NOT_STARTED
 P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
 P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
@@ -276,8 +284,9 @@ slices, P8-07, and P8-10. P8-05C0 has now audited all 23 central-service tables,
 assigned their 10 canonical owners, defined the scalar dependency DAG, and
 split implementation into four blocked, reviewable slices. That plan does not
 authorize business-code changes. The central CLI delegates its explicit
-REFERENCE and DEV selections to owner-local Geography, Products, and Users groups. Products
-development now runs as the owner-local `products.dev.products` group after its
+REFERENCE and DEV selections to owner-local Geography, Products, and Users
+groups. Products development now runs as the owner-local
+`products.dev.products` group after its
 Users and Product Category dependencies. Its legacy Product/Seller sources are
 retired, and its old Geography-name behavior is not migrated because the
 canonical payload stores no location identifier. The comprehensive central
@@ -287,3 +296,12 @@ orchestration-only phase exit criterion is still open, and P8-08 remains
 `NOT_STARTED` until runtime and disposable-database idempotency verification is
 authorized. The standalone admin development source remains explicitly deferred
 to P8-05D.
+
+P8-05C1A resolves the C1 entry decisions without changing seed behavior. The
+future Users DEV payload keeps the seven merged identities, adds three
+source-proven distinct central identities, maps four semantic duplicates to
+existing canonical email outputs, and retires three declarations without a
+deterministic consumer. User Addresses use a seed-level default slot. Numeric
+Address/Profile/Logistics Geography-looking fields remain opaque legacy owner
+metadata, so the C1 DAG has no speculative Geography edge. C1 implementation
+remains `NOT_STARTED` until this decision PR is human-reviewed.

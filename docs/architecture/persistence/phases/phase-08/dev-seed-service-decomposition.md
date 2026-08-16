@@ -673,3 +673,34 @@ P8_05C0_READY_FOR_HUMAN_REVIEW=YES
 `STABLE_KEY_AUDIT_COMPLETE=YES` means every table was assessed and every
 unresolved key was made a named blocker. It does not mean all thirteen key
 decisions have been approved.
+
+## P8-05C1A Decision Overlay
+
+The authoritative User, Address, Profile, Logistics, and legacy Geography
+decisions are recorded in
+[dev-seed-c1-decisions.md](dev-seed-c1-decisions.md). This overlay does not
+rewrite the P8-05C0 current-state audit; it records the reviewed target decision
+for the C1 implementation slice.
+
+| C1 entry blocker | Decision | Status |
+| --- | --- | --- |
+| three-way admin identity conflict | reuse `users.dev.users/user.id.by-email` for `admin@agrilink.vn`; retire the central duplicate; leave admin DEV to P8-05D | `RESOLVED` |
+| ten central-only identities | retain three distinct identities, map four consumers to existing canonical identities, retire three declarations without deterministic consumers | `RESOLVED` |
+| User Address stable identity | seed-level User plus existing `Địa chỉ chính` default slot; 0 creates, 1 reconciles, more than 1 fails closed | `RESOLVED` |
+| legacy numeric Geography semantics | preserve opaque `int`/`int[]` owner metadata; no Province UUID/code interpretation and no Geography dependency | `RESOLVED` |
+
+The future Users DEV payload contains ten unique email/phone identities: the
+seven merged canonical accounts plus retained
+`farmer@sandbox.com`, `cooperative@sandbox.com`, and
+`state_agency@sandbox.com`. Existing `user.id.by-email` outputs are sufficient.
+
+```text
+P8_05C1A_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+C1_BLOCKERS_REMAINING=NONE
+P8_05C1_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C1_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+Authorization means the documented C1B source implementation may begin after
+human review. It does not authorize schema changes, database execution, seed
+execution, or changes to `admin-dev.seed.ts`.
