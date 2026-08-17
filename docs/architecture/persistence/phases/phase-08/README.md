@@ -2,8 +2,8 @@
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
 - Implementation authorized: C2B and C2C are merged; C2D0 resolves Member and
-  Harvest identity, conditionally resolves Contribution by retiring the
-  accidental duplicate, and retains the Bulk Listing domain blocker
+  Contribution identity after human-approved BLC-02 retirement, while Bulk
+  Listing and Harvest retain domain-identity blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
   63-record Products DEV with four deterministic Certifications, Profiles DEV
@@ -277,7 +277,10 @@ P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=AUTHORIZED_AFTER_PR_114_MERGE
 P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
 P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_BULK_LISTING_DOMAIN_IDENTITY
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_BULK_LISTING_AND_HARVEST_DOMAIN_IDENTITIES
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
@@ -336,14 +339,15 @@ and the schema-backed reviewer/Product pair. Central Review writes, queries,
 imports, reset targeting, and positional Product aliases are retired. The
 temporary continuation consumes only the Xoài UUID still needed by central
 Harvest and performs no Product repository query or positional selection.
-The C2D0 static audit reconfirms schema-unique Member identity and resolves
-Harvest as a fail-closed seed-level key. Git history identifies BLC-02 as an
-accidental duplicate fixture; its documented retirement and the resulting
-listing/Farmer Contribution key remain pending human review. Bulk Listing has
-no source-supported stable tuple, so it remains the exact C2D blocker and
-whole-C2 implementation is still in progress rather than complete.
+The C2D0 static audit reconfirms schema-unique Member identity. Human review
+accepts the Git-history conclusion that BLC-02 is an accidental duplicate and
+approves its retirement, resolving Contribution by listing/Farmer. The same
+review rejects the mutable expected-harvest date as stable identity: it
+distinguishes the three payloads but changes when a schedule is rescheduled.
+Bulk Listing and Harvest therefore remain the exact C2D blockers, and whole-C2
+implementation is still in progress rather than complete.
 
-## P8-05C2D0 Cooperative Identity Decision Overlay
+## P8-05C2D0 Pre-Human-Review Decision Overlay
 
 PR #115 merged C2C into `develop` at
 `c2304b0afb1e6022d7deae4dff49c0e5589ca542`. The C2D0 audit reads the current
@@ -383,4 +387,50 @@ P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+The overlay above records the original PR #116 proposal and is superseded by
+the human-review correction below. In particular, its pending Contribution
+status and combined Member/Harvest authorization are not current.
+
+## P8-05C2D0 Human-Review Correction Overlay
+
+Human review accepts the Contribution history verdict and BLC-02 retirement.
+It rejects the proposed Harvest date tuple because rescheduling mutates the
+lookup components and can make one business schedule appear to be a new row.
+The conceptual owner-local group split remains, but only Members becomes
+authorized after PR #116 merges.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+BLC_02_RETIREMENT_QUANTITY_IMPACT_KG=-2000
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+CONTRIBUTION_SCHEMA_UNIQUE=NO_CURRENT_SCHEMA;YES_HISTORICAL_UNMERGED_DOMAIN
+CONTRIBUTION_SEED_LEVEL_KEY=YES
+CONTRIBUTION_HUMAN_DECISION_REQUIRED=NO
+CONTRIBUTION_SCHEMA_CHANGE_REQUIRED=NO
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+
+HARVEST_PRODUCT_MAPPING_STATUS=RESOLVED
+HARVEST_PERSISTENCE_IDENTITY_STATUS=UNRESOLVED
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+HARVEST_SCHEMA_UNIQUE=NO
+HARVEST_SEED_LEVEL_KEY=NO
+HARVEST_HUMAN_DECISION_REQUIRED=YES
+HARVEST_SCHEMA_CHANGE_REQUIRED=NO_YET_DOMAIN_IDENTITY_DECISION_FIRST
+
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 ```

@@ -960,7 +960,7 @@ Schedule persistence. Harvest alone retains the Xoài Product UUID through the
 narrow temporary continuation. Forum, Ads, Audit Logs, and Notifications are
 unchanged except for compile-safe continuation wiring.
 
-## P8-05C2D0 Cooperative Identity And Grouping Overlay
+## P8-05C2D0 Pre-Human-Review Identity And Grouping Overlay
 
 PR #115 merged C2C at
 `c2304b0afb1e6022d7deae4dff49c0e5589ca542`. The C2D0 source, schema, domain,
@@ -1008,4 +1008,51 @@ users.dev.users/user.id.by-email -> cooperatives.dev.members
 users.dev.users/user.id.by-email -> cooperatives.dev.bulk-operations
 users.dev.users/user.id.by-email -> cooperatives.dev.harvest
 products.dev.products/product.id.by-sku -> cooperatives.dev.harvest
+```
+
+## P8-05C2D0 Human-Review Authorization Overlay
+
+This overlay supersedes the combined Member/Harvest authorization in the
+pre-human-review C2D0 proposal. The three conceptual owner-local groups remain,
+but their implementation readiness now differs. Members is schema-resolved;
+Bulk Operations is blocked only by its parent Listing identity after approved
+BLC-02 retirement; Harvest is blocked because its mutable expected date is not
+a stable reconciliation identity.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+C2D_GROUPING_DECISION=SPLIT_OWNER_LOCALLY_BY_MEMBER_BULK_WORKFLOW_AND_HARVEST
+COOPERATIVE_DEV_GROUPS=cooperatives.dev.members,cooperatives.dev.bulk-operations,cooperatives.dev.harvest
+
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+BULK_LISTING_IDENTITY_STATUS=UNRESOLVED
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+BLC_02_RETIREMENT_QUANTITY_IMPACT_KG=-2000
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+CONTRIBUTION_SCHEMA_UNIQUE=NO_CURRENT_SCHEMA;YES_HISTORICAL_UNMERGED_DOMAIN
+CONTRIBUTION_SEED_LEVEL_KEY=YES
+CONTRIBUTION_HUMAN_DECISION_REQUIRED=NO
+CONTRIBUTION_SCHEMA_CHANGE_REQUIRED=NO
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+HARVEST_PRODUCT_MAPPING_STATUS=RESOLVED
+HARVEST_PERSISTENCE_IDENTITY_STATUS=UNRESOLVED
+HARVEST_SCHEMA_UNIQUE=NO
+HARVEST_SEED_LEVEL_KEY=NO
+HARVEST_HUMAN_DECISION_REQUIRED=YES
+HARVEST_SCHEMA_CHANGE_REQUIRED=NO_YET_DOMAIN_IDENTITY_DECISION_FIRST
+
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 ```

@@ -328,7 +328,7 @@ C2D_EXPLICIT_ANY_COUNT=5
 C2D_RESET_TARGET_COUNT=4
 ```
 
-## 13. Final Decision Matrix
+## 13. Pre-Human-Review Decision Matrix (Superseded)
 
 | Table | Identity status | Stable key | Schema unique | Seed-level key | Human decision required | Schema change required |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -337,7 +337,7 @@ C2D_RESET_TARGET_COUNT=4
 | `bulk_listing_contributions` | `RESOLVED_BY_DUPLICATE_RETIREMENT_PENDING_HUMAN_REVIEW` | listing ID + farmer User ID | no in current schema | yes after BLC-02 retirement | yes | no |
 | `harvest_schedules` | `RESOLVED_SEED_LEVEL_PERSISTED_BUSINESS_KEY` | user ID + product ID + expected harvest date | no | yes | no | no |
 
-## 14. Implementation Authorization And Blockers
+## 14. Pre-Human-Review Authorization And Blockers (Superseded)
 
 The whole C2D slice is not authorized because no Bulk Listing identity has been
 proven. Human review of this PR must also accept BLC-02 retirement before the
@@ -359,7 +359,7 @@ cannot identify an existing stable tuple, any schema support belongs in a
 separately reviewed future task. This PR does not manufacture a fixture key or
 infer uniqueness from the two DEV rows.
 
-## 15. Unresolved Blockers
+## 15. Pre-Human-Review Unresolved Blockers (Superseded)
 
 ```text
 P8_05C2D_DECISIONS_BLOCKED
@@ -373,6 +373,128 @@ supplies a stable persisted business discriminator, the Bulk Listing and its
 dependent Contribution workflow remain blocked.
 
 ## 16. Scope And Database Safety
+
+```text
+BUSINESS_IMPLEMENTATION_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+P8_05C3_BUSINESS_IMPLEMENTATION_CHANGES=0
+P8_05C4_BUSINESS_IMPLEMENTATION_CHANGES=0
+ADMIN_DEV_IMPLEMENTATION_CHANGES=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+```
+
+## 17. Human-Review Correction
+
+This section is the authoritative current decision overlay for PR #116. It
+preserves the pre-human-review audit and candidate reasoning above while
+superseding its Contribution approval state, Harvest conclusion, authorization
+matrix, and blocker list.
+
+### Contribution Decision Finalized
+
+Human review accepts the Git-history conclusion:
+
+```text
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+```
+
+The original method accepted one `farmerId`; BLC-01 and BLC-02 used that same
+Farmer; no lot, delivery, or plot discriminator existed; and historical
+Cooperative code enforced one Contribution per listing/Farmer pair with an
+"already contributed" duplicate response. Human review therefore does not
+reinterpret BLC-02 as another Farmer or another delivery.
+
+BLC-01 remains `farmer@sandbox.com`, `1500 KG`. Retirement removes `2000 KG`
+of declared Contribution payload while leaving BL-01's `5000 KG` target
+unchanged.
+
+```text
+BLC_02_RETIREMENT_QUANTITY_IMPACT_KG=-2000
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+CONTRIBUTION_SCHEMA_UNIQUE=NO_CURRENT_SCHEMA;YES_HISTORICAL_UNMERGED_DOMAIN
+CONTRIBUTION_SEED_LEVEL_KEY=YES
+CONTRIBUTION_HUMAN_DECISION_REQUIRED=NO
+CONTRIBUTION_SCHEMA_CHANGE_REQUIRED=NO
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+```
+
+### Harvest Mutable-Date Correction
+
+Human architecture review rejects `user ID + product ID + expected harvest
+date` as stable seed identity. `expectedHarvestDate` is legitimate persisted
+business data and distinguishes HARVEST-01, HARVEST-02, and HARVEST-03 in the
+current fixture payload. That is not equivalent to stable domain identity:
+historical schedule behavior permits rescheduling, so the tuple changes while
+the business schedule remains the same. Reconciliation by that tuple could
+incorrectly create a second row after a reschedule.
+
+The tuple remains documented in the earlier candidate table as the original
+proposal, but its approval is superseded. It may support query/filter behavior,
+not Phase 8 reconciliation identity. Generated UUID, fixture ordinal, schedule
+code invented for seeding, `createdAt`, and `updatedAt` remain prohibited. This
+PR adds no schema.
+
+The three existing owner/Product/date mappings remain unchanged, and Product
+SKU resolution remains proven:
+
+```text
+HARVEST_PRODUCT_MAPPING_STATUS=RESOLVED
+HARVEST_PERSISTENCE_IDENTITY_STATUS=UNRESOLVED
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+HARVEST_SCHEMA_UNIQUE=NO
+HARVEST_SEED_LEVEL_KEY=NO
+HARVEST_HUMAN_DECISION_REQUIRED=YES
+HARVEST_SCHEMA_CHANGE_REQUIRED=NO_YET_DOMAIN_IDENTITY_DECISION_FIRST
+```
+
+### Current Group Authorization
+
+The owner-local conceptual groups remain `cooperatives.dev.members`,
+`cooperatives.dev.bulk-operations`, and `cooperatives.dev.harvest`. The previous
+combined Member/Harvest authorization is superseded. Contribution identity is
+resolved, so Bulk Operations is blocked only by its parent Bulk Listing.
+
+```text
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+```
+
+### Current Decision Matrix
+
+| Table | Identity status | Stable key | Schema unique | Seed-level key | Human decision required | Schema change required |
+| --- | --- | --- | --- | --- | --- | --- |
+| `cooperative_members` | `RESOLVED_SCHEMA_UNIQUE` | cooperative User ID + farmer User ID | yes | yes | no | no |
+| `bulk_listings` | `UNRESOLVED` | `NONE_PROVEN` | no | no | yes | `NO_YET_DOMAIN_DECISION_FIRST` |
+| `bulk_listing_contributions` | `RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT` | listing ID + farmer User ID | `NO_CURRENT_SCHEMA` | yes | no | no |
+| `harvest_schedules` | `UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY` | `NONE_PROVEN` | no | no | yes | `NO_YET_DOMAIN_IDENTITY_DECISION_FIRST` |
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C2D0_HUMAN_REVIEW_COMPLETE
+```
+
+## 18. Human-Review Scope And Safety
 
 ```text
 BUSINESS_IMPLEMENTATION_CHANGES=0
