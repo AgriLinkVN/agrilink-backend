@@ -1001,15 +1001,6 @@ P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 ```
 
-Proposed owner-local edges:
-
-```text
-users.dev.users/user.id.by-email -> cooperatives.dev.members
-users.dev.users/user.id.by-email -> cooperatives.dev.bulk-operations
-users.dev.users/user.id.by-email -> cooperatives.dev.harvest
-products.dev.products/product.id.by-sku -> cooperatives.dev.harvest
-```
-
 ## P8-05C2D0 Human-Review Authorization Overlay
 
 This overlay supersedes the combined Member/Harvest authorization in the
@@ -1055,4 +1046,62 @@ P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
 P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+
+## P8-05C2D1 Cooperative Member Ownership Overlay
+
+The `seedCoopMembers` / `cooperative_members` row below is now migrated to the
+Cooperatives owner. Historical inventory rows above remain unchanged as audit
+evidence.
+
+| Central source/write section | C2D1 disposition | Current result |
+| --- | --- | --- |
+| `seedCoopMembers` / `cooperative_members` | `MIGRATED` | one fixture owned by `cooperatives.dev.members` |
+| central Cooperative Member entity/repository access | `RETIRED` | no central Member query, import, or write |
+| `cooperative_members` in central `resetAll` | `RETIRED` | blocked Listing, Contribution, and Harvest reset targets remain |
+| Member row output | `NOT_REQUIRED` | remaining central methods consume actor UUIDs, not the Member UUID |
+
+After C2D1, seven central normal write methods remain: `seedForum`,
+`seedAdPackages`, `seedAdCampaigns`, `seedBulkListings`,
+`seedHarvestSchedules`, `seedAuditLogs`, and `seedNotifications`. They write
+ten business tables. `resetAll` remains the one central destructive method, so
+eight central persistence-capable methods remain.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_116
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+COOPERATIVES_DEV_MEMBERS_GROUP_ID=cooperatives.dev.members
+COOPERATIVE_MEMBER_DEV_RECORD_COUNT=1
+COOPERATIVE_MEMBER_DEV_DEPENDENCIES=users.dev.users
+COOPERATIVE_MEMBER_DEV_OUTPUT_COUNT=0
+COOPERATIVE_MEMBER_JOINED_AT_CREATE_POLICY=CURRENT_EXECUTION_TIME_ON_CREATE
+COOPERATIVE_MEMBER_JOINED_AT_RECONCILE_POLICY=PRESERVE_EXISTING_VALUE
+
+P8_05C2D1_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=7
+P8_05C2D1_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+P8_05C2D1_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=8
+P8_05C2D1_CENTRAL_BUSINESS_TABLES_REMAINING=10
+CENTRAL_COOPERATIVE_MEMBER_BUSINESS_WRITES=0
+CENTRAL_COOPERATIVE_MEMBER_REPOSITORY_QUERIES=0
+CENTRAL_RESET_COOPERATIVE_MEMBER_TARGETS=0
+C2D_REMAINING_RESET_TARGETS=bulk_listings,bulk_listing_contributions,harvest_schedules
+
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+P8_05C2D2_BUSINESS_MIGRATIONS=0
+P8_05C2D3_BUSINESS_MIGRATIONS=0
+P8_05C2D_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+Proposed owner-local edges:
+
+```text
+users.dev.users/user.id.by-email -> cooperatives.dev.members
+users.dev.users/user.id.by-email -> cooperatives.dev.bulk-operations
+users.dev.users/user.id.by-email -> cooperatives.dev.harvest
+products.dev.products/product.id.by-sku -> cooperatives.dev.harvest
 ```

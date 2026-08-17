@@ -7,7 +7,6 @@ import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
 import { ForumLike } from '../modules/forum/entities/forum-like.entity';
 import { AdCampaign } from '../modules/ads/infrastructure/persistence/entities/ad-campaign.entity';
 import { AdPackage } from '../modules/ads/infrastructure/persistence/entities/ad-package.entity';
-import { CooperativeMemberEntity } from '../modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity';
 import { BulkListingEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity';
 import { BulkListingContributionEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity';
 import { HarvestScheduleEntity } from '../modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity';
@@ -44,10 +43,9 @@ export class DevSeedService {
     await this.seedAdCampaigns(SUPPLIER, ADMIN);
     log.log(`[Seed] ads seeded`);
 
-    const members = await this.seedCoopMembers(COOP, FARMER);
     await this.seedBulkListings(COOP, FARMER);
     await this.seedHarvestSchedules(FARMER, products.XOAI_HOA_LOC);
-    log.log(`[Seed] cooperative data seeded (${members} members)`);
+    log.log(`[Seed] cooperative bulk and harvest data seeded`);
 
     await this.seedAuditLogs(ADMIN, STATE_AGENCY);
     log.log(`[Seed] audit logs seeded`);
@@ -61,7 +59,7 @@ export class DevSeedService {
     // the method itself remains scheduled for retirement in P8-05C4.
     const tables = [
       'harvest_schedules', 'bulk_listing_contributions', 'bulk_listings',
-      'cooperative_members', 'forum_likes', 'forum_comments', 'forum_posts',
+      'forum_likes', 'forum_comments', 'forum_posts',
       'ad_campaigns', 'ad_packages', 'ad_events',
       'notifications', 'audit_logs',
     ];
@@ -156,21 +154,6 @@ export class DevSeedService {
   }
 
   // ── COOPERATIVE ──────────────────────────────────────────────────────
-  private async seedCoopMembers(coopId: string, farmerId: string): Promise<number> {
-    const repo = this.ds.getRepository(CooperativeMemberEntity);
-    const existing = await repo.count();
-    if (existing > 0) return existing;
-
-    await repo.save({
-      cooperativeId: coopId,
-      farmerId,
-      status: 'active',
-      role: 'Thành viên sản xuất',
-      joinedAt: new Date(),
-    } as any);
-    return 1;
-  }
-
   private async seedBulkListings(coopId: string, farmerId: string) {
     const repo = this.ds.getRepository(BulkListingEntity);
     const contribRepo = this.ds.getRepository(BulkListingContributionEntity);

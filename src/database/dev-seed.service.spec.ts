@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-describe("DevSeedService C2C transition", () => {
+describe("DevSeedService C2D1 transition", () => {
   const source = readFileSync(join(__dirname, "dev-seed.service.ts"), "utf8");
 
   it("retires every central Product-owned write and repository query", () => {
@@ -29,8 +29,13 @@ describe("DevSeedService C2C transition", () => {
     );
   });
 
-  it("keeps C2D, C3, and C4 persistence sections reachable", () => {
-    expect(source).toContain("this.seedCoopMembers");
+  it("retires central Cooperative Member persistence and reset targeting", () => {
+    expect(source).not.toMatch(
+      /seedCoopMembers|CooperativeMemberEntity|cooperative-member\.entity|['"]cooperative_members['"],/,
+    );
+  });
+
+  it("keeps blocked C2D2/C2D3, C3, and C4 persistence sections reachable", () => {
     expect(source).toContain("this.seedBulkListings");
     expect(source).toContain("this.seedHarvestSchedules");
     expect(source).toContain("this.seedForum");
