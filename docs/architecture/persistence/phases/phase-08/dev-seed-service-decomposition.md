@@ -959,3 +959,53 @@ C2C does not move Cooperative Member, Bulk Listing, Contribution, or Harvest
 Schedule persistence. Harvest alone retains the Xoài Product UUID through the
 narrow temporary continuation. Forum, Ads, Audit Logs, and Notifications are
 unchanged except for compile-safe continuation wiring.
+
+## P8-05C2D0 Cooperative Identity And Grouping Overlay
+
+PR #115 merged C2C at
+`c2304b0afb1e6022d7deae4dff49c0e5589ca542`. The C2D0 source, schema, domain,
+and Git-history audit is documented in
+[dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md). It changes no runtime
+source and preserves the historical C2 decomposition evidence above.
+
+The target is no longer one coupled `cooperatives.dev.operations` group.
+Member and Harvest have independent stable identities and retry boundaries,
+while Listing and Contribution must remain one bulk workflow so the generated
+Listing UUID stays owner-local. Only Harvest consumes Product output. No
+Cooperative UUID has a proven external consumer.
+
+```text
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+C2D_GROUPING_DECISION=SPLIT_OWNER_LOCALLY_BY_MEMBER_BULK_WORKFLOW_AND_HARVEST
+COOPERATIVE_DEV_GROUPS=cooperatives.dev.members,cooperatives.dev.bulk-operations,cooperatives.dev.harvest
+COOPERATIVE_DEV_OUTPUT_COUNT=0
+
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_KEY_CONDITION=BLC_02_RETIRE_DUPLICATE_FIXTURE_PENDING_HUMAN_REVIEW
+HARVEST_SCHEDULE_STABLE_KEY=user ID + product ID + expected harvest date
+
+BULK_LISTING_PRODUCT_DEPENDENCY=NONE
+HARVEST_PRODUCT_DEPENDENCY=products.dev.products/product.id.by-sku
+C2D_EXPLICIT_ANY_COUNT=5
+C2D_RESET_TARGET_COUNT=4
+
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D1_MEMBER_HARVEST_AUTHORIZED=YES_AFTER_C2D0_MERGE
+P8_05C2D2_BULK_OPERATIONS_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+
+Proposed owner-local edges:
+
+```text
+users.dev.users/user.id.by-email -> cooperatives.dev.members
+users.dev.users/user.id.by-email -> cooperatives.dev.bulk-operations
+users.dev.users/user.id.by-email -> cooperatives.dev.harvest
+products.dev.products/product.id.by-sku -> cooperatives.dev.harvest
+```

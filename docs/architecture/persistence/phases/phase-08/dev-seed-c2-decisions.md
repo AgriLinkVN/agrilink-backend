@@ -714,6 +714,57 @@ The seven Review-only aliases are retired. Cooperative Member, Bulk Listing,
 Contribution, and Harvest persistence remain central; C2C adds no Cooperative
 ownership, schema, migration, or fabricated C2D identity.
 
+## P8-05C2D0 Cooperative Identity Decision Overlay
+
+PR #115 merged the C2C implementation at
+`c2304b0afb1e6022d7deae4dff49c0e5589ca542` with a successful Backend Quality
+Gate. The subsequent C2D0 static audit is recorded in
+[dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md). This overlay preserves
+all C2A/B/C evidence while replacing the former three undifferentiated C2D
+identity blockers with their current exact dispositions.
+
+Current schema reconfirms Member uniqueness. Harvest is resolved only as a
+persisted-business-field DEV seed key with fail-closed duplicate handling; no
+database uniqueness is claimed. Git history shows that BLC-02 duplicates a
+listing/Farmer pair that the earlier domain explicitly permitted only once, so
+the duplicate-retirement decision remains pending human review. Bulk Listing
+still has no proven stable tuple.
+
+```text
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+COOPERATIVE_MEMBER_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+BULK_LISTING_IDENTITY_STATUS=UNRESOLVED
+
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_01_FARMER_EMAIL=farmer@sandbox.com
+BLC_02_FARMER_EMAIL=farmer@sandbox.com
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=PENDING_HUMAN_REVIEW
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_DUPLICATE_RETIREMENT_PENDING_HUMAN_REVIEW
+
+HARVEST_SCHEDULE_STABLE_KEY=user ID + product ID + expected harvest date
+HARVEST_IDENTITY_STATUS=RESOLVED_SEED_LEVEL_PERSISTED_BUSINESS_KEY
+HARVEST_DUPLICATE_POLICY=FAIL_CLOSED
+
+C2D_GROUPING_DECISION=SPLIT_OWNER_LOCALLY_BY_MEMBER_BULK_WORKFLOW_AND_HARVEST
+COOPERATIVE_DEV_OUTPUT_COUNT=0
+BULK_LISTING_PRODUCT_DEPENDENCY=NONE
+HARVEST_PRODUCT_DEPENDENCY=products.dev.products/product.id.by-sku
+
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D1_MEMBER_HARVEST_AUTHORIZED=YES_AFTER_C2D0_MERGE
+P8_05C2D2_BULK_OPERATIONS_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+
 ## C2A Scope And Database Safety
 
 ```text
