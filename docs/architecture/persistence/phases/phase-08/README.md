@@ -1,15 +1,16 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: C2B is implemented pending human review; C2C
-  remains not started and C2D retains domain blockers
+- Implementation authorized: C2B and C2C are merged; C2D0 resolves Member and
+  Contribution identity after human-approved BLC-02 retirement, while Bulk
+  Listing and Harvest retain domain-identity blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
   63-record Products DEV with four deterministic Certifications, Profiles DEV
-  ownership, and the temporary dependency-scoped central continuation; C1 and
-  C2B central writes are retired
-- Implementation base: `develop` at P8-05C2A merge commit
-  `9cf03b40e9d7e8abcaafcef06649f51738377f90` (PR #113)
+  ownership, Reviews DEV ownership, and the temporary dependency-scoped central
+  continuation; C1, C2B, and C2C central writes are retired
+- Implementation base: `develop` at P8-05C2C merge commit
+  `c2304b0afb1e6022d7deae4dff49c0e5589ca542` (PR #115)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -30,6 +31,8 @@ The C1 User, Address, Profile, Logistics, and Geography decisions are recorded
 in [dev-seed-c1-decisions.md](dev-seed-c1-decisions.md).
 The Product-dependent C2 fixture audit and decisions are recorded in
 [dev-seed-c2-decisions.md](dev-seed-c2-decisions.md).
+The Cooperative operation identity audit and decisions are recorded in
+[dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md).
 
 ## Scope
 
@@ -271,9 +274,13 @@ P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_114
 P8_05C2C_DECISION_STATUS=RESOLVED
 P8_05C2C_IMPLEMENTATION_AUTHORIZED=YES
 P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=AUTHORIZED_AFTER_PR_114_MERGE
-P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_BULK_LISTING_AND_HARVEST_DOMAIN_IDENTITIES
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
@@ -332,5 +339,98 @@ and the schema-backed reviewer/Product pair. Central Review writes, queries,
 imports, reset targeting, and positional Product aliases are retired. The
 temporary continuation consumes only the Xoài UUID still needed by central
 Harvest and performs no Product repository query or positional selection.
-Bulk Listing, Contribution, and Harvest stable identities remain C2D blockers,
-so whole-C2 implementation is still in progress rather than complete.
+The C2D0 static audit reconfirms schema-unique Member identity. Human review
+accepts the Git-history conclusion that BLC-02 is an accidental duplicate and
+approves its retirement, resolving Contribution by listing/Farmer. The same
+review rejects the mutable expected-harvest date as stable identity: it
+distinguishes the three payloads but changes when a schedule is rescheduled.
+Bulk Listing and Harvest therefore remain the exact C2D blockers, and whole-C2
+implementation is still in progress rather than complete.
+
+## P8-05C2D0 Pre-Human-Review Decision Overlay
+
+PR #115 merged C2C into `develop` at
+`c2304b0afb1e6022d7deae4dff49c0e5589ca542`. The C2D0 audit reads the current
+Cooperative entities, migration, ports, repositories, tests, seed declarations,
+and Git history without executing any runtime persistence path. Full evidence
+and candidate analysis are in
+[dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md).
+
+```text
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+COOPERATIVE_MEMBER_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+BULK_LISTING_IDENTITY_STATUS=UNRESOLVED
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=PENDING_HUMAN_REVIEW
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_DUPLICATE_RETIREMENT_PENDING_HUMAN_REVIEW
+HARVEST_SCHEDULE_STABLE_KEY=user ID + product ID + expected harvest date
+HARVEST_IDENTITY_STATUS=RESOLVED_SEED_LEVEL_PERSISTED_BUSINESS_KEY
+
+C2D_GROUPING_DECISION=SPLIT_OWNER_LOCALLY_BY_MEMBER_BULK_WORKFLOW_AND_HARVEST
+COOPERATIVE_DEV_OUTPUT_COUNT=0
+BULK_LISTING_PRODUCT_DEPENDENCY=NONE
+HARVEST_PRODUCT_DEPENDENCY=products.dev.products/product.id.by-sku
+C2D_EXPLICIT_ANY_COUNT=5
+C2D_RESET_TARGET_COUNT=4
+
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D1_MEMBER_HARVEST_AUTHORIZED=YES_AFTER_C2D0_MERGE
+P8_05C2D2_BULK_OPERATIONS_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+The overlay above records the original PR #116 proposal and is superseded by
+the human-review correction below. In particular, its pending Contribution
+status and combined Member/Harvest authorization are not current.
+
+## P8-05C2D0 Human-Review Correction Overlay
+
+Human review accepts the Contribution history verdict and BLC-02 retirement.
+It rejects the proposed Harvest date tuple because rescheduling mutates the
+lookup components and can make one business schedule appear to be a new row.
+The conceptual owner-local group split remains, but only Members becomes
+authorized after PR #116 merges.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+BLC_02_RETIREMENT_QUANTITY_IMPACT_KG=-2000
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+CONTRIBUTION_SCHEMA_UNIQUE=NO_CURRENT_SCHEMA;YES_HISTORICAL_UNMERGED_DOMAIN
+CONTRIBUTION_SEED_LEVEL_KEY=YES
+CONTRIBUTION_HUMAN_DECISION_REQUIRED=NO
+CONTRIBUTION_SCHEMA_CHANGE_REQUIRED=NO
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+
+HARVEST_PRODUCT_MAPPING_STATUS=RESOLVED
+HARVEST_PERSISTENCE_IDENTITY_STATUS=UNRESOLVED
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+HARVEST_SCHEMA_UNIQUE=NO
+HARVEST_SEED_LEVEL_KEY=NO
+HARVEST_HUMAN_DECISION_REQUIRED=YES
+HARVEST_SCHEMA_CHANGE_REQUIRED=NO_YET_DOMAIN_IDENTITY_DECISION_FIRST
+
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
