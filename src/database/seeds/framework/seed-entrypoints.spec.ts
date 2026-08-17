@@ -43,6 +43,21 @@ describe("legacy seed entrypoint safety regressions", () => {
     ),
     "utf8",
   );
+  const cooperativeMembersSeedSource = readFileSync(
+    join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "modules",
+      "cooperatives",
+      "infrastructure",
+      "database",
+      "seeds",
+      "cooperative-member-development-seed.service.ts",
+    ),
+    "utf8",
+  );
 
   it("does not let the admin development seed default to agrilink_db", () => {
     expect(adminSource).not.toMatch(/DB_NAME\s*\?\?\s*["']agrilink_db["']/);
@@ -93,6 +108,9 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(
       mainSource.match(/app\.get\(ReviewDevelopmentSeedService\)/g),
     ).toHaveLength(1);
+    expect(
+      mainSource.match(/app\.get\(CooperativeMemberDevelopmentSeedService\)/g),
+    ).toHaveLength(1);
     expect(mainSource).toContain("createProductsCategoryReferenceSeedGroup");
     expect(mainSource).toContain("createUsersDevSeedGroup");
     expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
@@ -110,6 +128,12 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(cliSource).not.toContain("ProductDevelopmentSeedService");
     expect(reviewsSeedSource).toContain(
       "dependencies: [USERS_DEV_SEED_GROUP_ID, PRODUCTS_DEV_SEED_GROUP_ID]",
+    );
+    expect(cooperativeMembersSeedSource).toContain(
+      "dependencies: [USERS_DEV_SEED_GROUP_ID]",
+    );
+    expect(mainSource).not.toMatch(
+      /cooperatives\.dev\.(?:bulk-operations|harvest)/,
     );
   });
 

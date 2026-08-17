@@ -19,6 +19,11 @@ import {
   TypeOrmHarvestScheduleRepository,
 } from './infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories';
 import { TypeOrmCooperativeUnitOfWork } from './infrastructure/persistence/typeorm-cooperative-unit-of-work';
+import {
+  COOPERATIVE_MEMBER_DEV_SEED_WRITER,
+  CooperativeMemberDevelopmentSeedService,
+} from './infrastructure/database/seeds/cooperative-member-development-seed.service';
+import { TypeOrmCooperativeMemberDevSeedWriter } from './infrastructure/database/seeds/typeorm-cooperative-member-dev-seed.writer';
 
 @Module({
   imports: [
@@ -36,6 +41,8 @@ import { TypeOrmCooperativeUnitOfWork } from './infrastructure/persistence/typeo
     TypeOrmHarvestScheduleRepository,
     TypeOrmCooperativeProvinceReferenceRepository,
     TypeOrmCooperativeUnitOfWork,
+    TypeOrmCooperativeMemberDevSeedWriter,
+    CooperativeMemberDevelopmentSeedService,
     {
       provide: COOPERATIVE_MEMBER_REPOSITORY,
       useExisting: TypeOrmCooperativeMemberRepository,
@@ -55,6 +62,10 @@ import { TypeOrmCooperativeUnitOfWork } from './infrastructure/persistence/typeo
     {
       provide: COOPERATIVE_UNIT_OF_WORK,
       useExisting: TypeOrmCooperativeUnitOfWork,
+    },
+    {
+      provide: COOPERATIVE_MEMBER_DEV_SEED_WRITER,
+      useExisting: TypeOrmCooperativeMemberDevSeedWriter,
     },
   ],
 })
