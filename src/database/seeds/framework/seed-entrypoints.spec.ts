@@ -28,6 +28,21 @@ describe("legacy seed entrypoint safety regressions", () => {
     join(__dirname, "seed-orchestrator.ts"),
     "utf8",
   );
+  const reviewsSeedSource = readFileSync(
+    join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "modules",
+      "reviews",
+      "infrastructure",
+      "database",
+      "seeds",
+      "review-development-seed.service.ts",
+    ),
+    "utf8",
+  );
 
   it("does not let the admin development seed default to agrilink_db", () => {
     expect(adminSource).not.toMatch(/DB_NAME\s*\?\?\s*["']agrilink_db["']/);
@@ -75,6 +90,9 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(
       mainSource.match(/app\.get\(ProductDevelopmentSeedService\)/g),
     ).toHaveLength(1);
+    expect(
+      mainSource.match(/app\.get\(ReviewDevelopmentSeedService\)/g),
+    ).toHaveLength(1);
     expect(mainSource).toContain("createProductsCategoryReferenceSeedGroup");
     expect(mainSource).toContain("createUsersDevSeedGroup");
     expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
@@ -82,11 +100,17 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(centralSource).not.toContain("skipProducts: true");
     expect(centralSource).toContain("products.XOAI_HOA_LOC");
     expect(centralSource).not.toMatch(
+      /seedReviews|getRepository\(Review\)|review\.entity/,
+    );
+    expect(centralSource).not.toMatch(
       /getRepository\(Product\)|products\[|productIds\[/,
     );
     expect(mainSource).not.toContain("devSeed.seedAll");
     expect(mainSource).not.toContain("seedForDevelopment(");
     expect(cliSource).not.toContain("ProductDevelopmentSeedService");
+    expect(reviewsSeedSource).toContain(
+      "dependencies: [USERS_DEV_SEED_GROUP_ID, PRODUCTS_DEV_SEED_GROUP_ID]",
+    );
   });
 
   it("retires destructive Product reset before application bootstrap", () => {

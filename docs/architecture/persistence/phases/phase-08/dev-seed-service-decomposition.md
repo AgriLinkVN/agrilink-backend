@@ -899,3 +899,63 @@ BULK_LISTING_STABLE_KEY=NONE_PROVEN
 CONTRIBUTION_STABLE_KEY=NONE_PROVEN
 HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
 ```
+
+## P8-05C2C Reviews Ownership Overlay
+
+PR #114 merged C2B into `develop`. C2C moves exactly the nine approved Product
+Review fixtures into `reviews.dev.product-feedback`, using explicit reviewer
+email and Product SKU declarations. Its dedicated Reviews infrastructure
+writer looks up the unique reviewer-ID/Product-ID pair, preflights every
+identity, and converges each record independently. It does not extend the
+normal runtime Reviews repository with generic DEV-only operations.
+
+| Central source/write section | C2C disposition | Current result |
+| --- | --- | --- |
+| `seedReviews` / `reviews` | `MIGRATED` | nine explicit fixtures owned by `reviews.dev.product-feedback` |
+| Review repository/entity access in `DevSeedService` | `RETIRED` | no central Review query, entity import, or business write remains |
+| Review Product position/alias wiring | `RETIRED` | User email and Product SKU outputs resolve inside the Reviews owner group |
+| Review target in `resetAll` | `RETIRED` | no central destructive Review target remains |
+
+The eight central normal write methods now remaining are `seedForum`,
+`seedAdPackages`, `seedAdCampaigns`, `seedCoopMembers`, `seedBulkListings`,
+`seedHarvestSchedules`, `seedAuditLogs`, and `seedNotifications`. They write
+eleven business tables: three Forum tables, two Ads tables, four Cooperative
+operation tables, Audit Logs, and Notifications. `resetAll` remains the one
+central destructive method and is still C4 retirement debt.
+
+```text
+P8_05C2C_SEED_REVIEWS_STATUS=MIGRATED
+P8_05C2C_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=8
+P8_05C2C_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+P8_05C2C_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=9
+P8_05C2C_CENTRAL_BUSINESS_TABLES_REMAINING=11
+
+REVIEWS_DEV_GROUP_ID=reviews.dev.product-feedback
+REVIEW_DEV_RECORD_COUNT=9
+REVIEW_DEV_IDEMPOTENCY=PER_RECORD_BY_REVIEWER_ID_AND_PRODUCT_ID
+REVIEW_PREFLIGHT=ALL_NINE_IDENTITIES_BEFORE_FIRST_WRITE
+CENTRAL_REVIEW_BUSINESS_WRITES=0
+CENTRAL_REVIEW_REPOSITORY_QUERIES=0
+CENTRAL_RESET_REVIEW_TARGETS=0
+
+TEMPORARY_LEGACY_CONTINUATION=YES
+TEMPORARY_LEGACY_GROUP_ID=legacy.dev.remaining
+PRODUCT_SCALAR_IDS_PASSED_TO_LEGACY_CONTINUATION=1
+LEGACY_REMAINING_PRODUCT_SKUS=DEV-XOAI-HOA-LOC-001
+LEGACY_REVIEW_PRODUCT_ALIASES_REMAINING=0
+
+P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_114
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_STABLE_KEY=NONE_PROVEN
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+```
+
+C2C does not move Cooperative Member, Bulk Listing, Contribution, or Harvest
+Schedule persistence. Harvest alone retains the Xoài Product UUID through the
+narrow temporary continuation. Forum, Ads, Audit Logs, and Notifications are
+unchanged except for compile-safe continuation wiring.

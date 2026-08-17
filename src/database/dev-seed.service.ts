@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { Review } from '../modules/reviews/infrastructure/persistence/entities/review.entity';
 import { ForumPost } from '../modules/forum/entities/forum-post.entity';
 import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
 import { ForumLike } from '../modules/forum/entities/forum-like.entity';
@@ -36,13 +35,10 @@ export class DevSeedService {
     products: LegacyDevProductIds,
   ): Promise<void> {
     const log = this.logger;
-    const { ADMIN, FARMER, BUYER, ENTERPRISE, SUPPLIER, COOP, STATE_AGENCY } = users;
+    const { ADMIN, FARMER, BUYER, SUPPLIER, COOP, STATE_AGENCY } = users;
 
     const posts = await this.seedForum(FARMER, COOP, BUYER);
     log.log(`[Seed] ${posts.length} forum posts seeded`);
-
-    const reviews = await this.seedReviews(FARMER, BUYER, ENTERPRISE, products);
-    log.log(`[Seed] ${reviews.length} reviews seeded`);
 
     await this.seedAdPackages();
     await this.seedAdCampaigns(SUPPLIER, ADMIN);
@@ -66,7 +62,6 @@ export class DevSeedService {
     const tables = [
       'harvest_schedules', 'bulk_listing_contributions', 'bulk_listings',
       'cooperative_members', 'forum_likes', 'forum_comments', 'forum_posts',
-      'review',
       'ad_campaigns', 'ad_packages', 'ad_events',
       'notifications', 'audit_logs',
     ];
@@ -123,35 +118,6 @@ export class DevSeedService {
     }
 
     return saved;
-  }
-
-  // ── REVIEWS ─────────────────────────────────────────────────────────
-  private async seedReviews(
-    farmerId: string,
-    buyerId: string,
-    enterpriseId: string,
-    products: LegacyDevProductIds,
-  ) {
-    const repo = this.ds.getRepository(Review);
-    const existing = await repo.count();
-    if (existing > 0) return [];
-
-    const reviews: { reviewerId: string; productId: string; rating: number; comment: string; isVerifiedPurchase: boolean }[] = [
-      { reviewerId: buyerId, productId: products.XOAI_HOA_LOC, rating: 5, comment: 'Xoài rất ngọt, thơm, đóng gói cẩn thận. Giao hàng nhanh.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: products.XOAI_HOA_LOC, rating: 4, comment: 'Chất lượng tốt, giá hợp lý. Sẽ đặt thêm cho nhà máy chế biến.', isVerifiedPurchase: true },
-      { reviewerId: buyerId, productId: products.SAU_RIENG_RI6, rating: 5, comment: 'Sầu riêng Ri6 chuẩn vị Cai Lậy. Cơm vàng, hột lép, thơm nức.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: products.BUOI_DA_XANH_FARMER, rating: 4, comment: 'Bưởi da xanh ngon, múi mọng nước. Giá hợp lý.', isVerifiedPurchase: false },
-      { reviewerId: buyerId, productId: products.THANH_LONG_RUOT_DO, rating: 5, comment: 'Thanh long đỏ đẹp, ngọt. Xuất khẩu như lời giới thiệu.', isVerifiedPurchase: true },
-      { reviewerId: enterpriseId, productId: products.DUA_HAU_KHONG_HAT, rating: 3, comment: 'Dưa hấu ngon nhưng size hơi nhỏ so với yêu cầu.', isVerifiedPurchase: true },
-      { reviewerId: buyerId, productId: products.VAI_THIEU_LUC_NGAN, rating: 5, comment: 'Vải thiều Lục Ngạn chính gốc. Trái to, ngọt đậm. Rất hài lòng!', isVerifiedPurchase: true },
-      { reviewerId: farmerId, productId: products.RAU_MUONG_HUU_CO, rating: 4, comment: 'Rau muống tươi ngon, không thuốc. Gia đình tôi mua thường xuyên.', isVerifiedPurchase: false },
-      { reviewerId: buyerId, productId: products.CA_ROT_DA_LAT, rating: 5, comment: 'Cà rốt Đà Lạt ngọt giòn, làm salad rất ngon.', isVerifiedPurchase: true },
-    ];
-
-    for (const r of reviews) {
-      await repo.save(repo.create(r));
-    }
-    return reviews;
   }
 
   // ── ADS ──────────────────────────────────────────────────────────────

@@ -87,7 +87,7 @@ describe("LegacyRemainingDevSeedGroup", () => {
     ).toThrow("UNDECLARED_DEPENDENCY_LOOKUP");
   });
 
-  it("resolves only the eight explicitly allowlisted Product IDs", () => {
+  it("resolves only the Harvest Product ID still required centrally", () => {
     expect(resolveLegacyDevProductIds(createContext())).toEqual(
       Object.fromEntries(
         Object.entries(LEGACY_DEV_PRODUCT_SKUS).map(([alias, sku]) => [
@@ -96,7 +96,9 @@ describe("LegacyRemainingDevSeedGroup", () => {
         ]),
       ),
     );
-    expect(Object.keys(LEGACY_DEV_PRODUCT_SKUS)).toHaveLength(8);
+    expect(LEGACY_DEV_PRODUCT_SKUS).toEqual({
+      XOAI_HOA_LOC: "DEV-XOAI-HOA-LOC-001",
+    });
   });
 
   it("fails closed when Products output access is undeclared", () => {
@@ -123,9 +125,6 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(calls[0].FARMER).toBe("id:farmer@sandbox.com");
     expect(calls[0].ENTERPRISE).toBe("id:enterprise@agrilink.vn");
     expect(productCalls).toHaveLength(1);
-    expect(productCalls[0].BUOI_DA_XANH_FARMER).toBe(
-      "id:DEV-BUOI-DA-XANH-FARMER-001",
-    );
     expect(productCalls[0].XOAI_HOA_LOC).toBe("id:DEV-XOAI-HOA-LOC-001");
   });
 
@@ -149,5 +148,12 @@ describe("LegacyRemainingDevSeedGroup", () => {
       /getRepository\(Product\)|product-image\.entity|product-category\.entity|product-certification\.entity|products\[|productIds\[/,
     );
     expect(central).not.toMatch(/seedProducts|seedCategories|seedViolations/);
+    expect(central).not.toMatch(
+      /seedReviews|getRepository\(Review\)|review\.entity|['"]review['"],/,
+    );
+    expect(Object.keys(LEGACY_DEV_PRODUCT_SKUS)).toEqual(["XOAI_HOA_LOC"]);
+    expect(central).not.toMatch(
+      /SAU_RIENG_RI6|BUOI_DA_XANH_FARMER|THANH_LONG_RUOT_DO|DUA_HAU_KHONG_HAT|VAI_THIEU_LUC_NGAN|RAU_MUONG_HUU_CO|CA_ROT_DA_LAT/,
+    );
   });
 });

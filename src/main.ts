@@ -24,6 +24,7 @@ import { parseEnvBoolean } from './config/parse-env-boolean';
 import { SeedClassification } from './database/seeds/framework/seed-contract';
 import { assertSeedExecutionSafety } from './database/seeds/framework/seed-environment.guard';
 import { SeedOrchestrator } from './database/seeds/framework/seed-orchestrator';
+import { ReviewDevelopmentSeedService } from '@modules/reviews/infrastructure/database/seeds/review-development-seed.service';
 
 // Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
 dns.setDefaultResultOrder('ipv4first');
@@ -140,6 +141,7 @@ async function bootstrap() {
       createUsersDevSeedGroup(dataSource),
       createProfilesRoleProfilesDevSeedGroup(dataSource),
       app.get(ProductDevelopmentSeedService),
+      app.get(ReviewDevelopmentSeedService),
       new LegacyRemainingDevSeedGroup(app.get(DevSeedService)),
     ]);
     await seedOrchestrator.execute({
