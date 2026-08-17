@@ -18,6 +18,11 @@ import { TypeOrmReviewsRepository } from './infrastructure/persistence/repositor
 import { ReviewsController } from './presentation/controllers/reviews.controller';
 import { ReviewReadModelService } from './application/services/review-read-model.service';
 import { OrdersModule } from '@modules/orders/orders.module';
+import {
+  REVIEW_DEV_SEED_WRITER,
+  ReviewDevelopmentSeedService,
+} from './infrastructure/database/seeds/review-development-seed.service';
+import { TypeOrmReviewDevSeedWriter } from './infrastructure/database/seeds/typeorm-review-dev-seed.writer';
 
 @Module({
   imports: [
@@ -29,6 +34,8 @@ import { OrdersModule } from '@modules/orders/orders.module';
   controllers: [ReviewsController],
   providers: [
     TypeOrmReviewsRepository,
+    TypeOrmReviewDevSeedWriter,
+    ReviewDevelopmentSeedService,
     ReviewReadModelService,
     ListPublicProductReviewsUseCase,
     CreateProductReviewUseCase,
@@ -38,6 +45,10 @@ import { OrdersModule } from '@modules/orders/orders.module';
     HideReviewUseCase,
     UnhideReviewUseCase,
     { provide: REVIEWS_REPOSITORY, useExisting: TypeOrmReviewsRepository },
+    {
+      provide: REVIEW_DEV_SEED_WRITER,
+      useExisting: TypeOrmReviewDevSeedWriter,
+    },
   ],
 })
 export class ReviewsModule {}

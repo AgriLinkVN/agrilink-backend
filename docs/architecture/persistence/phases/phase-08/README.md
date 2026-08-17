@@ -267,11 +267,11 @@ P8_05C1_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_112
 P8_05C2A_PRODUCT_DEPENDENT_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_113
 HUMAN_PRODUCT_DECISION_STATUS=RESOLVED
 P8_05C2B_IMPLEMENTATION_AUTHORIZED=YES
-P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_114
 P8_05C2C_DECISION_STATUS=RESOLVED
-P8_05C2C_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_SEPARATE_C2C_IMPLEMENTATION_AUTHORIZATION
-P8_05C2C_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2C_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2C_IMPLEMENTATION_AUTHORIZATION_STATUS=AUTHORIZED_AFTER_PR_114_MERGE
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_DOMAIN_IDENTITY_BLOCKERS
 P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
@@ -321,12 +321,16 @@ and retained `legacy.dev.remaining` as temporary C2/C3/C4 compatibility
 scaffolding. Numeric Address/Profile/Logistics Geography-looking fields remain
 opaque legacy owner metadata, so the C1 DAG has no speculative Geography edge.
 
-P8-05C2A was merged by PR #113. C2B now preserves the original 54 Product
-SKUs, adds the nine approved fixtures, publishes all 63 reconciled UUIDs by
-SKU, and owns four deterministic Product Certifications. Central
-Product/category/image/certification and violation-Product writes are retired.
-The temporary continuation consumes only eight allowlisted UUIDs for the
-still-central Review and Harvest sections; it performs no Product repository
-query or positional selection. C2C remains not started. Bulk Listing,
-Contribution, and Harvest stable identities remain C2D blockers, so whole-C2
-implementation is still in progress rather than complete.
+P8-05C2A was merged by PR #113. PR #114 then implemented C2B: it preserves the
+original 54 Product SKUs, adds the nine approved fixtures, publishes all 63
+reconciled UUIDs by SKU, and owns four deterministic Product Certifications.
+Central Product/category/image/certification and violation-Product writes are
+retired.
+C2C now owns all nine Product Review fixtures in
+`reviews.dev.product-feedback`, using dependency-scoped User and Product UUIDs
+and the schema-backed reviewer/Product pair. Central Review writes, queries,
+imports, reset targeting, and positional Product aliases are retired. The
+temporary continuation consumes only the Xoài UUID still needed by central
+Harvest and performs no Product repository query or positional selection.
+Bulk Listing, Contribution, and Harvest stable identities remain C2D blockers,
+so whole-C2 implementation is still in progress rather than complete.
