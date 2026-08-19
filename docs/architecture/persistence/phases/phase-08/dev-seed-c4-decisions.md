@@ -30,7 +30,7 @@ This is a **STATIC AUDIT AND DECISION DOCUMENTATION ONLY** task. No TypeScript b
    - Disposition: `RETIRE_FROM_ORDINARY_DEV_SEED` (`AUDIT_LOG_OWNER_LOCAL_SEED_REQUIRED=NO`)
    - Target Disposition: `RETIRE_CENTRAL_SYNTHETIC_EVENT_HISTORY`
    - Authorization: `P8_05C4B_AUDIT_LOG_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE`
-   - SeedGroup Policy: Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup. The 7 declarations remain documented as historical DEV fixture evidence only.
+   - SeedGroup Policy: Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup (`AUDIT_LOG_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO`). The 7 candidate planning declarations from P8-05C0 were candidate planning boundaries and are superseded by the reviewed retirement decision (`C4A_SUPERSEDES_C0_AUDIT_LOG_TARGET_GROUP=YES`).
 
 2. **Notifications (`notifications`)**:
    - Total central DEV fixtures: `12`
@@ -39,7 +39,7 @@ This is a **STATIC AUDIT AND DECISION DOCUMENTATION ONLY** task. No TypeScript b
    - Disposition: `RETIRE_FROM_ORDINARY_DEV_SEED` (`NOTIFICATION_OWNER_LOCAL_SEED_REQUIRED=NO`)
    - Target Disposition: `RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS`
    - Authorization: `P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE`
-   - SeedGroup Policy: Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup. The 12 declarations remain documented as historical DEV fixture evidence only.
+   - SeedGroup Policy: Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup (`NOTIFICATION_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO`). The 12 candidate planning declarations from P8-05C0 were candidate planning boundaries and are superseded by the reviewed retirement decision (`C4A_SUPERSEDES_C0_NOTIFICATION_TARGET_GROUP=YES`).
 
 3. **Rejection of Manufactured Seed Identity**:
    - Decision: `HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED`
@@ -218,7 +218,7 @@ P8_05C4B_AUDIT_LOG_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
 P8_05C4B_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_EVENT_HISTORY
 ```
 
-Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup. The 7 declarations remain documented as historical DEV fixture evidence only.
+Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup (`C4A_SUPERSEDES_C0_AUDIT_LOG_TARGET_GROUP=YES`, `AUDIT_LOG_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO`). The 7 declarations remain documented as historical DEV fixture evidence only.
 
 ---
 
@@ -357,7 +357,7 @@ P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
 P8_05C4C_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS
 ```
 
-Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup. The 12 declarations remain documented as historical DEV fixture evidence only.
+Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup (`C4A_SUPERSEDES_C0_NOTIFICATION_TARGET_GROUP=YES`, `NOTIFICATION_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO`). The 12 declarations remain documented as historical DEV fixture evidence only.
 
 ---
 
@@ -371,7 +371,7 @@ The scope of P8-05C4D encompasses:
 - Retiring `resetAll()`.
 - Retiring `legacy.dev.remaining` compatibility scaffolding.
 
-Central Retirement Authorization (`P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED`) requires **ALL** prior business seed slices to be authorized, owner-locally migrated, tested, and merged into `develop`.
+Central Retirement Authorization (`P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED`) requires that every central business write must be resolved by either reviewed owner-local migration or reviewed retirement, tested, and merged before final central retirement.
 
 ### 6.2 Current Slice Authorization Matrix
 
@@ -457,6 +457,12 @@ NOTIFICATION_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
 NOTIFICATION_OWNER_LOCAL_SEED_REQUIRED=NO
 P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
 P8_05C4C_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS
+
+C4A_SUPERSEDES_C0_AUDIT_LOG_TARGET_GROUP=YES
+C4A_SUPERSEDES_C0_NOTIFICATION_TARGET_GROUP=YES
+AUDIT_LOG_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO
+NOTIFICATION_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO
+CURRENT_C4_EXECUTABLE_LEAF_DEV_GROUP_COUNT=0
 
 HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED
 AUDIT_LOG_NOTIFICATION_DEMO_DATA_FUTURE_BOUNDARY=P8_06_TEST_FIXTURES_OR_SEPARATE_DEMO_DATA_DECISION
