@@ -1,17 +1,16 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: C2B and C2C are merged; C2D1 Member ownership is
-  implemented pending human review, while Bulk Listing and Harvest retain
-  domain-identity blockers
+- Implementation authorized: C2B, C2C, and C2D1 Member ownership are merged;
+  Bulk Listing and Harvest retain domain-identity blockers
 - Current implementation: scalar-only dependency outputs, dependency-scoped
   lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
   63-record Products DEV with four deterministic Certifications, Profiles DEV
   ownership, Reviews DEV ownership, Cooperatives Member DEV ownership, and the
   temporary dependency-scoped central continuation; C1, C2B, C2C, and central
   Member writes are retired
-- Implementation base: `develop` at P8-05C2D0 merge commit
-  `429852a930e1f76951f6529e25dc356c83eaa2a8` (PR #116)
+- Implementation base: `develop` at P8-05C2D1 merge commit
+  `052225d4b86edf18ba52bf7e46a9765a40b787b2` (PR #117)
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -280,7 +279,7 @@ P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_116
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_BULK_LISTING_AND_HARVEST_DOMAIN_IDENTITIES
 P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
-P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_117
 P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
@@ -288,6 +287,7 @@ P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D_IMPLEMENTATION_STATUS=IN_PROGRESS
 P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C3A_FORUM_ADS_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05D_ADMIN_DEV_STATUS=NOT_STARTED
@@ -454,7 +454,202 @@ unchanged and continue to use the temporary actor/Product bridge.
 
 ```text
 P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_116
-P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_117
+
+COOPERATIVES_DEV_MEMBERS_GROUP_ID=cooperatives.dev.members
+COOPERATIVES_DEV_MEMBERS_GROUP_COUNT=1
+COOPERATIVE_MEMBER_DEV_RECORD_COUNT=1
+COOPERATIVE_MEMBER_DEV_DEPENDENCIES=users.dev.users
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+COOPERATIVE_MEMBER_IDEMPOTENCY=PER_RECORD_BY_COOPERATIVE_ID_AND_FARMER_ID
+COOPERATIVE_MEMBER_PREFLIGHT=ALL_DECLARED_IDENTITIES_BEFORE_FIRST_WRITE
+COOPERATIVE_MEMBER_JOINED_AT_CREATE_POLICY=CURRENT_EXECUTION_TIME_ON_CREATE
+COOPERATIVE_MEMBER_JOINED_AT_RECONCILE_POLICY=PRESERVE_EXISTING_VALUE
+SECOND_RUN_JOINED_AT_DRIFT=0
+COOPERATIVE_MEMBER_DEV_OUTPUT_COUNT=0
+
+CENTRAL_COOPERATIVE_MEMBER_BUSINESS_WRITES=0
+CENTRAL_COOPERATIVE_MEMBER_REPOSITORY_QUERIES=0
+CENTRAL_COOPERATIVE_MEMBER_ENTITY_IMPORTS_FOR_DEV_SEED=0
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_AUTHORIZATION_STATUS=NO_BULK_LISTING_AND_HARVEST_DOMAIN_IDENTITIES
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_117
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C2_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C3A_FORUM_ADS_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05D_ADMIN_DEV_STATUS=NOT_STARTED
+P8_06_TEST_FIXTURE_STATUS=NOT_STARTED
+P8_07_ORCHESTRATOR_MIGRATION_STATUS=NOT_STARTED
+P8_08_IDEMPOTENCY_STATUS=NOT_STARTED
+P8_09_DISPOSABLE_DB_VERIFICATION_STATUS=NOT_STARTED
+P8_10_CENTRAL_WRITE_RETIREMENT_STATUS=NOT_STARTED
+
+GEOGRAPHY_REFERENCE_SEED_OWNER=geography
+PRODUCTS_REFERENCE_SEED_OWNER=products
+REFERENCE_SEED_GROUPS=2
+USERS_DEV_SEED_OWNER=users
+USERS_DEV_SEED_GROUP=users.dev.users
+GEOGRAPHY_DEV_PROVINCE_SEED=RETIRED_REDUNDANT
+```
+
+The comprehensive development service and admin development seed still contain
+business writes. They are guarded by the shared fail-closed target safety model
+and remain scheduled for per-owner migration or retirement in later P8-05
+slices, P8-07, and P8-10. P8-05C0 has now audited all 23 central-service tables,
+assigned their 10 canonical owners, defined the scalar dependency DAG, and
+split implementation into four blocked, reviewable slices. That plan does not
+authorize business-code changes. The central CLI delegates its explicit
+REFERENCE and DEV selections to owner-local Geography, Products, and Users
+groups. Products development now runs as the owner-local
+`products.dev.products` group after its
+Users and Product Category dependencies. Its legacy Product/Seller sources are
+retired, and its old Geography-name behavior is not migrated because the
+canonical payload stores no location identifier. The comprehensive central
+development service remains P8-05C debt; startup skips only its overlapping
+Product/category/image write section after canonical Products DEV has run. The
+orchestration-only phase exit criterion is still open, and P8-08 remains
+`NOT_STARTED` until runtime and disposable-database idempotency verification is
+authorized. The standalone admin development source remains explicitly deferred
+to P8-05D.
+
+P8-05C1A resolved the C1 entry decisions without changing seed behavior. PR
+#112 then implemented the ten-identity Users DEV payload and owner-local
+Profiles DEV group, retired the deferred Address and Logistics central writes,
+and retained `legacy.dev.remaining` as temporary C2/C3/C4 compatibility
+scaffolding. Numeric Address/Profile/Logistics Geography-looking fields remain
+opaque legacy owner metadata, so the C1 DAG has no speculative Geography edge.
+
+P8-05C2A was merged by PR #113. PR #114 then implemented C2B: it preserves the
+original 54 Product SKUs, adds the nine approved fixtures, publishes all 63
+reconciled UUIDs by SKU, and owns four deterministic Product Certifications.
+Central Product/category/image/certification and violation-Product writes are
+retired.
+C2C now owns all nine Product Review fixtures in
+`reviews.dev.product-feedback`, using dependency-scoped User and Product UUIDs
+and the schema-backed reviewer/Product pair. Central Review writes, queries,
+imports, reset targeting, and positional Product aliases are retired. The
+temporary continuation consumes only the Xoài UUID still needed by central
+Harvest and performs no Product repository query or positional selection.
+The C2D0 static audit reconfirms schema-unique Member identity. Human review
+accepts the Git-history conclusion that BLC-02 is an accidental duplicate and
+approves its retirement, resolving Contribution by listing/Farmer. The same
+review rejects the mutable expected-harvest date as stable identity: it
+distinguishes the three payloads but changes when a schedule is rescheduled.
+Bulk Listing and Harvest therefore remain the exact C2D blockers, and whole-C2
+implementation is still in progress rather than complete.
+
+## P8-05C2D0 Pre-Human-Review Decision Overlay
+
+PR #115 merged C2C into `develop` at
+`c2304b0afb1e6022d7deae4dff49c0e5589ca542`. The C2D0 audit reads the current
+Cooperative entities, migration, ports, repositories, tests, seed declarations,
+and Git history without executing any runtime persistence path. Full evidence
+and candidate analysis are in
+[dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md).
+
+```text
+P8_05C2C_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_115
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+COOPERATIVE_MEMBER_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
+COOPERATIVE_MEMBER_STABLE_KEY=cooperative User ID + farmer User ID
+BULK_LISTING_IDENTITY_STATUS=UNRESOLVED
+BULK_LISTING_STABLE_KEY=NONE_PROVEN
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=PENDING_HUMAN_REVIEW
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_DUPLICATE_RETIREMENT_PENDING_HUMAN_REVIEW
+HARVEST_SCHEDULE_STABLE_KEY=user ID + product ID + expected harvest date
+HARVEST_IDENTITY_STATUS=RESOLVED_SEED_LEVEL_PERSISTED_BUSINESS_KEY
+
+C2D_GROUPING_DECISION=SPLIT_OWNER_LOCALLY_BY_MEMBER_BULK_WORKFLOW_AND_HARVEST
+COOPERATIVE_DEV_OUTPUT_COUNT=0
+BULK_LISTING_PRODUCT_DEPENDENCY=NONE
+HARVEST_PRODUCT_DEPENDENCY=products.dev.products/product.id.by-sku
+C2D_EXPLICIT_ANY_COUNT=5
+C2D_RESET_TARGET_COUNT=4
+
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D1_MEMBER_HARVEST_AUTHORIZED=YES_AFTER_C2D0_MERGE
+P8_05C2D2_BULK_OPERATIONS_AUTHORIZED=NO
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+The overlay above records the original PR #116 proposal and is superseded by
+the human-review correction below. In particular, its pending Contribution
+status and combined Member/Harvest authorization are not current.
+
+## P8-05C2D0 Human-Review Correction Overlay
+
+Human review accepts the Contribution history verdict and BLC-02 retirement.
+It rejects the proposed Harvest date tuple because rescheduling mutates the
+lookup components and can make one business schedule appear to be a new row.
+The conceptual owner-local group split remains, but only Members becomes
+authorized after PR #116 merges.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+BLC_02_RETIREMENT_QUANTITY_IMPACT_KG=-2000
+CONTRIBUTION_STABLE_KEY=listing ID + farmer User ID
+CONTRIBUTION_IDENTITY_STATUS=RESOLVED_BY_APPROVED_DUPLICATE_RETIREMENT
+CONTRIBUTION_SCHEMA_UNIQUE=NO_CURRENT_SCHEMA;YES_HISTORICAL_UNMERGED_DOMAIN
+CONTRIBUTION_SEED_LEVEL_KEY=YES
+CONTRIBUTION_HUMAN_DECISION_REQUIRED=NO
+CONTRIBUTION_SCHEMA_CHANGE_REQUIRED=NO
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+
+HARVEST_PRODUCT_MAPPING_STATUS=RESOLVED
+HARVEST_PERSISTENCE_IDENTITY_STATUS=UNRESOLVED
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+HARVEST_IDENTITY_STATUS=UNRESOLVED_MUTABLE_DATE_NOT_STABLE_IDENTITY
+HARVEST_SCHEMA_UNIQUE=NO
+HARVEST_SEED_LEVEL_KEY=NO
+HARVEST_HUMAN_DECISION_REQUIRED=YES
+HARVEST_SCHEMA_CHANGE_REQUIRED=NO_YET_DOMAIN_IDENTITY_DECISION_FIRST
+
+P8_05C2D1_MEMBERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_PR_116_MERGE
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D_BLOCKERS=BULK_LISTING_DOMAIN_IDENTITY_UNRESOLVED;HARVEST_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C2D_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+
+## P8-05C2D1 Cooperative Member Ownership Overlay
+
+PR #116 merged the C2D0 human-reviewed identity decisions into `develop` at
+`429852a930e1f76951f6529e25dc356c83eaa2a8`. C2D1 implements only the approved
+Member slice as `cooperatives.dev.members`. It consumes the two actor UUIDs
+through dependency-scoped User outputs, reconciles the schema-unique
+cooperative/Farmer pair, and publishes no Member output.
+
+Create preserves the prior execution-time `joinedAt` behavior. Reconcile
+updates only `status` and `role`, preserving identity and the stored
+`joinedAt`. Central Bulk Listing, Contribution, and Harvest fixtures remain
+unchanged and continue to use the temporary actor/Product bridge.
+
+```text
+P8_05C2D0_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_116
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_117
 
 COOPERATIVES_DEV_MEMBERS_GROUP_ID=cooperatives.dev.members
 COOPERATIVES_DEV_MEMBERS_GROUP_COUNT=1
@@ -478,9 +673,59 @@ C2D_REMAINING_RESET_TARGETS=bulk_listings,bulk_listing_contributions,harvest_sch
 
 P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_05C2D_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C2D_IMPLEMENTATION_STATUS=IN_PROGRESS
 P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
+
+## P8-05C3A Forum And Ads Identity Decision Overlay
+
+Full evidence and candidate analysis are recorded in [dev-seed-c3-decisions.md](dev-seed-c3-decisions.md).
+
+```text
+P8_05C2D1_MEMBERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_117
+P8_05C3A_FORUM_ADS_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+C3_FORUM_GROUPING_DECISION=forum.dev.discussions
+FORUM_DEV_OUTPUT_COUNT=0
+FORUM_POST_STABLE_KEY=NONE_PROVEN
+FORUM_POST_IDENTITY_STATUS=UNRESOLVED
+FORUM_COMMENT_STABLE_KEY=NONE_PROVEN
+FORUM_COMMENT_IDENTITY_STATUS=UNRESOLVED
+FORUM_LIKE_STABLE_KEY=user ID + post ID
+FORUM_LIKE_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
+FORUM_LIKE_NONDETERMINISTIC_BEHAVIOR_DECISION=RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR
+FORUM_LIKE_FIXTURE_SET_STATUS=NO_APPROVED_DETERMINISTIC_FIXTURE_SET
+FORUM_LIKE_IDENTITY_BLOCKER=NO
+FORUM_RANDOM_BEHAVIOR_TARGET=RETIRED_WHEN_FORUM_OWNER_MIGRATION_IS_EVENTUALLY_AUTHORIZED
+FORUM_RANDOM_BEHAVIOR_COUNT=1
+FORUM_POSITIONAL_DEPENDENCY_COUNT=2
+
+C3_ADS_GROUPING_DECISION=ads.dev.catalog-and-campaigns
+ADS_DEV_OUTPUT_REQUIREMENT=0
+AD_PACKAGE_STABLE_KEY=NONE_PROVEN
+AD_PACKAGE_IDENTITY_STATUS=UNRESOLVED
+AD_CAMPAIGN_STABLE_KEY=NONE_PROVEN
+AD_CAMPAIGN_IDENTITY_STATUS=UNRESOLVED
+AD_CAMPAIGN_PACKAGE_POSITIONAL_DEPENDENCIES=4
+AD_CAMPAIGN_DATE_POLICY=CREATE_ONLY_EXECUTION_RELATIVE_PAYLOAD_PRESERVE_ON_RECONCILE
+AD_CAMPAIGN_DATE_IDENTITY_COMPONENT=NO
+SECOND_RUN_CAMPAIGN_DATE_DRIFT=0
+
+FORUM_REQUIRED_USER_EMAILS=farmer@sandbox.com,cooperative@sandbox.com,buyer@agrilink.vn
+ADS_REQUIRED_USER_EMAILS=supplier@agrilink.vn,admin@agrilink.vn
+
+C3_EXECUTION_TIME_DEPENDENT_FIELDS=ad_campaigns.start_date,ad_campaigns.end_date,ORM created_at/updated_at
+C3_RANDOM_FIELDS=Math.random() in seedForum likes
+C3_RESET_TARGETS=forum_posts,forum_comments,forum_likes,ad_packages,ad_campaigns,ad_events
+C3_STALE_RESET_TARGETS=ad_events
+
+P8_05C3B_FORUM_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3B_FORUM_BLOCKERS=FORUM_POST_DOMAIN_IDENTITY_UNRESOLVED;FORUM_COMMENT_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C3C_ADS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_ADS_BLOCKERS=AD_PACKAGE_DOMAIN_IDENTITY_UNRESOLVED;AD_CAMPAIGN_DOMAIN_IDENTITY_UNRESOLVED
+P8_05C3_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3_IMPLEMENTATION_STATUS=NOT_STARTED
 ```
