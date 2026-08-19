@@ -21,25 +21,37 @@ The primary objective of P8-05C4A is to audit the remaining leaf development see
 
 This is a **STATIC AUDIT AND DECISION DOCUMENTATION ONLY** task. No TypeScript business logic, ORM entities, database schemas, seed executions, or database connections are modified or executed.
 
-### Core Audit Outcomes
+### Core Human Review Decisions
 
 1. **Audit Logs (`audit_logs`)**:
    - Total central DEV fixtures: `7`
    - Unique constraints in DB schema: `NONE` (only primary key `id`)
    - Domain identity status: `UNRESOLVED` (`AUDIT_LOG_STABLE_KEY=NONE_PROVEN`)
-   - Implementation authorization: `P8_05C4B_AUDIT_LOG_IMPLEMENTATION_AUTHORIZED=NO`
-   - Blocker: `AUDIT_LOG_DOMAIN_IDENTITY_UNRESOLVED`
+   - Disposition: `RETIRE_FROM_ORDINARY_DEV_SEED` (`AUDIT_LOG_OWNER_LOCAL_SEED_REQUIRED=NO`)
+   - Target Disposition: `RETIRE_CENTRAL_SYNTHETIC_EVENT_HISTORY`
+   - Authorization: `P8_05C4B_AUDIT_LOG_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE`
+   - SeedGroup Policy: Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup. The 7 declarations remain documented as historical DEV fixture evidence only.
 
 2. **Notifications (`notifications`)**:
    - Total central DEV fixtures: `12`
    - Unique constraints in DB schema: `NONE` (only primary key `id`)
    - Domain identity status: `UNRESOLVED` (`NOTIFICATION_STABLE_KEY=NONE_PROVEN`)
-   - Implementation authorization: `P8_05C4C_NOTIFICATION_IMPLEMENTATION_AUTHORIZED=NO`
-   - Blocker: `NOTIFICATION_DOMAIN_IDENTITY_UNRESOLVED`
+   - Disposition: `RETIRE_FROM_ORDINARY_DEV_SEED` (`NOTIFICATION_OWNER_LOCAL_SEED_REQUIRED=NO`)
+   - Target Disposition: `RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS`
+   - Authorization: `P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE`
+   - SeedGroup Policy: Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup. The 12 declarations remain documented as historical DEV fixture evidence only.
 
-3. **Central Service Retirement (`P8_05C4D`)**:
+3. **Rejection of Manufactured Seed Identity**:
+   - Decision: `HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED`
+   - Rationale: Audit logs and notifications represent event/history streams rather than canonical reference data. Adding hardcoded UUIDs, synthetic identity codes, or seed_key columns would manufacture artificial identity not supported by the underlying event domain.
+
+4. **Future Test/Demo Boundary**:
+   - Boundary: `AUDIT_LOG_NOTIFICATION_DEMO_DATA_FUTURE_BOUNDARY=P8_06_TEST_FIXTURES_OR_SEPARATE_DEMO_DATA_DECISION`
+   - Scope: P8-06 test fixtures or dedicated demo seeding may reconsider event stream fixtures if required, but P8-06 implementation is **NOT** authorized now.
+
+5. **Central Service Retirement (`P8_05C4D`)**:
    - Central retirement status: `P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO`
-   - Reason: Unresolved central business writes remain in C2D2 (Bulk Operations), C2D3 (Harvest Schedules), C3B (Forum), C3C (Ads), C4B (Audit Logs), and C4C (Notifications).
+   - Reason: Unresolved central business writes remain in C2D2 (Bulk Operations), C2D3 (Harvest Schedules), C3B (Forum), and C3C (Ads). C4B/C retirement authorization does not authorize deletion of `legacy.dev.remaining`, `resetAll`, `seedForum`, `seedAdPackages`, `seedAdCampaigns`, `seedBulkListings`, or `seedHarvestSchedules`.
 
 ---
 
@@ -48,7 +60,7 @@ This is a **STATIC AUDIT AND DECISION DOCUMENTATION ONLY** task. No TypeScript b
 PR #119 merged the P8-05C3A Forum and Ads identity audit into `develop` at commit `5ad0b67c7c45bc3432e3075a6b779df9936ac484`.
 
 Prior owner-local seed migrations completed in Phase 8:
-- **C1**: Users DEV (`users.dev.users`) and Profiles DEV (`profiles.dev.user-details`) (PR #112)
+- **C1**: Users DEV (`users.dev.users`) and Profiles DEV (`profiles.dev.role-profiles`) (PR #112)
 - **C2B**: Products DEV (`products.dev.products`) with 63 SKUs and 4 Certifications (PR #114)
 - **C2C**: Product Reviews DEV (`reviews.dev.product-feedback`) with 9 fixtures (PR #115)
 - **C2D1**: Cooperative Members DEV (`cooperatives.dev.members`) (PR #117)
@@ -71,12 +83,13 @@ Per Phase 8 governance requirements, stable identity keys must be backed by pers
 
 **Explicitly Forbidden Pseudo-Identities**:
 - Generated UUID (`uuid_generate_v4()`, `randomUUID()`)
+- Hardcoded technical UUIDs manufactured solely for seeding
 - Array position / positional index
 - `createdAt` or `updatedAt` execution timestamps
 - Mutable title or message body text by itself
 - Whole-table count guards (`count() > 0`)
 
-If no stable identity is proven by schema or domain model evidence, the corresponding implementation slice must be marked **BLOCKED** (`AUTHORIZED=NO`).
+Human review confirms that Audit Logs and Notifications are append-only event records without natural business keys. Rather than manufacturing artificial identities, these central DEV fixtures are designated for retirement from ordinary DEV seeding upon PR #120 merge.
 
 ---
 
@@ -187,20 +200,25 @@ Current Guard & Write Behavior:
 | Candidate Key | Description | Domain / Schema Evidence | Result |
 | :--- | :--- | :--- | :--- |
 | `id` | Primary Key UUID | Generated at runtime (`uuid_generate_v4()`). Not deterministic or stable across resets. | **REJECTED** |
+| Hardcoded UUIDs | Manufactured technical UUIDs | Manufactured identity without domain backing; rejected by human review (`HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED`). | **REJECTED** |
 | `userId + action` | Actor + Action tuple | Non-unique in runtime audit logging (e.g., admin logs in multiple times). | **REJECTED** |
 | `userId + action + entityType` | Actor + Action + Entity Type tuple | Serendipitously distinct across current 7 DEV fixtures, but NOT unique in database schema (no `@Unique`) or in domain event logging. | **REJECTED** (Pseudo-Identity) |
 | `createdAt` | Creation Timestamp | Event timestamp is payload metadata, explicitly forbidden as stable identity. | **REJECTED** |
 | `whole-table count` | Table count check | Whole-table guard prevents partial recovery and per-record reconciliation. | **REJECTED** |
 
-### 4.4 Verdict (`audit_logs`)
+### 4.4 Human Review Verdict & Disposition (`audit_logs`)
 
 ```text
 AUDIT_LOG_FIXTURE_COUNT=7
 AUDIT_LOG_STABLE_KEY=NONE_PROVEN
 AUDIT_LOG_IDENTITY_STATUS=UNRESOLVED
-P8_05C4B_AUDIT_LOG_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C4B_BLOCKERS=AUDIT_LOG_DOMAIN_IDENTITY_UNRESOLVED
+AUDIT_LOG_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AUDIT_LOG_OWNER_LOCAL_SEED_REQUIRED=NO
+P8_05C4B_AUDIT_LOG_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
+P8_05C4B_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_EVENT_HISTORY
 ```
+
+Do **NOT** create `admin.dev.audit-logs` as an executable DEV SeedGroup. The 7 declarations remain documented as historical DEV fixture evidence only.
 
 ---
 
@@ -321,20 +339,25 @@ Current Guard & Write Behavior:
 | Candidate Key | Description | Domain / Schema Evidence | Result |
 | :--- | :--- | :--- | :--- |
 | `id` | Primary Key UUID | Generated at runtime (`uuid_generate_v4()`). Not deterministic or stable across resets. | **REJECTED** |
+| Hardcoded UUIDs | Manufactured technical UUIDs | Manufactured identity without domain backing; rejected by human review (`HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED`). | **REJECTED** |
 | `userId + type` | Recipient + Notification Type | Non-unique in runtime inbox (a user receives multiple notifications of type `NEW_ORDER`). | **REJECTED** |
 | `userId + title` | Recipient + Title text | Display title is localized text, forbidden as stable identity. | **REJECTED** |
 | `userId + type + title + body` | Recipient + Type + Title + Body tuple | Matching composite payload text, but no `@Unique` schema constraint exists and notifications represent an ephemeral event stream. | **REJECTED** (Pseudo-Identity) |
 | `whole-table count` | Table count check | Whole-table guard prevents partial recovery and per-record reconciliation. | **REJECTED** |
 
-### 5.4 Verdict (`notifications`)
+### 5.4 Human Review Verdict & Disposition (`notifications`)
 
 ```text
 NOTIFICATION_FIXTURE_COUNT=12
 NOTIFICATION_STABLE_KEY=NONE_PROVEN
 NOTIFICATION_IDENTITY_STATUS=UNRESOLVED
-P8_05C4C_NOTIFICATION_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C4C_BLOCKERS=NOTIFICATION_DOMAIN_IDENTITY_UNRESOLVED
+NOTIFICATION_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+NOTIFICATION_OWNER_LOCAL_SEED_REQUIRED=NO
+P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
+P8_05C4C_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS
 ```
+
+Do **NOT** create `notifications.dev.inbox` as an executable DEV SeedGroup. The 12 declarations remain documented as historical DEV fixture evidence only.
 
 ---
 
@@ -343,7 +366,7 @@ P8_05C4C_BLOCKERS=NOTIFICATION_DOMAIN_IDENTITY_UNRESOLVED
 ### 6.1 Central Retirement Prerequisites
 
 The scope of P8-05C4D encompasses:
-- Deleting or converting `DevSeedService` into an orchestrator-only SeedGroup runner.
+- Converting `DevSeedService` into an orchestrator-only SeedGroup runner.
 - Retiring methods `seedAuditLogs`, `seedNotifications`, `seedForum`, `seedAdPackages`, `seedAdCampaigns`, `seedBulkListings`, `seedHarvestSchedules`.
 - Retiring `resetAll()`.
 - Retiring `legacy.dev.remaining` compatibility scaffolding.
@@ -358,9 +381,9 @@ Central Retirement Authorization (`P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED`) requ
 | P8-05C2D3 | `harvest_schedules` | `UNRESOLVED` | `NO` |
 | P8-05C3B | `forum_posts`, `forum_comments`, `forum_likes` | `UNRESOLVED` (Posts/Comments) | `NO` |
 | P8-05C3C | `ad_packages`, `ad_campaigns` | `UNRESOLVED` | `NO` |
-| P8-05C4B | `audit_logs` | `UNRESOLVED` | `NO` |
-| P8-05C4C | `notifications` | `UNRESOLVED` | `NO` |
-| **P8-05C4D** | **Central Service & `resetAll` Retirement** | **BLOCKED BY C2D2, C2D3, C3B, C3C, C4B, C4C** | **`NO`** |
+| P8-05C4B | `audit_logs` | `RETIREMENT_AUTHORIZED` | `YES_AFTER_PR_120_MERGE` (Retirement Only) |
+| P8-05C4C | `notifications` | `RETIREMENT_AUTHORIZED` | `YES_AFTER_PR_120_MERGE` (Retirement Only) |
+| **P8-05C4D** | **Central Service & `resetAll` Retirement** | **BLOCKED BY C2D2, C2D3, C3B, C3C** | **`NO`** |
 
 ### 6.3 Verdict (`P8_05C4D`)
 
@@ -370,17 +393,19 @@ P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
 
 ---
 
-## 7. Remaining Central Seed Debt & Metrics
+## 7. Central Seed Debt & Implementation Metrics
+
+### 7.1 Current Status Metrics (PR #120)
 
 ```text
-CENTRAL_NORMAL_WRITE_METHODS_REMAINING=7
-CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
-CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=8
-CENTRAL_BUSINESS_TABLES_REMAINING=10
+CURRENT_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=7
+CURRENT_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+CURRENT_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=8
+CURRENT_CENTRAL_BUSINESS_TABLES_REMAINING=10
 CENTRAL_RESET_TARGETS=harvest_schedules,bulk_listing_contributions,bulk_listings,forum_likes,forum_comments,forum_posts,ad_campaigns,ad_packages,ad_events,notifications,audit_logs
 ```
 
-Details of remaining normal write methods in `DevSeedService`:
+Current 7 normal write methods in `DevSeedService`:
 1. `seedForum`
 2. `seedAdPackages`
 3. `seedAdCampaigns`
@@ -389,12 +414,28 @@ Details of remaining normal write methods in `DevSeedService`:
 6. `seedAuditLogs`
 7. `seedNotifications`
 
-Details of remaining destructive reset method in `DevSeedService`:
-1. `resetAll`
+### 7.2 Expected Future Metrics After C4B/C Retirement Execution
+
+When C4B/C retirement implementation is executed in a future PR after PR #120 merge:
+
+```text
+EXPECTED_AFTER_C4B_C_RETIREMENT_NORMAL_METHODS=5
+EXPECTED_AFTER_C4B_C_RETIREMENT_BUSINESS_TABLES=8
+```
+
+Expected remaining normal write methods (5):
+1. `seedForum`
+2. `seedAdPackages`
+3. `seedAdCampaigns`
+4. `seedBulkListings`
+5. `seedHarvestSchedules`
+
+Expected remaining business tables written by normal seed methods (8):
+`harvest_schedules`, `bulk_listing_contributions`, `bulk_listings`, `forum_likes`, `forum_comments`, `forum_posts`, `ad_campaigns`, `ad_packages`
 
 ---
 
-## 8. Summary Matrix & Authorization Declarations
+## 8. Authoritative Summary Matrix & Declarations
 
 ```text
 P8_05C3A_FORUM_ADS_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_119
@@ -404,24 +445,32 @@ P8_05C4_IMPLEMENTATION_STATUS=NOT_STARTED
 AUDIT_LOG_FIXTURE_COUNT=7
 AUDIT_LOG_STABLE_KEY=NONE_PROVEN
 AUDIT_LOG_IDENTITY_STATUS=UNRESOLVED
+AUDIT_LOG_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AUDIT_LOG_OWNER_LOCAL_SEED_REQUIRED=NO
+P8_05C4B_AUDIT_LOG_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
+P8_05C4B_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_EVENT_HISTORY
 
 NOTIFICATION_FIXTURE_COUNT=12
 NOTIFICATION_STABLE_KEY=NONE_PROVEN
 NOTIFICATION_IDENTITY_STATUS=UNRESOLVED
+NOTIFICATION_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+NOTIFICATION_OWNER_LOCAL_SEED_REQUIRED=NO
+P8_05C4C_NOTIFICATION_RETIREMENT_AUTHORIZED=YES_AFTER_PR_120_MERGE
+P8_05C4C_TARGET_DISPOSITION=RETIRE_CENTRAL_SYNTHETIC_INBOX_EVENTS
 
-P8_05C4B_AUDIT_LOG_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C4B_BLOCKERS=AUDIT_LOG_DOMAIN_IDENTITY_UNRESOLVED
-
-P8_05C4C_NOTIFICATION_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C4C_BLOCKERS=NOTIFICATION_DOMAIN_IDENTITY_UNRESOLVED
+HARDCODED_UUID_AS_C4_SEED_IDENTITY=REJECTED
+AUDIT_LOG_NOTIFICATION_DEMO_DATA_FUTURE_BOUNDARY=P8_06_TEST_FIXTURES_OR_SEPARATE_DEMO_DATA_DECISION
 
 P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
 
-CENTRAL_NORMAL_WRITE_METHODS_REMAINING=7
-CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
-CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=8
-CENTRAL_BUSINESS_TABLES_REMAINING=10
+CURRENT_CENTRAL_NORMAL_WRITE_METHODS_REMAINING=7
+CURRENT_CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+CURRENT_CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=8
+CURRENT_CENTRAL_BUSINESS_TABLES_REMAINING=10
 CENTRAL_RESET_TARGETS=harvest_schedules,bulk_listing_contributions,bulk_listings,forum_likes,forum_comments,forum_posts,ad_campaigns,ad_packages,ad_events,notifications,audit_logs
+
+EXPECTED_AFTER_C4B_C_RETIREMENT_NORMAL_METHODS=5
+EXPECTED_AFTER_C4B_C_RETIREMENT_BUSINESS_TABLES=8
 
 BUSINESS_IMPLEMENTATION_CHANGES=0
 SCHEMA_CHANGES=0
@@ -441,10 +490,9 @@ DESTRUCTIVE_RESET_EXECUTED=NO
 
 ---
 
-## 9. Next Steps for Human Review & Future Authorization
+## 9. Scope & Safety Invariants
 
-1. **Human Decision Required**:
-   - Maintainers must decide whether Audit Logs and Notifications should have deterministic business keys added to domain entities/schemas (or if seed fixtures should use explicit hardcoded UUIDs in fixture definitions) before owner-local seed extraction is authorized.
-2. **Subsequent Slices**:
-   - Once stable identity decisions are made for `audit_logs` and `notifications`, `P8_05C4B_AUDIT_LOG_IMPLEMENTATION_AUTHORIZED` and `P8_05C4C_NOTIFICATION_IMPLEMENTATION_AUTHORIZED` may be set to `YES`.
-   - `P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED` can only be set to `YES` after all C2D2, C2D3, C3B, C3C, C4B, and C4C migrations are merged into `develop`.
+This document and PR #120 satisfy all Phase 8 safety invariants:
+- **No runtime TypeScript modification**: `DevSeedService`, entities, and controllers remain untouched in this PR.
+- **No database execution**: No DDL, DML, SQL, migrations, or database connections were executed.
+- **Documentation only**: Modifications are strictly confined to Phase 8 decision documentation files.
