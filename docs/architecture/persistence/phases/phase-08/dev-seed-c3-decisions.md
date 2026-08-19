@@ -117,9 +117,13 @@ Central `seedForum` iterates over saved posts and liker IDs (`farmer@sandbox.com
 FORUM_LIKE_STABLE_KEY=user ID + post ID
 FORUM_LIKE_IDENTITY_STATUS=RESOLVED_SCHEMA_UNIQUE
 FORUM_LIKE_SCHEMA_UNIQUE=YES
+FORUM_LIKE_NONDETERMINISTIC_BEHAVIOR_DECISION=RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR
+FORUM_LIKE_FIXTURE_SET_STATUS=NO_APPROVED_DETERMINISTIC_FIXTURE_SET
+FORUM_LIKE_IDENTITY_BLOCKER=NO
+FORUM_RANDOM_BEHAVIOR_TARGET=RETIRED_WHEN_FORUM_OWNER_MIGRATION_IS_EVENTUALLY_AUTHORIZED
 ```
 
-Note: While the schema key shape is `RESOLVED_SCHEMA_UNIQUE`, the intended seed fixture set is currently non-deterministic due to `Math.random()`.
+Human review accepts `user ID + post ID` as `RESOLVED_SCHEMA_UNIQUE` based on the `@Unique(['postId', 'userId'])` constraint. However, human review does not accept converting the historical random Like selection (`Math.random() > 0.3`) into an arbitrary deterministic fixture set. Instead, the nondeterministic demo behavior will be retired (`RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR`) when Forum owner migration is eventually authorized. No arbitrary liker/post pairs are invented, and `FORUM_LIKE_IDENTITY_BLOCKER=NO`.
 
 ## 5. Random And Positional Forum Behavior
 
@@ -135,8 +139,8 @@ FORUM_POSITIONAL_DEPENDENCY_COUNT=2
 
 Required dispositions for migration:
 
-- Like selection: `REPLACE_WITH_EXPLICIT_SEMANTIC_FIXTURE_MAPPING` (define deterministic liker-post pairs for fixtures).
-- Comment parent assignment: `REPLACE_WITH_EXPLICIT_SEMANTIC_FIXTURE_MAPPING` (map comments to semantic Post identity rather than loop index).
+- Like selection: `RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR` (retire nondeterministic demo behavior when Forum migration is eventually authorized; no approved deterministic fixture set).
+- Comment parent assignment: `saved[0]` and `saved[1]` are migration debt. As Forum Post identity remains unresolved, no semantic Post seed identity is invented yet.
 
 ## 6. Forum Grouping Decision
 
@@ -250,12 +254,16 @@ Uses of execution-time or random functions in C3 code:
 ```text
 C3_EXECUTION_TIME_DEPENDENT_FIELDS=ad_campaigns.start_date,ad_campaigns.end_date,ORM created_at/updated_at
 C3_RANDOM_FIELDS=Math.random() in seedForum likes
+AD_CAMPAIGN_DATE_POLICY=CREATE_ONLY_EXECUTION_RELATIVE_PAYLOAD_PRESERVE_ON_RECONCILE
+AD_CAMPAIGN_DATE_IDENTITY_COMPONENT=NO
+SECOND_RUN_CAMPAIGN_DATE_DRIFT=0
 ```
 
 Classification:
 
-- Campaign dates: `LIFECYCLE_DEFAULT` / payload dates (must be fixed ISO date strings in DEV seed payload).
-- Like selection: Must be replaced with explicit deterministic pairs.
+- **Ad Campaign Dates**: Classified as `CREATE_ONLY_PAYLOAD` (business payload fields, never stable identity components). On CREATE, existing DEV intent is preserved (`startDate = execution time - 5 days`, `endDate = execution time + 25 days`). On RECONCILE, existing stored dates are preserved without shifting (`SECOND_RUN_CAMPAIGN_DATE_DRIFT=0`).
+- **ORM Timestamps**: `createdAt`/`updatedAt` remain separately classified as `LIFECYCLE_DEFAULT`.
+- **Like Selection**: `RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR` when Forum owner migration is eventually authorized.
 
 ## 12. Reset Debt
 
@@ -289,7 +297,7 @@ C3_STALE_RESET_TARGETS=ad_events
 
 ```text
 P8_05C3B_FORUM_IMPLEMENTATION_AUTHORIZED=NO
-P8_05C3B_FORUM_BLOCKERS=FORUM_POST_DOMAIN_IDENTITY_UNRESOLVED;FORUM_COMMENT_DOMAIN_IDENTITY_UNRESOLVED;FORUM_LIKE_NONDETERMINISTIC_SET
+P8_05C3B_FORUM_BLOCKERS=FORUM_POST_DOMAIN_IDENTITY_UNRESOLVED;FORUM_COMMENT_DOMAIN_IDENTITY_UNRESOLVED
 
 P8_05C3C_ADS_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C3C_ADS_BLOCKERS=AD_PACKAGE_DOMAIN_IDENTITY_UNRESOLVED;AD_CAMPAIGN_DOMAIN_IDENTITY_UNRESOLVED
@@ -297,14 +305,35 @@ P8_05C3C_ADS_BLOCKERS=AD_PACKAGE_DOMAIN_IDENTITY_UNRESOLVED;AD_CAMPAIGN_DOMAIN_I
 P8_05C3_IMPLEMENTATION_AUTHORIZED=NO
 ```
 
-## 15. Authorization And Blockers Policy
+## 15. Human Review Overlay & Authoritative Status
 
 Neither Forum nor Ads owner-local implementation is authorized to proceed yet.
 
+```text
+P8_05C3A_FORUM_ADS_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+FORUM_LIKE_NONDETERMINISTIC_BEHAVIOR_DECISION=RETIRE_NONDETERMINISTIC_DEMO_BEHAVIOR
+FORUM_LIKE_FIXTURE_SET_STATUS=NO_APPROVED_DETERMINISTIC_FIXTURE_SET
+FORUM_LIKE_IDENTITY_BLOCKER=NO
+FORUM_RANDOM_BEHAVIOR_TARGET=RETIRED_WHEN_FORUM_OWNER_MIGRATION_IS_EVENTUALLY_AUTHORIZED
+
+AD_CAMPAIGN_DATE_POLICY=CREATE_ONLY_EXECUTION_RELATIVE_PAYLOAD_PRESERVE_ON_RECONCILE
+AD_CAMPAIGN_DATE_IDENTITY_COMPONENT=NO
+SECOND_RUN_CAMPAIGN_DATE_DRIFT=0
+
+P8_05C3B_FORUM_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3B_FORUM_BLOCKERS=FORUM_POST_DOMAIN_IDENTITY_UNRESOLVED;FORUM_COMMENT_DOMAIN_IDENTITY_UNRESOLVED
+
+P8_05C3C_ADS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_ADS_BLOCKERS=AD_PACKAGE_DOMAIN_IDENTITY_UNRESOLVED;AD_CAMPAIGN_DOMAIN_IDENTITY_UNRESOLVED
+
+P8_05C3_IMPLEMENTATION_AUTHORIZED=NO
+```
+
 Blockers summary:
 
-- **Forum**: `forum_posts` and `forum_comments` lack persisted stable business keys in the domain model. `forum_likes` intended fixture set is non-deterministic due to `Math.random()`.
-- **Ads**: `ad_packages` and `ad_campaigns` lack persisted stable business keys in the domain model.
+- **Forum**: `forum_posts` and `forum_comments` lack persisted stable business keys in the domain model. `forum_likes` key shape is schema-resolved (`user ID + post ID`); nondeterministic like creation will be retired without creating arbitrary fixture pairs.
+- **Ads**: `ad_packages` and `ad_campaigns` lack persisted stable business keys in the domain model. Campaign dates are payload policy (`CREATE_ONLY_EXECUTION_RELATIVE_PAYLOAD_PRESERVE_ON_RECONCILE`) and do not block identity, but package and campaign business identities remain unresolved.
 
 Per Phase 8 blocker policy, stable keys must NOT be invented (e.g., creating fake reference codes or relying on mutable title/content) merely to make seeds idempotent. Domain/schema identity decisions must be made first by human maintainers.
 
