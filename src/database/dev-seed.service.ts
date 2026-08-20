@@ -10,13 +10,8 @@ import { AdPackage } from '../modules/ads/infrastructure/persistence/entities/ad
 import { BulkListingEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity';
 import { BulkListingContributionEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity';
 import { HarvestScheduleEntity } from '../modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity';
-import { AuditLog } from '../modules/admin/entities/audit-log.entity';
-import { NotificationOrmEntity } from '../modules/notifications/infrastructure/persistence/notification.orm-entity';
 
-import {
-  ProductUnit,
-  AdType, AdStatus, NotifType,
-} from '../common/enums';
+import { ProductUnit, AdType, AdStatus } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
 import type {
   LegacyDevActorIds,
@@ -34,7 +29,7 @@ export class DevSeedService {
     products: LegacyDevProductIds,
   ): Promise<void> {
     const log = this.logger;
-    const { ADMIN, FARMER, BUYER, SUPPLIER, COOP, STATE_AGENCY } = users;
+    const { ADMIN, FARMER, BUYER, SUPPLIER, COOP } = users;
 
     const posts = await this.seedForum(FARMER, COOP, BUYER);
     log.log(`[Seed] ${posts.length} forum posts seeded`);
@@ -46,12 +41,6 @@ export class DevSeedService {
     await this.seedBulkListings(COOP, FARMER);
     await this.seedHarvestSchedules(FARMER, products.XOAI_HOA_LOC);
     log.log(`[Seed] cooperative bulk and harvest data seeded`);
-
-    await this.seedAuditLogs(ADMIN, STATE_AGENCY);
-    log.log(`[Seed] audit logs seeded`);
-
-    await this.seedNotifications(users);
-    log.log(`[Seed] notifications seeded`);
   }
 
   private async resetAll(): Promise<void> {
@@ -61,7 +50,6 @@ export class DevSeedService {
       'harvest_schedules', 'bulk_listing_contributions', 'bulk_listings',
       'forum_likes', 'forum_comments', 'forum_posts',
       'ad_campaigns', 'ad_packages', 'ad_events',
-      'notifications', 'audit_logs',
     ];
     for (const t of tables) {
       try { await this.ds.query(`DELETE FROM "${t}"`); } catch { /* skip non-existent */ }
@@ -203,52 +191,4 @@ export class DevSeedService {
     }
   }
 
-  // ── AUDIT LOGS ───────────────────────────────────────────────────────
-  private async seedAuditLogs(adminId: string, stateAgencyId: string) {
-    const repo = this.ds.getRepository(AuditLog);
-    const existing = await repo.count();
-    if (existing > 0) return;
-
-    const logs = [
-      { userId: adminId, action: 'USER_LOGIN', entityType: 'User', createdAt: new Date('2026-07-23T08:00:00Z') },
-      { userId: adminId, action: 'PRODUCT_APPROVED', entityType: 'Product', createdAt: new Date('2026-07-23T08:30:00Z') },
-      { userId: stateAgencyId, action: 'PRODUCT_SUSPENDED', entityType: 'Product', changes: { before: { status: 'active' }, after: { status: 'suspended', reason: 'Hàng không rõ nguồn gốc' } }, createdAt: new Date('2026-07-22T14:00:00Z') },
-      { userId: adminId, action: 'AD_APPROVED', entityType: 'AdCampaign', createdAt: new Date('2026-07-21T10:00:00Z') },
-      { userId: stateAgencyId, action: 'CERTIFICATION_VERIFIED', entityType: 'ProductCertification', createdAt: new Date('2026-07-20T09:15:00Z') },
-      { userId: adminId, action: 'USER_REGISTERED', entityType: 'User', createdAt: new Date('2026-07-19T16:00:00Z') },
-      { userId: adminId, action: 'SYSTEM_CONFIG_UPDATED', entityType: 'SystemConfig', changes: { before: { feature_forum: false }, after: { feature_forum: true } }, createdAt: new Date('2026-07-18T11:00:00Z') },
-    ];
-    for (const log of logs) {
-      await repo.save(log);
-    }
-  }
-
-  // ── NOTIFICATIONS ────────────────────────────────────────────────────
-  private async seedNotifications(actors: LegacyDevActorIds) {
-    const repo = this.ds.getRepository(NotificationOrmEntity);
-    const existing = await repo.count();
-    if (existing > 0) return;
-    const users = Object.fromEntries(
-      Object.entries(actors).map(([alias, id]) => [alias, { id }]),
-    ) as Record<keyof LegacyDevActorIds, { readonly id: string }>;
-
-    const notifs = [
-      { userId: users.FARMER.id, type: NotifType.NEW_ORDER, title: 'Đơn hàng mới #DH-001', body: 'Người mua Trần Thị Thu đã đặt 50kg xoài cát Hòa Lộc.' },
-      { userId: users.FARMER.id, type: NotifType.NEW_REVIEW, title: 'Có đánh giá mới', body: 'Người mua đã đánh giá 5 sao sản phẩm Xoài cát Hòa Lộc.' },
-      { userId: users.COOP.id, type: NotifType.MEMBER_REQUEST, title: 'Yêu cầu tham gia HTX', body: 'Nông dân Nguyễn Văn Mới muốn tham gia HTX.' },
-      { userId: users.COOP.id, type: NotifType.PRODUCT_STATUS_CHANGED, title: 'Trạng thái đơn hàng cập nhật', body: 'Đơn hàng #DH-015 đã được xác nhận.' },
-      { userId: users.BUYER.id, type: NotifType.ORDER_CONFIRMED, title: 'Đơn hàng đã xác nhận', body: 'Đơn hàng #DH-003 đã được người bán xác nhận.' },
-      { userId: users.BUYER.id, type: NotifType.ORDER_SHIPPED, title: 'Đơn hàng đang giao', body: 'Đơn hàng #DH-001 đã được bàn giao vận chuyển.' },
-      { userId: users.ENTERPRISE.id, type: NotifType.ORDER_DELIVERED, title: 'Đơn hàng đã giao thành công', body: 'Đơn hàng #DH-010 đã giao. Vui lòng kiểm tra và xác nhận.' },
-      { userId: users.SUPPLIER.id, type: NotifType.NEW_ORDER, title: 'Đơn hàng vật tư mới', body: 'HTX Nông nghiệp Xanh đặt 200kg phân bón hữu cơ.' },
-      { userId: users.SUPPLIER.id, type: NotifType.AD_APPROVED, title: 'Quảng cáo đã duyệt', body: 'Chiến dịch "Nông sản sạch Đà Lạt" đã được phê duyệt.' },
-      { userId: users.LOGISTICS.id, type: NotifType.NEW_ORDER, title: 'Yêu cầu vận chuyển mới', body: 'Đơn hàng cần vận chuyển từ Tiền Giang đến TP.HCM.' },
-      { userId: users.STATE_AGENCY.id, type: NotifType.PRODUCT_REJECTED, title: 'Sản phẩm vi phạm', body: 'Sản phẩm "Thuốc trừ sâu không tem nhãn" đã bị tạm khóa.' },
-      { userId: users.ADMIN.id, type: NotifType.AD_REJECTED, title: 'Quảng cáo chờ duyệt', body: 'Có 1 chiến dịch quảng cáo mới cần phê duyệt.' },
-    ];
-
-    for (const n of notifs) {
-      await repo.save(repo.create(n));
-    }
-  }
 }
