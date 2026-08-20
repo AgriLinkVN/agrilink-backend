@@ -502,3 +502,44 @@ This document and PR #120 satisfy all Phase 8 safety invariants:
 - **No runtime TypeScript modification**: `DevSeedService`, entities, and controllers remain untouched in this PR.
 - **No database execution**: No DDL, DML, SQL, migrations, or database connections were executed.
 - **Documentation only**: Modifications are strictly confined to Phase 8 decision documentation files.
+
+---
+
+## 10. P8-05C4BC Implementation Overlay
+
+The statements in Section 9 describe the historical scope of decision PR #120.
+After that PR was human-reviewed and merged into `develop`, C4B/C implemented
+the authorized runtime retirement. The seven Audit Log and twelve Notification
+declarations remain above as historical payload evidence only. No executable
+replacement SeedGroup was created, and C4D remains unauthorized.
+
+```text
+P8_05C4A_AUDIT_LOG_NOTIFICATION_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_120
+P8_05C4B_AUDIT_LOG_RETIREMENT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C4C_NOTIFICATION_RETIREMENT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+AUDIT_LOG_DEV_FIXTURE_DISPOSITION=RETIRED_FROM_ORDINARY_DEV_SEED
+NOTIFICATION_DEV_FIXTURE_DISPOSITION=RETIRED_FROM_ORDINARY_DEV_SEED
+
+AUDIT_LOG_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO
+NOTIFICATION_EXECUTABLE_DEV_SEEDGROUP_CREATED=NO
+CURRENT_C4_EXECUTABLE_LEAF_DEV_GROUP_COUNT=0
+
+CENTRAL_AUDIT_LOG_BUSINESS_WRITES=0
+CENTRAL_NOTIFICATION_BUSINESS_WRITES=0
+CENTRAL_RESET_AUDIT_LOG_TARGETS=0
+CENTRAL_RESET_NOTIFICATION_TARGETS=0
+
+CENTRAL_NORMAL_WRITE_METHODS_REMAINING=5
+CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedBulkListings;seedHarvestSchedules
+CENTRAL_DESTRUCTIVE_METHODS_REMAINING=1
+CENTRAL_PERSISTENCE_CAPABLE_METHODS_REMAINING=6
+CENTRAL_BUSINESS_TABLES_REMAINING=8
+CENTRAL_RESET_TARGET_COUNT=9
+CENTRAL_RESET_TARGETS=harvest_schedules,bulk_listing_contributions,bulk_listings,forum_likes,forum_comments,forum_posts,ad_campaigns,ad_packages,ad_events
+
+TEMPORARY_LEGACY_CONTINUATION=YES
+HARVEST_PRODUCT_BRIDGE_RETAINED=YES
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+P8_05C4_IMPLEMENTATION_STATUS=IN_PROGRESS
+```
