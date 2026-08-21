@@ -290,23 +290,24 @@ without an owner mapping.
 
 Users are independently implementable after this decision is human-reviewed:
 their identities are schema-backed, the Admin maps by email, and the other
-eight declarations are distinct. Profiles are identity-resolved but remain
-blocked on the meaning of eleven geography scalars. Products and Images remain
-blocked on Product identity. The standalone entrypoint cannot be retired until
-all retained fixtures have an implemented owner disposition.
+eight declarations are distinct. Profile identities are independently proven,
+and human review resolves their eleven geography scalars as opaque legacy owner
+metadata under the existing P8-05C1 policy. Products and Images remain blocked
+on Product identity. The standalone entrypoint cannot be retired until all
+retained fixtures have an implemented owner disposition.
 
 ```text
 P8_05D1_USERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05D0_MERGE
 P8_05D1_USERS_BLOCKERS=NONE
 
-P8_05D2_PROFILES_IMPLEMENTATION_AUTHORIZED=NO
-P8_05D2_PROFILES_BLOCKERS=ADMIN_DEV_PROFILE_GEOGRAPHY_SCALAR_IDENTITY_UNRESOLVED
+P8_05D2_PROFILES_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05D0_MERGE
+P8_05D2_PROFILES_BLOCKERS=NONE
 
 P8_05D3_PRODUCTS_IMPLEMENTATION_AUTHORIZED=NO
 P8_05D3_PRODUCTS_BLOCKERS=ADMIN_DEV_PRODUCT_SKUS_UNRESOLVED;ADMIN_DEV_PRODUCT_IMAGE_PARENT_IDENTITIES_UNRESOLVED
 
 P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=NO
-P8_05D4_BLOCKERS=P8_05D2_PROFILES_NOT_IMPLEMENTED;P8_05D3_PRODUCTS_NOT_IMPLEMENTED
+P8_05D4_BLOCKERS=P8_05D1_USERS_NOT_IMPLEMENTED;P8_05D2_PROFILES_NOT_IMPLEMENTED;P8_05D3_PRODUCTS_NOT_IMPLEMENTED
 
 P8_05D_IMPLEMENTATION_AUTHORIZED=NO
 ```
@@ -346,6 +347,69 @@ MIGRATIONS_CREATED=0
 P8_05D0_ADMIN_DEV_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_05D_IMPLEMENTATION_STATUS=NOT_STARTED
 ADMIN_DEV_TARGET_STRATEGY=PARTIAL_MAP_PARTIAL_RETIRE_WITH_BLOCKERS
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+DESTRUCTIVE_RESET_EXECUTED=NO
+```
+
+## 15. Human Review Decision Overlay
+
+This overlay records the current authoritative decision while preserving the
+static source inventory above. Human review applies the already-approved
+P8-05C1 treatment of legacy numeric geography-looking Address, Profile, and
+Logistics fields to the equivalent Admin DEV Profile payload fields. Values
+such as `1`, `2`, `3`, `101`, `201`, and `301` remain opaque owner metadata;
+they are not Province UUIDs or codes, do not create a Geography dependency, and
+do not require schema changes. Profile identity is independent of that payload
+metadata and is resolved by User ID plus the applicable Farmer CCCD,
+Cooperative license/tax identifiers, Enterprise tax identifier, or Supplier
+User ID.
+
+```text
+ADMIN_DEV_PROFILE_GEOGRAPHY_POLICY=REUSE_P8_05C1_OPAQUE_LEGACY_OWNER_METADATA
+ADMIN_DEV_PROFILE_GEOGRAPHY_SCALAR_STATUS=RESOLVED_AS_OPAQUE_NONRELATIONAL_METADATA
+ADMIN_DEV_GEOGRAPHY_DEPENDENCY_EDGE=NONE
+ADMIN_DEV_PROFILE_GEOGRAPHY_SCALAR_MAPPING_TO_CANONICAL_GEOGRAPHY=NONE
+ADMIN_DEV_PROFILE_GEOGRAPHY_VALUES_PRESERVED_AS_SOURCE_PAYLOAD=YES
+ADMIN_DEV_PROFILE_IDENTITY_STATUS=RESOLVED
+ADMIN_DEV_PROFILE_PAYLOAD_GEOGRAPHY_STATUS=OPAQUE_LEGACY_METADATA_PRESERVED
+
+P8_05D1_USERS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05D0_MERGE
+P8_05D1_USERS_BLOCKERS=NONE
+
+P8_05D2_PROFILES_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05D0_MERGE
+P8_05D2_PROFILES_BLOCKERS=NONE
+
+P8_05D3_PRODUCTS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05D3_PRODUCTS_BLOCKERS=ADMIN_DEV_PRODUCT_SKUS_UNRESOLVED;ADMIN_DEV_PRODUCT_IMAGE_PARENT_IDENTITIES_UNRESOLVED
+
+P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=NO
+P8_05D4_BLOCKERS=P8_05D1_USERS_NOT_IMPLEMENTED;P8_05D2_PROFILES_NOT_IMPLEMENTED;P8_05D3_PRODUCTS_NOT_IMPLEMENTED
+
+P8_05D_IMPLEMENTATION_AUTHORIZED=NO
+P8_05D_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+The earlier validation run imported an unrelated Storage Phase 9 module that
+constructed one uninitialized `DataSource`. Human review accepts this as a
+non-material procedural deviation: it was not the Admin DEV `DataSource`, no
+`initialize` call or database connection occurred, and no query, SQL, seed, or
+migration ran. The historical construction count remains one.
+
+```text
+P8_05D0_VALIDATION_DEVIATION=ACCEPTED_NON_MATERIAL_UNRELATED_UNINITIALIZED_DATASOURCE_CONSTRUCTION
+P8_05D0_VALIDATION_DEVIATION_HUMAN_REVIEW=ACCEPTED
+ADMIN_DEV_DATASOURCE_CONSTRUCTED=NO
+UNRELATED_UNINITIALIZED_DATASOURCE_CONSTRUCTIONS=1
+DATASOURCE_INITIALIZE_CALLS=0
 
 PROTECTED_LOCAL_DB_ACCESSED=NO
 PRODUCTION_DB_ACCESSED=NO
