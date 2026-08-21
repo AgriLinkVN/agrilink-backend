@@ -32,7 +32,7 @@ export interface UserDevSeedData {
   readonly isEmailVerified: boolean;
 }
 
-export const userDevSeedData: readonly UserDevSeedData[] = [
+export const baseUserDevSeedData: readonly UserDevSeedData[] = [
   {
     phone: "+84901111099",
     email: "admin@agrilink.vn",
@@ -123,6 +123,91 @@ export const userDevSeedData: readonly UserDevSeedData[] = [
     isPhoneVerified: true,
     isEmailVerified: true,
   },
+];
+
+/**
+ * Dashboard actors migrated from the standalone Admin DEV source by P8-05D1.
+ * The standalone source relied on the entity defaults for verification flags,
+ * so the owner fixture records those source-backed false values explicitly.
+ */
+export const adminDevDashboardUserSeedData: readonly UserDevSeedData[] = [
+  {
+    phone: "0912345678",
+    email: "hung.nv@farm.vn",
+    role: UserRole.FARMER,
+    status: UserStatus.ACTIVE,
+    fullName: "Nguyễn Văn Hùng",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345679",
+    email: "mai.lt@farm.vn",
+    role: UserRole.FARMER,
+    status: UserStatus.ACTIVE,
+    fullName: "Lê Thị Mai",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345680",
+    email: "tuan.pq@farm.vn",
+    role: UserRole.FARMER,
+    status: UserStatus.ACTIVE,
+    fullName: "Phạm Quang Tuấn",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345681",
+    email: "htx.dalat@coop.vn",
+    role: UserRole.COOPERATIVE,
+    status: UserStatus.ACTIVE,
+    fullName: "HTX Rau Sạch Đà Lạt",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345682",
+    email: "htx.tiengiang@coop.vn",
+    role: UserRole.COOPERATIVE,
+    status: UserStatus.ACTIVE,
+    fullName: "HTX Trái Cây Tiền Giang",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345683",
+    email: "xnk.mekong@ent.vn",
+    role: UserRole.ENTERPRISE,
+    status: UserStatus.ACTIVE,
+    fullName: "Công ty TNHH XNK Nông Sản Mekong",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345684",
+    email: "agri.tech@ent.vn",
+    role: UserRole.ENTERPRISE,
+    status: UserStatus.ACTIVE,
+    fullName: "Công ty CP Công Nghệ Nông Nghiệp Xanh",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+  {
+    phone: "0912345685",
+    email: "phanbon.xanh@sup.vn",
+    role: UserRole.SUPPLIER,
+    status: UserStatus.ACTIVE,
+    fullName: "Công ty TNHH Phân Bón Xanh Việt",
+    isPhoneVerified: false,
+    isEmailVerified: false,
+  },
+];
+
+export const userDevSeedData: readonly UserDevSeedData[] = [
+  ...baseUserDevSeedData,
+  ...adminDevDashboardUserSeedData,
 ];
 
 export const USERS_DEV_SEED_METADATA: SeedGroupMetadata = {
