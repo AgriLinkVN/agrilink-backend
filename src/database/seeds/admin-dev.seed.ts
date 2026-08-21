@@ -5,7 +5,7 @@
  *   npx ts-node -r tsconfig-paths/register src/database/seeds/admin-dev.seed.ts
  *
  * Tạo data giả giống thật để test admin dashboard:
- *   - 8 user mới (farmer, cooperative, enterprise, supplier)
+ *   - dùng 9 User IDs từ owner SeedGroup users.dev.users
  *   - 8 hồ sơ KYC chờ duyệt (CCCD, GPKD)
  *   - 10 sản phẩm chờ duyệt / bị từ chối
  */
@@ -16,16 +16,85 @@ import { CooperativeProfile } from "../../modules/profiles/infrastructure/persis
 import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
 import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
 import { Product } from "../../modules/products/infrastructure/persistence/entities/product.entity";
-import { UserRole, UserStatus, ProductStatus, SellerType, ProductUnit, FarmingType } from "../../common/enums";
-import * as bcrypt from "bcryptjs";
+import { ProductStatus, SellerType, ProductUnit, FarmingType } from "../../common/enums";
 import * as dotenv from "dotenv";
 import { parseDatabaseEnvironment } from "../../config/database-environment";
-import { SeedClassification } from "./framework/seed-contract";
+import {
+  SeedClassification,
+  SeedGroupResult,
+  VerifiedSeedExecutionTarget,
+} from "./framework/seed-contract";
+import {
+  EMPTY_SEED_DEPENDENCY_OUTPUTS,
+  validateSeedGroupResult,
+} from "./framework/seed-dependency-outputs";
 import { assertSeedExecutionSafety } from "./framework/seed-environment.guard";
+import {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
+  USERS_DEV_SEED_GROUP_ID,
+} from "../../modules/users/application/contracts/user-seed-output.contract";
+import { createUsersDevSeedGroup } from "../../modules/users/infrastructure/database/seeds/user.seed";
 
 dotenv.config();
 
-export async function seedAdminDevData(ds: DataSource): Promise<void> {
+export const ADMIN_DEV_USER_EMAILS = [
+  "admin@agrilink.vn",
+  "hung.nv@farm.vn",
+  "mai.lt@farm.vn",
+  "tuan.pq@farm.vn",
+  "htx.dalat@coop.vn",
+  "htx.tiengiang@coop.vn",
+  "xnk.mekong@ent.vn",
+  "agri.tech@ent.vn",
+  "phanbon.xanh@sup.vn",
+] as const;
+
+export type AdminDevUserEmail = (typeof ADMIN_DEV_USER_EMAILS)[number];
+export interface AdminDevResolvedUserId {
+  readonly id: string;
+}
+export type AdminDevUserIds = Readonly<
+  Record<AdminDevUserEmail, AdminDevResolvedUserId>
+>;
+
+export function resolveAdminDevUserIds(
+  result: SeedGroupResult,
+): AdminDevUserIds {
+  const validated = validateSeedGroupResult(USERS_DEV_SEED_GROUP_ID, result);
+  const userIdsByEmail = new Map(
+    validated.outputs
+      .filter(({ kind }) => kind === USER_ID_BY_EMAIL_OUTPUT_KIND)
+      .map(({ key, value }) => [key, value] as const),
+  );
+
+  return Object.fromEntries(
+    ADMIN_DEV_USER_EMAILS.map((email) => {
+      const userId = userIdsByEmail.get(email);
+      if (typeof userId !== "string") {
+        throw new Error(
+          `MISSING_REQUIRED_OUTPUT: ${USERS_DEV_SEED_GROUP_ID}/${USER_ID_BY_EMAIL_OUTPUT_KIND}/${email}`,
+        );
+      }
+      return [email, Object.freeze({ id: userId })];
+    }),
+  ) as AdminDevUserIds;
+}
+
+export async function resolveAdminDevOwnerUserIds(
+  ds: DataSource,
+  safeTarget: VerifiedSeedExecutionTarget,
+): Promise<AdminDevUserIds> {
+  const result = await createUsersDevSeedGroup(ds).execute({
+    ...safeTarget,
+    dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
+  });
+  return resolveAdminDevUserIds(result);
+}
+
+export async function seedAdminDevData(
+  ds: DataSource,
+  users: AdminDevUserIds,
+): Promise<void> {
   assertSeedExecutionSafety({
     environment: {
       NODE_ENV: process.env.NODE_ENV,
@@ -34,37 +103,11 @@ export async function seedAdminDevData(ds: DataSource): Promise<void> {
     classifications: [SeedClassification.DEV],
   });
 
-  const userRepo = ds.getRepository(User);
   const farmerRepo = ds.getRepository(FarmerProfile);
   const coopRepo = ds.getRepository(CooperativeProfile);
   const enterpriseRepo = ds.getRepository(EnterpriseProfile);
   const supplierRepo = ds.getRepository(SupplierProfile);
   const productRepo = ds.getRepository(Product);
-  const hash = await bcrypt.hash("demo123", 10);
-
-  // ─── Users (realistic Vietnamese) ──────────────────────────────
-  const userDefs = [
-    { email: "admin@agrilink.vn", phone: "0909999999", fullName: "Admin AgriLink", role: UserRole.ADMIN },
-    { email: "hung.nv@farm.vn", phone: "0912345678", fullName: "Nguyễn Văn Hùng", role: UserRole.FARMER },
-    { email: "mai.lt@farm.vn", phone: "0912345679", fullName: "Lê Thị Mai", role: UserRole.FARMER },
-    { email: "tuan.pq@farm.vn", phone: "0912345680", fullName: "Phạm Quang Tuấn", role: UserRole.FARMER },
-    { email: "htx.dalat@coop.vn", phone: "0912345681", fullName: "HTX Rau Sạch Đà Lạt", role: UserRole.COOPERATIVE },
-    { email: "htx.tiengiang@coop.vn", phone: "0912345682", fullName: "HTX Trái Cây Tiền Giang", role: UserRole.COOPERATIVE },
-    { email: "xnk.mekong@ent.vn", phone: "0912345683", fullName: "Công ty TNHH XNK Nông Sản Mekong", role: UserRole.ENTERPRISE },
-    { email: "agri.tech@ent.vn", phone: "0912345684", fullName: "Công ty CP Công Nghệ Nông Nghiệp Xanh", role: UserRole.ENTERPRISE },
-    { email: "phanbon.xanh@sup.vn", phone: "0912345685", fullName: "Công ty TNHH Phân Bón Xanh Việt", role: UserRole.SUPPLIER },
-  ];
-
-  const users: Record<string, User> = {};
-  for (const def of userDefs) {
-    let u = await userRepo.findOne({ where: { email: def.email } });
-    if (!u) {
-      u = userRepo.create({ ...def, passwordHash: hash, status: UserStatus.ACTIVE });
-      u = await userRepo.save(u);
-    }
-    users[def.email] = u;
-  }
-
   // ─── Farmer profiles (CCCD chờ KYC) ────────────────────────────
   const farmerProfiles = [
     { userId: users["hung.nv@farm.vn"].id, cccdNumber: "079202012345", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-hung.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-hung.jpg", residenceAddress: "Ấp Bắc, xã Hòa Hưng, huyện Cái Bè", ward: "Xã Hòa Hưng", provinceId: 1, districtId: 101, isKycVerified: false },
@@ -213,7 +256,10 @@ if (require.main === module) {
   });
 
   ds.initialize()
-    .then((ds) => seedAdminDevData(ds))
+    .then(async (ds) => {
+      const users = await resolveAdminDevOwnerUserIds(ds, safeTarget);
+      await seedAdminDevData(ds, users);
+    })
     .then(() => { console.log("Done!"); process.exit(0); })
     .catch((e) => { console.error(e); process.exit(1); });
 }

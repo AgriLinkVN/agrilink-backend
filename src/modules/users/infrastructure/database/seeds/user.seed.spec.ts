@@ -9,6 +9,8 @@ import {
   UserDevSeedWriter,
   UserDevWriteData,
   UsersDevSeedGroup,
+  adminDevDashboardUserSeedData,
+  baseUserDevSeedData,
   userDevSeedData,
 } from "./user.seed";
 
@@ -91,7 +93,9 @@ describe("UsersDevSeedGroup", () => {
     const phones = userDevSeedData.map(({ phone }) => phone);
     const emails = userDevSeedData.map(({ email }) => email);
 
-    expect(userDevSeedData).toHaveLength(10);
+    expect(baseUserDevSeedData).toHaveLength(10);
+    expect(adminDevDashboardUserSeedData).toHaveLength(8);
+    expect(userDevSeedData).toHaveLength(18);
     expect(new Set(phones).size).toBe(userDevSeedData.length);
     expect(new Set(emails).size).toBe(userDevSeedData.length);
 
@@ -119,6 +123,83 @@ describe("UsersDevSeedGroup", () => {
     expect(
       userDevSeedData.find(({ email }) => email === "admin@agrilink.vn")?.phone,
     ).toBe("+84901111099");
+  });
+
+  it("owns the eight approved Admin DEV dashboard users with source payloads", () => {
+    expect(adminDevDashboardUserSeedData).toEqual([
+      {
+        phone: "0912345678",
+        email: "hung.nv@farm.vn",
+        role: "farmer",
+        status: "active",
+        fullName: "Nguyễn Văn Hùng",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345679",
+        email: "mai.lt@farm.vn",
+        role: "farmer",
+        status: "active",
+        fullName: "Lê Thị Mai",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345680",
+        email: "tuan.pq@farm.vn",
+        role: "farmer",
+        status: "active",
+        fullName: "Phạm Quang Tuấn",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345681",
+        email: "htx.dalat@coop.vn",
+        role: "cooperative",
+        status: "active",
+        fullName: "HTX Rau Sạch Đà Lạt",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345682",
+        email: "htx.tiengiang@coop.vn",
+        role: "cooperative",
+        status: "active",
+        fullName: "HTX Trái Cây Tiền Giang",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345683",
+        email: "xnk.mekong@ent.vn",
+        role: "enterprise",
+        status: "active",
+        fullName: "Công ty TNHH XNK Nông Sản Mekong",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345684",
+        email: "agri.tech@ent.vn",
+        role: "enterprise",
+        status: "active",
+        fullName: "Công ty CP Công Nghệ Nông Nghiệp Xanh",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+      {
+        phone: "0912345685",
+        email: "phanbon.xanh@sup.vn",
+        role: "supplier",
+        status: "active",
+        fullName: "Công ty TNHH Phân Bón Xanh Việt",
+        isPhoneVerified: false,
+        isEmailVerified: false,
+      },
+    ]);
   });
 
   it("requires explicit DEV selection", async () => {
@@ -155,9 +236,9 @@ describe("UsersDevSeedGroup", () => {
 
     expect(state.updates).toHaveLength(1);
     expect(state.updates[0]).toEqual({ ...first, passwordHash });
-    expect(state.creates).toHaveLength(9);
-    expect(state.rows.size).toBe(10);
-    expect(firstResult.outputs).toHaveLength(10);
+    expect(state.creates).toHaveLength(17);
+    expect(state.rows.size).toBe(18);
+    expect(firstResult.outputs).toHaveLength(18);
     expect(firstResult.outputs).toEqual(
       userDevSeedData.map(({ email }, index) => ({
         kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
@@ -168,8 +249,8 @@ describe("UsersDevSeedGroup", () => {
 
     const secondResult = await group.execute(devContext);
 
-    expect(state.creates).toHaveLength(9);
-    expect(state.updates).toHaveLength(11);
+    expect(state.creates).toHaveLength(17);
+    expect(state.updates).toHaveLength(19);
     expect(credentials).toEqual(["demo123", "demo123"]);
     expect(secondResult).toEqual(firstResult);
     expect(
@@ -179,7 +260,7 @@ describe("UsersDevSeedGroup", () => {
     ).toBe(true);
   });
 
-  it("publishes all ten email-to-ID bindings without secret values", async () => {
+  it("publishes all eighteen email-to-ID bindings without secret values", async () => {
     const state = createWriter();
     const { hasher } = createHasher("sensitive-password-hash");
 
@@ -187,7 +268,7 @@ describe("UsersDevSeedGroup", () => {
       devContext,
     );
 
-    expect(result.outputs).toHaveLength(10);
+    expect(result.outputs).toHaveLength(18);
     expect(
       result.outputs.every(
         ({ kind, key, value }) =>
@@ -199,6 +280,11 @@ describe("UsersDevSeedGroup", () => {
     ).toBe(true);
     expect(JSON.stringify(result.outputs)).not.toMatch(
       /demo123|password|hash|credential|token|secret/i,
+    );
+    expect(result.outputs.map(({ key }) => key)).toEqual(
+      expect.arrayContaining(
+        adminDevDashboardUserSeedData.map(({ email }) => email),
+      ),
     );
   });
 
