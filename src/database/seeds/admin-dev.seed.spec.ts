@@ -16,6 +16,19 @@ const usersSeedSource = readFileSync(
   ),
   "utf8",
 );
+const profilesSeedSource = readFileSync(
+  join(
+    root,
+    "src",
+    "modules",
+    "profiles",
+    "infrastructure",
+    "database",
+    "seeds",
+    "profile-role-development.seed.ts",
+  ),
+  "utf8",
+);
 const phaseReadme = readFileSync(
   join(
     root,
@@ -42,14 +55,15 @@ function matchCount(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
 }
 
-describe("P8-05D1 Admin DEV Users owner transition", () => {
-  it("uses the existing Users owner group and scalar output contract", () => {
-    expect(adminSource).toContain("createUsersDevSeedGroup(ds).execute");
+describe("P8-05D1/D2 Admin DEV owner transitions", () => {
+  it("uses the existing Users owner group and dependency-scoped outputs", () => {
+    expect(adminSource).toContain("createUsersDevSeedGroup(ds)");
+    expect(adminSource).toContain("usersGroup.execute");
     expect(adminSource).toContain("USER_ID_BY_EMAIL_OUTPUT_KIND");
     expect(adminSource).toContain("USERS_DEV_SEED_GROUP_ID");
-    expect(adminSource).toContain("resolveAdminDevUserIds(result)");
+    expect(adminSource).toContain("resolveAdminDevUserIds(usersResult)");
     expect(adminSource).toContain(
-      "dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS",
+      "dependencies: outputRegistry.viewFor(usersGroup.metadata)",
     );
   });
 
@@ -90,30 +104,53 @@ describe("P8-05D1 Admin DEV Users owner transition", () => {
     expect(adminSource).not.toMatch(/new UsersDevSeedGroup/);
   });
 
-  it("preserves all eight Profile fixture writes for D2", () => {
-    const farmers = section(
-      "const farmerProfiles = [",
-      "// ─── Cooperative profiles",
+  it("delegates Profiles through the existing owner group and output registry", () => {
+    expect(adminSource).toContain("createProfilesRoleProfilesDevSeedGroup(ds)");
+    expect(adminSource).toContain("profilesGroup.execute");
+    expect(adminSource).toContain(
+      "dependencies: outputRegistry.viewFor(profilesGroup.metadata)",
     );
-    const cooperatives = section(
-      "const coopProfiles = [",
-      "// ─── Enterprise profiles",
+    expect(adminSource).toContain(
+      "outputRegistry.register(profilesGroup.metadata.id, profilesResult)",
     );
-    const enterprises = section(
-      "const enterpriseProfiles = [",
-      "// ─── Supplier profile",
-    );
-    const supplier = section("const spExist =", "// ─── Products");
+    expect(
+      matchCount(profilesSeedSource, /class ProfilesRoleProfilesDevSeedGroup/g),
+    ).toBe(1);
+    expect(
+      matchCount(
+        profilesSeedSource,
+        /id: PROFILES_ROLE_PROFILES_DEV_SEED_GROUP_ID/g,
+      ),
+    ).toBe(1);
+  });
 
-    expect(matchCount(farmers, /userId: users\[/g)).toBe(3);
-    expect(matchCount(cooperatives, /userId: users\[/g)).toBe(2);
-    expect(matchCount(enterprises, /userId: users\[/g)).toBe(2);
-    expect(matchCount(supplier, /supplierRepo\.create\(\{/g)).toBe(1);
-    expect(supplier).toContain('userId: users["phanbon.xanh@sup.vn"].id');
-    expect(adminSource).toContain("farmerRepo.save");
-    expect(adminSource).toContain("coopRepo.save");
-    expect(adminSource).toContain("enterpriseRepo.save");
-    expect(adminSource).toContain("supplierRepo.save");
+  it("contains no direct standalone Profile repository or business write", () => {
+    expect(adminSource).not.toMatch(
+      /\b(?:farmerRepo|coopRepo|enterpriseRepo|supplierRepo)\b/,
+    );
+    expect(adminSource).not.toMatch(
+      /getRepository\((?:FarmerProfile|CooperativeProfile|EnterpriseProfile|SupplierProfile)\)/,
+    );
+    expect(adminSource).not.toMatch(
+      /(?:farmerRepo|coopRepo|enterpriseRepo|supplierRepo)\.(?:save|create|update|insert|upsert|delete)/,
+    );
+    expect(adminSource).not.toMatch(
+      /const (?:farmerProfiles|coopProfiles|enterpriseProfiles|spExist)/,
+    );
+  });
+
+  it("retains four Profile entities only in the temporary DataSource registry", () => {
+    const entities = section("entities: [", "synchronize: false");
+    expect(entities).toContain("FarmerProfile");
+    expect(entities).toContain("CooperativeProfile");
+    expect(entities).toContain("EnterpriseProfile");
+    expect(entities).toContain("SupplierProfile");
+    expect(
+      matchCount(
+        entities,
+        /(?:FarmerProfile|CooperativeProfile|EnterpriseProfile|SupplierProfile)/g,
+      ),
+    ).toBe(4);
   });
 
   it("preserves all ten Product and ten Product Image fixture writes for D3", () => {
@@ -142,7 +179,12 @@ describe("P8-05D1 Admin DEV Users owner transition", () => {
       "P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=NO",
     );
     expect(phaseReadme).toContain(
-      "P8_05D4_BLOCKERS=P8_05D2_PROFILES_NOT_IMPLEMENTED;P8_05D3_PRODUCTS_NOT_IMPLEMENTED",
+      "P8_05D4_BLOCKERS=P8_05D3_PRODUCTS_NOT_IMPLEMENTED",
     );
+  });
+
+  it("removes the Profile explicit any and leaves Product Image debt unchanged", () => {
+    expect(adminSource).not.toContain('supplierType: "fertilizer" as any');
+    expect(matchCount(adminSource, /let ProductImage: any/g)).toBe(1);
   });
 });

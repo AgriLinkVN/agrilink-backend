@@ -25,7 +25,7 @@ import {
   VerifiedSeedExecutionTarget,
 } from "./framework/seed-contract";
 import {
-  EMPTY_SEED_DEPENDENCY_OUTPUTS,
+  SeedOutputRegistry,
   validateSeedGroupResult,
 } from "./framework/seed-dependency-outputs";
 import { assertSeedExecutionSafety } from "./framework/seed-environment.guard";
@@ -34,6 +34,7 @@ import {
   USERS_DEV_SEED_GROUP_ID,
 } from "../../modules/users/application/contracts/user-seed-output.contract";
 import { createUsersDevSeedGroup } from "../../modules/users/infrastructure/database/seeds/user.seed";
+import { createProfilesRoleProfilesDevSeedGroup } from "../../modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer";
 
 dotenv.config();
 
@@ -80,15 +81,26 @@ export function resolveAdminDevUserIds(
   ) as AdminDevUserIds;
 }
 
-export async function resolveAdminDevOwnerUserIds(
+export async function executeAdminDevOwnerGroups(
   ds: DataSource,
   safeTarget: VerifiedSeedExecutionTarget,
 ): Promise<AdminDevUserIds> {
-  const result = await createUsersDevSeedGroup(ds).execute({
+  const outputRegistry = new SeedOutputRegistry();
+  const usersGroup = createUsersDevSeedGroup(ds);
+  const usersResult = await usersGroup.execute({
     ...safeTarget,
-    dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
+    dependencies: outputRegistry.viewFor(usersGroup.metadata),
   });
-  return resolveAdminDevUserIds(result);
+  outputRegistry.register(usersGroup.metadata.id, usersResult);
+
+  const profilesGroup = createProfilesRoleProfilesDevSeedGroup(ds);
+  const profilesResult = await profilesGroup.execute({
+    ...safeTarget,
+    dependencies: outputRegistry.viewFor(profilesGroup.metadata),
+  });
+  outputRegistry.register(profilesGroup.metadata.id, profilesResult);
+
+  return resolveAdminDevUserIds(usersResult);
 }
 
 export async function seedAdminDevData(
@@ -103,60 +115,7 @@ export async function seedAdminDevData(
     classifications: [SeedClassification.DEV],
   });
 
-  const farmerRepo = ds.getRepository(FarmerProfile);
-  const coopRepo = ds.getRepository(CooperativeProfile);
-  const enterpriseRepo = ds.getRepository(EnterpriseProfile);
-  const supplierRepo = ds.getRepository(SupplierProfile);
   const productRepo = ds.getRepository(Product);
-  // ─── Farmer profiles (CCCD chờ KYC) ────────────────────────────
-  const farmerProfiles = [
-    { userId: users["hung.nv@farm.vn"].id, cccdNumber: "079202012345", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-hung.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-hung.jpg", residenceAddress: "Ấp Bắc, xã Hòa Hưng, huyện Cái Bè", ward: "Xã Hòa Hưng", provinceId: 1, districtId: 101, isKycVerified: false },
-    { userId: users["mai.lt@farm.vn"].id, cccdNumber: "079202154321", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-mai.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-mai.jpg", residenceAddress: "Thôn 3, xã Lộc An, TP Bảo Lộc", ward: "Xã Lộc An", provinceId: 2, districtId: 201, isKycVerified: false },
-    { userId: users["tuan.pq@farm.vn"].id, cccdNumber: "079202198765", cccdFrontUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-front-tuan.jpg", cccdBackUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/cccd-back-tuan.jpg", residenceAddress: "Xóm 5, xã Hải Hậu, huyện Hải Hậu", ward: "Xã Hải Hậu", provinceId: 3, districtId: 301, isKycVerified: false },
-  ];
-
-  for (const fp of farmerProfiles) {
-    const exist = await farmerRepo.findOne({ where: { userId: fp.userId } });
-    if (!exist) await farmerRepo.save(farmerRepo.create(fp));
-  }
-
-  // ─── Cooperative profiles (chờ duyệt HTX) ──────────────────────
-  const coopProfiles = [
-    { userId: users["htx.dalat@coop.vn"].id, cooperativeName: "HTX Rau Sạch Đà Lạt", businessLicenseNumber: "GPKD-68H8-001", taxCode: "5800123456", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-dalat.jpg", representativeName: "Trần Văn Minh", representativePhone: "0988123456", representativeCccd: "068202012345", address: "45 Nguyễn Văn Cừ, Phường 1, TP Đà Lạt, Lâm Đồng", provinceId: 2, isVerified: false },
-    { userId: users["htx.tiengiang@coop.vn"].id, cooperativeName: "HTX Trái Cây Tiền Giang", businessLicenseNumber: "GPKD-82T5-002", taxCode: "1200987654", cooperativeCertUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-tiengiang.jpg", representativeName: "Phạm Thị Lan", representativePhone: "0988123457", representativeCccd: "082202065432", address: "12 Lê Lợi, Phường 4, TP Mỹ Tho, Tiền Giang", provinceId: 1, isVerified: false },
-  ];
-
-  for (const cp of coopProfiles) {
-    const exist = await coopRepo.findOne({ where: { userId: cp.userId } });
-    if (!exist) await coopRepo.save(coopRepo.create(cp));
-  }
-
-  // ─── Enterprise profiles (chờ duyệt DN) ────────────────────────
-  const enterpriseProfiles = [
-    { userId: users["xnk.mekong@ent.vn"].id, companyName: "Công ty TNHH XNK Nông Sản Mekong", taxCode: "0312345678", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-mekong.jpg", representativeName: "Nguyễn Hoàng Nam", representativePhone: "0977123456", address: "88 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP Hồ Chí Minh", provinceId: 3, isVerified: false },
-    { userId: users["agri.tech@ent.vn"].id, companyName: "Công ty CP Công Nghệ Nông Nghiệp Xanh", taxCode: "0102765432", businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-agritech.jpg", representativeName: "Đỗ Thanh Hà", representativePhone: "0977123457", address: "Tầng 5, Tòa nhà TechnoPark, Cầu Giấy, Hà Nội", provinceId: 3, isVerified: false },
-  ];
-
-  for (const ep of enterpriseProfiles) {
-    const exist = await enterpriseRepo.findOne({ where: { userId: ep.userId } });
-    if (!exist) await enterpriseRepo.save(enterpriseRepo.create(ep));
-  }
-
-  // ─── Supplier profile (chờ duyệt NCC) ──────────────────────────
-  const spExist = await supplierRepo.findOne({ where: { userId: users["phanbon.xanh@sup.vn"].id } });
-  if (!spExist) {
-    await supplierRepo.save(supplierRepo.create({
-      userId: users["phanbon.xanh@sup.vn"].id,
-      companyName: "Công ty TNHH Phân Bón Xanh Việt",
-      supplierType: "fertilizer" as any,
-      taxCode: "0302123456",
-      businessLicenseUrl: "https://res.cloudinary.com/personal-media/image/upload/agrilink/profiles/gpkd-phanbon.jpg",
-      address: "KCN Tân Tạo, Bình Tân, TP Hồ Chí Minh",
-      provinceId: 3,
-      isVerified: false,
-    }));
-  }
-
   // ─── Products (chờ duyệt + bị từ chối) ──────────────────────────
   const productDefs = [
     { sellerId: users["hung.nv@farm.vn"].id, sellerType: SellerType.FARMER, name: "Xoài cát Hòa Lộc loại 1", description: "Xoài chín cây, ngọt thanh, không thuốc trừ sâu. Đóng gói 5kg/thùng.", pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 10, variety: "Hòa Lộc", farmingType: FarmingType.VIETGAP, status: ProductStatus.PENDING_APPROVAL },
@@ -216,10 +175,7 @@ export async function seedAdminDevData(
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("✅ Admin dev data seeded successfully!");
   console.log(`   👤 ${Object.keys(users).length} users (admin@agrilink.vn / demo123)`);
-  console.log(`   📋 ${farmerProfiles.length} farmer profiles (pending KYC)`);
-  console.log(`   🏢 ${coopProfiles.length} cooperative profiles (pending)`);
-  console.log(`   🏭 ${enterpriseProfiles.length} enterprise profiles (pending)`);
-  console.log(`   🚛 1 supplier profile (pending)`);
+  console.log("   📋 8 profiles via profiles.dev.role-profiles");
   console.log(`   📦 ${productDefs.length} products with images`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
@@ -257,7 +213,7 @@ if (require.main === module) {
 
   ds.initialize()
     .then(async (ds) => {
-      const users = await resolveAdminDevOwnerUserIds(ds, safeTarget);
+      const users = await executeAdminDevOwnerGroups(ds, safeTarget);
       await seedAdminDevData(ds, users);
     })
     .then(() => { console.log("Done!"); process.exit(0); })
