@@ -574,3 +574,360 @@ P8_05C2_IMPLEMENTATION_STATUS=IN_PROGRESS
 Bulk/Contribution and Harvest implementation remain outside C2D1. The approved
 BLC-02 retirement is future C2D2 input only; no blocked fixture is changed in
 this slice.
+
+## 20. P8-05C2D2A Bulk Listing Identity Decision Overlay
+
+This overlay is the current authority for the Bulk Listing parent-identity
+audit at merged-PR-#128 base
+`d39052254124b59250dfaa06d0b9d5d90cea8af6`. It is a static source, schema,
+API-contract, and Git-history audit only. It does not modify or execute
+`DevSeedService`, a SeedGroup, a DataSource, SQL, a migration, or a database.
+
+Merged PR #128 closes P8-05D. The standalone Admin DEV source is absent and
+its direct business write count remains zero. The central continuation remains
+separate debt with exactly five normal write methods: `seedForum`,
+`seedAdPackages`, `seedAdCampaigns`, `seedBulkListings`, and
+`seedHarvestSchedules`. `legacy.dev.remaining` and `resetAll` remain intact.
+
+### 20.1 Current Fixture Inventory
+
+Both declarations use the `COOP` scalar resolved from
+`cooperative@sandbox.com` by `users.dev.users/user.id.by-email`. The migration
+foreign key proves that `bulk_listings.cooperative_id` references `users.id`,
+not a Cooperative Profile ID. Both declarations omit nullable
+`productCategoryId`; neither declares a Product ID or any location field.
+
+| Fixture label | Cooperative User identity | Product/category reference | Title | Description | Quantity | Unit | Price per unit | Location fields | Status | Date fields | Other payload |
+| --- | --- | --- | --- | --- | ---: | --- | ---: | --- | --- | --- | --- |
+| `BL-01` | `cooperative@sandbox.com` -> User ID | Product: none; category: `NULL` (omitted) | `Xoài cát Hòa Lộc — Thu gom vụ hè` | `Thu gom xoài cát Hòa Lộc từ 15 hộ xã viên, sản lượng 5 tấn, đạt VietGAP.` | `5000` | `KG` | `42000` | none | `isOpen=true` | `deadline=2026-07-15`; lifecycle timestamps generated | generated UUID primary key |
+| `BL-02` | `cooperative@sandbox.com` -> User ID | Product: none; category: `NULL` (omitted) | `Thanh long ruột đỏ — Đơn hàng xuất khẩu` | `Đáp ứng đơn hàng xuất khẩu Trung Quốc 10 tấn, yêu cầu GlobalGAP.` | `10000` | `KG` | `33000` | none | `isOpen=true` | `deadline=2026-07-20`; lifecycle timestamps generated | generated UUID primary key |
+
+The method performs one whole-table `repo.count()` guard. If any listing
+exists, both declarations are skipped. Otherwise TypeORM/database generation
+assigns each UUID at insertion. The generated IDs are then unknown to a later
+run and are not deterministic fixture identity.
+
+```text
+BULK_LISTING_FIXTURE_COUNT=2
+BULK_LISTING_WHOLE_TABLE_GUARD_COUNT=1
+BULK_LISTING_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_REPOSITORY_COUNT
+BULK_LISTING_CURRENT_GENERATED_ID=TYPEORM_DATABASE_GENERATED_UUID
+BULK_LISTING_GENERATED_UUID_IDENTITY_USAGE=YES_PRIMARY_KEY_ONLY;NOT_DETERMINISTIC_SEED_IDENTITY
+```
+
+### 20.2 Schema, Domain, And History Evidence
+
+The entity and migration contain no `listingCode`, `referenceCode`,
+`externalId`, `slug`, `publicCode`, or owner-assigned code. The only unique
+constraint is the UUID primary key; this audit reports zero business unique
+constraints. The sole secondary Listing index is non-unique
+`(cooperative_id, is_open)`. The repository finds normal domain rows only by
+generated `id + cooperativeId`.
+
+Current source has no Bulk Listing controller, command, DTO, or use case that
+adds a different identity contract. Supporting history in unmerged commit
+`b0dd57f7a851397d8326e693ac02f39a86bc5c3c` also exposed UUID route IDs and no
+business code. Its update contract allowed title, description, quantity, unit,
+price, and date changes, and its indexes expressed query order/filter needs,
+not uniqueness. Original commits `06c2846790bc1e8fa96494e36dddbb5dfbb80765`
+and `becf869fb4bec1642b016c6f3ce7565cd82671c3` introduced the same two
+declarations without another identity field or cardinality rule.
+
+```text
+BULK_LISTING_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+BULK_LISTING_TABLE_UNIQUE_CONSTRAINT_COUNT=0
+BULK_LISTING_TABLE_PRIMARY_KEY_COUNT=1
+BULK_LISTING_TABLE_SECONDARY_INDEX_COUNT=1
+BULK_LISTING_CURRENT_SCHEMA_INDEXES=PRIMARY_KEY(id);NON_UNIQUE(cooperative_id,is_open)
+```
+
+### 20.3 Candidate Composite Identity Audit
+
+| Candidate key | Fields | Immutable business identity | Mutable payload included | Schema unique support | Domain-service assumption | Collision risk | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| generated UUID | `id` | no; generated at insertion | no | primary key only | assumes one generated execution ID can identify later fixture intent | certain second-run identity loss | `REJECTED` |
+| cooperative + Product | `cooperativeId + productId` | not applicable | no | field absent | invents a Product relation | not evaluable | `REJECTED` |
+| cooperative + category | `cooperativeId + productCategoryId` | no proof | nullable category | none | assumes one listing per Cooperative/category | both current rows collide at `NULL`; legitimate category reuse | `REJECTED` |
+| cooperative + title | `cooperativeId + title` | no; history permits title edits | title | none | assumes title uniqueness and immutability | renaming drifts identity; duplicate campaign titles are not forbidden | `REJECTED` |
+| cooperative + category + unit | `cooperativeId + productCategoryId + unit` | no proof | nullable category and editable unit | none | assumes one listing per Cooperative/category/unit | both rows collide at `NULL + KG` | `REJECTED` |
+| cooperative + deadline | `cooperativeId + deadline` | no; deadline is mutable schedule payload | deadline | none | assumes one listing per Cooperative/deadline | same-day listings are legitimate and rescheduling drifts identity | `REJECTED` |
+| cooperative + title + quantity | `cooperativeId + title + totalQuantity` | no | title and quantity | none | assumes payload corrections create a new business listing | mutable tuple; renaming or quantity correction drifts identity | `REJECTED` |
+| cooperative + category + open state | `cooperativeId + productCategoryId + isOpen` | no | nullable category and lifecycle/open state | non-unique query index only covers Cooperative/open state | assumes one row per current open-state bucket | both rows collide; state transitions drift identity | `REJECTED` |
+| cooperative + complete payload | every declared persisted payload field | no | title, description, quantity, unit, price, deadline, open state | none | equates payload equality with domain identity | any correction creates a false new identity | `REJECTED` |
+
+No candidate is `PROVEN`. Current fixture distinctness is semantic data, not
+cardinality evidence. A new listing code could become real domain identity,
+but no such field or semantics currently exist, so this audit does not select
+the schema-changing option or invent code values.
+
+```text
+BULK_LISTING_IDENTITY_DECISION=BULK_LISTING_IDENTITY_REMAINS_UNRESOLVED
+BULK_LISTING_IDENTITIES_RESOLVED=NO
+SEED_IDENTITY_DECISION=NONE_PROVEN
+DOMAIN_SCHEMA_CHANGE_DECISION=NOT_AUTHORIZED;HUMAN_DECISION_REQUIRED_FIRST
+SYNTHETIC_SEED_ONLY_IDENTITY_APPROVED=NO
+```
+
+### 20.4 Product And Owner Dependencies
+
+`productCategoryId` is an optional category reference, not a Product
+relationship. `seedBulkListings` has no Product argument after C2B removed its
+unused parameter. Restoring a Product dependency would invent domain structure
+and is rejected. The owner is the Cooperative-role User ID and its scalar
+output already exists, so no new owner scalar output is required.
+
+```text
+BULK_LISTING_PRODUCT_RELATION_EXISTS=NO
+BULK_LISTING_PRODUCT_ID_FIELD=NONE
+BULK_LISTING_PRODUCT_SEED_DEPENDENCY_REQUIRED=NO
+BULK_LISTING_OWNER_FIELD=cooperativeId
+BULK_LISTING_OWNER_DOMAIN_TYPE=COOPERATIVE_ROLE_USER_ID
+BULK_LISTING_OWNER_SEED_OUTPUT=users.dev.users/user.id.by-email/cooperative@sandbox.com
+NEW_SCALAR_OUTPUT_DECISION_REQUIRED=NO_FOR_BULK_LISTING_OWNER
+```
+
+### 20.5 Contribution Consequence
+
+The C2D0 human decision remains authoritative: BLC-02 is an accidental
+duplicate and must be retired in a future authorized implementation. The one
+retained Contribution identity remains Bulk Listing ID + Farmer User ID, with
+fail-closed duplicate handling and no schema change in this audit.
+
+A future Bulk Operations owner group must first reconcile a Bulk Listing by an
+approved business identity and obtain its persisted UUID before reconciling the
+Contribution. That logical parent-ID result is required. Whether it stays an
+internal result in one owner group or becomes a dependency output is a later
+implementation design. If an output is needed, its kind must be derived from
+the approved business key; the placeholder below is not an approved output.
+
+```text
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+CONTRIBUTION_STABLE_KEY=Bulk Listing ID + Farmer User ID
+CONTRIBUTION_DUPLICATE_POLICY=FAIL_CLOSED
+CONTRIBUTION_PARENT_OUTPUT_REQUIRED=YES_LOGICAL_PARENT_ID_AFTER_BULK_LISTING_IDENTITY_APPROVAL
+CONTRIBUTION_PARENT_OUTPUT_KIND_CANDIDATE=bulk-listing.id.by-<approved-business-key>;UNAPPROVED_PLACEHOLDER
+CONTRIBUTION_PARENT_IDENTITY_RESOLVED=NO
+```
+
+### 20.6 P8-05C2D2A Human Decisions Required
+
+Evidence is insufficient to choose a business identity or retire legitimate
+Bulk Listing concepts autonomously. Human review must answer each decision:
+
+```text
+BULK_LISTING_IDENTITY_POLICY_DECISION=
+APPROVE_EXISTING_PERSISTED_BUSINESS_KEY:<exact current field>
+or APPROVE_EXISTING_COMPOSITE:<exact ordered fields and cardinality rule>
+or ADD_DOMAIN_LISTING_CODE
+or RETIRE_CURRENT_DEV_FIXTURES
+or DEFER
+
+BL_01_IDENTITY_DECISION=
+RETAIN_UNDER_APPROVED_IDENTITY
+or RETIRE
+or DEFER
+
+BL_02_IDENTITY_DECISION=
+RETAIN_UNDER_APPROVED_IDENTITY
+or RETIRE
+or DEFER
+```
+
+If `ADD_DOMAIN_LISTING_CODE` is selected, a separate authorized domain/schema
+decision must define assignment authority, immutability, uniqueness scope, and
+exact fixture codes before implementation. If a current composite is selected,
+human review must explicitly approve its cardinality and behavior under edits;
+current source proves none.
+
+### 20.7 Authorization, Boundaries, And Current Phase Status
+
+Because neither parent Listing has an approved persisted identity, the
+Contribution parent is unresolved even though the retained Contribution's own
+pair identity is known. Partial Bulk Operations implementation is not
+authorized. Harvest, C3, and central C4D decisions remain untouched.
+
+```text
+P8_05D1_USERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_123
+P8_05D2_PROFILES_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_124
+P8_05D3_PRODUCTS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_127
+P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_STATUS=IMPLEMENTED_BY_MERGED_PR_128
+P8_05D_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_128
+ADMIN_DEV_SOURCE_FILE_EXISTS=NO
+ADMIN_DEV_DIRECT_BUSINESS_WRITE_COUNT=0
+
+CENTRAL_NORMAL_WRITE_METHOD_COUNT=5
+LEGACY_DEV_REMAINING_EXISTS=YES
+
+P8_05C2D2A_BULK_LISTING_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D2_BLOCKERS=BULK_LISTING_PERSISTED_BUSINESS_ID_NONE_PROVEN;BULK_LISTING_COMPOSITE_KEY_NONE_PROVEN;BL_01_IDENTITY_DECISION_REQUIRED;BL_02_IDENTITY_DECISION_REQUIRED;CONTRIBUTION_PARENT_BULK_LISTING_IDENTITY_UNRESOLVED
+
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+COOPERATIVES_RUNTIME_CHANGES=0
+C3_BUSINESS_IMPLEMENTATION_CHANGES=0
+C4D_BUSINESS_IMPLEMENTATION_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+```
+
+## 21. P8-05C2D2A Human Review Decision Overlay
+
+Human review accepts the complete static audit in section 20, including its
+conclusion that current source and history prove no persisted Bulk Listing
+business identifier, immutable natural composite, or domain cardinality rule.
+The unresolved evidence remains historical authority; this overlay resolves
+fixture disposition without claiming that an identity was found.
+
+Human review rejects adding `listingCode`, a synthetic UUID, a seed-only key,
+or new schema semantics primarily to keep these legacy ordinary DEV fixtures
+seedable. It instead selects retirement of both Bulk Listing declarations.
+This PR documents that future strategy only: `seedBulkListings`, its writes,
+and its reset targets remain unchanged until a separate post-merge C2D2
+implementation.
+
+### 21.1 Preserved Audit Evidence
+
+```text
+BULK_LISTING_FIXTURE_COUNT=2
+BULK_LISTING_OWNER_FIELD=cooperativeId
+BULK_LISTING_OWNER_DOMAIN_TYPE=COOPERATIVE_ROLE_USER_ID
+BULK_LISTING_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+BULK_LISTING_PRODUCT_RELATION_EXISTS=NO
+BULK_LISTING_TABLE_UNIQUE_CONSTRAINT_COUNT=0
+BULK_LISTING_TABLE_SECONDARY_INDEX_COUNT=1
+BULK_LISTING_WHOLE_TABLE_GUARD_COUNT=1
+BULK_LISTING_GENERATED_UUID_IDENTITY_USAGE=YES_PRIMARY_KEY_ONLY;NOT_DETERMINISTIC_SEED_IDENTITY
+PROVEN_CANDIDATE_COUNT=0
+SYNTHETIC_SEED_ONLY_IDENTITY_APPROVED=NO
+```
+
+### 21.2 Bulk Listing Human Decision
+
+`BL-01` and `BL-02` are the two Bulk Listing declarations. They are not the
+Contribution labels `BLC-01` and `BLC-02`. Neither Listing will move to an
+owner-local DEV SeedGroup. No retained Listing remains that would require a
+Listing ID output or another User/Profile scalar output.
+
+```text
+BULK_LISTING_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+BULK_LISTING_NEW_DOMAIN_LISTING_CODE_AUTHORIZED=NO
+BULK_LISTING_EXISTING_COMPOSITE_IDENTITY_APPROVED=NO
+BULK_LISTING_SYNTHETIC_UUID_IDENTITY_APPROVED=NO
+BULK_LISTING_SEED_ONLY_KEY_APPROVED=NO
+
+BL_01_IDENTITY_DECISION=RETIRE
+BL_01_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BL_01_RETIRE_REASON=LEGACY_SYNTHETIC_DEV_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+BL_02_IDENTITY_DECISION=RETIRE
+BL_02_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BL_02_RETIRE_REASON=LEGACY_SYNTHETIC_DEV_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+BULK_LISTING_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BULK_LISTING_APPROVED_RETAIN_COUNT=0
+BULK_LISTING_APPROVED_RETIRE_COUNT=2
+BULK_LISTING_IDENTITIES_RESOLVED=NOT_REQUIRED_FIXTURES_RETIRED
+BULK_LISTING_OWNER_LOCAL_DEV_SEED_REQUIRED=NO
+BULK_LISTING_NEW_SEEDGROUP_REQUIRED=NO
+BULK_LISTING_NEW_SCALAR_OUTPUT_REQUIRED=NO
+```
+
+### 21.3 Contribution Consequence
+
+`BLC-01` and `BLC-02` are Contribution declarations under BL-01. C2D0's
+finding that BLC-02 was an accidental duplicate remains accepted and
+unchanged. C2D0 provisionally retained BLC-01 only because its parent was then
+expected to remain. Retirement of every ordinary DEV Listing parent now
+supersedes that retention consequence: BLC-01 retires with its parent, while
+BLC-02 retains its independently approved duplicate-retirement reason.
+
+Current source contains exactly two Contribution declarations. Future C2D2
+must retire both and must not create an orphan Contribution, a parent output,
+or `bulk-listing.id.by-*`.
+
+```text
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+
+CONTRIBUTION_DEV_FIXTURE_DISPOSITION=RETIRE_WITH_PARENT_BULK_LISTING
+BLC_01_CURRENT_DECISION=RETIRE_WITH_PARENT_BULK_LISTING
+BLC_01_PREVIOUS_RETENTION_STATUS=SUPERSEDED_BY_P8_05C2D2A_PARENT_RETIREMENT
+BLC_01_RETIRE_REASON=PARENT_BULK_LISTING_DEV_FIXTURE_RETIRED_AND_NO_STANDALONE_CONTRIBUTION_FIXTURE_IS_VALID_WITHOUT_ITS_PARENT
+BLC_02_CURRENT_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_PREVIOUS_DUPLICATE_DECISION_STATUS=PRESERVED
+CONTRIBUTION_SOURCE_DECLARATION_COUNT=2
+CONTRIBUTION_APPROVED_RETAIN_COUNT=0
+CONTRIBUTION_APPROVED_RETIRE_COUNT=2
+CONTRIBUTION_PARENT_OUTPUT_REQUIRED=NO
+CONTRIBUTION_PARENT_OUTPUT_KIND_CANDIDATE=NONE
+CONTRIBUTION_PARENT_IDENTITY_RESOLVED=NOT_REQUIRED_PARENT_FIXTURES_RETIRED
+```
+
+### 21.4 Future Retirement-Only C2D2 Contract
+
+After this PR merges, a separate implementation is authorized to remove the
+central ordinary DEV writes for `bulk_listings` and
+`bulk_listing_contributions`. It must delete `seedBulkListings` from the
+central continuation and remove those two destructive reset targets together.
+It must not create a replacement Bulk Listing SeedGroup.
+
+The current central continuation still has five normal methods and writes eight
+business tables. The future post-C2D2 state is expected to retain Forum, Ads,
+and Harvest only: four methods and six business tables. These are expectations,
+not changes made by this PR.
+
+```text
+CURRENT_CENTRAL_NORMAL_WRITE_METHOD_COUNT=5
+CURRENT_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedBulkListings;seedHarvestSchedules
+POST_C2D2_CENTRAL_NORMAL_WRITE_METHOD_COUNT=4
+POST_C2D2_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedHarvestSchedules
+
+CURRENT_CENTRAL_BUSINESS_TABLE_COUNT=8
+CURRENT_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns;bulk_listings;bulk_listing_contributions;harvest_schedules
+POST_C2D2_CENTRAL_BUSINESS_TABLE_COUNT=6
+POST_C2D2_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns;harvest_schedules
+
+CURRENT_C2D2_RESET_TARGETS=bulk_listings;bulk_listing_contributions
+CURRENT_C2D2_RESET_TARGET_COUNT=2
+EXPECTED_POST_C2D2_BULK_RESET_TARGET_COUNT=0
+```
+
+### 21.5 Authorization And Boundaries
+
+Bulk Listing identity is no longer an implementation prerequisite because no
+ordinary DEV Listing fixture is retained. Contribution parent identity is
+likewise unnecessary because all dependent declarations retire. This
+authorizes only the future retirement strategy described above. Harvest, C3,
+and whole-central C4D remain blocked.
+
+```text
+P8_05C2D2A_BULK_LISTING_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05C2D2A_PR_129_MERGE
+P8_05C2D2_BLOCKERS=NONE
+P8_05C2D2_IMPLEMENTATION_STRATEGY=RETIRE_LEGACY_BULK_LISTING_AND_CONTRIBUTION_DEV_FIXTURES
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
+
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+COOPERATIVES_RUNTIME_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+RUNTIME_FILES_CHANGED=0
+```
