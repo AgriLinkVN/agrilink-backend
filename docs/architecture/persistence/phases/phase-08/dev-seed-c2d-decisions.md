@@ -780,6 +780,227 @@ SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
 ```
 
+## 23. P8-05C2D3A Harvest Schedule Identity Decision Overlay
+
+PR #130 was human-reviewed, passed its Backend Quality Gate, and merged into
+`develop` at `911cab2a671933c5a8ddc04fb6edc6b3a9976296`. Section 22 remains
+the historical pending-review implementation overlay. Current source confirms
+that C2D2 retirement is merged and that `seedHarvestSchedules` is now the only
+Cooperatives ordinary DEV writer in the central continuation.
+
+This is a static source, migration, and Git-history audit only. It neither
+changes nor executes `DevSeedService`, `legacy.dev.remaining`, a SeedGroup, a
+DataSource, SQL, a migration, `synchronize`, or `resetAll`.
+
+### 23.1 Merged Handoff And Central Boundary
+
+```text
+P8_05C2D2A_BULK_LISTING_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_129
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_130
+CENTRAL_SEED_BULK_LISTINGS_METHOD_EXISTS=NO
+
+CENTRAL_NORMAL_WRITE_METHOD_COUNT=4
+CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedHarvestSchedules
+CENTRAL_HARVEST_WRITE_METHOD_COUNT=1
+POST_C2D2_CENTRAL_BUSINESS_TABLE_COUNT=6
+LEGACY_DEV_REMAINING_EXISTS=YES
+```
+
+### 23.2 Current Persistence And Schema Evidence
+
+`HarvestScheduleEntity` belongs to Cooperatives. Its primary key is a
+database-generated UUID. Runtime persistence exposes only lookup by generated
+`id` plus `userId` and a whole-model `save`; no repository lookup by a business
+field or tuple exists. The migration has no Harvest business unique constraint.
+Its sole secondary index, `idx_p3_harvest_user_date`, is non-unique.
+
+`productId` is a nullable Product UUID scalar. Current source and the migration
+orphan precheck recognize the Product reference, but there is no TypeORM
+relation decorator or Product foreign-key constraint. `userId` is a User UUID,
+not a Farmer Profile ID; the migration has an explicit foreign key to
+`users(id)`. There are no status, location, season, plot, crop-cycle, batch, or
+business-code columns.
+
+```text
+HARVEST_OWNER_FIELD=userId;user_id
+HARVEST_OWNER_DOMAIN_TYPE=USER_ID
+
+HARVEST_PRODUCT_RELATION_EXISTS=YES_SCALAR_UUID_REFERENCE;NO_TYPEORM_RELATION;NO_DATABASE_FK
+HARVEST_PRODUCT_ID_FIELD=productId;product_id
+HARVEST_PRODUCT_DOMAIN_TYPE=PRODUCT_UUID_SCALAR_REFERENCE_NULLABLE
+
+HARVEST_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+HARVEST_TABLE_UNIQUE_CONSTRAINT_COUNT=0
+HARVEST_TABLE_SECONDARY_INDEX_COUNT=1
+HARVEST_GENERATED_UUID_IDENTITY_USAGE=YES_PRIMARY_KEY_ONLY;NOT_DETERMINISTIC_SEED_IDENTITY
+HARVEST_WHOLE_TABLE_GUARD_COUNT=1
+HARVEST_RESET_TARGET_EXISTS=YES
+```
+
+### 23.3 Current Fixture Inventory
+
+`HS-01`, `HS-02`, and `HS-03` below are documentation labels only. The method
+uses one whole-table `repo.count()` guard and assigns no ID. All three resolve
+the same User and Product scalar dependencies before the central call.
+
+| Fixture | Farmer identity | Product identity | Expected date | Quantity | Unit | Status | Location | Notes | Other persisted fields |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- |
+| `HS-01` | `farmer@sandbox.com` via `user.id.by-email` | `DEV-XOAI-HOA-LOC-001` via `product.id.by-sku` | `2026-07-15` | 2000 | `KG` | absent; no persisted status field | none | `Xoài cát: vụ chính` | `cropName=Xoài cát Hòa Lộc`; generated timestamps |
+| `HS-02` | `farmer@sandbox.com` via `user.id.by-email` | `DEV-XOAI-HOA-LOC-001` via `product.id.by-sku` | `2026-07-20` | 1500 | `KG` | absent; no persisted status field | none | `Xoài cát: vụ muộn` | `cropName=Xoài cát Hòa Lộc`; generated timestamps |
+| `HS-03` | `farmer@sandbox.com` via `user.id.by-email` | `DEV-XOAI-HOA-LOC-001` via `product.id.by-sku` | `2026-08-01` | 3000 | `KG` | absent; no persisted status field | none | `Xoài cát: vụ rải` | `cropName=Xoài cát Hòa Lộc`; generated timestamps |
+
+```text
+HARVEST_FIXTURE_COUNT=3
+
+HS_01_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_COUNT_GT_ZERO_SKIPS_ALL_FIXTURES
+HS_01_CURRENT_GENERATED_ID=DATABASE_GENERATED_UUID_PRIMARY_KEY
+HS_01_CURRENT_SCHEMA_UNIQUES=ID_PRIMARY_KEY_ONLY;BUSINESS_UNIQUES=0
+HS_01_CURRENT_SCHEMA_INDEXES=idx_p3_harvest_user_date(user_id,expected_harvest_date);NON_UNIQUE
+
+HS_02_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_COUNT_GT_ZERO_SKIPS_ALL_FIXTURES
+HS_02_CURRENT_GENERATED_ID=DATABASE_GENERATED_UUID_PRIMARY_KEY
+HS_02_CURRENT_SCHEMA_UNIQUES=ID_PRIMARY_KEY_ONLY;BUSINESS_UNIQUES=0
+HS_02_CURRENT_SCHEMA_INDEXES=idx_p3_harvest_user_date(user_id,expected_harvest_date);NON_UNIQUE
+
+HS_03_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_COUNT_GT_ZERO_SKIPS_ALL_FIXTURES
+HS_03_CURRENT_GENERATED_ID=DATABASE_GENERATED_UUID_PRIMARY_KEY
+HS_03_CURRENT_SCHEMA_UNIQUES=ID_PRIMARY_KEY_ONLY;BUSINESS_UNIQUES=0
+HS_03_CURRENT_SCHEMA_INDEXES=idx_p3_harvest_user_date(user_id,expected_harvest_date);NON_UNIQUE
+```
+
+### 23.4 Seed Dependencies And Owner
+
+`legacy.dev.remaining` already resolves the farmer User ID from
+`users.dev.users` / `user.id.by-email` and the Product ID from
+`products.dev.products` / `product.id.by-sku`. The exact Product dependency is
+SKU `DEV-XOAI-HOA-LOC-001`. No Product repository lookup or new scalar output
+is necessary. Cooperatives owns the entity and repository. Geography has no
+relation to this table and is not a dependency.
+
+```text
+HARVEST_OWNER_SEED_OUTPUT=users.dev.users/user.id.by-email:farmer@sandbox.com
+HARVEST_PRODUCT_SEED_OUTPUT=products.dev.products/product.id.by-sku:DEV-XOAI-HOA-LOC-001
+HARVEST_PRODUCT_SEED_DEPENDENCY_REQUIRED=YES
+NEW_SCALAR_OUTPUT_DECISION_REQUIRED=NO
+
+HARVEST_SEED_OWNER=COOPERATIVES
+HARVEST_PROPOSED_DEPENDENCIES=users.dev.users/user.id.by-email;products.dev.products/product.id.by-sku
+```
+
+### 23.5 Mutability, Cardinality, And Historical Intent
+
+Current entity/model fields are writable and the repository saves the complete
+model by generated ID. No active DTO, controller, command, query, use case, or
+domain method makes `expectedHarvestDate` immutable. Historical API scaffolding
+accepted the date as create payload but supplied no uniqueness or immutability
+rule. Therefore rescheduling is allowed at the persistence contract and no
+evidence makes the planned date part of immutable business identity.
+
+Quantity, unit, crop name, notes, and timestamps are payload. A status field is
+not persisted at all. Current fixtures themselves contain three records for the
+same farmer/Product pair, disproving a one-schedule-per-farmer/Product rule.
+Nothing proves a crop-cycle, plot, season, or same-day cardinality rule.
+
+Git history introduced all three declarations unchanged in
+`becf869fb4bec1642b016c6f3ce7565cd82671c3`, whose subject is
+`feat: add comprehensive dev seed service for screenshots`. The main/late/
+staggered notes support a demo timeline. History does not prove stable fixture
+identity or accidental duplication.
+
+```text
+HARVEST_EXPECTED_DATE_MUTABLE=YES_AT_PERSISTENCE_CONTRACT;NO_IMMUTABILITY_RULE
+HARVEST_QUANTITY_IDENTITY_ELIGIBLE=NO_MUTABLE_PAYLOAD
+HARVEST_STATUS_IDENTITY_ELIGIBLE=NO_STATUS_FIELD_NOT_PERSISTED
+HARVEST_DOMAIN_CARDINALITY_RULE=NONE_PROVEN;MULTIPLE_SCHEDULES_PER_USER_PRODUCT_DEMONSTRATED
+HARVEST_ORIGINAL_FIXTURE_INTENT=SYNTHETIC_DEV_TIMELINE_DATA
+```
+
+### 23.6 Candidate Identity Matrix
+
+| Candidate key | Fields | Immutable business identity | Mutable payload included | Schema unique | Domain cardinality | Edit behavior | Collision risk | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| farmer + Product | `userId`, `productId` | no rule proves pair identity | no | no | contradicted by three current rows | either relation can be saved on the model | all three fixtures collide; multiple schedules legitimate | `REJECTED` |
+| farmer + Product + expected date | `userId`, `productId`, `expectedHarvestDate` | no; planned date is mutable | expected date | no | none | rescheduling changes the tuple | same-day plot/cycle schedules can collide | `REJECTED` |
+| farmer + expected date | `userId`, `expectedHarvestDate` | no | expected date | no | none | rescheduling changes the tuple | different Products for one farmer/date collide | `REJECTED` |
+| Product + expected date | `productId`, `expectedHarvestDate` | no | expected date | no | none | rescheduling changes the tuple | different farmers for one Product/date collide | `REJECTED` |
+| farmer + Product + quantity | `userId`, `productId`, `estimatedQuantity` | no | quantity | no | none | forecast quantity can change | equal forecasts collide | `REJECTED` |
+| farmer + Product + status | `userId`, `productId`, nonexistent status | no | lifecycle status would be mutable | no | none | field does not exist | cannot identify persisted rows | `REJECTED` |
+| farmer + Product + expected date + quantity | `userId`, `productId`, `expectedHarvestDate`, `estimatedQuantity` | no | date and quantity | no | none | reschedule/reforecast changes tuple | same-day equal forecasts can collide | `REJECTED` |
+| complete persisted payload | all non-ID fields, optionally timestamps | no | crop, date, quantity, unit, notes, timestamps | no | none | ordinary edits change identity | duplicates remain possible; timestamps are generated | `REJECTED` |
+
+No candidate is `PROVEN`. The current values being distinct does not establish
+uniqueness or immutability.
+
+```text
+SYNTHETIC_HARVEST_SEED_IDENTITY_APPROVED=NO
+```
+
+### 23.7 Downstream Output And Retirement Consequence
+
+Repository search finds no ordinary DEV fixture consuming a Harvest Schedule
+ID and no Harvest output kind. An owner-local implementation would therefore
+need no `harvest-schedule.id.by-*` output. The current reset target remains.
+If human review later selects retirement, a separate implementation may remove
+the method, repository access, three declarations, and reset target without a
+replacement group; this audit performs none of those changes.
+
+```text
+HARVEST_DOWNSTREAM_SEED_ID_CONSUMER_COUNT=0
+HARVEST_OUTPUT_REQUIRED=NO
+HARVEST_RESET_TARGET_EXISTS=YES
+```
+
+### 23.8 P8-05C2D3A Human Decisions Required
+
+Evidence cannot autonomously choose a new domain identifier, assert a missing
+cardinality rule, or retire synthetic but potentially useful DEV data. Human
+review must answer one policy decision and one disposition for each fixture:
+
+```text
+HARVEST_IDENTITY_POLICY_DECISION=APPROVE_EXISTING_BUSINESS_KEY:<field>;or APPROVE_EXISTING_COMPOSITE:<ordered fields + cardinality rule>;or ADD_DOMAIN_HARVEST_CODE;or RETIRE_CURRENT_DEV_FIXTURES;or DEFER
+
+HS_01_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+HS_02_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+HS_03_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+```
+
+If `ADD_DOMAIN_HARVEST_CODE` is selected, a separate human/schema decision must
+also supply all of the following; this audit approves none:
+
+```text
+HARVEST_CODE_ASSIGNMENT_AUTHORITY_DECISION=REQUIRED
+HARVEST_CODE_IMMUTABILITY_DECISION=REQUIRED
+HARVEST_CODE_UNIQUENESS_SCOPE_DECISION=REQUIRED
+HS_01_HARVEST_CODE_VALUE_DECISION=REQUIRED
+HS_02_HARVEST_CODE_VALUE_DECISION=REQUIRED
+HS_03_HARVEST_CODE_VALUE_DECISION=REQUIRED
+```
+
+### 23.9 Decision, Authorization, And Boundaries
+
+```text
+HARVEST_IDENTITY_DECISION=HARVEST_IDENTITY_REMAINS_UNRESOLVED
+HARVEST_IDENTITIES_RESOLVED=NO
+
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_130
+P8_05C2D3A_HARVEST_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_PERSISTED_BUSINESS_ID_NONE_PROVEN;HARVEST_IMMUTABLE_COMPOSITE_NONE_PROVEN;HARVEST_DOMAIN_CARDINALITY_RULE_NONE_PROVEN;HARVEST_IDENTITY_POLICY_DECISION_REQUIRED;HS_01_DECISION_REQUIRED;HS_02_DECISION_REQUIRED;HS_03_DECISION_REQUIRED
+
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+HARVEST_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+C3_BUSINESS_IMPLEMENTATION_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+RUNTIME_FILES_CHANGED=0
+```
+
 ## 21. P8-05C2D2A Human Review Decision Overlay
 
 Human review accepts the complete static audit in section 20, including its
@@ -1000,4 +1221,21 @@ LEGACY_DEV_REMAINING_EXISTS=YES
 COOPERATIVES_DOMAIN_RUNTIME_CHANGES=0
 SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
+```
+
+## 24. P8-05C2D3A Final Current Authority
+
+Merged PR #130 supersedes section 22's pending-review status. Section 23 is the
+current Harvest evidence record; its identity policy and three fixture
+dispositions remain unresolved for human review.
+
+```text
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_130
+P8_05C2D3A_HARVEST_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_BLOCKERS=HARVEST_PERSISTED_BUSINESS_ID_NONE_PROVEN;HARVEST_IMMUTABLE_COMPOSITE_NONE_PROVEN;HARVEST_DOMAIN_CARDINALITY_RULE_NONE_PROVEN;HARVEST_IDENTITY_POLICY_DECISION_REQUIRED;HS_01_DECISION_REQUIRED;HS_02_DECISION_REQUIRED;HS_03_DECISION_REQUIRED
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
 ```
