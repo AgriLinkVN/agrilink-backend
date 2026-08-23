@@ -1,10 +1,24 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
-describe("legacy seed entrypoint safety regressions", () => {
-  const adminSource = readFileSync(
-    join(__dirname, "..", "admin-dev.seed.ts"),
-    "utf8",
+function collectTypeScriptSources(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      return collectTypeScriptSources(path);
+    }
+    return entry.isFile() && entry.name.endsWith(".ts") ? [path] : [];
+  });
+}
+
+describe("seed entrypoint safety and retirement regressions", () => {
+  const repositoryRoot = join(__dirname, "..", "..", "..", "..");
+  const sourceRoot = join(repositoryRoot, "src");
+  const adminSourcePath = join(
+    sourceRoot,
+    "database",
+    "seeds",
+    "admin-dev.seed.ts",
   );
   const cliSource = readFileSync(join(__dirname, "..", "seed.ts"), "utf8");
   const mainSource = readFileSync(
@@ -14,6 +28,34 @@ describe("legacy seed entrypoint safety regressions", () => {
   const centralSource = readFileSync(
     join(__dirname, "..", "..", "dev-seed.service.ts"),
     "utf8",
+  );
+  const legacyRemainingSource = readFileSync(
+    join(__dirname, "..", "legacy-remaining-dev-seed.group.ts"),
+    "utf8",
+  );
+  const packageSource = readFileSync(
+    join(repositoryRoot, "package.json"),
+    "utf8",
+  );
+  const phaseDocuments = [
+    "README.md",
+    "admin-dev-seed-decisions.md",
+    "admin-dev-product-decisions.md",
+    "dev-seed-service-decomposition.md",
+    "seed-inventory.md",
+  ].map((file) =>
+    readFileSync(
+      join(
+        repositoryRoot,
+        "docs",
+        "architecture",
+        "persistence",
+        "phases",
+        "phase-08",
+        file,
+      ),
+      "utf8",
+    ),
   );
   const frameworkContractSource = [
     "seed-contract.ts",
@@ -59,19 +101,24 @@ describe("legacy seed entrypoint safety regressions", () => {
     "utf8",
   );
 
-  it("does not let the admin development seed default to agrilink_db", () => {
-    expect(adminSource).not.toMatch(/DB_NAME\s*\?\?\s*["']agrilink_db["']/);
-    expect(adminSource).not.toMatch(/DB_(?:HOST|PORT|NAME|USER|PASS)\s*\?\?/);
-    expect(adminSource).toContain("parseDatabaseEnvironment(process.env)");
-  });
+  it("keeps the retired standalone Admin DEV entrypoint unreachable", () => {
+    expect(existsSync(adminSourcePath)).toBe(false);
 
-  it("guards the admin seed before DataSource construction or initialization", () => {
-    const guard = adminSource.lastIndexOf("assertSeedExecutionSafety({");
-    expect(guard).toBeGreaterThan(-1);
-    expect(guard).toBeLessThan(
-      adminSource.indexOf("const ds = new DataSource"),
-    );
-    expect(guard).toBeLessThan(adminSource.indexOf("ds.initialize()"));
+    const staleRuntimeSources = collectTypeScriptSources(sourceRoot)
+      .filter((path) => !path.endsWith(".spec.ts"))
+      .filter((path) => {
+        const source = readFileSync(path, "utf8");
+        return (
+          source.includes("admin-dev.seed") ||
+          source.includes("executeAdminDevOwnerGroups") ||
+          source.includes("seedAdminDevData")
+        );
+      });
+
+    expect(staleRuntimeSources).toEqual([]);
+    expect(packageSource).not.toContain("admin-dev.seed");
+    expect(cliSource).not.toContain("admin-dev.seed");
+    expect(mainSource).not.toContain("admin-dev.seed");
   });
 
   it("guards the central CLI before DataSource construction", () => {
@@ -115,6 +162,18 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(mainSource).toContain("createUsersDevSeedGroup");
     expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
     expect(mainSource).toContain("new LegacyRemainingDevSeedGroup");
+    expect(legacyRemainingSource).toContain(
+      'LEGACY_REMAINING_DEV_SEED_GROUP_ID = "legacy.dev.remaining"',
+    );
+    expect(legacyRemainingSource).toContain(
+      "id: LEGACY_REMAINING_DEV_SEED_GROUP_ID",
+    );
+    expect(centralSource).toContain("async resetAll(");
+    expect(centralSource).toContain("async seedForum(");
+    expect(centralSource).toContain("async seedAdPackages(");
+    expect(centralSource).toContain("async seedAdCampaigns(");
+    expect(centralSource).toContain("async seedBulkListings(");
+    expect(centralSource).toContain("async seedHarvestSchedules(");
     expect(centralSource).not.toContain("skipProducts: true");
     expect(centralSource).toContain("products.XOAI_HOA_LOC");
     expect(centralSource).not.toMatch(
@@ -167,5 +226,21 @@ describe("legacy seed entrypoint safety regressions", () => {
     expect(orchestratorSource).not.toMatch(
       /modules\/(?:products|users|geography)/,
     );
+  });
+
+  it("records the D4 retirement without closing central or schema debt", () => {
+    for (const document of phaseDocuments) {
+      expect(document).toContain(
+        "P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW",
+      );
+      expect(document).toContain(
+        "P8_05D_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW",
+      );
+      expect(document).toContain(
+        "P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO",
+      );
+      expect(document).toContain("SCHEMA_CHANGES=0");
+      expect(document).toContain("MIGRATIONS_CREATED=0");
+    }
   });
 });

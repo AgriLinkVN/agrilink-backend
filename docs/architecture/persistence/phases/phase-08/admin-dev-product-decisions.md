@@ -3,8 +3,8 @@
 ## Scope And Safety
 
 This record is a static source and Git-history audit of the final ten Product
-and ten Product Image fixtures in
-[`admin-dev.seed.ts`](../../../../../src/database/seeds/admin-dev.seed.ts).
+and ten Product Image fixtures then declared in
+`src/database/seeds/admin-dev.seed.ts` (retired by the later D4 overlay).
 It does not authorize or implement Product or Product Image migration. No
 runtime source, schema, migration, seed, DataSource, or database was changed or
 executed.
@@ -636,6 +636,124 @@ ADMIN_DEV_RUNTIME_CHANGES=DIRECT_PRODUCT_AND_IMAGE_PERSISTENCE_RETIRED
 C2D_BUSINESS_IMPLEMENTATION_CHANGES=0
 C3_BUSINESS_IMPLEMENTATION_CHANGES=0
 C4D_BUSINESS_IMPLEMENTATION_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+~~~
+
+## P8-05D4 Standalone Admin DEV Retirement Overlay
+
+Merged PR #127 is the current D3 authority. At base
+`a42453d9ffba2678a11632d08043791784658685`, the standalone source had zero
+direct business writes and no runtime consumer other than its guarded
+`require.main` CLI. It was not imported by repository source, package scripts,
+or application startup. Its two test references were static source tests.
+
+D4 deletes that standalone source and its transition-only static spec. This
+retires its CLI, private DataSource lifecycle, SeedOutputRegistry, actor
+resolution, duplicate owner-group orchestration, and all nine transition entity
+registrations. The existing database-free `seed-entrypoints.spec.ts` now proves
+the file is absent, no non-test TypeScript source references the retired
+entrypoint or its orchestration functions, package/startup remain free of it,
+the canonical owner groups and `legacy.dev.remaining` remain present, and the
+central blocked methods remain intact.
+
+All earlier mentions of `admin-dev.seed.ts`, its standalone CLI command, and
+its transition registrations in this document are `HISTORICAL_EVIDENCE`.
+This overlay is the current instruction: the file and CLI no longer exist and
+must not be run. The audit found no separate `STALE_RUNTIME_GUIDANCE` outside
+the preserved historical Phase 8 record.
+
+The Products factory added by PR #127 had no consumer after the standalone file
+was removed, was introduced solely for that CLI, and was deleted. The Users,
+Profiles, and Categories factories remain canonical composition APIs with two,
+one, and two current consumers respectively. No owner fixture, output contract,
+SeedGroup metadata, schema, migration, central DevSeedService runtime, or
+`legacy.dev.remaining` behavior changed.
+
+The current executable inventory is derived from the P8-01 inclusion rule,
+not from its historical total: two REFERENCE sources, eleven DEV sources, two
+bootstrap/startup composition sources, one TEST fixture source, and two
+migration/rollout backfills. The eleven DEV sources comprise the Users group;
+Profiles group and adapter; Products group and adapter; Reviews group and
+adapter; Cooperative Members group and adapter; `DevSeedService`; and its
+`legacy.dev.remaining` SeedGroup adapter. Framework contracts and static
+specs are excluded.
+
+~~~text
+P8_05D1_USERS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_123
+P8_05D2_PROFILES_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_124
+P8_05D3A_PRODUCT_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_125
+P8_05D3A1_PRODUCT_SELLER_CONTRACT_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_126
+P8_05D3_PRODUCTS_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_127
+
+ADMIN_DEV_SOURCE_IMPORT_COUNT_PRE_D4=0
+ADMIN_DEV_SOURCE_NPM_SCRIPT_COUNT_PRE_D4=0
+ADMIN_DEV_SOURCE_STARTUP_REFERENCE_COUNT_PRE_D4=0
+ADMIN_DEV_SOURCE_TEST_REFERENCE_COUNT_PRE_D4=2
+ADMIN_DEV_DIRECT_CLI_REACHABILITY_PRE_D4=YES
+
+ADMIN_DEV_SOURCE_FILE_EXISTS=NO
+ADMIN_DEV_DIRECT_CLI_EXISTS=NO
+ADMIN_DEV_PRIVATE_DATASOURCE_EXISTS=NO
+ADMIN_DEV_PRIVATE_DATASOURCE_INITIALIZE_PATH_EXISTS=NO
+ADMIN_DEV_STANDALONE_ORCHESTRATION_EXISTS=NO
+
+ADMIN_DEV_TRANSITION_ENTITY_REGISTRATION_COUNT=0
+ADMIN_DEV_USER_ENTITY_REGISTRATION_REFS=0
+ADMIN_DEV_PROFILE_ENTITY_REGISTRATION_REFS=0
+ADMIN_DEV_PRODUCT_ENTITY_REGISTRATION_REFS=0
+ADMIN_DEV_PRODUCT_IMAGE_ENTITY_REGISTRATION_REFS=0
+ADMIN_DEV_CATEGORY_ENTITY_REGISTRATION_REFS=0
+ADMIN_DEV_PRODUCT_CERTIFICATION_ENTITY_REGISTRATION_REFS=0
+
+ADMIN_DEV_DIRECT_BUSINESS_WRITE_COUNT=0
+ADMIN_DEV_DIRECT_BUSINESS_WRITE_TABLE_COUNT=0
+ADMIN_DEV_DIRECT_BUSINESS_WRITE_OWNER_COUNT=0
+ADMIN_DEV_STANDALONE_USER_WRITES=0
+ADMIN_DEV_STANDALONE_PROFILE_WRITES=0
+ADMIN_DEV_STANDALONE_PRODUCT_WRITES=0
+ADMIN_DEV_STANDALONE_PRODUCT_IMAGE_WRITES=0
+
+USERS_DEV_RECORD_COUNT=18
+PROFILES_DEV_RECORD_COUNT=12
+PRODUCTS_DEV_RECORD_COUNT=69
+PRODUCTS_DEV_SKU_COUNT=69
+PRODUCTS_DEV_MANAGED_PRIMARY_IMAGE_COUNT=67
+USER_ID_BY_EMAIL_OUTPUT_RETAINED=YES
+PRODUCT_ID_BY_SKU_OUTPUT_RETAINED=YES
+
+USERS_DEV_GROUP_FACTORY_CONSUMER_COUNT=2
+PROFILES_DEV_GROUP_FACTORY_CONSUMER_COUNT=1
+CATEGORIES_REFERENCE_GROUP_FACTORY_CONSUMER_COUNT=2
+PRODUCTS_DEV_GROUP_FACTORY_CONSUMER_COUNT=0
+OWNER_FACTORIES_REMOVED=createProductDevelopmentSeedGroup
+
+PRE_D4_ADMIN_DEV_EXECUTABLE_SOURCE_COUNT=1
+POST_D4_ADMIN_DEV_EXECUTABLE_SOURCE_COUNT=0
+POST_D4_REFERENCE_SEED_SOURCE_COUNT=2
+POST_D4_DEV_SEED_SOURCE_COUNT=11
+POST_D4_BOOTSTRAP_OR_STARTUP_SEED_SOURCE_COUNT=2
+POST_D4_TEST_SEED_SOURCE_COUNT=1
+POST_D4_MIGRATION_DATA_BACKFILL_SOURCE_COUNT=2
+POST_D4_EXECUTABLE_SEED_SOURCE_COUNT=18
+
+P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=YES
+P8_05D4_BLOCKERS=NONE
+P8_05D_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+
+P8_05C2D2_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C2D3_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+CENTRAL_BLOCKED_BUSINESS_WRITER_CHANGES=0
+C2D_BUSINESS_IMPLEMENTATION_CHANGES=0
+C3_BUSINESS_IMPLEMENTATION_CHANGES=0
+PACKAGE_JSON_CHANGES=0
 SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
 ~~~
