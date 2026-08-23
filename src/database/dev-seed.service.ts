@@ -7,8 +7,6 @@ import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
 import { ForumLike } from '../modules/forum/entities/forum-like.entity';
 import { AdCampaign } from '../modules/ads/infrastructure/persistence/entities/ad-campaign.entity';
 import { AdPackage } from '../modules/ads/infrastructure/persistence/entities/ad-package.entity';
-import { BulkListingEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity';
-import { BulkListingContributionEntity } from '../modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity';
 import { HarvestScheduleEntity } from '../modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity';
 
 import { ProductUnit, AdType, AdStatus } from '../common/enums';
@@ -38,16 +36,15 @@ export class DevSeedService {
     await this.seedAdCampaigns(SUPPLIER, ADMIN);
     log.log(`[Seed] ads seeded`);
 
-    await this.seedBulkListings(COOP, FARMER);
     await this.seedHarvestSchedules(FARMER, products.XOAI_HOA_LOC);
-    log.log(`[Seed] cooperative bulk and harvest data seeded`);
+    log.log(`[Seed] cooperative harvest data seeded`);
   }
 
   private async resetAll(): Promise<void> {
     // Temporary C2/C3/C4 reset debt. C1-owned and deferred targets are omitted;
     // the method itself remains scheduled for retirement in P8-05C4.
     const tables = [
-      'harvest_schedules', 'bulk_listing_contributions', 'bulk_listings',
+      'harvest_schedules',
       'forum_likes', 'forum_comments', 'forum_posts',
       'ad_campaigns', 'ad_packages', 'ad_events',
     ];
@@ -142,40 +139,6 @@ export class DevSeedService {
   }
 
   // ── COOPERATIVE ──────────────────────────────────────────────────────
-  private async seedBulkListings(coopId: string, farmerId: string) {
-    const repo = this.ds.getRepository(BulkListingEntity);
-    const contribRepo = this.ds.getRepository(BulkListingContributionEntity);
-    const existing = await repo.count();
-    if (existing > 0) return;
-
-    const listing = await repo.save({
-      cooperativeId: coopId,
-      title: 'Xoài cát Hòa Lộc — Thu gom vụ hè',
-      description: 'Thu gom xoài cát Hòa Lộc từ 15 hộ xã viên, sản lượng 5 tấn, đạt VietGAP.',
-      totalQuantity: 5000,
-      unit: ProductUnit.KG,
-      pricePerUnit: 42000,
-      deadline: new Date('2026-07-15'),
-      isOpen: true,
-    } as any);
-
-    await contribRepo.save([
-      { bulkListingId: listing.id, farmerId, quantity: 1500, unit: ProductUnit.KG },
-      { bulkListingId: listing.id, farmerId: farmerId, quantity: 2000, unit: ProductUnit.KG },
-    ] as any);
-
-    await repo.save({
-      cooperativeId: coopId,
-      title: 'Thanh long ruột đỏ — Đơn hàng xuất khẩu',
-      description: 'Đáp ứng đơn hàng xuất khẩu Trung Quốc 10 tấn, yêu cầu GlobalGAP.',
-      totalQuantity: 10000,
-      unit: ProductUnit.KG,
-      pricePerUnit: 33000,
-      deadline: new Date('2026-07-20'),
-      isOpen: true,
-    } as any);
-  }
-
   private async seedHarvestSchedules(farmerId: string, productId: string) {
     const repo = this.ds.getRepository(HarvestScheduleEntity);
     const existing = await repo.count();

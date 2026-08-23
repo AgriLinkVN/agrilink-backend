@@ -49,12 +49,24 @@ describe("DevSeedService Phase 8 transitions", () => {
     );
   });
 
-  it("keeps blocked C2D2/C2D3 and C3 persistence sections reachable", () => {
-    expect(source).toContain("this.seedBulkListings");
+  it("retires C2D2 while keeping blocked C2D3 and C3 sections reachable", () => {
+    expect(source).not.toContain("seedBulkListings");
     expect(source).toContain("this.seedHarvestSchedules");
     expect(source).toContain("this.seedForum");
     expect(source).toContain("this.seedAdPackages");
     expect(source).toContain("this.seedAdCampaigns");
+  });
+
+  it("retires every executable Bulk Listing and Contribution fixture", () => {
+    expect(source).not.toMatch(
+      /BulkListingEntity|BulkListingContributionEntity|getRepository\(BulkListing|getRepository\(BulkListingContribution/,
+    );
+    expect(source).not.toMatch(
+      /Xoài cát Hòa Lộc — Thu gom vụ hè|Thanh long ruột đỏ — Đơn hàng xuất khẩu/,
+    );
+    expect(source).not.toMatch(
+      /bulkListingId: listing\.id|quantity: 1500|quantity: 2000/,
+    );
   });
 
   it("retires Audit Log and Notification DEV fixture persistence", () => {
@@ -75,8 +87,6 @@ describe("DevSeedService Phase 8 transitions", () => {
 
     expect(targets).toEqual([
       "harvest_schedules",
-      "bulk_listing_contributions",
-      "bulk_listings",
       "forum_likes",
       "forum_comments",
       "forum_posts",
@@ -88,12 +98,11 @@ describe("DevSeedService Phase 8 transitions", () => {
     expect(targets).not.toContain("notifications");
   });
 
-  it("retains exactly the five blocked central normal write methods", () => {
+  it("retains exactly the four blocked central normal write methods", () => {
     const normalMethods = [
       "seedForum",
       "seedAdPackages",
       "seedAdCampaigns",
-      "seedBulkListings",
       "seedHarvestSchedules",
     ];
 
@@ -101,12 +110,18 @@ describe("DevSeedService Phase 8 transitions", () => {
       expect(source).toContain(`private async ${method}(`);
       expect(source).toContain(`this.${method}`);
     }
+
+    expect(source).not.toContain("seedBulkListings");
   });
 
-  it("keeps the temporary legacy continuation and creates no C4 SeedGroup", () => {
+  it("keeps the legacy continuation without a replacement C2D2 or C4 SeedGroup", () => {
     const runtimeSource = readTypeScriptFilesRecursively(join(__dirname, ".."));
 
     expect(runtimeSource).toContain('"legacy.dev.remaining"');
+    expect(runtimeSource).not.toMatch(
+      /cooperatives\.dev\.(?:bulk-listings|bulk-operations|contributions)/,
+    );
+    expect(runtimeSource).not.toContain("bulk-listing.id.by-");
     expect(runtimeSource).not.toContain('"admin.dev.audit-logs"');
     expect(runtimeSource).not.toContain('"notifications.dev.inbox"');
   });
