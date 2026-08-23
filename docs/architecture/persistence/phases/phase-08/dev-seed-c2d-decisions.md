@@ -779,3 +779,155 @@ C4D_BUSINESS_IMPLEMENTATION_CHANGES=0
 SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
 ```
+
+## 21. P8-05C2D2A Human Review Decision Overlay
+
+Human review accepts the complete static audit in section 20, including its
+conclusion that current source and history prove no persisted Bulk Listing
+business identifier, immutable natural composite, or domain cardinality rule.
+The unresolved evidence remains historical authority; this overlay resolves
+fixture disposition without claiming that an identity was found.
+
+Human review rejects adding `listingCode`, a synthetic UUID, a seed-only key,
+or new schema semantics primarily to keep these legacy ordinary DEV fixtures
+seedable. It instead selects retirement of both Bulk Listing declarations.
+This PR documents that future strategy only: `seedBulkListings`, its writes,
+and its reset targets remain unchanged until a separate post-merge C2D2
+implementation.
+
+### 21.1 Preserved Audit Evidence
+
+```text
+BULK_LISTING_FIXTURE_COUNT=2
+BULK_LISTING_OWNER_FIELD=cooperativeId
+BULK_LISTING_OWNER_DOMAIN_TYPE=COOPERATIVE_ROLE_USER_ID
+BULK_LISTING_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+BULK_LISTING_PRODUCT_RELATION_EXISTS=NO
+BULK_LISTING_TABLE_UNIQUE_CONSTRAINT_COUNT=0
+BULK_LISTING_TABLE_SECONDARY_INDEX_COUNT=1
+BULK_LISTING_WHOLE_TABLE_GUARD_COUNT=1
+BULK_LISTING_GENERATED_UUID_IDENTITY_USAGE=YES_PRIMARY_KEY_ONLY;NOT_DETERMINISTIC_SEED_IDENTITY
+PROVEN_CANDIDATE_COUNT=0
+SYNTHETIC_SEED_ONLY_IDENTITY_APPROVED=NO
+```
+
+### 21.2 Bulk Listing Human Decision
+
+`BL-01` and `BL-02` are the two Bulk Listing declarations. They are not the
+Contribution labels `BLC-01` and `BLC-02`. Neither Listing will move to an
+owner-local DEV SeedGroup. No retained Listing remains that would require a
+Listing ID output or another User/Profile scalar output.
+
+```text
+BULK_LISTING_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+BULK_LISTING_NEW_DOMAIN_LISTING_CODE_AUTHORIZED=NO
+BULK_LISTING_EXISTING_COMPOSITE_IDENTITY_APPROVED=NO
+BULK_LISTING_SYNTHETIC_UUID_IDENTITY_APPROVED=NO
+BULK_LISTING_SEED_ONLY_KEY_APPROVED=NO
+
+BL_01_IDENTITY_DECISION=RETIRE
+BL_01_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BL_01_RETIRE_REASON=LEGACY_SYNTHETIC_DEV_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+BL_02_IDENTITY_DECISION=RETIRE
+BL_02_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BL_02_RETIRE_REASON=LEGACY_SYNTHETIC_DEV_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+BULK_LISTING_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+BULK_LISTING_APPROVED_RETAIN_COUNT=0
+BULK_LISTING_APPROVED_RETIRE_COUNT=2
+BULK_LISTING_IDENTITIES_RESOLVED=NOT_REQUIRED_FIXTURES_RETIRED
+BULK_LISTING_OWNER_LOCAL_DEV_SEED_REQUIRED=NO
+BULK_LISTING_NEW_SEEDGROUP_REQUIRED=NO
+BULK_LISTING_NEW_SCALAR_OUTPUT_REQUIRED=NO
+```
+
+### 21.3 Contribution Consequence
+
+`BLC-01` and `BLC-02` are Contribution declarations under BL-01. C2D0's
+finding that BLC-02 was an accidental duplicate remains accepted and
+unchanged. C2D0 provisionally retained BLC-01 only because its parent was then
+expected to remain. Retirement of every ordinary DEV Listing parent now
+supersedes that retention consequence: BLC-01 retires with its parent, while
+BLC-02 retains its independently approved duplicate-retirement reason.
+
+Current source contains exactly two Contribution declarations. Future C2D2
+must retire both and must not create an orphan Contribution, a parent output,
+or `bulk-listing.id.by-*`.
+
+```text
+CONTRIBUTION_ORIGINAL_INTENT=ACCIDENTAL_DUPLICATE_FIXTURE
+BLC_02_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_DECISION_STATUS=HUMAN_APPROVED
+
+CONTRIBUTION_DEV_FIXTURE_DISPOSITION=RETIRE_WITH_PARENT_BULK_LISTING
+BLC_01_CURRENT_DECISION=RETIRE_WITH_PARENT_BULK_LISTING
+BLC_01_PREVIOUS_RETENTION_STATUS=SUPERSEDED_BY_P8_05C2D2A_PARENT_RETIREMENT
+BLC_01_RETIRE_REASON=PARENT_BULK_LISTING_DEV_FIXTURE_RETIRED_AND_NO_STANDALONE_CONTRIBUTION_FIXTURE_IS_VALID_WITHOUT_ITS_PARENT
+BLC_02_CURRENT_DECISION=RETIRE_DUPLICATE_FIXTURE
+BLC_02_PREVIOUS_DUPLICATE_DECISION_STATUS=PRESERVED
+CONTRIBUTION_SOURCE_DECLARATION_COUNT=2
+CONTRIBUTION_APPROVED_RETAIN_COUNT=0
+CONTRIBUTION_APPROVED_RETIRE_COUNT=2
+CONTRIBUTION_PARENT_OUTPUT_REQUIRED=NO
+CONTRIBUTION_PARENT_OUTPUT_KIND_CANDIDATE=NONE
+CONTRIBUTION_PARENT_IDENTITY_RESOLVED=NOT_REQUIRED_PARENT_FIXTURES_RETIRED
+```
+
+### 21.4 Future Retirement-Only C2D2 Contract
+
+After this PR merges, a separate implementation is authorized to remove the
+central ordinary DEV writes for `bulk_listings` and
+`bulk_listing_contributions`. It must delete `seedBulkListings` from the
+central continuation and remove those two destructive reset targets together.
+It must not create a replacement Bulk Listing SeedGroup.
+
+The current central continuation still has five normal methods and writes eight
+business tables. The future post-C2D2 state is expected to retain Forum, Ads,
+and Harvest only: four methods and six business tables. These are expectations,
+not changes made by this PR.
+
+```text
+CURRENT_CENTRAL_NORMAL_WRITE_METHOD_COUNT=5
+CURRENT_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedBulkListings;seedHarvestSchedules
+POST_C2D2_CENTRAL_NORMAL_WRITE_METHOD_COUNT=4
+POST_C2D2_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedHarvestSchedules
+
+CURRENT_CENTRAL_BUSINESS_TABLE_COUNT=8
+CURRENT_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns;bulk_listings;bulk_listing_contributions;harvest_schedules
+POST_C2D2_CENTRAL_BUSINESS_TABLE_COUNT=6
+POST_C2D2_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns;harvest_schedules
+
+CURRENT_C2D2_RESET_TARGETS=bulk_listings;bulk_listing_contributions
+CURRENT_C2D2_RESET_TARGET_COUNT=2
+EXPECTED_POST_C2D2_BULK_RESET_TARGET_COUNT=0
+```
+
+### 21.5 Authorization And Boundaries
+
+Bulk Listing identity is no longer an implementation prerequisite because no
+ordinary DEV Listing fixture is retained. Contribution parent identity is
+likewise unnecessary because all dependent declarations retire. This
+authorizes only the future retirement strategy described above. Harvest, C3,
+and whole-central C4D remain blocked.
+
+```text
+P8_05C2D2A_BULK_LISTING_IDENTITY_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05C2D2A_PR_129_MERGE
+P8_05C2D2_BLOCKERS=NONE
+P8_05C2D2_IMPLEMENTATION_STRATEGY=RETIRE_LEGACY_BULK_LISTING_AND_CONTRIBUTION_DEV_FIXTURES
+P8_05C2D2_BULK_OPERATIONS_IMPLEMENTATION_STATUS=NOT_STARTED
+
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+HARVEST_SCHEDULE_STABLE_KEY=NONE_PROVEN
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+COOPERATIVES_RUNTIME_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+RUNTIME_FILES_CHANGED=0
+```
