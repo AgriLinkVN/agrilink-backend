@@ -154,9 +154,10 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(central).not.toMatch(
       /seedCoopMembers|getRepository\(CooperativeMemberEntity\)|cooperative-member\.entity|['"]cooperative_members['"],/,
     );
-    expect(central).toContain("seedBulkListings");
+    expect(central).not.toContain("seedBulkListings");
     expect(central).toContain("seedHarvestSchedules");
-    expect(central).toContain("bulk_listing_contributions");
+    expect(central).not.toContain("bulk_listing_contributions");
+    expect(central).not.toContain("bulk_listings");
     expect(central).toContain("harvest_schedules");
     expect(LEGACY_DEV_ACTOR_EMAILS.COOP).toBe("cooperative@sandbox.com");
     expect(LEGACY_DEV_ACTOR_EMAILS.FARMER).toBe("farmer@sandbox.com");

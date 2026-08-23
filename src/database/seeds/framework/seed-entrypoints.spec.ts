@@ -172,7 +172,7 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(centralSource).toContain("async seedForum(");
     expect(centralSource).toContain("async seedAdPackages(");
     expect(centralSource).toContain("async seedAdCampaigns(");
-    expect(centralSource).toContain("async seedBulkListings(");
+    expect(centralSource).not.toContain("async seedBulkListings(");
     expect(centralSource).toContain("async seedHarvestSchedules(");
     expect(centralSource).not.toContain("skipProducts: true");
     expect(centralSource).toContain("products.XOAI_HOA_LOC");

@@ -329,9 +329,9 @@ describe("CooperativeMemberDevelopmentSeedService", () => {
     expect(centralSource).not.toMatch(
       /seedCoopMembers|CooperativeMemberEntity|cooperative-member\.entity|['"]cooperative_members['"]/,
     );
-    expect(centralSource).toContain("seedBulkListings");
+    expect(centralSource).not.toContain("seedBulkListings");
     expect(centralSource).toContain("seedHarvestSchedules");
-    expect(centralSource.match(/bulkListingId: listing\.id/g)).toHaveLength(2);
+    expect(centralSource).not.toContain("bulkListingId: listing.id");
     expect(
       centralSource.match(/expectedHarvestDate: new Date\(["']2026-/g),
     ).toHaveLength(3);
