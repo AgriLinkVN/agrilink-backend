@@ -1239,3 +1239,141 @@ P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
 P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
 ```
+
+## 25. P8-05C2D3A1 Human Decision Corrective Overlay
+
+PR #131 was accidentally human-merged before its intended decision overlay was
+recorded. Its audit-only head was `10038098c9d22bab4c67562e43f0acc5b7262d2a`;
+the actual merge commit on `develop` is
+`5a378a03dcccc9bd0d6371fca65c6a3b5d3630f8`. The section 23 audit and section
+24 unresolved handoff remain historical evidence. PR #131 did not contain this
+human decision.
+
+This corrective overlay accepts the merged audit and records current human
+authority. It changes no TypeScript, schema, migration, SeedGroup, seed output,
+or executable fixture.
+
+### 25.1 Historical Merged-Audit Authority
+
+The following values describe the state at the end of merged PR #131, before
+the human fixture disposition was recorded:
+
+```text
+P8_05C2D3A_PR_131_AUDIT_STATUS=MERGED_AUDIT_HISTORICAL_AUTHORITY
+P8_05C2D3A_HARVEST_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_131
+HISTORICAL_AUTHORITY_LABEL=HISTORICAL_AS_OF_MERGED_PR_131_AUDIT
+HISTORICAL_HARVEST_IDENTITY_DECISION=HARVEST_IDENTITY_REMAINS_UNRESOLVED
+HISTORICAL_P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=NO
+```
+
+The audit facts remain unchanged: three fixtures have database-generated UUID
+primary keys, no persisted business identifier, no schema business unique, no
+proven immutable composite or domain cardinality rule, mutable planned dates
+and quantities, synthetic screenshot/demo timeline intent, and zero downstream
+DEV seed-ID consumers.
+
+### 25.2 Human Policy And Fixture Decisions
+
+Human review rejects introducing domain/schema identity or a seed-only key
+primarily to keep synthetic legacy DEV rows deterministic. The fixtures will
+instead be retired from the ordinary DEV seed in a later runtime PR.
+
+```text
+HARVEST_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+CURRENT_HARVEST_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+HARVEST_NEW_DOMAIN_CODE_AUTHORIZED=NO
+HARVEST_EXISTING_COMPOSITE_IDENTITY_APPROVED=NO
+SYNTHETIC_HARVEST_SEED_IDENTITY_APPROVED=NO
+HARVEST_SEED_ONLY_KEY_APPROVED=NO
+
+HS_01_DECISION=RETIRE
+HS_01_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+HS_01_RETIRE_REASON=SYNTHETIC_DEV_TIMELINE_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+HS_02_DECISION=RETIRE
+HS_02_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+HS_02_RETIRE_REASON=SYNTHETIC_DEV_TIMELINE_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+
+HS_03_DECISION=RETIRE
+HS_03_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+HS_03_RETIRE_REASON=SYNTHETIC_DEV_TIMELINE_FIXTURE_HAS_NO_PROVEN_PERSISTED_BUSINESS_IDENTITY_AND_HUMAN_REVIEW_REJECTS_INVENTING_DOMAIN_OR_SEED_ONLY_IDENTITY
+```
+
+### 25.3 Final Harvest DEV Disposition And Dependencies
+
+The current legacy writer still resolves User and Product scalars through
+`users.dev.users` / `user.id.by-email` / `farmer@sandbox.com` and
+`products.dev.products` / `product.id.by-sku` /
+`DEV-XOAI-HOA-LOC-001`. That remains valid historical/current runtime evidence.
+Because every fixture will retire, the future retirement-only implementation
+needs no replacement owner dependencies or Harvest output.
+
+```text
+HARVEST_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+HARVEST_APPROVED_RETAIN_COUNT=0
+HARVEST_APPROVED_RETIRE_COUNT=3
+HARVEST_IDENTITIES_RESOLVED=NOT_REQUIRED_FIXTURES_RETIRED
+HARVEST_OWNER_LOCAL_DEV_SEED_REQUIRED=NO
+HARVEST_NEW_SEEDGROUP_REQUIRED=NO
+HARVEST_NEW_SCALAR_OUTPUT_REQUIRED=NO
+HARVEST_OUTPUT_REQUIRED=NO
+FUTURE_HARVEST_OWNER_SEED_DEPENDENCIES=NONE_FIXTURES_RETIRED
+```
+
+No `harvest-schedule.id.by-*`, `harvestCode`, `scheduleCode`, `seed_key`,
+`fixture_code`, hardcoded UUID, date-based identity, or full-payload hash is
+approved.
+
+### 25.4 Future Retirement-Only Authorization
+
+After this corrective PR merges, a separate C2D3 runtime PR may remove
+`seedHarvestSchedules`, its Harvest repository access, HS-01 through HS-03,
+the `harvest_schedules` reset target, and scalar plumbing that becomes dead
+solely because Harvest is gone. It must create no replacement Harvest
+SeedGroup. None of that runtime work occurs here.
+
+```text
+P8_05C2D3A1_HUMAN_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05C2D3A1_MERGE
+CURRENT_P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05C2D3A1_MERGE
+P8_05C2D3_BLOCKERS=NONE
+P8_05C2D3_IMPLEMENTATION_STRATEGY=RETIRE_LEGACY_HARVEST_SCHEDULE_DEV_FIXTURES
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=NOT_STARTED
+```
+
+### 25.5 Current And Expected Central State
+
+Current source remains unchanged at four central normal write methods and six
+business tables. The post-C2D3 values below are expectations, not present
+runtime state.
+
+```text
+CURRENT_CENTRAL_NORMAL_WRITE_METHOD_COUNT=4
+CURRENT_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns;seedHarvestSchedules
+POST_C2D3_CENTRAL_NORMAL_WRITE_METHOD_COUNT=3
+POST_C2D3_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns
+
+CURRENT_CENTRAL_BUSINESS_TABLE_COUNT=6
+CURRENT_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns;harvest_schedules
+POST_C2D3_CENTRAL_BUSINESS_TABLE_COUNT=5
+POST_C2D3_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns
+
+HARVEST_RESET_TARGET_EXISTS=YES
+EXPECTED_POST_C2D3_HARVEST_RESET_TARGET_COUNT=0
+```
+
+### 25.6 Current Boundaries And Scope
+
+```text
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+HARVEST_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+C3_BUSINESS_IMPLEMENTATION_CHANGES=0
+RUNTIME_FILES_CHANGED=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+```
