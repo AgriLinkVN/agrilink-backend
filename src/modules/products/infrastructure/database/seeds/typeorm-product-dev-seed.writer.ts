@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { Product } from "../../persistence/entities/product.entity";
 import { ProductCertification } from "../../persistence/entities/product-certification.entity";
 import { ProductImage } from "../../persistence/entities/product-image.entity";
@@ -12,6 +12,7 @@ import {
   ProductDevSeedRecord,
   ProductDevSeedWriteData,
   ProductDevSeedWriter,
+  ProductDevelopmentSeedService,
 } from "./product-development-seed.service";
 
 @Injectable()
@@ -89,4 +90,16 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
   ): Promise<void> {
     await this.certificationRepository.update(id, data);
   }
+}
+
+export function createProductDevelopmentSeedGroup(
+  dataSource: DataSource,
+): ProductDevelopmentSeedService {
+  return new ProductDevelopmentSeedService(
+    new TypeOrmProductDevSeedWriter(
+      dataSource.getRepository(Product),
+      dataSource.getRepository(ProductImage),
+      dataSource.getRepository(ProductCertification),
+    ),
+  );
 }

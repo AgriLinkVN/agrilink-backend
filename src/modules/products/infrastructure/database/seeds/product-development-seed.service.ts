@@ -41,6 +41,32 @@ export const PRODUCTS_DEV_SEED_METADATA: SeedGroupMetadata = {
 export const PRODUCT_DEV_PRIMARY_IMAGE_URL =
   'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=600&q=80';
 
+export const APPROVED_D3_PRODUCT_SKUS = [
+  'DEV-XOAI-HOA-LOC-HUNG-001',
+  'DEV-XA-LACH-THUY-CANH-MAI-001',
+  'DEV-DUA-LUOI-NHAT-TUAN-001',
+  'DEV-GAO-ST25-HTX-DALAT-001',
+  'DEV-CAI-BO-XOI-HUU-CO-HTX-DALAT-001',
+  'DEV-BUOI-DA-XANH-HTX-TIEN-GIANG-001',
+] as const;
+
+export const D3_REQUIRED_SELLER_EMAILS = [
+  'hung.nv@farm.vn',
+  'mai.lt@farm.vn',
+  'tuan.pq@farm.vn',
+  'htx.dalat@coop.vn',
+  'htx.tiengiang@coop.vn',
+] as const;
+
+export const APPROVED_D3_PRIMARY_IMAGE_URLS = [
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/xoai-cat-hoa-loc.jpg',
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/xa-lach-thuy-canh.jpg',
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/dua-luoi-nhat.jpg',
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/gao-st25.jpg',
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/cai-bo-xoi.jpg',
+  'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/buoi-da-xanh.jpg',
+] as const;
+
 export interface ProductDevSeedWriteData {
   readonly sku: string;
   readonly sellerId: string;
@@ -52,11 +78,12 @@ export interface ProductDevSeedWriteData {
   readonly unit: ProductUnit;
   readonly availableQuantity: number;
   readonly minOrderQuantity: number | null;
+  readonly variety?: string | null;
   readonly farmingType: FarmingType;
   readonly status: ProductStatus;
-  readonly viewCount: number;
-  readonly harvestDate: Date | null;
-  readonly expiryDate: Date | null;
+  readonly viewCount?: number;
+  readonly harvestDate?: Date | null;
+  readonly expiryDate?: Date | null;
   readonly rejectionReason?: string | null;
 }
 
@@ -148,6 +175,11 @@ export function buildProductDevelopmentSeedData(
   const S = sellerId('supplier@agrilink.vn');
   const SANDBOX_F = sellerId('farmer@sandbox.com');
   const SANDBOX_C = sellerId('cooperative@sandbox.com');
+  const D3_HUNG = sellerId('hung.nv@farm.vn');
+  const D3_MAI = sellerId('mai.lt@farm.vn');
+  const D3_TUAN = sellerId('tuan.pq@farm.vn');
+  const D3_HTX_DALAT = sellerId('htx.dalat@coop.vn');
+  const D3_HTX_TIEN_GIANG = sellerId('htx.tiengiang@coop.vn');
 
   const TC = categoryId('trai-cay');
   const RAU = categoryId('rau-cu-qua');
@@ -1328,6 +1360,108 @@ export function buildProductDevelopmentSeedData(
       expiryDate: null,
       primaryImageUrl: null,
     },
+    // P8-05D3: retained Admin DEV Products approved by merged D3A1 authority.
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[0],
+      sellerId: D3_HUNG,
+      sellerType: SellerType.FARMER,
+      categoryId: null,
+      name: 'Xoài cát Hòa Lộc loại 1',
+      description:
+        'Xoài chín cây, ngọt thanh, không thuốc trừ sâu. Đóng gói 5kg/thùng.',
+      pricePerUnit: 45000,
+      unit: ProductUnit.KG,
+      availableQuantity: 500,
+      minOrderQuantity: 10,
+      variety: 'Hòa Lộc',
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[0],
+    },
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[1],
+      sellerId: D3_MAI,
+      sellerType: SellerType.FARMER,
+      categoryId: null,
+      name: 'Rau xà lách thủy canh',
+      description:
+        'Xà lách trồng trong nhà kính, sạch, giòn, không thuốc bảo vệ thực vật.',
+      pricePerUnit: 25000,
+      unit: ProductUnit.KG,
+      availableQuantity: 200,
+      minOrderQuantity: 5,
+      variety: 'Xà lách Mỹ',
+      farmingType: FarmingType.ORGANIC,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[1],
+    },
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[2],
+      sellerId: D3_TUAN,
+      sellerType: SellerType.FARMER,
+      categoryId: null,
+      name: 'Dưa lưới giống Nhật',
+      description:
+        'Dưa lưới trồng theo tiêu chuẩn GlobalGAP, vị ngọt đậm, mọng nước.',
+      pricePerUnit: 85000,
+      unit: ProductUnit.KG,
+      availableQuantity: 150,
+      minOrderQuantity: 2,
+      variety: 'Nhật Bản',
+      farmingType: FarmingType.GLOBALGAP,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[2],
+    },
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[3],
+      sellerId: D3_HTX_DALAT,
+      sellerType: SellerType.COOPERATIVE,
+      categoryId: null,
+      name: 'Gạo ST25 Sóc Trăng',
+      description: 'Gạo thơm đặc sản, đạt chuẩn xuất khẩu. Đóng bao 5kg.',
+      pricePerUnit: 35000,
+      unit: ProductUnit.KG,
+      availableQuantity: 2000,
+      minOrderQuantity: 20,
+      variety: 'ST25',
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[3],
+    },
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[4],
+      sellerId: D3_HTX_DALAT,
+      sellerType: SellerType.COOPERATIVE,
+      categoryId: null,
+      name: 'Rau cải bó xôi hữu cơ',
+      description:
+        'Cải bó xôi organic Đà Lạt, thu hoạch trong ngày, giao tận nơi.',
+      pricePerUnit: 32000,
+      unit: ProductUnit.KG,
+      availableQuantity: 300,
+      minOrderQuantity: 5,
+      variety: 'Bó xôi',
+      farmingType: FarmingType.ORGANIC,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[4],
+    },
+    {
+      sku: APPROVED_D3_PRODUCT_SKUS[5],
+      sellerId: D3_HTX_TIEN_GIANG,
+      sellerType: SellerType.COOPERATIVE,
+      categoryId: null,
+      name: 'Bưởi da xanh Bến Tre',
+      description:
+        'Bưởi da xanh chính hiệu, ngọt mát, mọng nước, xuất khẩu đi EU.',
+      pricePerUnit: 65000,
+      unit: ProductUnit.KG,
+      availableQuantity: 800,
+      minOrderQuantity: 10,
+      variety: 'Da xanh',
+      farmingType: FarmingType.VIETGAP,
+      status: ProductStatus.PENDING_APPROVAL,
+      primaryImageUrl: APPROVED_D3_PRIMARY_IMAGE_URLS[5],
+    },
   ];
 
   return mockProducts;
@@ -1348,15 +1482,23 @@ export async function reconcileProductDevelopmentSeeds(
     inputSkus.add(record.sku);
   }
 
-  const productIds = new Map<string, string>();
-  for (const record of records) {
-    const { primaryImageUrl: _declaredImage, ...productData } = record;
-    const matches = await writer.findProductsBySku(record.sku);
+  const productPreflight = await Promise.all(
+    records.map(async (record) => ({
+      record,
+      matches: await writer.findProductsBySku(record.sku),
+    })),
+  );
+  for (const { record, matches } of productPreflight) {
     if (matches.length > 1) {
       throw new Error(
         `products.dev.products found multiple Products for SKU ${record.sku}`,
       );
     }
+  }
+
+  const productIds = new Map<string, string>();
+  for (const { record, matches } of productPreflight) {
+    const { primaryImageUrl: _declaredImage, ...productData } = record;
     let productId: string;
     if (matches.length === 1) {
       await writer.updateProduct(matches[0].id, productData);
@@ -1367,6 +1509,12 @@ export async function reconcileProductDevelopmentSeeds(
     productIds.set(record.sku, productId);
   }
 
+  const imagePreflight: Array<{
+    readonly record: ProductDevSeedDefinition;
+    readonly productId: string;
+    readonly intendedImageUrl: string;
+    readonly primaryImages: readonly ProductDevPrimaryImageRecord[];
+  }> = [];
   for (const record of records) {
     const intendedImageUrl =
       record.primaryImageUrl === undefined
@@ -1386,6 +1534,20 @@ export async function reconcileProductDevelopmentSeeds(
         `products.dev.products found multiple primary images for SKU ${record.sku}`,
       );
     }
+    imagePreflight.push({
+      record,
+      productId,
+      intendedImageUrl,
+      primaryImages,
+    });
+  }
+
+  for (const {
+    record,
+    productId,
+    intendedImageUrl,
+    primaryImages,
+  } of imagePreflight) {
     const imageData: ProductDevPrimaryImageWriteData = {
       productId,
       imageUrl: intendedImageUrl,
