@@ -1377,3 +1377,101 @@ RUNTIME_FILES_CHANGED=0
 SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
 ```
+
+## 26. P8-05C2D3 Harvest Retirement Implementation Overlay
+
+PR #132 was human-reviewed, passed the Backend Quality Gate, and merged into
+`develop`. Its audit-only head was
+`fbe2920a2a87b1753091da5481d2d16d35c7ea0a`; the actual merge commit is
+`719c25ebfce294d750e4e317ec094946c18fa915`. Section 25 remains the human
+decision authority that approved retirement of all three synthetic Harvest
+fixtures. This overlay records the authorized retirement-only implementation.
+
+### 26.1 Harvest Writer And Reset Retirement
+
+`DevSeedService` no longer imports or acquires a repository for
+`HarvestScheduleEntity`, invokes or defines `seedHarvestSchedules`, declares
+HS-01 through HS-03, or targets `harvest_schedules` from `resetAll`. The Harvest
+domain entity, repository, table, migration, indexes, and normal runtime
+persistence remain unchanged.
+
+```text
+CENTRAL_SEED_HARVEST_SCHEDULES_METHOD_EXISTS=NO
+CENTRAL_HARVEST_REPOSITORY_ACCESS=0
+CENTRAL_HARVEST_WRITE_CALLS=0
+CENTRAL_HARVEST_TABLE_WRITE_OWNERS=0
+
+HS_01_EXECUTABLE_FIXTURE_EXISTS=NO
+HS_02_EXECUTABLE_FIXTURE_EXISTS=NO
+HS_03_EXECUTABLE_FIXTURE_EXISTS=NO
+
+PRE_C2D3_HARVEST_RESET_TARGET_COUNT=1
+POST_C2D3_HARVEST_RESET_TARGET_COUNT=0
+HARVEST_RESET_TARGET_EXISTS=NO
+```
+
+### 26.2 Legacy Scalar Plumbing
+
+The farmer User scalar remains required by `seedForum`, so the Users dependency
+and `FARMER` alias remain. The Xoài Product scalar had no consumer other than
+the retired Harvest writer; its argument, alias, resolver, output lookup, and
+`products.dev.products` dependency were removed from
+`legacy.dev.remaining`. Products owner outputs themselves are unchanged.
+
+```text
+LEGACY_FARMER_SCALAR_POST_C2D3_CONSUMER_COUNT=1
+LEGACY_XOAI_PRODUCT_SCALAR_POST_C2D3_CONSUMER_COUNT=0
+HARVEST_ONLY_LEGACY_PLUMBING_REMOVED=YES_PRODUCT_ARGUMENT_ALIAS_RESOLVER_LOOKUP_AND_DEPENDENCY
+```
+
+### 26.3 Post-C2D3 Central Boundary
+
+Exactly the three blocked C3 writers remain. They own five ordinary DEV
+business tables. `ad_events` remains a reset debt target but has no normal
+writer in this continuation and is therefore not counted as an ordinary
+business-table write owner.
+
+```text
+PRE_C2D3_CENTRAL_NORMAL_WRITE_METHOD_COUNT=4
+POST_C2D3_CENTRAL_NORMAL_WRITE_METHOD_COUNT=3
+POST_C2D3_CENTRAL_NORMAL_WRITE_METHODS=seedForum;seedAdPackages;seedAdCampaigns
+
+PRE_C2D3_CENTRAL_BUSINESS_TABLE_COUNT=6
+POST_C2D3_CENTRAL_BUSINESS_TABLE_COUNT=5
+POST_C2D3_CENTRAL_BUSINESS_TABLES=forum_posts;forum_comments;forum_likes;ad_packages;ad_campaigns
+```
+
+No replacement Harvest owner group, seed group, output kind, or deterministic
+identity was created.
+
+```text
+NEW_HARVEST_SEEDGROUPS=0
+NEW_SEEDGROUPS=0
+NEW_SEED_OUTPUT_KINDS=0
+```
+
+### 26.4 Current Phase Authority And Scope
+
+```text
+P8_05C2D3A_PR_131_AUDIT_STATUS=MERGED_AUDIT_HISTORICAL_AUTHORITY
+P8_05C2D3A_HARVEST_IDENTITY_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_131
+P8_05C2D3A1_HUMAN_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_132
+HARVEST_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+
+P8_05C2D3_HARVEST_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C2D3_HARVEST_IMPLEMENTATION_AUTHORIZED=YES
+P8_05C2D3_BLOCKERS=NONE
+P8_05C2D3_IMPLEMENTATION_STRATEGY=RETIRE_LEGACY_HARVEST_SCHEDULE_DEV_FIXTURES
+
+P8_05C3B_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+HARVEST_DOMAIN_RUNTIME_CHANGES=0
+FORUM_BUSINESS_IMPLEMENTATION_CHANGES=0
+ADS_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RETIRED=NO
+LEGACY_DEV_REMAINING_EXISTS=YES
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+```

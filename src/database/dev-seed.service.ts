@@ -7,14 +7,10 @@ import { ForumComment } from '../modules/forum/entities/forum-comment.entity';
 import { ForumLike } from '../modules/forum/entities/forum-like.entity';
 import { AdCampaign } from '../modules/ads/infrastructure/persistence/entities/ad-campaign.entity';
 import { AdPackage } from '../modules/ads/infrastructure/persistence/entities/ad-package.entity';
-import { HarvestScheduleEntity } from '../modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity';
 
-import { ProductUnit, AdType, AdStatus } from '../common/enums';
+import { AdType, AdStatus } from '../common/enums';
 import { ForumCategory } from '../modules/forum/entities/forum-post.entity';
-import type {
-  LegacyDevActorIds,
-  LegacyDevProductIds,
-} from './seeds/legacy-remaining-dev-seed.group';
+import type { LegacyDevActorIds } from './seeds/legacy-remaining-dev-seed.group';
 
 @Injectable()
 export class DevSeedService {
@@ -22,10 +18,7 @@ export class DevSeedService {
 
   constructor(@InjectDataSource() private readonly ds: DataSource) {}
 
-  async seedRemainingLegacySections(
-    users: LegacyDevActorIds,
-    products: LegacyDevProductIds,
-  ): Promise<void> {
+  async seedRemainingLegacySections(users: LegacyDevActorIds): Promise<void> {
     const log = this.logger;
     const { ADMIN, FARMER, BUYER, SUPPLIER, COOP } = users;
 
@@ -35,16 +28,12 @@ export class DevSeedService {
     await this.seedAdPackages();
     await this.seedAdCampaigns(SUPPLIER, ADMIN);
     log.log(`[Seed] ads seeded`);
-
-    await this.seedHarvestSchedules(FARMER, products.XOAI_HOA_LOC);
-    log.log(`[Seed] cooperative harvest data seeded`);
   }
 
   private async resetAll(): Promise<void> {
     // Temporary C2/C3/C4 reset debt. C1-owned and deferred targets are omitted;
     // the method itself remains scheduled for retirement in P8-05C4.
     const tables = [
-      'harvest_schedules',
       'forum_likes', 'forum_comments', 'forum_posts',
       'ad_campaigns', 'ad_packages', 'ad_events',
     ];
@@ -137,21 +126,4 @@ export class DevSeedService {
       await campaignRepo.save(c as any);
     }
   }
-
-  // ── COOPERATIVE ──────────────────────────────────────────────────────
-  private async seedHarvestSchedules(farmerId: string, productId: string) {
-    const repo = this.ds.getRepository(HarvestScheduleEntity);
-    const existing = await repo.count();
-    if (existing > 0) return;
-
-    const schedules = [
-      { userId: farmerId, productId, cropName: 'Xoài cát Hòa Lộc', expectedHarvestDate: new Date('2026-07-15'), estimatedQuantity: 2000, unit: ProductUnit.KG, notes: 'Xoài cát: vụ chính' },
-      { userId: farmerId, productId, cropName: 'Xoài cát Hòa Lộc', expectedHarvestDate: new Date('2026-07-20'), estimatedQuantity: 1500, unit: ProductUnit.KG, notes: 'Xoài cát: vụ muộn' },
-      { userId: farmerId, productId, cropName: 'Xoài cát Hòa Lộc', expectedHarvestDate: new Date('2026-08-01'), estimatedQuantity: 3000, unit: ProductUnit.KG, notes: 'Xoài cát: vụ rải' },
-    ];
-    for (const s of schedules) {
-      await repo.save(s as any);
-    }
-  }
-
 }

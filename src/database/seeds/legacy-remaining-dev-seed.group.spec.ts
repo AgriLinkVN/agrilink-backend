@@ -10,21 +10,14 @@ import {
   USERS_DEV_SEED_GROUP_ID,
 } from "../../modules/users/application/contracts/user-seed-output.contract";
 import {
-  PRODUCT_ID_BY_SKU_OUTPUT_KIND,
-  PRODUCTS_DEV_SEED_GROUP_ID,
-} from "../../modules/products/application/contracts/product-seed-output.contract";
-import {
   LEGACY_DEV_ACTOR_EMAILS,
-  LEGACY_DEV_PRODUCT_SKUS,
   LEGACY_REMAINING_DEV_SEED_METADATA,
   LEGACY_REMAINING_TARGET_RETIREMENT,
   LegacyDevActorIds,
-  LegacyDevProductIds,
   LegacyRemainingDevSeedContinuation,
   LegacyRemainingDevSeedGroup,
   TEMPORARY_LEGACY_CONTINUATION,
   resolveLegacyDevActorIds,
-  resolveLegacyDevProductIds,
 } from "./legacy-remaining-dev-seed.group";
 
 function createContext(
@@ -36,13 +29,6 @@ function createContext(
       kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
       key: email,
       value: `id:${email}`,
-    })),
-  });
-  registry.register(PRODUCTS_DEV_SEED_GROUP_ID, {
-    outputs: Object.values(LEGACY_DEV_PRODUCT_SKUS).map((sku) => ({
-      kind: PRODUCT_ID_BY_SKU_OUTPUT_KIND,
-      key: sku,
-      value: `id:${sku}`,
     })),
   });
   return {
@@ -64,7 +50,7 @@ describe("LegacyRemainingDevSeedGroup", () => {
       id: "legacy.dev.remaining",
       owner: "persistence-transition",
       classification: SeedClassification.DEV,
-      dependencies: [USERS_DEV_SEED_GROUP_ID, PRODUCTS_DEV_SEED_GROUP_ID],
+      dependencies: [USERS_DEV_SEED_GROUP_ID],
       description:
         "TEMPORARY_LEGACY_CONTINUATION=YES; TARGET_RETIREMENT=P8_05C4",
     });
@@ -82,38 +68,16 @@ describe("LegacyRemainingDevSeedGroup", () => {
   });
 
   it("fails closed when Users output access is undeclared", () => {
-    expect(() =>
-      resolveLegacyDevActorIds(createContext([PRODUCTS_DEV_SEED_GROUP_ID])),
-    ).toThrow("UNDECLARED_DEPENDENCY_LOOKUP");
-  });
-
-  it("resolves only the Harvest Product ID still required centrally", () => {
-    expect(resolveLegacyDevProductIds(createContext())).toEqual(
-      Object.fromEntries(
-        Object.entries(LEGACY_DEV_PRODUCT_SKUS).map(([alias, sku]) => [
-          alias,
-          `id:${sku}`,
-        ]),
-      ),
+    expect(() => resolveLegacyDevActorIds(createContext([]))).toThrow(
+      "UNDECLARED_DEPENDENCY_LOOKUP",
     );
-    expect(LEGACY_DEV_PRODUCT_SKUS).toEqual({
-      XOAI_HOA_LOC: "DEV-XOAI-HOA-LOC-001",
-    });
-  });
-
-  it("fails closed when Products output access is undeclared", () => {
-    expect(() =>
-      resolveLegacyDevProductIds(createContext([USERS_DEV_SEED_GROUP_ID])),
-    ).toThrow("UNDECLARED_DEPENDENCY_LOOKUP");
   });
 
   it("calls only the narrow remaining C2/C3/C4 continuation", async () => {
     const calls: LegacyDevActorIds[] = [];
-    const productCalls: LegacyDevProductIds[] = [];
     const continuation: LegacyRemainingDevSeedContinuation = {
-      async seedRemainingLegacySections(actors, products) {
+      async seedRemainingLegacySections(actors) {
         calls.push(actors);
-        productCalls.push(products);
       },
     };
 
@@ -124,8 +88,6 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].FARMER).toBe("id:farmer@sandbox.com");
     expect(calls[0].ENTERPRISE).toBe("id:enterprise@agrilink.vn");
-    expect(productCalls).toHaveLength(1);
-    expect(productCalls[0].XOAI_HOA_LOC).toBe("id:DEV-XOAI-HOA-LOC-001");
   });
 
   it("keeps migrated and deferred C1 paths out of central execution", () => {
@@ -155,15 +117,28 @@ describe("LegacyRemainingDevSeedGroup", () => {
       /seedCoopMembers|getRepository\(CooperativeMemberEntity\)|cooperative-member\.entity|['"]cooperative_members['"],/,
     );
     expect(central).not.toContain("seedBulkListings");
-    expect(central).toContain("seedHarvestSchedules");
+    expect(central).not.toContain("seedHarvestSchedules");
     expect(central).not.toContain("bulk_listing_contributions");
     expect(central).not.toContain("bulk_listings");
-    expect(central).toContain("harvest_schedules");
+    expect(central).not.toContain("harvest_schedules");
     expect(LEGACY_DEV_ACTOR_EMAILS.COOP).toBe("cooperative@sandbox.com");
     expect(LEGACY_DEV_ACTOR_EMAILS.FARMER).toBe("farmer@sandbox.com");
-    expect(Object.keys(LEGACY_DEV_PRODUCT_SKUS)).toEqual(["XOAI_HOA_LOC"]);
     expect(central).not.toMatch(
       /SAU_RIENG_RI6|BUOI_DA_XANH_FARMER|THANH_LONG_RUOT_DO|DUA_HAU_KHONG_HAT|VAI_THIEU_LUC_NGAN|RAU_MUONG_HUU_CO|CA_ROT_DA_LAT/,
     );
+  });
+
+  it("removes the dead Harvest-only Product dependency and output plumbing", () => {
+    const groupSource = readFileSync(
+      join(__dirname, "legacy-remaining-dev-seed.group.ts"),
+      "utf8",
+    );
+
+    expect(groupSource).not.toMatch(
+      /PRODUCTS_DEV_SEED_GROUP_ID|PRODUCT_ID_BY_SKU_OUTPUT_KIND|LEGACY_DEV_PRODUCT_SKUS|LegacyDevProductIds|resolveLegacyDevProductIds|DEV-XOAI-HOA-LOC-001/,
+    );
+    expect(LEGACY_REMAINING_DEV_SEED_METADATA.dependencies).toEqual([
+      USERS_DEV_SEED_GROUP_ID,
+    ]);
   });
 });
