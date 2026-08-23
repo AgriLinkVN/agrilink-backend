@@ -173,9 +173,9 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(centralSource).toContain("async seedAdPackages(");
     expect(centralSource).toContain("async seedAdCampaigns(");
     expect(centralSource).not.toContain("async seedBulkListings(");
-    expect(centralSource).toContain("async seedHarvestSchedules(");
+    expect(centralSource).not.toContain("async seedHarvestSchedules(");
     expect(centralSource).not.toContain("skipProducts: true");
-    expect(centralSource).toContain("products.XOAI_HOA_LOC");
+    expect(centralSource).not.toContain("products.XOAI_HOA_LOC");
     expect(centralSource).not.toMatch(
       /seedReviews|getRepository\(Review\)|review\.entity/,
     );
@@ -191,6 +191,10 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(cooperativeMembersSeedSource).toContain(
       "dependencies: [USERS_DEV_SEED_GROUP_ID]",
     );
+    expect(legacyRemainingSource).toContain(
+      "dependencies: [USERS_DEV_SEED_GROUP_ID]",
+    );
+    expect(legacyRemainingSource).not.toContain("PRODUCTS_DEV_SEED_GROUP_ID");
     expect(mainSource).not.toMatch(
       /cooperatives\.dev\.(?:bulk-operations|harvest)/,
     );
