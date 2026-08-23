@@ -4,10 +4,8 @@
  * hoặc:
  *   npx ts-node -r tsconfig-paths/register src/database/seeds/admin-dev.seed.ts
  *
- * Tạo data giả giống thật để test admin dashboard:
- *   - dùng 9 User IDs từ owner SeedGroup users.dev.users
- *   - 8 hồ sơ KYC chờ duyệt (CCCD, GPKD)
- *   - 10 sản phẩm chờ duyệt / bị từ chối
+ * Temporary P8-05D transition entrypoint. Business persistence is delegated to
+ * the canonical Users, Profiles, Product Categories, and Products SeedGroups.
  */
 import { DataSource } from "typeorm";
 import { User } from "../entities/user.entity";
@@ -16,7 +14,6 @@ import { CooperativeProfile } from "../../modules/profiles/infrastructure/persis
 import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
 import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
 import { Product } from "../../modules/products/infrastructure/persistence/entities/product.entity";
-import { ProductStatus, SellerType, ProductUnit, FarmingType } from "../../common/enums";
 import * as dotenv from "dotenv";
 import { parseDatabaseEnvironment } from "../../config/database-environment";
 import {
@@ -35,6 +32,8 @@ import {
 } from "../../modules/users/application/contracts/user-seed-output.contract";
 import { createUsersDevSeedGroup } from "../../modules/users/infrastructure/database/seeds/user.seed";
 import { createProfilesRoleProfilesDevSeedGroup } from "../../modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer";
+import { createProductsCategoryReferenceSeedGroup } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
+import { createProductDevelopmentSeedGroup } from "../../modules/products/infrastructure/database/seeds/typeorm-product-dev-seed.writer";
 
 dotenv.config();
 
@@ -100,6 +99,21 @@ export async function executeAdminDevOwnerGroups(
   });
   outputRegistry.register(profilesGroup.metadata.id, profilesResult);
 
+  const categoriesGroup = createProductsCategoryReferenceSeedGroup(ds);
+  const categoriesResult = await categoriesGroup.execute({
+    ...safeTarget,
+    classifications: [SeedClassification.REFERENCE],
+    dependencies: outputRegistry.viewFor(categoriesGroup.metadata),
+  });
+  outputRegistry.register(categoriesGroup.metadata.id, categoriesResult);
+
+  const productsGroup = createProductDevelopmentSeedGroup(ds);
+  const productsResult = await productsGroup.execute({
+    ...safeTarget,
+    dependencies: outputRegistry.viewFor(productsGroup.metadata),
+  });
+  outputRegistry.register(productsGroup.metadata.id, productsResult);
+
   return resolveAdminDevUserIds(usersResult);
 }
 
@@ -115,68 +129,13 @@ export async function seedAdminDevData(
     classifications: [SeedClassification.DEV],
   });
 
-  const productRepo = ds.getRepository(Product);
-  // ─── Products (chờ duyệt + bị từ chối) ──────────────────────────
-  const productDefs = [
-    { sellerId: users["hung.nv@farm.vn"].id, sellerType: SellerType.FARMER, name: "Xoài cát Hòa Lộc loại 1", description: "Xoài chín cây, ngọt thanh, không thuốc trừ sâu. Đóng gói 5kg/thùng.", pricePerUnit: 45000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 10, variety: "Hòa Lộc", farmingType: FarmingType.VIETGAP, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["mai.lt@farm.vn"].id, sellerType: SellerType.FARMER, name: "Rau xà lách thủy canh", description: "Xà lách trồng trong nhà kính, sạch, giòn, không thuốc bảo vệ thực vật.", pricePerUnit: 25000, unit: ProductUnit.KG, availableQuantity: 200, minOrderQuantity: 5, variety: "Xà lách Mỹ", farmingType: FarmingType.ORGANIC, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["tuan.pq@farm.vn"].id, sellerType: SellerType.FARMER, name: "Dưa lưới giống Nhật", description: "Dưa lưới trồng theo tiêu chuẩn GlobalGAP, vị ngọt đậm, mọng nước.", pricePerUnit: 85000, unit: ProductUnit.KG, availableQuantity: 150, minOrderQuantity: 2, variety: "Nhật Bản", farmingType: FarmingType.GLOBALGAP, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["htx.dalat@coop.vn"].id, sellerType: SellerType.COOPERATIVE, name: "Gạo ST25 Sóc Trăng", description: "Gạo thơm đặc sản, đạt chuẩn xuất khẩu. Đóng bao 5kg.", pricePerUnit: 35000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 20, variety: "ST25", farmingType: FarmingType.VIETGAP, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["htx.dalat@coop.vn"].id, sellerType: SellerType.COOPERATIVE, name: "Rau cải bó xôi hữu cơ", description: "Cải bó xôi organic Đà Lạt, thu hoạch trong ngày, giao tận nơi.", pricePerUnit: 32000, unit: ProductUnit.KG, availableQuantity: 300, minOrderQuantity: 5, variety: "Bó xôi", farmingType: FarmingType.ORGANIC, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["htx.tiengiang@coop.vn"].id, sellerType: SellerType.COOPERATIVE, name: "Bưởi da xanh Bến Tre", description: "Bưởi da xanh chính hiệu, ngọt mát, mọng nước, xuất khẩu đi EU.", pricePerUnit: 65000, unit: ProductUnit.KG, availableQuantity: 800, minOrderQuantity: 10, variety: "Da xanh", farmingType: FarmingType.VIETGAP, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["xnk.mekong@ent.vn"].id, sellerType: SellerType.SUPPLIER, name: "Gạo lứt hữu cơ xuất khẩu", description: "Gạo lứt organic, đóng gói chân không 2kg, xuất khẩu EU và Nhật.", pricePerUnit: 55000, unit: ProductUnit.KG, availableQuantity: 3000, minOrderQuantity: 50, variety: "Lứt đỏ", farmingType: FarmingType.ORGANIC, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["agri.tech@ent.vn"].id, sellerType: SellerType.SUPPLIER, name: "Cà phê robusta Buôn Ma Thuột", description: "Cà phê nhân xanh, sơ chế ướt, đạt chuẩn 4C, xuất khẩu châu Âu.", pricePerUnit: 120000, unit: ProductUnit.KG, availableQuantity: 5000, minOrderQuantity: 100, variety: "Robusta", farmingType: FarmingType.GLOBALGAP, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["phanbon.xanh@sup.vn"].id, sellerType: SellerType.SUPPLIER, name: "Phân bón hữu cơ vi sinh Trichoderma", description: "Phân bón vi sinh đối kháng nấm bệnh, dùng cho rau màu và cây ăn trái.", pricePerUnit: 85000, unit: ProductUnit.KG, availableQuantity: 2000, minOrderQuantity: 25, status: ProductStatus.PENDING_APPROVAL },
-    { sellerId: users["phanbon.xanh@sup.vn"].id, sellerType: SellerType.SUPPLIER, name: "Chế phẩm sinh học EM gốc", description: "EM gốc (Effective Microorganisms) — xử lý đất, ủ phân, khử mùi chuồng trại.", pricePerUnit: 150000, unit: ProductUnit.KG, availableQuantity: 500, minOrderQuantity: 5, status: ProductStatus.REJECTED, rejectionReason: "Thiếu giấy chứng nhận lưu hành sản phẩm của Cục Bảo vệ Thực vật" },
-  ];
-
-  for (const pd of productDefs) {
-    const exist = await productRepo.findOne({ where: { name: pd.name, sellerId: pd.sellerId } });
-    if (!exist) await productRepo.save(productRepo.create(pd));
-  }
-
-  // ─── Product images (each product gets 1 primary image) ──────────
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  let ProductImage: any;
-  try {
-    ProductImage = require("../../modules/products/infrastructure/persistence/entities/product-image.entity").ProductImage;
-  } catch { /* not available in standalone mode */ }
-
-  if (ProductImage) {
-    const imageRepo = ds.getRepository(ProductImage);
-    const placeholderImages: Record<string, string> = {
-      "Xoài cát Hòa Lộc loại 1": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/xoai-cat-hoa-loc.jpg",
-      "Rau xà lách thủy canh": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/xa-lach-thuy-canh.jpg",
-      "Dưa lưới giống Nhật": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/dua-luoi-nhat.jpg",
-      "Gạo ST25 Sóc Trăng": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/gao-st25.jpg",
-      "Rau cải bó xôi hữu cơ": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/cai-bo-xoi.jpg",
-      "Bưởi da xanh Bến Tre": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/buoi-da-xanh.jpg",
-      "Gạo lứt hữu cơ xuất khẩu": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/gao-lut.jpg",
-      "Cà phê robusta Buôn Ma Thuột": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/ca-phe-robusta.jpg",
-      "Phân bón hữu cơ vi sinh Trichoderma": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/phan-bon.jpg",
-      "Chế phẩm sinh học EM gốc": "https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/che-pham-em.jpg",
-    };
-
-    for (const pd of productDefs) {
-      const product = await productRepo.findOne({ where: { name: pd.name, sellerId: pd.sellerId } });
-      if (!product) continue;
-      const existImg = await imageRepo.findOne({ where: { productId: product.id } });
-      if (!existImg && placeholderImages[pd.name]) {
-        await imageRepo.save(imageRepo.create({
-          productId: product.id,
-          imageUrl: placeholderImages[pd.name],
-          isPrimary: true,
-          sortOrder: 0,
-        }));
-      }
-    }
-  }
-
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("✅ Admin dev data seeded successfully!");
-  console.log(`   👤 ${Object.keys(users).length} users (admin@agrilink.vn / demo123)`);
+  console.log("✅ Admin dev owner groups completed successfully!");
+  console.log(`   👤 ${Object.keys(users).length} users via users.dev.users`);
   console.log("   📋 8 profiles via profiles.dev.role-profiles");
-  console.log(`   📦 ${productDefs.length} products with images`);
+  console.log(
+    "   📦 69 products and 67 primary images via products.dev.products",
+  );
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
 
@@ -193,11 +152,17 @@ if (require.main === module) {
 
   // Lazy imports for CLI — only loaded when running standalone
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { ProductCategory } = require("../../modules/products/infrastructure/persistence/entities/product-category.entity");
+  const {
+    ProductCategory,
+  } = require("../../modules/products/infrastructure/persistence/entities/product-category.entity");
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { ProductImage } = require("../../modules/products/infrastructure/persistence/entities/product-image.entity");
+  const {
+    ProductImage,
+  } = require("../../modules/products/infrastructure/persistence/entities/product-image.entity");
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { ProductCertification } = require("../../modules/products/infrastructure/persistence/entities/product-certification.entity");
+  const {
+    ProductCertification,
+  } = require("../../modules/products/infrastructure/persistence/entities/product-certification.entity");
 
   const ds = new DataSource({
     type: "postgres",
@@ -207,15 +172,34 @@ if (require.main === module) {
     username: database.username,
     password: database.password,
     schema: database.schema,
-    entities: [User, FarmerProfile, CooperativeProfile, EnterpriseProfile, SupplierProfile, Product, ProductCategory, ProductImage, ProductCertification],
+    entities: [
+      User,
+      FarmerProfile,
+      CooperativeProfile,
+      EnterpriseProfile,
+      SupplierProfile,
+      Product,
+      ProductCategory,
+      ProductImage,
+      ProductCertification,
+    ],
     synchronize: false,
   });
 
   ds.initialize()
-    .then(async (ds) => {
-      const users = await executeAdminDevOwnerGroups(ds, safeTarget);
-      await seedAdminDevData(ds, users);
+    .then(async (initializedDataSource) => {
+      const users = await executeAdminDevOwnerGroups(
+        initializedDataSource,
+        safeTarget,
+      );
+      await seedAdminDevData(initializedDataSource, users);
     })
-    .then(() => { console.log("Done!"); process.exit(0); })
-    .catch((e) => { console.error(e); process.exit(1); });
+    .then(() => {
+      console.log("Done!");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
 }

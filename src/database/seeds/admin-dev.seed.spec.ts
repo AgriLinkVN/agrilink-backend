@@ -29,6 +29,19 @@ const profilesSeedSource = readFileSync(
   ),
   "utf8",
 );
+const productsSeedSource = readFileSync(
+  join(
+    root,
+    "src",
+    "modules",
+    "products",
+    "infrastructure",
+    "database",
+    "seeds",
+    "product-development-seed.service.ts",
+  ),
+  "utf8",
+);
 const phaseReadme = readFileSync(
   join(
     root,
@@ -55,7 +68,7 @@ function matchCount(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
 }
 
-describe("P8-05D1/D2 Admin DEV owner transitions", () => {
+describe("P8-05D1/D2/D3 Admin DEV owner transitions", () => {
   it("uses the existing Users owner group and dependency-scoped outputs", () => {
     expect(adminSource).toContain("createUsersDevSeedGroup(ds)");
     expect(adminSource).toContain("usersGroup.execute");
@@ -153,38 +166,74 @@ describe("P8-05D1/D2 Admin DEV owner transitions", () => {
     ).toBe(4);
   });
 
-  it("preserves all ten Product and ten Product Image fixture writes for D3", () => {
-    const products = section(
-      "const productDefs = [",
-      "for (const pd of productDefs)",
+  it("P8-05D3 delegates Products through the existing owner group", () => {
+    expect(adminSource).toContain("createProductDevelopmentSeedGroup(ds)");
+    expect(adminSource).toContain("productsGroup.execute");
+    expect(adminSource).toContain(
+      "dependencies: outputRegistry.viewFor(productsGroup.metadata)",
     );
-    const images = section(
-      "const placeholderImages: Record<string, string> = {",
-      "for (const pd of productDefs)",
+    expect(adminSource).toContain(
+      "outputRegistry.register(productsGroup.metadata.id, productsResult)",
     );
-
-    expect(matchCount(products, /sellerId: users\[/g)).toBe(10);
-    expect(matchCount(images, /https:\/\/res\.cloudinary\.com/g)).toBe(10);
-    expect(adminSource).toContain("productRepo.save");
-    expect(adminSource).toContain("imageRepo.save");
+    expect(adminSource).toContain(
+      "createProductsCategoryReferenceSeedGroup(ds)",
+    );
+    expect(
+      matchCount(
+        productsSeedSource,
+        /export class ProductDevelopmentSeedService implements SeedGroup/g,
+      ),
+    ).toBe(1);
+    expect(adminSource).not.toMatch(/class\s+\w*Products?\w*SeedGroup/);
   });
 
-  it("retains the guarded standalone entrypoint and current D4 blockers", () => {
+  it("P8-05D3 contains zero direct Product or Product Image writes", () => {
+    expect(adminSource).not.toMatch(/\bproductRepo\b|\bimageRepo\b/);
+    expect(adminSource).not.toMatch(
+      /getRepository\((?:Product|ProductImage)\)/,
+    );
+    expect(adminSource).not.toMatch(/\bproductDefs\b|\bplaceholderImages\b/);
+    expect(adminSource).not.toMatch(
+      /(?:productRepo|imageRepo)\.(?:save|create|update|insert|upsert|delete)/,
+    );
+    expect(adminSource).not.toMatch(/let ProductImage:\s*any/);
+  });
+
+  it("P8-05D3 retains the guarded standalone entrypoint for separate D4 cleanup", () => {
     expect(adminSource).toContain("if (require.main === module)");
     expect(adminSource).toContain("const ds = new DataSource");
     expect(adminSource.indexOf("assertSeedExecutionSafety({")).toBeLessThan(
       adminSource.indexOf("const ds = new DataSource"),
     );
     expect(phaseReadme).toContain(
-      "P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=NO",
+      "P8_05D4_STANDALONE_ENTRYPOINT_RETIREMENT_AUTHORIZED=YES_AFTER_P8_05D3_MERGE",
     );
-    expect(phaseReadme).toContain(
-      "P8_05D4_BLOCKERS=P8_05D3_PRODUCTS_NOT_IMPLEMENTED",
-    );
+    expect(phaseReadme).toContain("P8_05D4_BLOCKERS=NONE");
   });
 
-  it("removes the Profile explicit any and leaves Product Image debt unchanged", () => {
+  it("P8-05D3 leaves no transition Product Image explicit any", () => {
     expect(adminSource).not.toContain('supplierType: "fertilizer" as any');
-    expect(matchCount(adminSource, /let ProductImage: any/g)).toBe(1);
+    expect(matchCount(adminSource, /let ProductImage: any/g)).toBe(0);
+  });
+
+  it("P8-05D3 preserves exactly nine transition entity registrations", () => {
+    const entities = section("entities: [", "synchronize: false");
+    const registrations = entities
+      .slice(entities.indexOf("[") + 1, entities.lastIndexOf("]"))
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    expect(registrations).toHaveLength(9);
+    expect(matchCount(entities, /\bUser\b/g)).toBe(1);
+    expect(
+      matchCount(
+        entities,
+        /(?:FarmerProfile|CooperativeProfile|EnterpriseProfile|SupplierProfile)/g,
+      ),
+    ).toBe(4);
+    expect(matchCount(entities, /\bProduct\b/g)).toBe(1);
+    expect(matchCount(entities, /\bProductImage\b/g)).toBe(1);
+    expect(matchCount(entities, /\bProductCategory\b/g)).toBe(1);
   });
 });

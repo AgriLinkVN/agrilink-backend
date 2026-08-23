@@ -22,6 +22,9 @@ import {
   USERS_DEV_SEED_GROUP_ID,
 } from '../../../../users/application/contracts/user-seed-output.contract';
 import {
+  APPROVED_D3_PRIMARY_IMAGE_URLS,
+  APPROVED_D3_PRODUCT_SKUS,
+  D3_REQUIRED_SELLER_EMAILS,
   PRODUCTS_DEV_SEED_METADATA,
   PRODUCT_DEV_PRIMARY_IMAGE_URL,
   ProductDevCertificationWriteData,
@@ -117,6 +120,11 @@ const APPROVED_C2B_PRODUCT_SKUS = [
   'DEV-VIOLATION-PHAN-BON-KEM-CHAT-LUONG-001',
 ] as const;
 
+const SUPERSEDED_D3_PRODUCT_SKUS = [
+  'DEV-GAO-LUT-HUU-CO-XNK-MEKONG-001',
+  'DEV-CA-PHE-ROBUSTA-AGRI-TECH-001',
+] as const;
+
 function createContext(
   includeUsers = true,
   includeCategories = true,
@@ -151,6 +159,11 @@ function createContext(
           key: 'cooperative@sandbox.com',
           value: 'user-sandbox-cooperative',
         },
+        ...D3_REQUIRED_SELLER_EMAILS.map((email) => ({
+          kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
+          key: email,
+          value: `user-${email}`,
+        })),
       ],
     });
   }
@@ -293,19 +306,20 @@ describe('ProductDevelopmentSeedService', () => {
     });
   });
 
-  it('preserves the 54-SKU snapshot and adds only the nine approved C2B SKUs', () => {
+  it('preserves the 54-SKU snapshot and the nine approved C2B SKUs', () => {
     const records = buildProductDevelopmentSeedData(createContext());
-    expect(records).toHaveLength(63);
+    expect(records).toHaveLength(69);
     expect(records.slice(0, 54).map(({ sku }) => sku)).toEqual(
       ORIGINAL_PRODUCT_DEV_SKUS,
     );
-    expect(records.slice(54).map(({ sku }) => sku)).toEqual(
-      APPROVED_C2B_PRODUCT_SKUS,
-    );
+    expect(records.slice(54).map(({ sku }) => sku)).toEqual([
+      ...APPROVED_C2B_PRODUCT_SKUS,
+      ...APPROVED_D3_PRODUCT_SKUS,
+    ]);
     expect(
       records.every(({ sku }) => sku.startsWith('DEV-') && sku.length <= 50),
     ).toBe(true);
-    expect(new Set(records.map(({ sku }) => sku)).size).toBe(63);
+    expect(new Set(records.map(({ sku }) => sku)).size).toBe(69);
   });
 
   it('resolves all seller and category IDs only from dependency outputs', () => {
@@ -318,6 +332,7 @@ describe('ProductDevelopmentSeedService', () => {
         'user-supplier',
         'user-sandbox-farmer',
         'user-sandbox-cooperative',
+        ...D3_REQUIRED_SELLER_EMAILS.map((email) => `user-${email}`),
       ]),
     );
     expect(new Set(records.map(({ categoryId }) => categoryId))).toEqual(
@@ -510,6 +525,140 @@ describe('ProductDevelopmentSeedService', () => {
     ).toMatchObject({ pricePerUnit: 120000, availableQuantity: 500 });
   });
 
+  describe('P8-05D3 corrected Admin DEV Product owner migration', () => {
+    it('declares exactly six approved distinct Products and primary Images', () => {
+      const context = createContext();
+      const requireString = jest.fn(
+        context.dependencies.requireString.bind(context.dependencies),
+      );
+      const dependencies = new Proxy(context.dependencies, {
+        get(target, property) {
+          if (property === 'requireString') return requireString;
+          const value = Reflect.get(target, property, target);
+          return typeof value === 'function' ? value.bind(target) : value;
+        },
+      });
+      const records = buildProductDevelopmentSeedData({
+        ...context,
+        dependencies,
+      });
+      const d3Records = records.filter(({ sku }) =>
+        APPROVED_D3_PRODUCT_SKUS.includes(
+          sku as (typeof APPROVED_D3_PRODUCT_SKUS)[number],
+        ),
+      );
+
+      expect(records).toHaveLength(69);
+      expect(new Set(records.map(({ sku }) => sku)).size).toBe(69);
+      expect(d3Records.map(({ sku }) => sku)).toEqual(APPROVED_D3_PRODUCT_SKUS);
+      expect(d3Records.map(({ sellerId }) => sellerId)).toEqual([
+        'user-hung.nv@farm.vn',
+        'user-mai.lt@farm.vn',
+        'user-tuan.pq@farm.vn',
+        'user-htx.dalat@coop.vn',
+        'user-htx.dalat@coop.vn',
+        'user-htx.tiengiang@coop.vn',
+      ]);
+      expect(new Set(d3Records.map(({ sellerId }) => sellerId)).size).toBe(5);
+      expect(
+        d3Records.every(
+          ({ sellerType }) =>
+            sellerType === SellerType.FARMER ||
+            sellerType === SellerType.COOPERATIVE,
+        ),
+      ).toBe(true);
+      expect(d3Records.every(({ categoryId }) => categoryId === null)).toBe(
+        true,
+      );
+      expect(
+        requireString.mock.calls.filter(
+          ([producerId]) =>
+            producerId === PRODUCTS_CATEGORY_REFERENCE_SEED_GROUP_ID,
+        ),
+      ).toHaveLength(CATEGORY_SLUGS.length);
+      expect(d3Records.map(({ variety }) => variety)).toEqual([
+        'Hòa Lộc',
+        'Xà lách Mỹ',
+        'Nhật Bản',
+        'ST25',
+        'Bó xôi',
+        'Da xanh',
+      ]);
+      expect(d3Records.map(({ primaryImageUrl }) => primaryImageUrl)).toEqual(
+        APPROVED_D3_PRIMARY_IMAGE_URLS,
+      );
+    });
+
+    it('excludes every retired Product, Image, and superseded SKU', () => {
+      const records = buildProductDevelopmentSeedData(createContext());
+      const skus = new Set(records.map(({ sku }) => sku));
+      const names = new Set(records.map(({ name }) => name));
+      const imageUrls = new Set(
+        records.map(({ primaryImageUrl }) => primaryImageUrl),
+      );
+
+      expect(SUPERSEDED_D3_PRODUCT_SKUS.every((sku) => !skus.has(sku))).toBe(
+        true,
+      );
+      expect(names).not.toContain('Gạo lứt hữu cơ xuất khẩu');
+      expect(names).not.toContain('Cà phê robusta Buôn Ma Thuột');
+      expect(names).not.toContain('Phân bón hữu cơ vi sinh Trichoderma');
+      expect(names).not.toContain('Chế phẩm sinh học EM gốc');
+      expect(imageUrls).not.toContain(
+        'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/gao-lut.jpg',
+      );
+      expect(imageUrls).not.toContain(
+        'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/ca-phe-robusta.jpg',
+      );
+      expect(imageUrls).not.toContain(
+        'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/phan-bon.jpg',
+      );
+      expect(imageUrls).not.toContain(
+        'https://res.cloudinary.com/personal-media/image/upload/c_fill,w_800,h_800/agrilink/products/che-pham-em.jpg',
+      );
+    });
+
+    it('reconciles 69 Product outputs and 67 managed primary Images', async () => {
+      const records = buildProductDevelopmentSeedData(createContext());
+      const state = createWriter();
+
+      const productIds = await reconcileProductDevelopmentSeeds(
+        state.writer,
+        records,
+      );
+
+      expect(productIds.size).toBe(69);
+      expect(new Set(productIds.keys()).size).toBe(69);
+      expect(state.imageCreates).toHaveLength(67);
+      const d3Images = state.imageCreates.filter(({ imageUrl }) =>
+        APPROVED_D3_PRIMARY_IMAGE_URLS.includes(
+          imageUrl as (typeof APPROVED_D3_PRIMARY_IMAGE_URLS)[number],
+        ),
+      );
+      expect(d3Images).toHaveLength(6);
+      expect(
+        d3Images.every(
+          ({ isPrimary, sortOrder }) => isPrimary && sortOrder === 0,
+        ),
+      ).toBe(true);
+    });
+
+    it('preflights every declared SKU before the first Product write', async () => {
+      const records = buildProductDevelopmentSeedData(createContext());
+      const state = createWriter();
+      state.writer.findProductsBySku = async (sku) =>
+        sku === APPROVED_D3_PRODUCT_SKUS[5]
+          ? [{ id: 'duplicate-1' }, { id: 'duplicate-2' }]
+          : [];
+
+      await expect(
+        reconcileProductDevelopmentSeeds(state.writer, records),
+      ).rejects.toThrow('multiple Products for SKU');
+      expect(state.productCreates).toEqual([]);
+      expect(state.productUpdates).toEqual([]);
+    });
+  });
+
   it('fails closed when a required producer output is unavailable', () => {
     expect(() => buildProductDevelopmentSeedData(createContext(false))).toThrow(
       'MISSING_REQUIRED_OUTPUT',
@@ -553,13 +702,13 @@ describe('ProductDevelopmentSeedService', () => {
     const service = new ProductDevelopmentSeedService(state.writer);
 
     const firstResult = await service.execute(context);
-    expect(firstResult.outputs).toHaveLength(63);
+    expect(firstResult.outputs).toHaveLength(69);
     expect(
       firstResult.outputs.every(
         ({ kind }) => kind === PRODUCT_ID_BY_SKU_OUTPUT_KIND,
       ),
     ).toBe(true);
-    expect(new Set(firstResult.outputs.map(({ key }) => key)).size).toBe(63);
+    expect(new Set(firstResult.outputs.map(({ key }) => key)).size).toBe(69);
     expect(
       firstResult.outputs.every(
         (output) =>
@@ -580,18 +729,18 @@ describe('ProductDevelopmentSeedService', () => {
     });
     expect(state.productUpdates).toHaveLength(1);
     expect(state.productUpdates[0]).toEqual(first);
-    expect(state.productCreates).toHaveLength(62);
-    expect(state.products.size).toBe(63);
-    expect(state.imageCreates).toHaveLength(61);
+    expect(state.productCreates).toHaveLength(68);
+    expect(state.products.size).toBe(69);
+    expect(state.imageCreates).toHaveLength(67);
     expect(state.certificationCreates).toHaveLength(4);
 
     const secondResult = await service.execute(context);
 
     expect(secondResult.outputs).toEqual(firstResult.outputs);
-    expect(state.productCreates).toHaveLength(62);
-    expect(state.productUpdates).toHaveLength(64);
-    expect(state.imageCreates).toHaveLength(61);
-    expect(state.imageUpdates).toHaveLength(61);
+    expect(state.productCreates).toHaveLength(68);
+    expect(state.productUpdates).toHaveLength(70);
+    expect(state.imageCreates).toHaveLength(67);
+    expect(state.imageUpdates).toHaveLength(67);
     expect(state.certificationCreates).toHaveLength(4);
     expect(state.certificationUpdates).toHaveLength(4);
     expect([...state.images.values()].every((rows) => rows.length === 1)).toBe(
