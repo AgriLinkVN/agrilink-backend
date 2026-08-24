@@ -1765,3 +1765,211 @@ MIGRATIONS_EXECUTED=0
 SYNCHRONIZE=NO
 DESTRUCTIVE_RESET_EXECUTED=NO
 ```
+
+## 23. P8-05C3C2 Human Review Decision Overlay
+
+Human review accepts the complete section 22 identifier recommendation and
+clarifies the transitional nullability contract. `packageCode` and the three
+exact catalog values are now approved design authority. Schema and REFERENCE
+seed implementation have not started. In particular, the nullable expansion,
+bounded existing-row backfill, and NOT NULL contract must not be collapsed
+into one blind migration.
+
+### 23.1 Approved Package identity
+
+```text
+AD_PACKAGE_IDENTIFIER_FIELD_NAME_DECISION=packageCode
+AD_PACKAGE_IDENTIFIER_SEMANTICS=IMMUTABLE_ADVERTISING_PACKAGE_REFERENCE_CATALOG_CODE
+AD_PACKAGE_IDENTIFIER_ASSIGNMENT_AUTHORITY_DECISION=SYSTEM_DEFINED_REFERENCE_CATALOG
+AD_PACKAGE_IDENTIFIER_IMMUTABILITY_DECISION=IMMUTABLE_AFTER_CREATION
+AD_PACKAGE_IDENTIFIER_UNIQUENESS_SCOPE_DECISION=GLOBAL_UNIQUE
+AD_PACKAGE_IDENTIFIER_NULLABILITY_POLICY=TRANSITIONAL_NULLABLE_THEN_NOT_NULL
+AD_PACKAGE_IDENTIFIER_IS_DOMAIN_OR_CONFIGURATION_IDENTITY=YES
+AD_PACKAGE_IDENTIFIER_DISTINCT_FROM_AD_TYPE=YES
+AD_PACKAGE_VERSIONING_MODEL=SINGLE_IMMUTABLE_REFERENCE_PER_CODE_WITH_MUTABLE_PAYLOAD
+AD_PACKAGE_IDENTIFIER_API_EXPOSURE=PUBLIC_READ_ONLY_FIELD
+AD_PACKAGE_DOMAIN_IDENTIFIER_DECISION_RESOLVED=YES
+```
+
+The code is the stable system-defined advertising Package catalog identity.
+It remains unchanged when display name, type-adjacent presentation, price,
+duration, limits, description, or active state change. `AdType` continues to
+classify placement behavior and does not acquire one-Package-per-type
+cardinality.
+
+### 23.2 Approved exact catalog codes
+
+```text
+AP_01_REFERENCE_IDENTIFIER_VALUE_DECISION=HOMEPAGE_CAROUSEL
+AP_02_REFERENCE_IDENTIFIER_VALUE_DECISION=FEATURED_PRODUCT
+AP_03_REFERENCE_IDENTIFIER_VALUE_DECISION=SPOTLIGHT_PLACEMENT
+```
+
+These are canonical catalog identifiers. Localized display names, price,
+duration, generated numeric ID, fixture labels, and `AdType` alone are not
+identity.
+
+### 23.3 Numeric PK and Campaign FK decisions
+
+```text
+AD_PACKAGE_NUMERIC_PRIMARY_KEY_DECISION=RETAIN_INTERNAL_SURROGATE_PRIMARY_KEY
+AD_CAMPAIGN_PACKAGE_FK_DECISION=RETAIN_NUMERIC_PACKAGE_ID_FOREIGN_KEY
+AD_CAMPAIGN_PACKAGE_FK_SCHEMA_CHANGE_REQUIRED=NO
+```
+
+`packageCode` neither replaces `AdPackage.id` nor changes
+`AdCampaign.packageId`. It supplies reference-catalog identity and deterministic
+seed lookup alongside the existing relational key.
+
+### 23.4 Approved final schema contract
+
+```text
+PROPOSED_IDENTIFIER_COLUMN=package_code
+PROPOSED_IDENTIFIER_TYPE=varchar
+PROPOSED_IDENTIFIER_LENGTH=64
+PROPOSED_IDENTIFIER_UNIQUE_SCOPE=GLOBAL_UNIQUE
+PROPOSED_INDEX_OR_CONSTRAINT=UQ_ad_packages_package_code
+PACKAGE_CODE_FINAL_NULLABILITY=NOT_NULL
+AD_PACKAGE_EXISTING_ROW_MIGRATION_POLICY=BACKFILL_ONLY_MATCHED_CANONICAL_ROWS_FAIL_CLOSED_ON_AMBIGUITY
+```
+
+The current repository contains no trusted deployed-row inventory proving that
+every `ad_packages` row is AP-01, AP-02, or AP-03. The final NOT NULL contract
+is approved, but it may be enforced only after nullable expansion, bounded
+mapping, and validation.
+
+### 23.5 Explicit expand and contract strategy
+
+#### Stage A1: schema expand
+
+`P8_05C3C2A1_AD_PACKAGE_IDENTIFIER_SCHEMA_EXPAND` must:
+
+- add nullable `package_code varchar(64)`;
+- establish global uniqueness for non-null values using PostgreSQL unique
+  constraint/index null behavior;
+- update persistence representation only as needed for transitional schema
+  support;
+- leave existing rows unguessed;
+- not enforce NOT NULL.
+
+```text
+C3C2A1_PACKAGE_CODE_NULLABILITY=NULLABLE_TRANSITIONAL
+C3C2A1_EXISTING_ROW_AUTOMATIC_GUESSING=PROHIBITED
+```
+
+#### Stage A2: validated backfill and contract
+
+`P8_05C3C2A2_AD_PACKAGE_IDENTIFIER_BACKFILL_AND_CONTRACT` must:
+
+- recognize only unambiguous canonical legacy rows;
+- map AP-01 to `HOMEPAGE_CAROUSEL`;
+- map AP-02 to `FEATURED_PRODUCT`;
+- map AP-03 to `SPOTLIGHT_PLACEMENT`;
+- fail closed on duplicate or ambiguous canonical matches;
+- require an explicit human mapping for unknown/custom rows;
+- validate uniqueness and require a valid code for every Package row;
+- enforce NOT NULL only after all validation succeeds.
+
+```text
+C3C2A2_AMBIGUOUS_ROW_POLICY=FAIL_CLOSED
+C3C2A2_UNKNOWN_CUSTOM_ROW_POLICY=REQUIRE_EXPLICIT_HUMAN_MAPPING_BEFORE_NOT_NULL
+C3C2A2_FINAL_PACKAGE_CODE_NULLABILITY=NOT_NULL
+```
+
+A bounded A2 migration may use an exact legacy payload fingerprint only to
+recognize a known legacy row for one-time backfill. Such a fingerprint is not
+future domain identity and must not become a normal reconciliation key.
+
+```text
+AD_PACKAGE_BACKFILL_MATCHING_IS_DOMAIN_IDENTITY=NO
+AD_PACKAGE_CANONICAL_DOMAIN_IDENTITY=packageCode
+```
+
+Name, `adType`, price, duration, description, maximum impressions, serial ID,
+and row position remain prohibited as Package identity.
+
+### 23.6 Approved future REFERENCE group authority
+
+```text
+AD_PACKAGE_REFERENCE_SEED_GROUP_ID=ads.reference.packages
+AD_PACKAGE_REFERENCE_SEED_OWNER=ADS
+AD_PACKAGE_REFERENCE_SEED_CLASSIFICATION=REFERENCE
+AD_PACKAGE_REFERENCE_SEED_DEPENDENCIES=NONE
+AD_PACKAGE_REFERENCE_STABLE_KEY=packageCode
+AD_PACKAGE_REFERENCE_IDEMPOTENCY_POLICY=LOOKUP_BY_PACKAGE_CODE_CREATE_IF_ABSENT_RECONCILE_APPROVED_PAYLOAD_FAIL_CLOSED_ON_DUPLICATE_OR_AMBIGUOUS_IDENTITY_NEVER_USE_WHOLE_TABLE_COUNT_OR_GENERATED_ID_AS_LOOKUP
+```
+
+The group is approved as design only and may be implemented only after A2 is
+merged and reviewed. This PR creates no SeedGroup.
+
+### 23.7 Human-review resolution and implementation authorization
+
+```text
+P8_05C3C2_AD_PACKAGE_REFERENCE_IDENTITY_STATUS=IMPLEMENTED_PENDING_HUMAN_MERGE
+P8_05C3C2_DECISION_BLOCKERS=NONE
+AD_PACKAGE_DOMAIN_IDENTIFIER_DECISION_RESOLVED=YES
+AD_PACKAGE_REFERENCE_MIGRATION_DECISION_RESOLVED=YES_DESIGN_APPROVED_IMPLEMENTATION_NOT_STARTED
+
+P8_05C3C2A1_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_05C3C2_PR_137_MERGE
+P8_05C3C2A2_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_C3C2A1_MERGE_AND_REVIEW
+P8_05C3C2B_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_C3C2A2_MERGE_AND_REVIEW
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+```
+
+Only A1 becomes authorized after this PR is human-reviewed and merged. A2 and
+the REFERENCE group require their own predecessor merges and reviews.
+
+### 23.8 Updated safe sequence
+
+1. `P8-05C3C2A1` — Ad Package identifier nullable schema expand.
+2. `P8-05C3C2A2` — validated legacy-row backfill and NOT NULL contract.
+3. `P8-05C3C2B` — Ads-owned REFERENCE Package seed.
+4. `P8-05C3C3` — Campaign DEV fixture retirement.
+5. `P8-05C3C4` — legacy Package DEV writer retirement after replacement.
+6. `P8-05C4D` — central continuation and reset-only debt retirement review.
+
+```text
+NEXT_IMPLEMENTATION_SLICE_1=P8_05C3C2A1_AD_PACKAGE_IDENTIFIER_SCHEMA_EXPAND
+NEXT_IMPLEMENTATION_SLICE_2=P8_05C3C2A2_AD_PACKAGE_IDENTIFIER_BACKFILL_AND_CONTRACT
+NEXT_IMPLEMENTATION_SLICE_3=P8_05C3C2B_ADS_REFERENCE_PACKAGE_SEED
+NEXT_IMPLEMENTATION_SLICE_4=P8_05C3C3_CAMPAIGN_DEV_FIXTURE_RETIREMENT
+NEXT_IMPLEMENTATION_SLICE_5=P8_05C3C4_LEGACY_PACKAGE_DEV_WRITER_RETIREMENT
+NEXT_IMPLEMENTATION_SLICE_6=P8_05C4D_CENTRAL_CONTINUATION_AND_RESET_DEBT_RETIREMENT
+```
+
+### 23.9 Preserved C3C1 authority and boundaries
+
+```text
+AD_PACKAGE_CLASSIFICATION_DECISION=RECLASSIFY_AS_REFERENCE
+AD_PACKAGE_APPROVED_RETAIN_COUNT=3
+AD_CAMPAIGN_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+AD_CAMPAIGN_APPROVED_RETIRE_COUNT=4
+AD_CAMPAIGN_RETIREMENT_DECISION_RESOLVED=YES
+AD_EVENTS_PHASE8_CLASSIFICATION=RESET_ONLY_LEGACY_DEBT
+
+RUNTIME_FILES_CHANGED=0
+ADS_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+NEW_SEEDGROUPS=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+DATASOURCE_CONSTRUCTED=NO
+DATASOURCE_INITIALIZE_CALLS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+DESTRUCTIVE_RESET_EXECUTED=NO
+```
+
+`DevSeedService`, `legacy.dev.remaining`, `resetAll`, `ad_events`, the Users
+dependency, legacy actor aliases, Package/Campaign runtime persistence, and
+all current executable fixtures remain unchanged.
