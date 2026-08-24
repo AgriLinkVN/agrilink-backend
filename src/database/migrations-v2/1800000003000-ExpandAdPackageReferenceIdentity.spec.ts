@@ -11,7 +11,7 @@ const sourceRoot = join(databaseRoot, "..");
 const migrationSource = readFileSync(
   join(__dirname, "1800000003000-ExpandAdPackageReferenceIdentity.ts"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 const upSource =
   migrationSource.match(
     /async up\([\s\S]*?\{([\s\S]*?)\n  \}\n\n  async down/,
@@ -33,7 +33,7 @@ function readRuntimeTypeScript(root: string): string {
 }
 
 describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
-  it("maps the nullable globally unique package code without changing the numeric id", () => {
+  it("maps the globally unique package code without changing the numeric id", () => {
     const columns = getMetadataArgsStorage().columns;
     const packageCode = columns.find(
       ({ target, propertyName }) =>
@@ -53,7 +53,7 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
         name: "package_code",
         type: "varchar",
         length: 64,
-        nullable: true,
+        nullable: false,
       }),
     );
     expect(unique?.columns).toEqual(["packageCode"]);
@@ -92,7 +92,7 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
 
   it("registers one ordered A1 migration with expand-only UP SQL", () => {
     const migrationNames = getMigrationNames(V2_MIGRATIONS);
-    expect(migrationNames[migrationNames.length - 1]).toBe(
+    expect(migrationNames).toContain(
       "ExpandAdPackageReferenceIdentity1800000003000",
     );
     expect(upSource).toContain('ADD COLUMN "package_code" varchar(64)');

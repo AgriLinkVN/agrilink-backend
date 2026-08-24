@@ -1,8 +1,8 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "ExpandAdPackageReferenceIdentity1800000003000",
-  "fingerprint": "b7ed0b23ff882f7aff60d5f6ade975463f92742cda8cf329bbed4783e2444a10",
+  "migration": "BackfillAndContractAdPackageReferenceIdentity1800000004000",
+  "fingerprint": "e2f98ba1ccc4da003050d377f19072a2876f7503fd6878385ee342ee7c3d7581",
   "objectCount": 681,
   "snapshot": {
     "schema": "public",
@@ -709,7 +709,7 @@
             "dataType": "character varying",
             "udtSchema": "pg_catalog",
             "udtName": "varchar",
-            "nullable": true,
+            "nullable": false,
             "default": null,
             "characterMaximumLength": 64,
             "numericPrecision": null,
