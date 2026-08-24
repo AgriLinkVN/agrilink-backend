@@ -17,12 +17,9 @@ export const LEGACY_REMAINING_TARGET_RETIREMENT = "P8_05C4";
 
 export const LEGACY_DEV_ACTOR_EMAILS = Object.freeze({
   ADMIN: "admin@agrilink.vn",
-  FARMER: "farmer@sandbox.com",
-  BUYER: "buyer@agrilink.vn",
   ENTERPRISE: "enterprise@agrilink.vn",
   SUPPLIER: "supplier@agrilink.vn",
   LOGISTICS: "logistics@agrilink.vn",
-  COOP: "cooperative@sandbox.com",
   STATE_AGENCY: "state_agency@sandbox.com",
 });
 
