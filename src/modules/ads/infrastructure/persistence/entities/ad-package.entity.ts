@@ -3,14 +3,24 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { AdType } from '../../../../../common/enums';
 
 @Entity('ad_packages')
+@Unique('UQ_ad_packages_package_code', ['packageCode'])
 export class AdPackage {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    name: 'package_code',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  packageCode: string | null;
 
   @Column()
   name: string;
