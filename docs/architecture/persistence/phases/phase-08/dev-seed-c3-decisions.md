@@ -973,3 +973,523 @@ P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
 SCHEMA_CHANGES=0
 MIGRATIONS_CREATED=0
 ```
+
+## 20. P8-05C3C1 Ads Identity And Fixture Policy Audit
+
+This overlay is current authority for the post-PR #135 Ads baseline.
+Merged PR #135 retired the Forum DEV writer, leaving only `seedAdPackages` and
+`seedAdCampaigns` in the central continuation. This audit is static: it does
+not execute the service, construct a DataSource, connect to a database, change
+runtime payloads, or authorize C3C implementation.
+
+### 20.1 Owner boundary and current central inventory
+
+`AdsModule` registers `AdPackage`, `AdCampaign`, and `AdEvent`; the Ads
+repository owns normal runtime access to all three. The central continuation
+still writes only Packages and Campaigns. `ad_events` is not an ordinary DEV
+fixture table.
+
+```text
+P8_05C3B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_135
+CENTRAL_NORMAL_WRITE_METHOD_COUNT=2
+CENTRAL_NORMAL_WRITE_METHODS=seedAdPackages;seedAdCampaigns
+CENTRAL_BUSINESS_TABLE_COUNT=2
+CENTRAL_BUSINESS_TABLES=ad_packages;ad_campaigns
+
+AD_PACKAGE_SEED_OWNER=ADS
+AD_CAMPAIGN_SEED_OWNER=ADS
+AD_EVENT_PERSISTENCE_OWNER=ADS
+```
+
+### 20.2 Ad Package fixture inventory
+
+The documentation labels below are audit handles only. They are not persisted
+identity. The source performs one whole-table `count()` guard and, when the
+table is empty, saves all three rows with database-generated serial IDs.
+
+| Label | Name | Type | Price | Duration | Description | Active | Other persisted fields | Current identity behavior |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | --- |
+| `AP-01` | Banner chính (Carousel) | `BANNER` | 500000 | 30 days | Hiển thị trên carousel trang chủ | true | `maxImpressions=10000`; ORM timestamps | no lookup; whole-table guard; generated serial ID |
+| `AP-02` | Sản phẩm nổi bật | `FEATURED` | 300000 | 14 days | Sản phẩm được gắn nhãn nổi bật | true | `maxImpressions=5000`; ORM timestamps | no lookup; whole-table guard; generated serial ID |
+| `AP-03` | Spotlight tuần | `SPOTLIGHT` | 700000 | 7 days | Hiển thị spotlight nổi bật 7 ngày | true | `maxImpressions=20000`; ORM timestamps | no lookup; whole-table guard; generated serial ID |
+
+```text
+AD_PACKAGE_FIXTURE_COUNT=3
+AD_PACKAGE_WHOLE_TABLE_GUARD_COUNT=1
+AD_PACKAGE_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_COUNT_GT_ZERO_SKIP
+AD_PACKAGE_CURRENT_GENERATED_ID=DATABASE_GENERATED_SERIAL
+AD_PACKAGE_GENERATED_UUID_IDENTITY_USAGE=NO_SERIAL_PRIMARY_KEY_ONLY
+AD_PACKAGE_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+AD_PACKAGE_SCHEMA_UNIQUE_COUNT=0
+AD_PACKAGE_SCHEMA_SECONDARY_INDEX_COUNT=0
+```
+
+The entity, canonical baseline migration, Ads repository, DTOs, use cases,
+controllers, and history expose no `packageCode`, `code`, `slug`, `externalId`,
+`publicId`, `sku`, `planCode`, `packageKey`, `referenceCode`, or equivalent.
+The serial primary key is generated at insertion and is not deterministic seed
+identity.
+
+### 20.3 Package mutability and reference classification
+
+The current Ads application lists active packages and resolves one active
+package by numeric ID when a supplier creates a Campaign. Campaign approval
+uses `durationDays` to calculate the end date. There is no current Package
+create/update/admin mutation path. That absence does not prove domain
+immutability or one-row-per-value cardinality, and none of these fields has a
+schema uniqueness constraint.
+
+```text
+AD_PACKAGE_NAME_MUTABLE=NO_CURRENT_APPLICATION_UPDATE_PATH;DOMAIN_IMMUTABILITY_NOT_PROVEN
+AD_PACKAGE_TYPE_MUTABLE=NO_CURRENT_APPLICATION_UPDATE_PATH;DOMAIN_IMMUTABILITY_NOT_PROVEN
+AD_PACKAGE_PRICE_MUTABLE=NO_CURRENT_APPLICATION_UPDATE_PATH;DOMAIN_IMMUTABILITY_NOT_PROVEN
+AD_PACKAGE_DURATION_MUTABLE=NO_CURRENT_APPLICATION_UPDATE_PATH;DOMAIN_IMMUTABILITY_NOT_PROVEN
+AD_PACKAGE_ACTIVE_STATE_MUTABLE=NO_CURRENT_APPLICATION_UPDATE_PATH;DOMAIN_IMMUTABILITY_NOT_PROVEN
+
+AD_PACKAGE_REFERENCE_DATA_EVIDENCE=PUBLIC_ACTIVE_PACKAGE_CATALOG;CAMPAIGN_CREATION_REQUIRES_ACTIVE_PACKAGE;CAMPAIGN_APPROVAL_DERIVES_END_DATE_FROM_DURATION_DAYS
+AD_PACKAGE_CURRENT_CLASSIFICATION_JUSTIFIED=RECLASSIFICATION_REQUIRES_HUMAN_DECISION
+AD_PACKAGE_CLASSIFICATION_RESOLVED=NO
+```
+
+The Packages behave like service-plan/configuration rows required by normal
+application behavior, but Git history introduced these exact declarations as
+screenshot demo content. Reference-like usefulness does not prove REFERENCE
+classification, while lack of deterministic identity is not by itself a basis
+for retirement.
+
+### 20.4 Package composite identity candidates
+
+| Candidate key | Fields | Immutable business identity | Mutable payload included | Schema unique support | Domain cardinality support | Edit behavior | Collision risk | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| package name | `name` | not proven | human-facing label | none | none | no current update path; immutability unproven | renames/localization or duplicate labels | `PLAUSIBLE_BUT_UNPROVEN` |
+| package type | `adType` | no | configuration category | none | enum has three values but does not limit rows per type | no current update path | multiple plans may share a type | `REJECTED` |
+| name + type | `name,adType` | not proven | label and category | none | none | no current update path; immutability unproven | duplicate/versioned plan possible | `PLAUSIBLE_BUT_UNPROVEN` |
+| type + duration | `adType,durationDays` | no | duration is plan payload | none | none | no current update path | same type/duration at different price or limits | `REJECTED` |
+| name + duration | `name,durationDays` | not proven | label and duration payload | none | none | no current update path; immutability unproven | renamed or versioned plan | `PLAUSIBLE_BUT_UNPROVEN` |
+| name + price | `name,price` | no | price is mutable business payload | none | none | no current update path | price revisions change lookup identity | `REJECTED` |
+| name + type + duration | `name,adType,durationDays` | not proven | label/category/duration payload | none | none | no current update path; immutability unproven | duplicate/versioned plans remain possible | `PLAUSIBLE_BUT_UNPROVEN` |
+| complete persisted payload | every persisted non-ID field | no | price, limits, description, active state, and timestamps | none | none | operational fields can evolve | any payload change loses identity | `REJECTED` |
+
+```text
+AD_PACKAGE_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED
+AD_PACKAGE_IDENTITIES_RESOLVED=NO
+```
+
+### 20.5 Ad Campaign fixture inventory
+
+All four rows use the supplier scalar. The `adminId` parameter is never read.
+The Package query has no ordering or business-key predicate; parent selection
+uses `packages[0]`, `packages[1]`, and `packages[2]`. The three active rows use
+execution-relative dates. One whole-table `count()` guard skips the complete
+Campaign set when any Campaign already exists.
+
+| Label | Owner actor | Package parent expression | Title | Image URL | Status | Start / end | Target / placement | Other persisted fields | Current identity behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `AC-01` | `supplier@agrilink.vn` | `packages[0]` | Nông sản sạch Đà Lạt | `https://images.unsplash.com/photo-1558350319-de0b7d50a49e?w=1200&q=80` | `ACTIVE` | execution time -5 / +25 days | `targetProvinces=[]`; package placement unresolved | `linkUrl=https://agrilink.vn/products`; impressions 4500; clicks 230; moderation fields null; ORM timestamps | no lookup; whole-table guard; generated UUID |
+| `AC-02` | `supplier@agrilink.vn` | `packages[1]` | Đặc sản vùng miền — Khuyến mãi tháng 7 | `https://images.unsplash.com/photo-1595855759920-86582396756a?w=800&q=80` | `ACTIVE` | execution time -5 / +25 days | `targetProvinces=[]`; package placement unresolved | `linkUrl=null`; impressions 2100; clicks 98; moderation fields null; ORM timestamps | no lookup; whole-table guard; generated UUID |
+| `AC-03` | `supplier@agrilink.vn` | `packages[2]` | Sầu riêng Ri6 chính vụ | `https://images.unsplash.com/photo-1547514701-42782101795e?w=800&q=80` | `ACTIVE` | execution time -5 / +25 days | `targetProvinces=[]`; package placement unresolved | `linkUrl=null`; impressions 7800; clicks 420; moderation fields null; ORM timestamps | no lookup; whole-table guard; generated UUID |
+| `AC-04` | `supplier@agrilink.vn` | `packages[0]` | Phân bón hữu cơ — Giảm 15% | `https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=1200&q=80` | `PENDING_APPROVAL` | null / null | `targetProvinces=[]`; package placement unresolved | `linkUrl=null`; impressions 0; clicks 0; moderation fields null; ORM timestamps | no lookup; whole-table guard; generated UUID |
+
+```text
+AD_CAMPAIGN_FIXTURE_COUNT=4
+AD_CAMPAIGN_WHOLE_TABLE_GUARD_COUNT=1
+AD_CAMPAIGN_CURRENT_LOOKUP_OR_GUARD=WHOLE_TABLE_COUNT_GT_ZERO_SKIP
+AD_CAMPAIGN_CURRENT_GENERATED_ID=DATABASE_GENERATED_UUID
+AD_CAMPAIGN_GENERATED_UUID_IDENTITY_USAGE=YES_GENERATED_ONLY_NOT_DETERMINISTIC
+AD_CAMPAIGN_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+AD_CAMPAIGN_SCHEMA_UNIQUE_COUNT=0
+AD_CAMPAIGN_SCHEMA_SECONDARY_INDEX_COUNT=0
+```
+
+No `campaignCode`, `code`, `slug`, `externalId`, `publicId`, `referenceCode`,
+`campaignKey`, or equivalent is present. Current runtime creates Campaigns with
+generated UUIDs, changes status through pause/resume/moderation, and changes
+approval dates and derived start/end dates during moderation. Title, image,
+and dates are payload, not source-proven identity.
+
+### 20.6 Campaign composite identity and Package parent consequence
+
+| Candidate key | Fields | Immutable business identity | Mutable payload included | Schema unique support | Domain cardinality support | Edit behavior | Collision risk | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| owner + title | `supplierId,title` | no | title is mutable business payload absent contrary domain proof | none | none | no current title update path, which does not prove immutability | repeated campaign title per supplier | `REJECTED` |
+| owner + package + title | `supplierId,packageId,title` | no | mutable title; unresolved generated parent ID | none | none | no current title/package update path, which does not prove immutability | repeated/versioned campaign; parent unstable | `REJECTED` |
+| owner + package + start | `supplierId,packageId,startDate` | no | mutable/relative date; unresolved parent | none | none | moderation writes start date | same-day campaigns collide | `REJECTED` |
+| owner + title + start | `supplierId,title,startDate` | no | title and mutable/relative date | none | none | moderation writes start date | repeated titles/dates collide | `REJECTED` |
+| package + title | `packageId,title` | no | mutable title; unresolved generated parent ID | none | none | no current title/package update path, which does not prove immutability | suppliers may reuse titles | `REJECTED` |
+| owner + package + status | `supplierId,packageId,status` | no | status is mutable lifecycle payload | none | none | pause/resume/moderation update status | many campaigns collide | `REJECTED` |
+| complete persisted payload | every persisted non-ID field | no | status, dates, counters, URLs, moderation, timestamps | none | none | runtime changes lifecycle and counters | any operational update loses identity | `REJECTED` |
+
+```text
+AD_CAMPAIGN_PACKAGE_FIELD=packageId
+AD_CAMPAIGN_PACKAGE_RELATION_KIND=TYPEORM_MANY_TO_ONE_PLUS_DATABASE_FOREIGN_KEY_ON_DELETE_RESTRICT
+AD_CAMPAIGN_PARENT_PACKAGE_ID_REQUIRED=YES
+AD_CAMPAIGN_PARENT_PACKAGE_IDENTITY_RESOLVED=NO
+AD_CAMPAIGN_PARENT_IDENTITY_RESOLVED=NO
+AD_CAMPAIGN_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED
+AD_CAMPAIGN_IDENTITIES_RESOLVED=NO
+```
+
+The source-position pattern suggests the conceptual labels
+`AC-01 -> AP-01`, `AC-02 -> AP-02`, `AC-03 -> AP-03`, and `AC-04 -> AP-01`,
+but `.find()` supplies no order guarantee and the numeric IDs are generated.
+Those mappings are candidates for human approval only; they are not current
+deterministic identity.
+
+### 20.7 User actors and remaining aliases
+
+`legacy.dev.remaining` resolves five aliases from `users.dev.users` through
+`user.id.by-email`. Only the supplier ID is read into a persisted Ads field.
+`ADMIN` is passed to `seedAdCampaigns` but its parameter is unused, so it has
+one dead argument pass and zero executable consumers. No Users repository is
+used.
+
+| Alias | Email | Executable Ads consumers | Classification | Evidence |
+| --- | --- | ---: | --- | --- |
+| `ADMIN` | `admin@agrilink.vn` | 0 | `UNRELATED_LEGACY_DEBT` | one positional argument pass; `adminId` is never read |
+| `SUPPLIER` | `supplier@agrilink.vn` | 1 | `ADS_REQUIRED` | persisted as every fixture's `supplierId` |
+| `ENTERPRISE` | `enterprise@agrilink.vn` | 0 | `UNRELATED_LEGACY_DEBT` | no remaining consumer |
+| `LOGISTICS` | `logistics@agrilink.vn` | 0 | `UNRELATED_LEGACY_DEBT` | no remaining consumer |
+| `STATE_AGENCY` | `state_agency@sandbox.com` | 0 | `UNRELATED_LEGACY_DEBT` | no remaining consumer |
+
+```text
+ADS_REQUIRED_USER_IDENTITIES=supplier@agrilink.vn
+ADS_REQUIRED_UNIQUE_USER_EMAIL_COUNT=1
+ADS_USER_SEED_OUTPUT_SUFFICIENT=YES_USERS_DEV_USERS_AND_USER_ID_BY_EMAIL
+LEGACY_ACTOR_ADMIN_CURRENT_CONSUMER_COUNT=0
+LEGACY_ACTOR_ADMIN_CURRENT_ARGUMENT_PASS_COUNT=1
+LEGACY_ACTOR_ADMIN_CLASSIFICATION=UNRELATED_LEGACY_DEBT
+LEGACY_ACTOR_SUPPLIER_CURRENT_CONSUMER_COUNT=1
+LEGACY_ACTOR_SUPPLIER_CLASSIFICATION=ADS_REQUIRED
+LEGACY_ACTOR_ENTERPRISE_CURRENT_CONSUMER_COUNT=0
+LEGACY_ACTOR_ENTERPRISE_CLASSIFICATION=UNRELATED_LEGACY_DEBT
+LEGACY_ACTOR_LOGISTICS_CURRENT_CONSUMER_COUNT=0
+LEGACY_ACTOR_LOGISTICS_CLASSIFICATION=UNRELATED_LEGACY_DEBT
+LEGACY_ACTOR_STATE_AGENCY_CURRENT_CONSUMER_COUNT=0
+LEGACY_ACTOR_STATE_AGENCY_CLASSIFICATION=UNRELATED_LEGACY_DEBT
+```
+
+### 20.8 `ad_events` classification
+
+There is no `ad_events` insert in any ordinary DEV group or in the isolated
+clean-v2 test fixture. The canonical migration creates its schema and FK but
+does not backfill data. Normal application event tracking has one repository
+write source, `TypeOrmAdsRepository.recordEvent`. Because Phase 8 `resetAll`
+still deletes the table despite there being no ordinary DEV writer, the
+Phase 8 classification is reset-only legacy debt; this does not deny its
+separate normal runtime ownership.
+
+```text
+AD_EVENTS_NORMAL_DEV_WRITE_SOURCE_COUNT=0
+AD_EVENTS_CURRENT_NORMAL_DEV_WRITER=NONE
+AD_EVENTS_RESET_TARGET_EXISTS=YES
+AD_EVENTS_MIGRATION_OR_BACKFILL_SOURCE_COUNT=0
+AD_EVENTS_RUNTIME_WRITE_SOURCE_COUNT=1
+AD_EVENTS_PHASE8_CLASSIFICATION=RESET_ONLY_LEGACY_DEBT
+```
+
+### 20.9 History, downstream consumers, future shape, and reset debt
+
+Both fixture sets were introduced together by
+`becf869fb4bec1642b016c6f3ce7565cd82671c3` (`feat: add comprehensive dev
+seed service for screenshots`) and merged by
+`06c2846790bc1e8fa96494e36dddbb5dfbb80765` (`Feature/dev seed data (#72)`).
+No later history establishes business IDs or canonical reference status.
+
+```text
+AD_PACKAGE_ORIGINAL_FIXTURE_INTENT=SCREENSHOT_DEMO_CONTENT
+AD_CAMPAIGN_ORIGINAL_FIXTURE_INTENT=SCREENSHOT_DEMO_CONTENT
+
+AD_PACKAGE_DOWNSTREAM_SEED_ID_CONSUMER_COUNT=0
+AD_CAMPAIGN_DOWNSTREAM_SEED_ID_CONSUMER_COUNT=0
+AD_EVENT_DOWNSTREAM_SEED_ID_CONSUMER_COUNT=0
+AD_PACKAGE_INTERNAL_CAMPAIGN_PARENT_CONSUMER_COUNT=1
+
+ADS_FUTURE_SEEDGROUP_SHAPE=UNRESOLVED;SINGLE_OWNER_GROUP_PLAUSIBLE_IF_FIXTURES_RETAINED
+CURRENT_ADS_RESET_TARGETS=ad_campaigns;ad_packages;ad_events
+NORMAL_WRITER_RESET_TARGETS=ad_campaigns;ad_packages
+RESET_ONLY_DEBT_TARGETS=ad_events
+```
+
+The downstream counts exclude the internal Package-to-Campaign dependency.
+The isolated `clean-v2-runtime-baseline` test fixture is not an ordinary DEV
+seed consumer or a public owner output. If retained, a single Ads-owned group
+could depend on `users.dev.users` and build Packages before Campaigns, but the
+classification and identity decisions must come first.
+
+### 20.10 P8-05C3C1 human decisions required
+
+These choices are intentionally unselected. An approved retained identity
+must name a real persisted field/composite and its domain cardinality, or add a
+new domain identifier in a later authorized schema slice. Audit labels and
+generated IDs are not acceptable answers.
+
+```text
+AD_PACKAGE_CLASSIFICATION_DECISION=KEEP_DEV;or RECLASSIFY_AS_REFERENCE;or RETIRE_CURRENT_DEV_FIXTURES;or DEFER
+AD_PACKAGE_IDENTITY_POLICY_DECISION=APPROVE_EXISTING_COMPOSITE:<ordered_fields_and_cardinality_rule>;or ADD_DOMAIN_PACKAGE_IDENTIFIER;or RETIRE_CURRENT_DEV_FIXTURES;or DEFER
+AP_01_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+AP_02_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+AP_03_DECISION=RETAIN_UNDER_<approved_identity>;or RETIRE;or DEFER
+
+AD_CAMPAIGN_IDENTITY_POLICY_DECISION=APPROVE_EXISTING_COMPOSITE:<ordered_fields_and_cardinality_rule>;or ADD_DOMAIN_CAMPAIGN_IDENTIFIER;or RETIRE_CURRENT_DEV_FIXTURES;or DEFER
+AD_CAMPAIGN_PACKAGE_PARENT_MAPPING_DECISION=APPROVE_AC_01_TO_AP_01_AC_02_TO_AP_02_AC_03_TO_AP_03_AC_04_TO_AP_01_UNDER_APPROVED_PACKAGE_IDENTITIES;or RETIRE_CAMPAIGNS;or DEFER
+AC_01_DECISION=RETAIN_UNDER_<approved_identity_and_parent>;or RETIRE;or DEFER
+AC_02_DECISION=RETAIN_UNDER_<approved_identity_and_parent>;or RETIRE;or DEFER
+AC_03_DECISION=RETAIN_UNDER_<approved_identity_and_parent>;or RETIRE;or DEFER
+AC_04_DECISION=RETAIN_UNDER_<approved_identity_and_parent>;or RETIRE;or DEFER
+```
+
+### 20.11 Authorization, future C4D consequence, and boundaries
+
+```text
+AD_PACKAGE_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED
+AD_CAMPAIGN_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED
+AD_PACKAGE_IDENTITIES_RESOLVED=NO
+AD_CAMPAIGN_IDENTITIES_RESOLVED=NO
+AD_CAMPAIGN_PARENT_IDENTITY_RESOLVED=NO
+AD_PACKAGE_CLASSIFICATION_RESOLVED=NO
+
+P8_05C3C1_ADS_DECISION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_05C3C_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_BLOCKERS=AD_PACKAGE_CLASSIFICATION_DECISION_REQUIRED;AD_PACKAGE_IDENTITY_POLICY_DECISION_REQUIRED;AP_01_DECISION_REQUIRED;AP_02_DECISION_REQUIRED;AP_03_DECISION_REQUIRED;AD_CAMPAIGN_IDENTITY_POLICY_DECISION_REQUIRED;AD_CAMPAIGN_PACKAGE_PARENT_IDENTITY_UNRESOLVED;AD_CAMPAIGN_PACKAGE_PARENT_MAPPING_DECISION_REQUIRED;AC_01_DECISION_REQUIRED;AC_02_DECISION_REQUIRED;AC_03_DECISION_REQUIRED;AC_04_DECISION_REQUIRED
+
+EXPECTED_POST_C3C_CENTRAL_NORMAL_WRITE_METHOD_COUNT=0
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+
+ADS_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+RUNTIME_FILES_CHANGED=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+DATASOURCE_CONSTRUCTED=NO
+DATASOURCE_INITIALIZE_CALLS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+DESTRUCTIVE_RESET_EXECUTED=NO
+```
+
+The expected zero-method state is a future consequence only if both Ads
+writers are later migrated or retired under approved decisions. C4D must then
+separately evaluate `DevSeedService`, `legacy.dev.remaining`, `resetAll`, the
+residual `ad_events` reset target, unused actor aliases, and the remaining
+Users output dependency. None of those changes is authorized here.
+
+## 21. P8-05C3C1 Human Review Decision Overlay
+
+Human review accepts the complete section 20 audit without rewriting its
+historical findings. The exact Package declarations originated as screenshot
+demo content, while current application contracts now consume active Packages
+as configuration. Human review therefore approves a future reclassification
+to REFERENCE, retains all three Package concepts pending a real domain
+identifier, and rejects retirement without replacement.
+
+The four Campaign declarations remain screenshot demo fixtures with generated
+UUIDs, mutable or execution-relative lifecycle payload, positional Package
+parents, and no downstream ordinary DEV seed consumers. Human review retires
+all four instead of inventing Campaign identity. This is a documentation
+decision only; neither retirement nor Package migration is implemented here.
+
+### 21.1 Accepted audit evidence
+
+```text
+AD_PACKAGE_FIXTURE_COUNT=3
+AD_PACKAGE_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+AD_PACKAGE_SCHEMA_UNIQUE_COUNT=0
+AD_PACKAGE_SCHEMA_SECONDARY_INDEX_COUNT=0
+AD_PACKAGE_REFERENCE_DATA_EVIDENCE=PUBLIC_ACTIVE_PACKAGE_CATALOG;CAMPAIGN_CREATION_REQUIRES_ACTIVE_PACKAGE;CAMPAIGN_APPROVAL_DERIVES_END_DATE_FROM_DURATION_DAYS
+
+AD_CAMPAIGN_FIXTURE_COUNT=4
+AD_CAMPAIGN_PERSISTED_BUSINESS_ID_FIELD=NONE_PROVEN
+AD_CAMPAIGN_PACKAGE_FIELD=packageId
+AD_CAMPAIGN_PACKAGE_RELATION_KIND=TYPEORM_MANY_TO_ONE_PLUS_DATABASE_FOREIGN_KEY_ON_DELETE_RESTRICT
+AD_CAMPAIGN_PARENT_PACKAGE_ID_REQUIRED=YES
+
+AD_EVENTS_NORMAL_DEV_WRITE_SOURCE_COUNT=0
+AD_EVENTS_RUNTIME_WRITE_SOURCE_COUNT=1
+AD_EVENTS_PHASE8_CLASSIFICATION=RESET_ONLY_LEGACY_DEBT
+```
+
+The accepted audit continues to state
+`AD_PACKAGE_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED` and
+`AD_CAMPAIGN_IDENTITY_DECISION=IDENTITY_REMAINS_UNRESOLVED` as the
+pre-decision evidence. The following decisions are the trailing current
+authority.
+
+### 21.2 Package classification and identity policy
+
+```text
+AD_PACKAGE_CLASSIFICATION_DECISION=RECLASSIFY_AS_REFERENCE
+AD_PACKAGE_CURRENT_CLASSIFICATION_DECISION=DEV_CLASSIFICATION_TO_BE_RETIRED_AFTER_REFERENCE_MIGRATION
+AD_PACKAGE_REFERENCE_CLASSIFICATION_APPROVED=YES
+AD_PACKAGE_RETIRE_WITHOUT_REPLACEMENT_AUTHORIZED=NO
+
+AD_PACKAGE_IDENTITY_POLICY_DECISION=ADD_DOMAIN_PACKAGE_IDENTIFIER
+AD_PACKAGE_EXISTING_COMPOSITE_IDENTITY_APPROVED=NO
+AD_PACKAGE_SYNTHETIC_SEED_IDENTITY_APPROVED=NO
+AD_PACKAGE_SERIAL_PRIMARY_KEY_AS_SEED_IDENTITY_APPROVED=NO
+AD_PACKAGE_SEED_ONLY_KEY_APPROVED=NO
+AD_PACKAGE_IDENTITIES_RESOLVED=PENDING_DOMAIN_PACKAGE_IDENTIFIER_DECISION
+
+AD_PACKAGE_IDENTIFIER_FIELD_NAME_DECISION=REQUIRED
+AD_PACKAGE_IDENTIFIER_ASSIGNMENT_AUTHORITY_DECISION=REQUIRED
+AD_PACKAGE_IDENTIFIER_IMMUTABILITY_DECISION=REQUIRED
+AD_PACKAGE_IDENTIFIER_UNIQUENESS_SCOPE_DECISION=REQUIRED
+AP_01_REFERENCE_IDENTIFIER_VALUE_REQUIRED=YES
+AP_02_REFERENCE_IDENTIFIER_VALUE_REQUIRED=YES
+AP_03_REFERENCE_IDENTIFIER_VALUE_REQUIRED=YES
+```
+
+No identifier name or value is approved. In particular, `code`,
+`packageCode`, `slug`, `adType`, generated serial IDs, and seed-only keys are
+not silently promoted to domain identity. A later human-authorized decision
+and schema slice must establish the field, assignment authority,
+immutability, uniqueness scope, and exact retained values.
+
+### 21.3 Retained Package concepts and content authority
+
+| Fixture | Decision | Name | Type | Price | Duration | Description | Active | Maximum impressions |
+| --- | --- | --- | --- | ---: | ---: | --- | --- | ---: |
+| `AP-01` | `RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY` | Banner chính (Carousel) | `BANNER` | 500000 | 30 days | Hiển thị trên carousel trang chủ | true | 10000 |
+| `AP-02` | `RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY` | Sản phẩm nổi bật | `FEATURED` | 300000 | 14 days | Sản phẩm được gắn nhãn nổi bật | true | 5000 |
+| `AP-03` | `RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY` | Spotlight tuần | `SPOTLIGHT` | 700000 | 7 days | Hiển thị spotlight nổi bật 7 ngày | true | 20000 |
+
+```text
+AP_01_DECISION=RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY
+AP_02_DECISION=RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY
+AP_03_DECISION=RETAIN_PENDING_APPROVED_REFERENCE_IDENTITY
+AD_PACKAGE_APPROVED_RETAIN_COUNT=3
+AD_PACKAGE_APPROVED_RETIRE_COUNT=0
+AD_PACKAGE_DEV_FIXTURE_DISPOSITION=MIGRATE_TO_REFERENCE_AFTER_DOMAIN_IDENTITY_APPROVAL
+```
+
+These exact payload values are approved for preservation during the upcoming
+identity/design decision. Retention does not make name, type, price, duration,
+description, active state, or maximum impressions immutable identity.
+
+### 21.4 Campaign retirement decision
+
+```text
+AD_CAMPAIGN_IDENTITY_POLICY_DECISION=RETIRE_CURRENT_DEV_FIXTURES
+AD_CAMPAIGN_NEW_DOMAIN_IDENTIFIER_AUTHORIZED=NO
+AD_CAMPAIGN_EXISTING_COMPOSITE_IDENTITY_APPROVED=NO
+AD_CAMPAIGN_SYNTHETIC_IDENTITY_APPROVED=NO
+AD_CAMPAIGN_SEED_ONLY_KEY_APPROVED=NO
+
+AC_01_DECISION=RETIRE
+AC_01_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AC_01_REASON=SCREENSHOT_DEMO_CAMPAIGN_HAS_NO_PROVEN_DETERMINISTIC_BUSINESS_IDENTITY_AND_USES_EXECUTION_RELATIVE_OR_MUTABLE_LIFECYCLE_PAYLOAD
+AC_02_DECISION=RETIRE
+AC_02_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AC_02_REASON=SCREENSHOT_DEMO_CAMPAIGN_HAS_NO_PROVEN_DETERMINISTIC_BUSINESS_IDENTITY_AND_USES_EXECUTION_RELATIVE_OR_MUTABLE_LIFECYCLE_PAYLOAD
+AC_03_DECISION=RETIRE
+AC_03_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AC_03_REASON=SCREENSHOT_DEMO_CAMPAIGN_HAS_NO_PROVEN_DETERMINISTIC_BUSINESS_IDENTITY_AND_USES_EXECUTION_RELATIVE_OR_MUTABLE_LIFECYCLE_PAYLOAD
+AC_04_DECISION=RETIRE
+AC_04_DEV_FIXTURE_DISPOSITION=RETIRE_FROM_ORDINARY_DEV_SEED
+AC_04_REASON=SCREENSHOT_DEMO_CAMPAIGN_HAS_NO_PROVEN_DETERMINISTIC_BUSINESS_IDENTITY_AND_USES_EXECUTION_RELATIVE_OR_MUTABLE_LIFECYCLE_PAYLOAD
+
+AD_CAMPAIGN_APPROVED_RETAIN_COUNT=0
+AD_CAMPAIGN_APPROVED_RETIRE_COUNT=4
+AD_CAMPAIGN_IDENTITIES_RESOLVED=NOT_REQUIRED_FIXTURES_RETIRED
+AD_CAMPAIGN_RETIREMENT_DECISION_RESOLVED=YES
+```
+
+### 21.5 Campaign parent and actor consequences
+
+Because no Campaign fixture is retained, no canonical Package parent mapping
+is approved or required. The `AC-01 -> AP-01`, `AC-02 -> AP-02`,
+`AC-03 -> AP-03`, and `AC-04 -> AP-01` relationships remain historical
+positional evidence only.
+
+```text
+AD_CAMPAIGN_PACKAGE_PARENT_MAPPING_DECISION=NOT_REQUIRED_CAMPAIGN_FIXTURES_RETIRED
+AD_CAMPAIGN_PARENT_PACKAGE_IDENTITY_RESOLVED=NOT_REQUIRED_CAMPAIGN_FIXTURES_RETIRED
+AD_CAMPAIGN_PARENT_IDENTITY_RESOLVED=NOT_REQUIRED_CAMPAIGN_FIXTURES_RETIRED
+
+ADS_REQUIRED_USER_IDENTITIES=supplier@agrilink.vn
+LEGACY_ACTOR_SUPPLIER_CURRENT_CONSUMER_COUNT=1
+ADS_CAMPAIGN_USER_DEPENDENCY_REQUIRED=NO
+```
+
+The current supplier dependency remains executable until a later authorized
+Campaign retirement is implemented. `ADMIN`, `ENTERPRISE`, `LOGISTICS`, and
+`STATE_AGENCY` remain unrelated legacy debt, and no alias or Users dependency
+is removed by this documentation change.
+
+### 21.6 Ad Events and next decision slice
+
+```text
+AD_EVENTS_NORMAL_DEV_WRITE_SOURCE_COUNT=0
+AD_EVENTS_CURRENT_NORMAL_DEV_WRITER=NONE
+AD_EVENTS_RUNTIME_WRITE_SOURCE_COUNT=1
+AD_EVENTS_RESET_TARGET_EXISTS=YES
+AD_EVENTS_PHASE8_CLASSIFICATION=RESET_ONLY_LEGACY_DEBT
+AD_EVENT_SEEDGROUP_REQUIRED=NO
+AD_EVENT_FIXTURE_MIGRATION_REQUIRED=NO
+
+NEXT_DECISION_SLICE=P8_05C3C2_AD_PACKAGE_REFERENCE_IDENTITY_DECISION
+```
+
+P8-05C3C2 must decide the exact persisted Package identifier, prove why it is
+domain/configuration identity instead of seed metadata, define assignment
+authority, immutability, and uniqueness scope, assign exact AP-01/AP-02/AP-03
+values, determine schema/migration impact, design the owner-local REFERENCE
+group, and decide whether generated numeric IDs remain internal primary keys.
+This PR performs none of that work.
+
+The conceptual future architecture, conditional on C3C2 approval, is:
+
+```text
+ads.reference.packages
+CLASSIFICATION=REFERENCE
+CAMPAIGN_DEV_FIXTURES=NONE
+POTENTIAL_POST_C3C_CENTRAL_NORMAL_WRITE_METHOD_COUNT=0
+```
+
+### 21.7 Authorization and boundaries
+
+Campaign retirement is resolved as a decision, but partial runtime work is not
+authorized. Package REFERENCE migration remains blocked on the full domain
+identifier decision.
+
+```text
+P8_05C3C1_ADS_HUMAN_REVIEW_STATUS=FINALIZED_PENDING_HUMAN_MERGE
+AD_CAMPAIGN_RETIREMENT_DECISION_RESOLVED=YES
+AD_PACKAGE_REFERENCE_MIGRATION_DECISION_RESOLVED=NO
+
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C3C_BLOCKERS=AD_PACKAGE_DOMAIN_IDENTIFIER_DECISION_REQUIRED;AD_PACKAGE_IDENTIFIER_ASSIGNMENT_AUTHORITY_DECISION_REQUIRED;AD_PACKAGE_IDENTIFIER_IMMUTABILITY_DECISION_REQUIRED;AD_PACKAGE_IDENTIFIER_UNIQUENESS_SCOPE_DECISION_REQUIRED;AP_01_REFERENCE_IDENTIFIER_VALUE_REQUIRED;AP_02_REFERENCE_IDENTIFIER_VALUE_REQUIRED;AP_03_REFERENCE_IDENTIFIER_VALUE_REQUIRED
+
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+P8_05C4D_BLOCKERS=P8_05C3C2_PACKAGE_REFERENCE_IDENTITY_NOT_RESOLVED;PACKAGE_OWNER_MIGRATION_NOT_IMPLEMENTED;CAMPAIGN_RETIREMENT_NOT_IMPLEMENTED;CENTRAL_NORMAL_WRITERS_NOT_ZERO;AD_EVENTS_RESET_ONLY_DEBT_NOT_HANDLED;LEGACY_ALIAS_AND_USERS_DEPENDENCY_REEVALUATION_NOT_COMPLETE
+
+RUNTIME_FILES_CHANGED=0
+ADS_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+NEW_SEEDGROUPS=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+DATASOURCE_CONSTRUCTED=NO
+DATASOURCE_INITIALIZE_CALLS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+DESTRUCTIVE_RESET_EXECUTED=NO
+```
