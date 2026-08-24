@@ -1493,3 +1493,275 @@ MIGRATIONS_EXECUTED=0
 SYNCHRONIZE=NO
 DESTRUCTIVE_RESET_EXECUTED=NO
 ```
+
+## 22. P8-05C3C2 Ad Package Reference Identity Decision
+
+Merged PR #136 is the accepted C3C1 authority. Its audit and human decisions
+remain historical evidence: the three Package concepts are retained for
+future REFERENCE migration, all four Campaign DEV fixtures are approved for
+retirement, and `ad_events` remains reset-only Phase 8 debt. This C3C2 slice
+defines a complete Package identifier recommendation for human review without
+changing runtime code, schema, migrations, seeds, reset behavior, or Campaign
+fixtures.
+
+### 22.1 Merged handoff and current authority
+
+```text
+P8_05C3C1_ADS_HUMAN_REVIEW_STATUS=FINALIZED_BY_MERGED_PR_136
+P8_05C3C1_ADS_DECISION_STATUS=IMPLEMENTED_BY_MERGED_PR_136
+AD_PACKAGE_CLASSIFICATION_DECISION=RECLASSIFY_AS_REFERENCE
+AD_PACKAGE_REFERENCE_CLASSIFICATION_APPROVED=YES
+AD_PACKAGE_IDENTITY_POLICY_DECISION=ADD_DOMAIN_PACKAGE_IDENTIFIER
+AD_PACKAGE_IDENTITIES_RESOLVED=PENDING_DOMAIN_PACKAGE_IDENTIFIER_DECISION
+AD_PACKAGE_APPROVED_RETAIN_COUNT=3
+AD_PACKAGE_APPROVED_RETIRE_COUNT=0
+AD_CAMPAIGN_RETIREMENT_DECISION_RESOLVED=YES
+AD_EVENTS_PHASE8_CLASSIFICATION=RESET_ONLY_LEGACY_DEBT
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+```
+
+### 22.2 Current numeric primary-key role
+
+`AdPackage.id` is a database-generated PostgreSQL `SERIAL` integer primary
+key. Current production contracts consume it in six distinct roles; repository
+implementation statements and tests that merely implement or mirror these
+contracts are not counted again.
+
+| Runtime contract role | Source evidence |
+| --- | --- |
+| Package catalog/read identity | `AdPackageModel.id` |
+| Campaign create transport | `CreateAdCampaignDto.packageId` |
+| Campaign create application input | `CreateAdCampaignInput.packageId` |
+| Active-Package validation lookup | `AdsRepositoryPort.findActivePackageById(number)` |
+| Campaign persisted parent FK | `AdCampaign.packageId` |
+| Campaign read identity | `AdCampaignModel.packageId` |
+
+```text
+AD_PACKAGE_PRIMARY_KEY_FIELD=id
+AD_PACKAGE_PRIMARY_KEY_TYPE=INTEGER
+AD_PACKAGE_PRIMARY_KEY_GENERATION=DATABASE_GENERATED_POSTGRESQL_SERIAL
+AD_PACKAGE_NUMERIC_ID_RUNTIME_CONSUMER_COUNT=6
+AD_PACKAGE_NUMERIC_ID_ROLE=INTERNAL_SURROGATE_PRIMARY_KEY_WITH_EXISTING_PUBLIC_NUMERIC_REFERENCE
+AD_PACKAGE_NUMERIC_PRIMARY_KEY_DECISION=RETAIN_INTERNAL_SURROGATE_PRIMARY_KEY
+```
+
+The numeric key remains the relational identity and current API/FK reference.
+It is not deterministic REFERENCE seed identity and does not need replacement.
+
+### 22.3 Identifier field-name candidates
+
+Repository convention favors aggregate-specific business code names:
+`orderCode`/`order_code` and `contractCode`/`contract_code` are globally unique
+business identifiers. Geography REFERENCE reconciliation uses `code`, while
+Product Category REFERENCE reconciliation uses `slug`. Ads consistently calls
+the concept Package in `/ads/packages`, `AdPackage`, and `packageId`; neither
+current source nor history uses Plan terminology.
+
+| Candidate | Semantic fit | Public API fit | Domain vocabulary fit | Repository convention fit | Collision with existing fields | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| `packageCode` | explicit immutable Package catalog code | clear read-only field beside numeric `id` | exact current Package vocabulary | matches aggregate-specific `orderCode` and `contractCode` | none | `PREFERRED` |
+| `code` | valid catalog code | understandable but generic in nested models/logs | acceptable | Geography uses a generic reference `code` | none | `ACCEPTABLE` |
+| `planCode` | could identify a billing/service plan | clear if the API used Plan vocabulary | current Ads contracts never call Packages plans | aggregate-specific code shape fits, noun does not | none | `REJECTED` |
+| `packageKey` | could identify configuration | risks looking like framework/seed metadata | `key` is not current Ads business vocabulary | `key` is used for System Config and technical operation identities | none | `REJECTED` |
+| `slug` | suitable for URL/display routing | would imply public URL lookup | Packages have no slug route and names are localized | Category/Province slugs serve human-readable resources | none | `REJECTED` |
+
+```text
+AD_PACKAGE_IDENTIFIER_FIELD_NAME_DECISION=packageCode
+PROPOSED_IDENTIFIER_COLUMN=package_code
+```
+
+No prior Git history establishes a Package/Plan code, key, or slug. The field
+name is therefore a design recommendation grounded in current vocabulary and
+repository convention, not a recovered legacy contract.
+
+### 22.4 Identifier semantics and design policy
+
+```text
+AD_PACKAGE_IDENTIFIER_SEMANTICS=IMMUTABLE_ADVERTISING_PACKAGE_REFERENCE_CATALOG_CODE
+AD_PACKAGE_IDENTIFIER_IS_DOMAIN_OR_CONFIGURATION_IDENTITY=YES
+AD_PACKAGE_IDENTIFIER_ASSIGNMENT_AUTHORITY=SYSTEM_DEFINED_REFERENCE_CATALOG
+AD_PACKAGE_IDENTIFIER_ASSIGNMENT_AUTHORITY_DECISION=SYSTEM_DEFINED_REFERENCE_CATALOG
+AD_PACKAGE_IDENTIFIER_IMMUTABILITY=IMMUTABLE_AFTER_CREATION
+AD_PACKAGE_IDENTIFIER_IMMUTABILITY_DECISION=IMMUTABLE_AFTER_CREATION
+AD_PACKAGE_IDENTIFIER_UNIQUENESS_SCOPE=GLOBAL_UNIQUE
+AD_PACKAGE_IDENTIFIER_UNIQUENESS_SCOPE_DECISION=GLOBAL_UNIQUE
+AD_PACKAGE_IDENTIFIER_NULLABILITY_POLICY=TRANSITIONAL_NULLABLE_THEN_NOT_NULL
+AD_PACKAGE_IDENTIFIER_DISTINCT_FROM_AD_TYPE=YES
+```
+
+These are explicit proposed design decisions for human approval, not claims
+about the current model. System assignment follows the approved REFERENCE
+catalog direction, current absence of Package administration flows, and the
+need for stable reconciliation. Global uniqueness is required for one-row
+lookup without `adType`, active-state, or payload qualifiers. Immutability
+means the code survives display-name, price, duration, limit, description, and
+active-state changes.
+
+The transition permits existing rows to be reviewed and backfilled before a
+future migration validates NOT NULL. The final canonical contract does not
+permit null Package codes.
+
+### 22.5 Exact retained identifier values
+
+The proposed values use uppercase machine-readable catalog vocabulary. They
+do not contain localized names, price, duration, generated IDs, or audit
+labels. Each adds concept/placement meaning beyond `AdType`, so it does not
+impose one-Package-per-type cardinality.
+
+| Fixture | Candidate | Evidence | Verdict |
+| --- | --- | --- | --- |
+| `AP-01` | `HOMEPAGE_CAROUSEL` | source description says homepage carousel; delivery documentation names `ad-carousel-home`; `AdType.BANNER` remains a separate placement category | `PREFERRED_PENDING_HUMAN_REVIEW` |
+| `AP-02` | `FEATURED_PRODUCT` | source name and description identify a featured Product concept; the value omits price and 14-day duration | `PREFERRED_PENDING_HUMAN_REVIEW` |
+| `AP-03` | `SPOTLIGHT_PLACEMENT` | source name, description, and `AdType.SPOTLIGHT` establish Spotlight placement; the value deliberately omits “weekly” and seven-day duration | `PREFERRED_PENDING_HUMAN_REVIEW` |
+
+```text
+AP_01_REFERENCE_IDENTIFIER_CANDIDATE=HOMEPAGE_CAROUSEL
+AP_01_REFERENCE_IDENTIFIER_EVIDENCE=SOURCE_DESCRIPTION_HOMEPAGE_CAROUSEL;DELIVERY_VOCABULARY_AD_CAROUSEL_HOME
+AP_01_REFERENCE_IDENTIFIER_VERDICT=PREFERRED_PENDING_HUMAN_REVIEW
+AP_02_REFERENCE_IDENTIFIER_CANDIDATE=FEATURED_PRODUCT
+AP_02_REFERENCE_IDENTIFIER_EVIDENCE=SOURCE_NAME_AND_DESCRIPTION_FEATURED_PRODUCT_CONCEPT
+AP_02_REFERENCE_IDENTIFIER_VERDICT=PREFERRED_PENDING_HUMAN_REVIEW
+AP_03_REFERENCE_IDENTIFIER_CANDIDATE=SPOTLIGHT_PLACEMENT
+AP_03_REFERENCE_IDENTIFIER_EVIDENCE=SOURCE_NAME_DESCRIPTION_AND_AD_TYPE_SPOTLIGHT;DURATION_EXCLUDED
+AP_03_REFERENCE_IDENTIFIER_VERDICT=PREFERRED_PENDING_HUMAN_REVIEW
+
+AP_01_REFERENCE_IDENTIFIER_VALUE_DECISION=HOMEPAGE_CAROUSEL
+AP_02_REFERENCE_IDENTIFIER_VALUE_DECISION=FEATURED_PRODUCT
+AP_03_REFERENCE_IDENTIFIER_VALUE_DECISION=SPOTLIGHT_PLACEMENT
+```
+
+The `*_VALUE_DECISION` entries are the exact recommendation presented to
+human review. They become implementation authority only after this decision
+PR is human-reviewed and merged.
+
+### 22.6 Versioning and API consequence
+
+```text
+AD_PACKAGE_VERSIONING_MODEL=SINGLE_IMMUTABLE_REFERENCE_PER_CODE_WITH_MUTABLE_PAYLOAD
+AD_PACKAGE_IDENTIFIER_API_EXPOSURE=PUBLIC_READ_ONLY_FIELD
+```
+
+Current source does not guarantee one Package per `AdType`; future codes may
+share a type. Price, duration, impression limits, description, and active state
+may be reconciled under one stable code. A materially distinct tier or
+placement receives a new code. The present schema has no historical pricing
+version model; this decision does not invent one.
+
+Because `/ads/packages` is public catalog output, a future `packageCode` is
+recommended as a read-only response field. Campaign creation continues to
+accept the numeric `packageId`; no public code-based lookup or mutation route
+is approved in this slice.
+
+### 22.7 Campaign FK preservation
+
+```text
+AD_CAMPAIGN_PACKAGE_FK_DECISION=RETAIN_NUMERIC_PACKAGE_ID_FOREIGN_KEY
+AD_CAMPAIGN_PACKAGE_FK_SCHEMA_CHANGE_REQUIRED=NO
+```
+
+The Package code supplies catalog identity and deterministic seed lookup. It
+does not replace `ad_campaigns.package_id`, the TypeORM `ManyToOne`, or the
+database FK to `ad_packages.id`. This preserves all six current numeric-ID
+contract roles and avoids an unsupported string FK migration.
+
+### 22.8 Future Ads REFERENCE seed design
+
+```text
+AD_PACKAGE_REFERENCE_SEED_GROUP_ID=ads.reference.packages
+AD_PACKAGE_REFERENCE_SEED_OWNER=ADS
+AD_PACKAGE_REFERENCE_SEED_CLASSIFICATION=REFERENCE
+AD_PACKAGE_REFERENCE_SEED_DEPENDENCIES=NONE
+AD_PACKAGE_REFERENCE_STABLE_KEY=packageCode
+AD_PACKAGE_REFERENCE_IDEMPOTENCY_POLICY=LOOKUP_BY_PACKAGE_CODE_CREATE_IF_ABSENT_RECONCILE_APPROVED_PAYLOAD_FAIL_CLOSED_ON_DUPLICATE_OR_AMBIGUOUS_IDENTITY_NEVER_USE_WHOLE_TABLE_COUNT_OR_GENERATED_ID_AS_LOOKUP
+```
+
+Package rows have no User or owner scalar dependency. The future group should
+follow existing Geography/Product Category REFERENCE patterns: explicit
+REFERENCE selection, per-record lookup by stable identity, create if absent,
+and reconcile approved payload when present. A duplicate or ambiguous code is
+an error, not a first-row selection. No group or writer is created here.
+
+### 22.9 Schema and existing-row design consequences
+
+```text
+AD_PACKAGE_SCHEMA_CHANGE_REQUIRED=YES
+PROPOSED_IDENTIFIER_COLUMN=package_code
+PROPOSED_IDENTIFIER_TYPE=varchar
+PROPOSED_IDENTIFIER_LENGTH=64
+PROPOSED_IDENTIFIER_NULLABILITY=TRANSITIONAL_NULLABLE_THEN_NOT_NULL
+PROPOSED_IDENTIFIER_UNIQUE_SCOPE=GLOBAL_UNIQUE
+PROPOSED_INDEX_OR_CONSTRAINT=UQ_ad_packages_package_code
+AD_PACKAGE_EXISTING_ROW_MIGRATION_POLICY=BACKFILL_ONLY_MATCHED_CANONICAL_ROWS_FAIL_CLOSED_ON_AMBIGUITY
+```
+
+A later schema slice must add the column without making unsafe assumptions
+about deployed data. It may assign the three approved values only when a row
+is unambiguously proven to be the corresponding retained concept. Unknown,
+custom, duplicate, or semantically ambiguous rows require bounded manual data
+review; they must not be guessed from `AdType`, name alone, position, serial
+ID, price, duration, or active state. Only after mapping validation may a
+future migration enforce global uniqueness and NOT NULL. No database was
+queried and no exact deployed-row state is asserted here.
+
+### 22.10 Authorization and minimal safe next sequence
+
+The recommendation is complete enough for human review but is not yet merged
+design authority. Schema and seed implementation remain separate,
+human-reviewed slices.
+
+```text
+P8_05C3C2_AD_PACKAGE_REFERENCE_IDENTITY_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+AD_PACKAGE_DOMAIN_IDENTIFIER_DECISION_RESOLVED=NO_PENDING_HUMAN_REVIEW
+AD_PACKAGE_REFERENCE_MIGRATION_DECISION_RESOLVED=NO_IMPLEMENTATION_NOT_STARTED
+P8_05C3C2_IMPLEMENTATION_AUTHORIZED=NO_PENDING_HUMAN_REVIEW_AND_SEPARATE_SCHEMA_SLICE
+P8_05C3C_IMPLEMENTATION_AUTHORIZED=NO
+P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO
+```
+
+Minimal safe sequence:
+
+1. `P8-05C3C2A` — implement the approved `package_code` schema/migration with
+   fail-closed existing-row handling and validation.
+2. `P8-05C3C2B` — implement `ads.reference.packages`, keyed by `packageCode`,
+   only after the schema slice is merged.
+3. `P8-05C3C3` — retire the four approved Campaign DEV fixtures and their
+   supplier dependency plumbing; no partial retirement is authorized here.
+4. `P8-05C3C4` — retire the central Package DEV writer only after the
+   owner-local REFERENCE replacement is implemented and verified.
+5. `P8-05C4D` — evaluate retirement of `DevSeedService`,
+   `legacy.dev.remaining`, reset-only `ad_events` debt, Users dependency, and
+   unused aliases only after central ordinary writer count reaches zero.
+
+```text
+NEXT_IMPLEMENTATION_SLICE_1=P8_05C3C2A_AD_PACKAGE_IDENTIFIER_SCHEMA_MIGRATION
+NEXT_IMPLEMENTATION_SLICE_2=P8_05C3C2B_ADS_REFERENCE_PACKAGE_SEED
+NEXT_IMPLEMENTATION_SLICE_3=P8_05C3C3_CAMPAIGN_DEV_FIXTURE_RETIREMENT
+NEXT_IMPLEMENTATION_SLICE_4=P8_05C3C4_LEGACY_PACKAGE_DEV_WRITER_RETIREMENT
+NEXT_IMPLEMENTATION_SLICE_5=P8_05C4D_CENTRAL_CONTINUATION_AND_RESET_DEBT_RETIREMENT
+```
+
+### 22.11 Documentation-only boundary and safety
+
+```text
+RUNTIME_FILES_CHANGED=0
+ADS_BUSINESS_IMPLEMENTATION_CHANGES=0
+CENTRAL_DEVSEEDSERVICE_RUNTIME_CHANGES=0
+LEGACY_DEV_REMAINING_CHANGES=0
+NEW_SEEDGROUPS=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+DATASOURCE_CONSTRUCTED=NO
+DATASOURCE_INITIALIZE_CALLS=0
+SQL=0
+DDL=0
+DML=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+SYNCHRONIZE=NO
+DESTRUCTIVE_RESET_EXECUTED=NO
+```
