@@ -1,9 +1,9 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "CreateTraceabilityEventModelV21800000002000",
-  "fingerprint": "63c998213d165cafbfae239a0aad2b9c02506c0f3934dd25dc869b66d5797d27",
-  "objectCount": 678,
+  "migration": "ExpandAdPackageReferenceIdentity1800000003000",
+  "fingerprint": "b7ed0b23ff882f7aff60d5f6ade975463f92742cda8cf329bbed4783e2444a10",
+  "objectCount": 681,
   "snapshot": {
     "schema": "public",
     "schemas": [
@@ -705,6 +705,19 @@
             "generated": null
           },
           {
+            "name": "package_code",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": 64,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
             "name": "price",
             "dataType": "numeric",
             "udtSchema": "pg_catalog",
@@ -760,6 +773,22 @@
             "onDelete": null,
             "deferrable": false,
             "initiallyDeferred": false
+          },
+          {
+            "table": "ad_packages",
+            "name": "UQ_ad_packages_package_code",
+            "type": "unique",
+            "columns": [
+              "package_code"
+            ],
+            "definition": "UNIQUE (package_code)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
           }
         ],
         "indexes": [
@@ -770,6 +799,15 @@
             "primary": true,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX \"PK_83f845520e0b1e582374d435781\" ON ad_packages USING btree (id)",
+            "predicate": null
+          },
+          {
+            "table": "ad_packages",
+            "name": "UQ_ad_packages_package_code",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"UQ_ad_packages_package_code\" ON ad_packages USING btree (package_code)",
             "predicate": null
           }
         ]
