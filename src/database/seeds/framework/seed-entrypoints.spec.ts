@@ -169,7 +169,7 @@ describe("seed entrypoint safety and retirement regressions", () => {
       "id: LEGACY_REMAINING_DEV_SEED_GROUP_ID",
     );
     expect(centralSource).toContain("async resetAll(");
-    expect(centralSource).toContain("async seedForum(");
+    expect(centralSource).not.toContain("async seedForum(");
     expect(centralSource).toContain("async seedAdPackages(");
     expect(centralSource).toContain("async seedAdCampaigns(");
     expect(centralSource).not.toContain("async seedBulkListings(");

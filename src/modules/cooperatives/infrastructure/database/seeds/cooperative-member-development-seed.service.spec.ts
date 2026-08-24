@@ -343,8 +343,9 @@ describe("CooperativeMemberDevelopmentSeedService", () => {
     expect(mainSource).not.toMatch(
       /cooperatives\.dev\.(?:bulk-operations|harvest)/,
     );
-    expect(legacySource).toContain('COOP: "cooperative@sandbox.com"');
-    expect(legacySource).toContain('FARMER: "farmer@sandbox.com"');
+    expect(legacySource).not.toContain('COOP: "cooperative@sandbox.com"');
+    expect(legacySource).not.toContain('FARMER: "farmer@sandbox.com"');
+    expect(legacySource).not.toContain('BUYER: "buyer@agrilink.vn"');
     expect(legacySource).not.toContain("XOAI_HOA_LOC");
     expect(legacySource).not.toContain("PRODUCTS_DEV_SEED_GROUP_ID");
   });

@@ -86,7 +86,8 @@ describe("LegacyRemainingDevSeedGroup", () => {
     );
 
     expect(calls).toHaveLength(1);
-    expect(calls[0].FARMER).toBe("id:farmer@sandbox.com");
+    expect(calls[0].ADMIN).toBe("id:admin@agrilink.vn");
+    expect(calls[0].SUPPLIER).toBe("id:supplier@agrilink.vn");
     expect(calls[0].ENTERPRISE).toBe("id:enterprise@agrilink.vn");
   });
 
@@ -121,8 +122,15 @@ describe("LegacyRemainingDevSeedGroup", () => {
     expect(central).not.toContain("bulk_listing_contributions");
     expect(central).not.toContain("bulk_listings");
     expect(central).not.toContain("harvest_schedules");
-    expect(LEGACY_DEV_ACTOR_EMAILS.COOP).toBe("cooperative@sandbox.com");
-    expect(LEGACY_DEV_ACTOR_EMAILS.FARMER).toBe("farmer@sandbox.com");
+    expect(LEGACY_DEV_ACTOR_EMAILS).toEqual({
+      ADMIN: "admin@agrilink.vn",
+      ENTERPRISE: "enterprise@agrilink.vn",
+      SUPPLIER: "supplier@agrilink.vn",
+      LOGISTICS: "logistics@agrilink.vn",
+      STATE_AGENCY: "state_agency@sandbox.com",
+    });
+    expect(central).toContain("const { ADMIN, SUPPLIER } = users");
+    expect(central).not.toMatch(/\bFARMER\b|\bBUYER\b|\bCOOP\b/);
     expect(central).not.toMatch(
       /SAU_RIENG_RI6|BUOI_DA_XANH_FARMER|THANH_LONG_RUOT_DO|DUA_HAU_KHONG_HAT|VAI_THIEU_LUC_NGAN|RAU_MUONG_HUU_CO|CA_ROT_DA_LAT/,
     );

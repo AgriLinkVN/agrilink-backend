@@ -51,12 +51,25 @@ describe("DevSeedService Phase 8 transitions", () => {
     );
   });
 
-  it("retires C2D3 while keeping the blocked C3 sections reachable", () => {
+  it("retires C2D3 and Forum while keeping the blocked Ads sections reachable", () => {
     expect(source).not.toContain("seedBulkListings");
     expect(source).not.toContain("seedHarvestSchedules");
-    expect(source).toContain("this.seedForum");
+    expect(source).not.toContain("seedForum");
     expect(source).toContain("this.seedAdPackages");
     expect(source).toContain("this.seedAdCampaigns");
+  });
+
+  it("retires all central Forum repositories, fixtures, and random Like generation", () => {
+    expect(source).not.toMatch(
+      /ForumPost|ForumComment|ForumLike|ForumCategory|getRepository\((?:ForumPost|ForumComment|ForumLike)\)/,
+    );
+    expect(source).not.toMatch(
+      /Kỹ thuật trồng lúa ST25|Thị trường trái cây nhập khẩu cuối năm 2026|Kinh nghiệm mua nông sản online uy tín|Tình hình sâu bệnh trên cây ăn trái mùa mưa|HTX Xanh Tiền Giang tuyển thành viên mới/,
+    );
+    expect(source).not.toMatch(
+      /Bài viết rất hữu ích|hiệu quả kinh tế cao hơn giống thường|viết thêm phần 2|nhu cầu Trung Quốc lớn|cải tạo vườn để tăng sản lượng|tăng trưởng tốt ít nhất 2-3 năm|chợ đầu mối Thủ Đức/,
+    );
+    expect(source).not.toMatch(/Math\.random|postRepo|commentRepo|likeRepo/);
   });
 
   it("retires every executable Harvest Schedule fixture and repository write", () => {
@@ -91,36 +104,28 @@ describe("DevSeedService Phase 8 transitions", () => {
     );
   });
 
-  it("removes only Audit Log and Notification from central reset ownership", () => {
+  it("retires Forum reset ownership while preserving Ads reset targets", () => {
     const tableBlock =
       source.match(/const tables = \[([\s\S]*?)\];/)?.[1] ?? "";
     const targets = [...tableBlock.matchAll(/["']([^"']+)["']/g)].map(
       (match) => match[1],
     );
 
-    expect(targets).toEqual([
-      "forum_likes",
-      "forum_comments",
-      "forum_posts",
-      "ad_campaigns",
-      "ad_packages",
-      "ad_events",
-    ]);
+    expect(targets).toEqual(["ad_campaigns", "ad_packages", "ad_events"]);
+    expect(targets).not.toContain("forum_likes");
+    expect(targets).not.toContain("forum_comments");
+    expect(targets).not.toContain("forum_posts");
     expect(targets).not.toContain("audit_logs");
     expect(targets).not.toContain("notifications");
     expect(targets).not.toContain("harvest_schedules");
   });
 
-  it("retains exactly the three blocked C3 normal write methods", () => {
+  it("retains exactly the two blocked Ads normal write methods", () => {
     const normalMethods = [
       ...source.matchAll(/private async (seed[A-Za-z0-9]+)\(/g),
     ].map((match) => match[1]);
 
-    expect(normalMethods).toEqual([
-      "seedForum",
-      "seedAdPackages",
-      "seedAdCampaigns",
-    ]);
+    expect(normalMethods).toEqual(["seedAdPackages", "seedAdCampaigns"]);
 
     for (const method of normalMethods) {
       expect(source).toContain(`this.${method}`);
@@ -130,27 +135,33 @@ describe("DevSeedService Phase 8 transitions", () => {
     expect(source).not.toContain("seedHarvestSchedules");
   });
 
-  it("retains exactly five ordinary central business-table writers", () => {
+  it("retains exactly two ordinary central business-table writers", () => {
     const repositoryEntities = new Set(
       [
         ...source.matchAll(
-          /getRepository\((ForumPost|ForumComment|ForumLike|AdPackage|AdCampaign)\)/g,
+          /getRepository\((AdPackage|AdCampaign)\)/g,
         ),
       ].map((match) => match[1]),
     );
 
     expect([...repositoryEntities].sort()).toEqual(
-      [
-        "ForumPost",
-        "ForumComment",
-        "ForumLike",
-        "AdPackage",
-        "AdCampaign",
-      ].sort(),
+      ["AdPackage", "AdCampaign"].sort(),
     );
   });
 
-  it("keeps the legacy continuation without a replacement C2D2 or C4 SeedGroup", () => {
+  it("preserves the authorized Ads fixture bodies", () => {
+    expect(source).toContain("Banner chính (Carousel)");
+    expect(source).toContain("Sản phẩm nổi bật");
+    expect(source).toContain("Spotlight tuần");
+    expect(source).toContain("Nông sản sạch Đà Lạt");
+    expect(source).toContain("Đặc sản vùng miền — Khuyến mãi tháng 7");
+    expect(source).toContain("Sầu riêng Ri6 chính vụ");
+    expect(source).toContain("Phân bón hữu cơ — Giảm 15%");
+    expect(source.match(/private async seedAdPackages\(/g)).toHaveLength(1);
+    expect(source.match(/private async seedAdCampaigns\(/g)).toHaveLength(1);
+  });
+
+  it("keeps the legacy continuation without a replacement Forum or deferred SeedGroup", () => {
     const runtimeSource = readTypeScriptFilesRecursively(join(__dirname, ".."));
 
     expect(runtimeSource).toContain('"legacy.dev.remaining"');
@@ -164,6 +175,34 @@ describe("DevSeedService Phase 8 transitions", () => {
       /cooperatives\.dev\.(?:harvest|harvest-schedules)/,
     );
     expect(runtimeSource).not.toContain("harvest-schedule.id.by-");
+    expect(runtimeSource).not.toMatch(/forum\.dev\.(?:posts|comments|likes|content|discussions)/);
+    expect(runtimeSource).not.toContain("forum-post.id.by-");
+    expect(runtimeSource).not.toContain("forum-comment.id.by-");
+  });
+
+  it("preserves Forum domain entities and the User/Post Like constraint", () => {
+    const forumRoot = join(__dirname, "..", "modules", "forum");
+    const moduleSource = readFileSync(join(forumRoot, "forum.module.ts"), "utf8");
+    const postSource = readFileSync(
+      join(forumRoot, "entities", "forum-post.entity.ts"),
+      "utf8",
+    );
+    const commentSource = readFileSync(
+      join(forumRoot, "entities", "forum-comment.entity.ts"),
+      "utf8",
+    );
+    const likeSource = readFileSync(
+      join(forumRoot, "entities", "forum-like.entity.ts"),
+      "utf8",
+    );
+
+    expect(moduleSource).toContain(
+      "TypeOrmModule.forFeature([ForumPost, ForumComment, ForumLike])",
+    );
+    expect(postSource).toContain("@Entity('forum_posts')");
+    expect(commentSource).toContain("@Entity('forum_comments')");
+    expect(likeSource).toContain("@Entity('forum_likes')");
+    expect(likeSource).toContain("@Unique(['postId', 'userId'])");
   });
 
   it("preserves Harvest domain persistence and migration definitions", () => {
