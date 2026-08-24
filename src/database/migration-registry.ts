@@ -15,6 +15,7 @@ import { CreateCanonicalBaselineV21800000000000 } from "./migrations-v2/18000000
 import { CreateCommerceBoundariesV21800000001000 } from "./migrations-v2/1800000001000-CreateCommerceBoundariesV2";
 import { CreateTraceabilityEventModelV21800000002000 } from "./migrations-v2/1800000002000-CreateTraceabilityEventModelV2";
 import { ExpandAdPackageReferenceIdentity1800000003000 } from "./migrations-v2/1800000003000-ExpandAdPackageReferenceIdentity";
+import { BackfillAndContractAdPackageReferenceIdentity1800000004000 } from "./migrations-v2/1800000004000-BackfillAndContractAdPackageReferenceIdentity";
 
 export type MigrationClass = new () => MigrationInterface;
 
@@ -37,6 +38,7 @@ export const V2_MIGRATIONS = Object.freeze([
   CreateCommerceBoundariesV21800000001000,
   CreateTraceabilityEventModelV21800000002000,
   ExpandAdPackageReferenceIdentity1800000003000,
+  BackfillAndContractAdPackageReferenceIdentity1800000004000,
 ] as const satisfies readonly MigrationClass[]);
 
 export function getMigrationNames(

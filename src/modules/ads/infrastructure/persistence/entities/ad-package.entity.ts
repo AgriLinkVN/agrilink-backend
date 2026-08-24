@@ -18,9 +18,9 @@ export class AdPackage {
     name: 'package_code',
     type: 'varchar',
     length: 64,
-    nullable: true,
+    nullable: false,
   })
-  packageCode: string | null;
+  packageCode: string;
 
   @Column()
   name: string;

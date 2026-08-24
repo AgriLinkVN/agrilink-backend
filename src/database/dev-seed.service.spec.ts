@@ -16,7 +16,10 @@ function readTypeScriptFilesRecursively(root: string): string {
 }
 
 describe("DevSeedService Phase 8 transitions", () => {
-  const source = readFileSync(join(__dirname, "dev-seed.service.ts"), "utf8");
+  const source = readFileSync(
+    join(__dirname, "dev-seed.service.ts"),
+    "utf8",
+  ).replace(/\r\n/g, "\n");
 
   it("retires every central Product-owned write and repository query", () => {
     expect(source).not.toMatch(
@@ -137,11 +140,9 @@ describe("DevSeedService Phase 8 transitions", () => {
 
   it("retains exactly two ordinary central business-table writers", () => {
     const repositoryEntities = new Set(
-      [
-        ...source.matchAll(
-          /getRepository\((AdPackage|AdCampaign)\)/g,
-        ),
-      ].map((match) => match[1]),
+      [...source.matchAll(/getRepository\((AdPackage|AdCampaign)\)/g)].map(
+        (match) => match[1],
+      ),
     );
 
     expect([...repositoryEntities].sort()).toEqual(
@@ -161,6 +162,41 @@ describe("DevSeedService Phase 8 transitions", () => {
     expect(source.match(/private async seedAdCampaigns\(/g)).toHaveLength(1);
   });
 
+  it("keeps exactly three canonical Package codes on the transitional writer", () => {
+    const packageBody =
+      source.match(
+        /private async seedAdPackages\(\) \{([\s\S]*?)\n  \}\n\n  private async seedAdCampaigns/,
+      )?.[1] ?? "";
+
+    expect(packageBody.match(/\{ name:/g)).toHaveLength(3);
+    expect(packageBody.match(/packageCode:/g)).toHaveLength(3);
+    expect(packageBody).toContain("const existing = await repo.count()");
+    expect(packageBody).toContain("if (existing > 0) return");
+    expect(packageBody).toContain(
+      "{ name: 'Banner chính (Carousel)', packageCode: 'HOMEPAGE_CAROUSEL', adType: AdType.BANNER, price: 500000, durationDays: 30, maxImpressions: 10000, description: 'Hiển thị trên carousel trang chủ', isActive: true }",
+    );
+    expect(packageBody).toContain(
+      "{ name: 'Sản phẩm nổi bật', packageCode: 'FEATURED_PRODUCT', adType: AdType.FEATURED, price: 300000, durationDays: 14, maxImpressions: 5000, description: 'Sản phẩm được gắn nhãn nổi bật', isActive: true }",
+    );
+    expect(packageBody).toContain(
+      "{ name: 'Spotlight tuần', packageCode: 'SPOTLIGHT_PLACEMENT', adType: AdType.SPOTLIGHT, price: 700000, durationDays: 7, maxImpressions: 20000, description: 'Hiển thị spotlight nổi bật 7 ngày', isActive: true }",
+    );
+  });
+
+  it("does not alter Campaign fixtures for the Package compatibility bridge", () => {
+    const campaignBody =
+      source.match(
+        /private async seedAdCampaigns\([\s\S]*?\{([\s\S]*?)\n  \}\n\}/,
+      )?.[1] ?? "";
+
+    expect(campaignBody.match(/\{ supplierId, packageId:/g)).toHaveLength(4);
+    expect(campaignBody).not.toContain("packageCode");
+    expect(campaignBody).toContain("Nông sản sạch Đà Lạt");
+    expect(campaignBody).toContain("Đặc sản vùng miền — Khuyến mãi tháng 7");
+    expect(campaignBody).toContain("Sầu riêng Ri6 chính vụ");
+    expect(campaignBody).toContain("Phân bón hữu cơ — Giảm 15%");
+  });
+
   it("keeps the legacy continuation without a replacement Forum or deferred SeedGroup", () => {
     const runtimeSource = readTypeScriptFilesRecursively(join(__dirname, ".."));
 
@@ -175,14 +211,19 @@ describe("DevSeedService Phase 8 transitions", () => {
       /cooperatives\.dev\.(?:harvest|harvest-schedules)/,
     );
     expect(runtimeSource).not.toContain("harvest-schedule.id.by-");
-    expect(runtimeSource).not.toMatch(/forum\.dev\.(?:posts|comments|likes|content|discussions)/);
+    expect(runtimeSource).not.toMatch(
+      /forum\.dev\.(?:posts|comments|likes|content|discussions)/,
+    );
     expect(runtimeSource).not.toContain("forum-post.id.by-");
     expect(runtimeSource).not.toContain("forum-comment.id.by-");
   });
 
   it("preserves Forum domain entities and the User/Post Like constraint", () => {
     const forumRoot = join(__dirname, "..", "modules", "forum");
-    const moduleSource = readFileSync(join(forumRoot, "forum.module.ts"), "utf8");
+    const moduleSource = readFileSync(
+      join(forumRoot, "forum.module.ts"),
+      "utf8",
+    );
     const postSource = readFileSync(
       join(forumRoot, "entities", "forum-post.entity.ts"),
       "utf8",
