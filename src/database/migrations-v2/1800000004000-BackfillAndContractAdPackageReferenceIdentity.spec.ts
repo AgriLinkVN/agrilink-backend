@@ -77,6 +77,30 @@ describe("P8-05C3C2A2 Ad Package identifier backfill and contract", () => {
     expect(preflightSource).toContain('"package_code" NOT IN');
   });
 
+  it("binds each approved code to its exact fingerprint before any update", () => {
+    expect(
+      preflightSource.match(/is attached to the wrong Ad Package fingerprint/g),
+    ).toHaveLength(3);
+    for (const code of [
+      "HOMEPAGE_CAROUSEL",
+      "FEATURED_PRODUCT",
+      "SPOTLIGHT_PLACEMENT",
+    ]) {
+      expect(preflightSource).toContain(`"package_code" = '${code}'`);
+    }
+    expect(preflightSource.match(/\) IS NOT TRUE/g)).toHaveLength(6);
+  });
+
+  it("rejects unknown/custom NULL rows before the first update", () => {
+    const unresolvedMessage =
+      "Unresolved Ad Package row requires explicit package_code mapping";
+    expect(preflightSource).toContain('WHERE "package_code" IS NULL');
+    expect(preflightSource).toContain(unresolvedMessage);
+    expect(preflightSource.indexOf(unresolvedMessage)).toBeLessThan(
+      firstUpdateIndex,
+    );
+  });
+
   it("uses exactly three full-fingerprint NULL-only assignments", () => {
     expect(updateStatements).toHaveLength(3);
     expect(

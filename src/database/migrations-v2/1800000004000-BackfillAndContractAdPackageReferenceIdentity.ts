@@ -55,6 +55,54 @@ export class BackfillAndContractAdPackageReferenceIdentity1800000004000 implemen
 
         IF EXISTS (
           SELECT 1 FROM "ad_packages"
+          WHERE "package_code" = 'HOMEPAGE_CAROUSEL'
+            AND (
+              "name" = 'Banner chính (Carousel)'
+              AND "type" = 'banner'
+              AND "price" = 500000
+              AND "duration_days" = 30
+              AND "description" = 'Hiển thị trên carousel trang chủ'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 10000
+            ) IS NOT TRUE
+        ) THEN
+          RAISE EXCEPTION 'HOMEPAGE_CAROUSEL is attached to the wrong Ad Package fingerprint';
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM "ad_packages"
+          WHERE "package_code" = 'FEATURED_PRODUCT'
+            AND (
+              "name" = 'Sản phẩm nổi bật'
+              AND "type" = 'featured'
+              AND "price" = 300000
+              AND "duration_days" = 14
+              AND "description" = 'Sản phẩm được gắn nhãn nổi bật'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 5000
+            ) IS NOT TRUE
+        ) THEN
+          RAISE EXCEPTION 'FEATURED_PRODUCT is attached to the wrong Ad Package fingerprint';
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM "ad_packages"
+          WHERE "package_code" = 'SPOTLIGHT_PLACEMENT'
+            AND (
+              "name" = 'Spotlight tuần'
+              AND "type" = 'spotlight'
+              AND "price" = 700000
+              AND "duration_days" = 7
+              AND "description" = 'Hiển thị spotlight nổi bật 7 ngày'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 20000
+            ) IS NOT TRUE
+        ) THEN
+          RAISE EXCEPTION 'SPOTLIGHT_PLACEMENT is attached to the wrong Ad Package fingerprint';
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM "ad_packages"
           WHERE "name" = 'Banner chính (Carousel)'
             AND "type" = 'banner'
             AND "price" = 500000
@@ -147,6 +195,40 @@ export class BackfillAndContractAdPackageReferenceIdentity1800000004000 implemen
           WHERE "package_code" = 'SPOTLIGHT_PLACEMENT'
         ) THEN
           RAISE EXCEPTION 'SPOTLIGHT_PLACEMENT is already assigned to another Package';
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM "ad_packages"
+          WHERE "package_code" IS NULL
+            AND (
+              "name" = 'Banner chính (Carousel)'
+              AND "type" = 'banner'
+              AND "price" = 500000
+              AND "duration_days" = 30
+              AND "description" = 'Hiển thị trên carousel trang chủ'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 10000
+            ) IS NOT TRUE
+            AND (
+              "name" = 'Sản phẩm nổi bật'
+              AND "type" = 'featured'
+              AND "price" = 300000
+              AND "duration_days" = 14
+              AND "description" = 'Sản phẩm được gắn nhãn nổi bật'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 5000
+            ) IS NOT TRUE
+            AND (
+              "name" = 'Spotlight tuần'
+              AND "type" = 'spotlight'
+              AND "price" = 700000
+              AND "duration_days" = 7
+              AND "description" = 'Hiển thị spotlight nổi bật 7 ngày'
+              AND "is_active" IS TRUE
+              AND "max_impressions" = 20000
+            ) IS NOT TRUE
+        ) THEN
+          RAISE EXCEPTION 'Unresolved Ad Package row requires explicit package_code mapping';
         END IF;
       END;
       $$
