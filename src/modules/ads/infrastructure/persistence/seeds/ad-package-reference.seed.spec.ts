@@ -161,7 +161,7 @@ describe("AdsPackageReferenceSeedGroup", () => {
     ).rejects.toThrow("requires explicit REFERENCE selection");
   });
 
-  it("preserves legacy Package parity while Campaign fixtures remain retired", () => {
+  it("keeps the reference owner registered after the central Package bridge retires", () => {
     const repositoryRoot = join(__dirname, "../../../../../..");
     const centralSource = readFileSync(
       join(repositoryRoot, "src/database/dev-seed.service.ts"),
@@ -180,35 +180,15 @@ describe("AdsPackageReferenceSeedGroup", () => {
       "utf8",
     );
 
-    expect(centralSource.match(/private async seedAdPackages\(/g)).toHaveLength(
-      1,
-    );
+    expect(centralSource).not.toMatch(/private async seedAdPackages\(/);
     expect(centralSource).not.toMatch(/private async seedAdCampaigns\(/);
-    expect(centralSource).toContain("const existing = await repo.count()");
+    expect(centralSource).not.toContain("const existing = await repo.count()");
     expect(centralSource).not.toMatch(/packages\[[012]\]\.id/);
     expect(centralSource).not.toMatch(/\{ supplierId, packageId:/);
 
-    expect(centralSource).toContain(
-      "{ name: 'Banner chính (Carousel)', packageCode: 'HOMEPAGE_CAROUSEL', adType: AdType.BANNER, price: 500000, durationDays: 30, maxImpressions: 10000, description: 'Hiển thị trên carousel trang chủ', isActive: true }",
-    );
-    expect(centralSource).toContain(
-      "{ name: 'Sản phẩm nổi bật', packageCode: 'FEATURED_PRODUCT', adType: AdType.FEATURED, price: 300000, durationDays: 14, maxImpressions: 5000, description: 'Sản phẩm được gắn nhãn nổi bật', isActive: true }",
-    );
-    expect(centralSource).toContain(
-      "{ name: 'Spotlight tuần', packageCode: 'SPOTLIGHT_PLACEMENT', adType: AdType.SPOTLIGHT, price: 700000, durationDays: 7, maxImpressions: 20000, description: 'Hiển thị spotlight nổi bật 7 ngày', isActive: true }",
-    );
-
     for (const record of adPackageReferenceSeedData) {
-      expect(centralSource).toContain(
-        `packageCode: '${record.packageCode}'`,
-      );
-      expect(centralSource).toContain(`name: '${record.name}'`);
-      expect(centralSource).toContain(`price: ${record.price}`);
-      expect(centralSource).toContain(`durationDays: ${record.durationDays}`);
-      expect(centralSource).toContain(
-        `maxImpressions: ${record.maxImpressions}`,
-      );
-      expect(centralSource).toContain(`description: '${record.description}'`);
+      expect(centralSource).not.toContain(record.packageCode);
+      expect(seedSource).toContain(`packageCode: "${record.packageCode}"`);
     }
 
     expect(mainSource).toContain("createAdsPackageReferenceSeedGroup");
@@ -217,7 +197,7 @@ describe("AdsPackageReferenceSeedGroup", () => {
     expect(seedSource).not.toMatch(/\.count\(|findByName|findByAdType/);
   });
 
-  it("keeps reset, ad_events, Campaign groups, and public API unchanged", () => {
+  it("retires Package reset while keeping ad_events debt and public API unchanged", () => {
     const repositoryRoot = join(__dirname, "../../../../../..");
     const centralSource = readFileSync(
       join(repositoryRoot, "src/database/dev-seed.service.ts"),
@@ -238,7 +218,7 @@ describe("AdsPackageReferenceSeedGroup", () => {
       .join("\n");
 
     expect(centralSource).not.toContain("'ad_campaigns'");
-    expect(centralSource).toContain("'ad_packages'");
+    expect(centralSource).not.toContain("'ad_packages'");
     expect(centralSource).toContain("'ad_events'");
     expect(runtimeSeedSources).not.toMatch(/campaign|ad_events/i);
     expect(publicApiSource).not.toContain("packageCode");

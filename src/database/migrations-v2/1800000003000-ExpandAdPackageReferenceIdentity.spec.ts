@@ -135,10 +135,9 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
     );
     const runtimeSource = readRuntimeTypeScript(sourceRoot);
 
-    expect(devSeedSource.match(/private async seedAdPackages\(/g)).toHaveLength(
-      1,
-    );
+    expect(devSeedSource).not.toMatch(/private async seedAdPackages\(/);
     expect(devSeedSource).not.toMatch(/private async seedAdCampaigns\(/);
+    expect(devSeedSource).not.toContain("'ad_packages'");
     expect(devSeedSource).toContain("'ad_events'");
     expect(modelSource).not.toContain("packageCode");
     expect(runtimeSource.match(/ads\.reference\.packages/g)).toHaveLength(1);
