@@ -143,6 +143,6 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
     ).toHaveLength(1);
     expect(devSeedSource).toContain("'ad_events'");
     expect(modelSource).not.toContain("packageCode");
-    expect(runtimeSource).not.toContain("ads.reference.packages");
+    expect(runtimeSource.match(/ads\.reference\.packages/g)).toHaveLength(1);
   });
 });

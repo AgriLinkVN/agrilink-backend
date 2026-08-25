@@ -255,7 +255,7 @@ describe("P8-05C3C2A2 Ad Package identifier backfill and contract", () => {
 
     expect(entitySource).toMatch(/packageCode:\s*string;/);
     expect(modelSource).not.toContain("packageCode");
-    expect(runtimeSource).not.toContain("ads.reference.packages");
+    expect(runtimeSource.match(/ads\.reference\.packages/g)).toHaveLength(1);
     expect(devSeedSource.match(/private async seedAdPackages\(/g)).toHaveLength(
       1,
     );
