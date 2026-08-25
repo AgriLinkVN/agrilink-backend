@@ -54,11 +54,11 @@ describe("DevSeedService Phase 8 transitions", () => {
     );
   });
 
-  it("retires C2D3, Forum, and Campaign fixtures while keeping Packages reachable", () => {
+  it("retires C2D3, Forum, and all central Ads fixture writers", () => {
     expect(source).not.toContain("seedBulkListings");
     expect(source).not.toContain("seedHarvestSchedules");
     expect(source).not.toContain("seedForum");
-    expect(source).toContain("this.seedAdPackages");
+    expect(source).not.toContain("seedAdPackages");
     expect(source).not.toContain("seedAdCampaigns");
   });
 
@@ -107,14 +107,15 @@ describe("DevSeedService Phase 8 transitions", () => {
     );
   });
 
-  it("retires Forum and Campaign reset ownership while preserving Package and Event debt", () => {
+  it("retires Forum, Package, and Campaign reset ownership while preserving Event debt", () => {
     const tableBlock =
       source.match(/const tables = \[([\s\S]*?)\];/)?.[1] ?? "";
     const targets = [...tableBlock.matchAll(/["']([^"']+)["']/g)].map(
       (match) => match[1],
     );
 
-    expect(targets).toEqual(["ad_packages", "ad_events"]);
+    expect(targets).toEqual(["ad_events"]);
+    expect(targets).not.toContain("ad_packages");
     expect(targets).not.toContain("ad_campaigns");
     expect(targets).not.toContain("forum_likes");
     expect(targets).not.toContain("forum_comments");
@@ -124,12 +125,12 @@ describe("DevSeedService Phase 8 transitions", () => {
     expect(targets).not.toContain("harvest_schedules");
   });
 
-  it("retains exactly the transitional Package normal write method", () => {
+  it("retains no central normal business fixture write method", () => {
     const normalMethods = [
       ...source.matchAll(/private async (seed[A-Za-z0-9]+)\(/g),
     ].map((match) => match[1]);
 
-    expect(normalMethods).toEqual(["seedAdPackages"]);
+    expect(normalMethods).toEqual([]);
 
     for (const method of normalMethods) {
       expect(source).toContain(`this.${method}`);
@@ -139,48 +140,34 @@ describe("DevSeedService Phase 8 transitions", () => {
     expect(source).not.toContain("seedHarvestSchedules");
   });
 
-  it("retains exactly one ordinary central business-table writer", () => {
+  it("retains no ordinary central business-table writer", () => {
     const repositoryEntities = new Set(
       [...source.matchAll(/getRepository\((AdPackage|AdCampaign)\)/g)].map(
         (match) => match[1],
       ),
     );
 
-    expect([...repositoryEntities]).toEqual(["AdPackage"]);
+    expect([...repositoryEntities]).toEqual([]);
   });
 
-  it("preserves Package fixtures and retires every Campaign fixture", () => {
-    expect(source).toContain("Banner chính (Carousel)");
-    expect(source).toContain("Sản phẩm nổi bật");
-    expect(source).toContain("Spotlight tuần");
+  it("retires every central Package and Campaign fixture", () => {
+    expect(source).not.toContain("Banner chính (Carousel)");
+    expect(source).not.toContain("Sản phẩm nổi bật");
+    expect(source).not.toContain("Spotlight tuần");
     expect(source).not.toContain("Nông sản sạch Đà Lạt");
     expect(source).not.toContain("Đặc sản vùng miền — Khuyến mãi tháng 7");
     expect(source).not.toContain("Sầu riêng Ri6 chính vụ");
     expect(source).not.toContain("Phân bón hữu cơ — Giảm 15%");
-    expect(source.match(/private async seedAdPackages\(/g)).toHaveLength(1);
+    expect(source).not.toMatch(/private async seedAdPackages\(/);
     expect(source).not.toMatch(/private async seedAdCampaigns\(/);
     expect(source).not.toMatch(/getRepository\(AdCampaign\)|packages\[[012]\]\.id/);
   });
 
-  it("keeps exactly three canonical Package codes on the transitional writer", () => {
-    const packageBody =
-      source.match(
-        /private async seedAdPackages\(\) \{([\s\S]*?)\n  \}\n\}/,
-      )?.[1] ?? "";
-
-    expect(packageBody.match(/\{ name:/g)).toHaveLength(3);
-    expect(packageBody.match(/packageCode:/g)).toHaveLength(3);
-    expect(packageBody).toContain("const existing = await repo.count()");
-    expect(packageBody).toContain("if (existing > 0) return");
-    expect(packageBody).toContain(
-      "{ name: 'Banner chính (Carousel)', packageCode: 'HOMEPAGE_CAROUSEL', adType: AdType.BANNER, price: 500000, durationDays: 30, maxImpressions: 10000, description: 'Hiển thị trên carousel trang chủ', isActive: true }",
-    );
-    expect(packageBody).toContain(
-      "{ name: 'Sản phẩm nổi bật', packageCode: 'FEATURED_PRODUCT', adType: AdType.FEATURED, price: 300000, durationDays: 14, maxImpressions: 5000, description: 'Sản phẩm được gắn nhãn nổi bật', isActive: true }",
-    );
-    expect(packageBody).toContain(
-      "{ name: 'Spotlight tuần', packageCode: 'SPOTLIGHT_PLACEMENT', adType: AdType.SPOTLIGHT, price: 700000, durationDays: 7, maxImpressions: 20000, description: 'Hiển thị spotlight nổi bật 7 ngày', isActive: true }",
-    );
+  it("keeps the transitional continuation without a Package bridge", () => {
+    expect(source).toContain("class DevSeedService");
+    expect(source).toContain("seedRemainingLegacySections(");
+    expect(source).toContain("_users: LegacyDevActorIds");
+    expect(source).not.toMatch(/AdPackage|AdType|packageCode|ad packages seeded/);
   });
 
   it("does not create a replacement Campaign group or output", () => {
