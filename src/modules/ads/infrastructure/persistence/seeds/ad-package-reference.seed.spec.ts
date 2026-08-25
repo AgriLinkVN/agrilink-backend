@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { AdType } from "../../../../../common/enums";
 import {
@@ -163,9 +163,9 @@ describe("AdsPackageReferenceSeedGroup", () => {
 
   it("keeps the reference owner registered after the central Package bridge retires", () => {
     const repositoryRoot = join(__dirname, "../../../../../..");
-    const centralSource = readFileSync(
-      join(repositoryRoot, "src/database/dev-seed.service.ts"),
-      "utf8",
+    const centralSourcePath = join(
+      repositoryRoot,
+      "src/database/dev-seed.service.ts",
     );
     const mainSource = readFileSync(
       join(repositoryRoot, "src/main.ts"),
@@ -180,14 +180,9 @@ describe("AdsPackageReferenceSeedGroup", () => {
       "utf8",
     );
 
-    expect(centralSource).not.toMatch(/private async seedAdPackages\(/);
-    expect(centralSource).not.toMatch(/private async seedAdCampaigns\(/);
-    expect(centralSource).not.toContain("const existing = await repo.count()");
-    expect(centralSource).not.toMatch(/packages\[[012]\]\.id/);
-    expect(centralSource).not.toMatch(/\{ supplierId, packageId:/);
+    expect(existsSync(centralSourcePath)).toBe(false);
 
     for (const record of adPackageReferenceSeedData) {
-      expect(centralSource).not.toContain(record.packageCode);
       expect(seedSource).toContain(`packageCode: "${record.packageCode}"`);
     }
 
@@ -197,11 +192,11 @@ describe("AdsPackageReferenceSeedGroup", () => {
     expect(seedSource).not.toMatch(/\.count\(|findByName|findByAdType/);
   });
 
-  it("retires Package reset while keeping ad_events debt and public API unchanged", () => {
+  it("retires central reset while preserving ad_events runtime and public API", () => {
     const repositoryRoot = join(__dirname, "../../../../../..");
-    const centralSource = readFileSync(
-      join(repositoryRoot, "src/database/dev-seed.service.ts"),
-      "utf8",
+    const centralSourcePath = join(
+      repositoryRoot,
+      "src/database/dev-seed.service.ts",
     );
     const runtimeSeedSources = readFileSync(
       join(__dirname, "ad-package-reference.seed.ts"),
@@ -216,11 +211,27 @@ describe("AdsPackageReferenceSeedGroup", () => {
         readFileSync(join(repositoryRoot, "src/modules/ads", path), "utf8"),
       )
       .join("\n");
+    const eventRuntimeSource = [
+      "ads.module.ts",
+      "application/ports/outbound/ads-repository.port.ts",
+      "application/use-cases/ads.use-cases.ts",
+      "infrastructure/persistence/entities/ad-event.entity.ts",
+      "infrastructure/persistence/repositories/typeorm-ads.repository.ts",
+      "presentation/controllers/ads.controller.ts",
+    ]
+      .map((path) =>
+        readFileSync(join(repositoryRoot, "src/modules/ads", path), "utf8"),
+      )
+      .join("\n");
 
-    expect(centralSource).not.toContain("'ad_campaigns'");
-    expect(centralSource).not.toContain("'ad_packages'");
-    expect(centralSource).toContain("'ad_events'");
+    expect(existsSync(centralSourcePath)).toBe(false);
     expect(runtimeSeedSources).not.toMatch(/campaign|ad_events/i);
+    expect(eventRuntimeSource).toContain("@Entity('ad_events')");
+    expect(eventRuntimeSource).toContain("recordEvent(");
+    expect(eventRuntimeSource).toContain("@InjectRepository(AdEvent)");
+    expect(eventRuntimeSource).toContain(
+      "TypeOrmModule.forFeature([AdPackage, AdCampaign, AdEvent])",
+    );
     expect(publicApiSource).not.toContain("packageCode");
   });
 });

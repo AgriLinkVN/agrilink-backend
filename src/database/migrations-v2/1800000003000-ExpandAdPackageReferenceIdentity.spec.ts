@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 import { getMetadataArgsStorage } from "typeorm";
 
@@ -117,11 +117,7 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
     );
   });
 
-  it("preserves the seed, API, and reset boundaries", () => {
-    const devSeedSource = readFileSync(
-      join(databaseRoot, "dev-seed.service.ts"),
-      "utf8",
-    );
+  it("preserves the owner seed and API after central reset retirement", () => {
     const modelSource = readFileSync(
       join(
         sourceRoot,
@@ -135,10 +131,7 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
     );
     const runtimeSource = readRuntimeTypeScript(sourceRoot);
 
-    expect(devSeedSource).not.toMatch(/private async seedAdPackages\(/);
-    expect(devSeedSource).not.toMatch(/private async seedAdCampaigns\(/);
-    expect(devSeedSource).not.toContain("'ad_packages'");
-    expect(devSeedSource).toContain("'ad_events'");
+    expect(existsSync(join(databaseRoot, "dev-seed.service.ts"))).toBe(false);
     expect(modelSource).not.toContain("packageCode");
     expect(runtimeSource.match(/ads\.reference\.packages/g)).toHaveLength(1);
   });

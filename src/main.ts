@@ -15,8 +15,6 @@ import { createProductsCategoryReferenceSeedGroup } from '@modules/products/infr
 import { createAdsPackageReferenceSeedGroup } from '@modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed';
 import { createUsersDevSeedGroup } from '@modules/users/infrastructure/database/seeds/user.seed';
 import { createProfilesRoleProfilesDevSeedGroup } from '@modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer';
-import { DevSeedService } from './database/dev-seed.service';
-import { LegacyRemainingDevSeedGroup } from './database/seeds/legacy-remaining-dev-seed.group';
 import {
   buildCorsOptions,
   parseCorsOrigins,
@@ -146,13 +144,12 @@ async function bootstrap() {
       app.get(ProductDevelopmentSeedService),
       app.get(ReviewDevelopmentSeedService),
       app.get(CooperativeMemberDevelopmentSeedService),
-      new LegacyRemainingDevSeedGroup(app.get(DevSeedService)),
     ]);
     await seedOrchestrator.execute({
       environment: process.env,
       classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
     });
-    console.log('[Seed] canonical owner groups and legacy continuation reconciled');
+    console.log('[Seed] canonical owner groups reconciled');
   }
 
   await app.listen(port);
