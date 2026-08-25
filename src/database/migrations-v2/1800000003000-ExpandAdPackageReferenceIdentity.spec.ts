@@ -138,9 +138,7 @@ describe("P8-05C3C2A1 Ad Package identifier schema expand", () => {
     expect(devSeedSource.match(/private async seedAdPackages\(/g)).toHaveLength(
       1,
     );
-    expect(
-      devSeedSource.match(/private async seedAdCampaigns\(/g),
-    ).toHaveLength(1);
+    expect(devSeedSource).not.toMatch(/private async seedAdCampaigns\(/);
     expect(devSeedSource).toContain("'ad_events'");
     expect(modelSource).not.toContain("packageCode");
     expect(runtimeSource.match(/ads\.reference\.packages/g)).toHaveLength(1);

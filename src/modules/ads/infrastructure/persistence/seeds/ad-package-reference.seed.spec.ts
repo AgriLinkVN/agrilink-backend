@@ -161,7 +161,7 @@ describe("AdsPackageReferenceSeedGroup", () => {
     ).rejects.toThrow("requires explicit REFERENCE selection");
   });
 
-  it("preserves the legacy Package and Campaign transition without output plumbing", () => {
+  it("preserves legacy Package parity while Campaign fixtures remain retired", () => {
     const repositoryRoot = join(__dirname, "../../../../../..");
     const centralSource = readFileSync(
       join(repositoryRoot, "src/database/dev-seed.service.ts"),
@@ -183,14 +183,10 @@ describe("AdsPackageReferenceSeedGroup", () => {
     expect(centralSource.match(/private async seedAdPackages\(/g)).toHaveLength(
       1,
     );
-    expect(
-      centralSource.match(/private async seedAdCampaigns\(/g),
-    ).toHaveLength(1);
+    expect(centralSource).not.toMatch(/private async seedAdCampaigns\(/);
     expect(centralSource).toContain("const existing = await repo.count()");
-    expect(centralSource).toContain("packages[0].id");
-    expect(centralSource).toContain("packages[1].id");
-    expect(centralSource).toContain("packages[2].id");
-    expect(centralSource.match(/\{ supplierId, packageId:/g)).toHaveLength(4);
+    expect(centralSource).not.toMatch(/packages\[[012]\]\.id/);
+    expect(centralSource).not.toMatch(/\{ supplierId, packageId:/);
 
     expect(centralSource).toContain(
       "{ name: 'Banner chính (Carousel)', packageCode: 'HOMEPAGE_CAROUSEL', adType: AdType.BANNER, price: 500000, durationDays: 30, maxImpressions: 10000, description: 'Hiển thị trên carousel trang chủ', isActive: true }",
@@ -241,7 +237,8 @@ describe("AdsPackageReferenceSeedGroup", () => {
       )
       .join("\n");
 
-    expect(centralSource).toContain("'ad_campaigns', 'ad_packages'");
+    expect(centralSource).not.toContain("'ad_campaigns'");
+    expect(centralSource).toContain("'ad_packages'");
     expect(centralSource).toContain("'ad_events'");
     expect(runtimeSeedSources).not.toMatch(/campaign|ad_events/i);
     expect(publicApiSource).not.toContain("packageCode");

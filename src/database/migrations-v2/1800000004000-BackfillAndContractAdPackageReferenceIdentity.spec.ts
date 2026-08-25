@@ -259,11 +259,9 @@ describe("P8-05C3C2A2 Ad Package identifier backfill and contract", () => {
     expect(devSeedSource.match(/private async seedAdPackages\(/g)).toHaveLength(
       1,
     );
-    expect(
-      devSeedSource.match(/private async seedAdCampaigns\(/g),
-    ).toHaveLength(1);
-    expect(devSeedSource).toContain(
-      "'ad_campaigns', 'ad_packages', 'ad_events'",
-    );
+    expect(devSeedSource).not.toMatch(/private async seedAdCampaigns\(/);
+    expect(devSeedSource).not.toContain("'ad_campaigns'");
+    expect(devSeedSource).toContain("'ad_packages'");
+    expect(devSeedSource).toContain("'ad_events'");
   });
 });

@@ -129,7 +129,8 @@ describe("LegacyRemainingDevSeedGroup", () => {
       LOGISTICS: "logistics@agrilink.vn",
       STATE_AGENCY: "state_agency@sandbox.com",
     });
-    expect(central).toContain("const { ADMIN, SUPPLIER } = users");
+    expect(central).not.toContain("const { ADMIN, SUPPLIER } = users");
+    expect(central).toContain("_users: LegacyDevActorIds");
     expect(central).not.toMatch(/\bFARMER\b|\bBUYER\b|\bCOOP\b/);
     expect(central).not.toMatch(
       /SAU_RIENG_RI6|BUOI_DA_XANH_FARMER|THANH_LONG_RUOT_DO|DUA_HAU_KHONG_HAT|VAI_THIEU_LUC_NGAN|RAU_MUONG_HUU_CO|CA_ROT_DA_LAT/,
