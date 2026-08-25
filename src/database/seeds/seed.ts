@@ -14,6 +14,7 @@ import { SeedOrchestrator } from "./framework/seed-orchestrator";
 
 // Seeds
 import { createGeographyProvinceReferenceSeedGroup } from "../../modules/geography/infrastructure/seeds/province-reference.seed";
+import { createAdsPackageReferenceSeedGroup } from "../../modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed";
 import { createProductsCategoryReferenceSeedGroup } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
 import { createUsersDevSeedGroup } from "../../modules/users/infrastructure/database/seeds/user.seed";
 
@@ -32,6 +33,7 @@ const AppDataSource = new DataSource(
 );
 
 const REQUIRED_SEED_TABLES = [
+  "ad_packages",
   "districts",
   "product_categories",
   "product_certifications",
@@ -67,6 +69,7 @@ async function runSeed() {
   console.log("✅ Kết nối DB thành công\n");
 
   const seedOrchestrator = new SeedOrchestrator([
+    createAdsPackageReferenceSeedGroup(AppDataSource),
     createGeographyProvinceReferenceSeedGroup(AppDataSource),
     createProductsCategoryReferenceSeedGroup(AppDataSource),
     createUsersDevSeedGroup(AppDataSource),

@@ -5,6 +5,7 @@ import {
   provinceReferenceSeedData,
 } from "../../modules/geography/infrastructure/seeds/province-reference.seed";
 import { PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA } from "../../modules/products/infrastructure/database/seeds/product-category.seed";
+import { ADS_PACKAGE_REFERENCE_SEED_METADATA } from "../../modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed";
 import { SeedClassification, SeedGroup } from "./framework/seed-contract";
 import {
   buildSeedExecutionPlan,
@@ -12,6 +13,10 @@ import {
 } from "./framework/seed-metadata";
 
 const groups: readonly SeedGroup[] = [
+  {
+    metadata: ADS_PACKAGE_REFERENCE_SEED_METADATA,
+    execute: jest.fn(),
+  },
   {
     metadata: GEOGRAPHY_PROVINCE_REFERENCE_SEED_METADATA,
     execute: jest.fn(),
@@ -22,14 +27,16 @@ const groups: readonly SeedGroup[] = [
   },
 ];
 
-describe("P8-04 reference seed registration", () => {
-  it("contains exactly the two approved cycle-free groups", () => {
+describe("Phase 8 reference seed registration", () => {
+  it("contains exactly the three approved cycle-free groups", () => {
     const ordered = orderSeedMetadata([
       PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA,
       GEOGRAPHY_PROVINCE_REFERENCE_SEED_METADATA,
+      ADS_PACKAGE_REFERENCE_SEED_METADATA,
     ]);
 
     expect(ordered.map(({ id }) => id)).toEqual([
+      "ads.reference.packages",
       "geography.reference.provinces",
       "products.reference.categories",
     ]);
@@ -44,6 +51,7 @@ describe("P8-04 reference seed registration", () => {
         ({ metadata }) => metadata.id,
       ),
     ).toEqual([
+      "ads.reference.packages",
       "geography.reference.provinces",
       "products.reference.categories",
     ]);

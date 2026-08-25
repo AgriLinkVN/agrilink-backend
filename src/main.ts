@@ -12,6 +12,7 @@ import * as dns from 'dns';
 import { DataSource } from 'typeorm';
 import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
 import { createProductsCategoryReferenceSeedGroup } from '@modules/products/infrastructure/database/seeds/product-category.seed';
+import { createAdsPackageReferenceSeedGroup } from '@modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed';
 import { createUsersDevSeedGroup } from '@modules/users/infrastructure/database/seeds/user.seed';
 import { createProfilesRoleProfilesDevSeedGroup } from '@modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer';
 import { DevSeedService } from './database/dev-seed.service';
@@ -138,6 +139,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'production' && productDevSeed) {
     const dataSource = app.get(DataSource);
     const seedOrchestrator = new SeedOrchestrator([
+      createAdsPackageReferenceSeedGroup(dataSource),
       createProductsCategoryReferenceSeedGroup(dataSource),
       createUsersDevSeedGroup(dataSource),
       createProfilesRoleProfilesDevSeedGroup(dataSource),
