@@ -1,16 +1,13 @@
 # Phase 8 - Module-Owned Seeders
 
 - Phase status: `IMPLEMENTATION_IN_PROGRESS`
-- Implementation authorized: C2B, C2C, and C2D1 Member ownership are merged;
-  Bulk Listing and Harvest retain domain-identity blockers
-- Current implementation: scalar-only dependency outputs, dependency-scoped
-  lookup, two owner-local REFERENCE groups, ten-record Users DEV, canonical
-  63-record Products DEV with four deterministic Certifications, Profiles DEV
-  ownership, Reviews DEV ownership, Cooperatives Member DEV ownership, and the
-  temporary dependency-scoped central continuation; C1, C2B, C2C, and central
-  Member writes are retired
-- Implementation base: `develop` at P8-05C3A merge commit
-  `5ad0b67c7c45bc3432e3075a6b779df9936ac484` (PR #119)
+- Current authority: P8-05 central DEV decomposition is implemented by merged
+  PR #143; P8-06 TEST fixture implementation is not started
+- Current implementation: owner-local REFERENCE/DEV groups remain in place;
+  the central `DevSeedService`, `legacy.dev.remaining`, its actor dependency,
+  and central destructive reset path are retired
+- Implementation base for P8-06 audit: `develop` at PR #143 merge commit
+  `eda098233eba081099c87f38c96db7a545d5a7cf`
 - Dependency: Phase 7B implementation PR #102, merged with a successful Backend Quality Gate
 - Planned implementation branch: `refactor/persistence-phase-8-seed-ownership`
 - Kickoff documentation branch: `docs/persistence-phase-8-seed-ownership`
@@ -35,6 +32,8 @@ The Cooperative operation identity audit and decisions are recorded in
 [dev-seed-c2d-decisions.md](dev-seed-c2d-decisions.md).
 The standalone Admin DEV identity, overlap, and ownership decisions are
 recorded in [admin-dev-seed-decisions.md](admin-dev-seed-decisions.md).
+The current TEST persistence inventory, ownership design, and guard gaps are
+recorded in [test-fixture-ownership-audit.md](test-fixture-ownership-audit.md).
 
 ## Scope
 
@@ -2748,3 +2747,31 @@ DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ~~~
+
+## P8-06 Test Fixture Ownership And Classification Audit Overlay
+
+PR #143 is merged into `develop` at
+`eda098233eba081099c87f38c96db7a545d5a7cf`. The central DEV continuation and
+reset debt are closed authority, while TEST fixture implementation remains a
+separate, unexecuted phase. The complete static inventory and design are in
+[test-fixture-ownership-audit.md](test-fixture-ownership-audit.md).
+
+```text
+P8_05C4D_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_143
+P8_05_CENTRAL_DEV_SEED_DECOMPOSITION_STATUS=IMPLEMENTED_BY_MERGED_PR_143
+CENTRAL_DEVSEEDSERVICE_RETIRED=YES
+LEGACY_DEV_REMAINING_EXISTS=NO
+CENTRAL_NORMAL_WRITE_METHOD_COUNT=0
+CENTRAL_DESTRUCTIVE_RESET_METHOD_COUNT=0
+CENTRAL_PERSISTENCE_CAPABLE_METHOD_COUNT=0
+
+P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_06_IMPLEMENTATION_STATUS=NOT_STARTED
+P8_06_IMPLEMENTATION_AUTHORIZED=NO
+P8_06_BLOCKERS=HUMAN_REVIEW_PENDING;TEST_CLASSIFICATION_CONTRACT_NOT_IMPLEMENTED;TEST_PRODUCTION_REACHABILITY_GUARD_GAPS;PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED
+
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
