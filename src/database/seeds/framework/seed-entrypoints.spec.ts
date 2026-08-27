@@ -1,5 +1,14 @@
 import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
+import { ADS_PACKAGE_REFERENCE_SEED_METADATA } from "../../../modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed";
+import { COOPERATIVES_DEV_MEMBERS_SEED_METADATA } from "../../../modules/cooperatives/infrastructure/database/seeds/cooperative-member-development-seed.service";
+import { GEOGRAPHY_PROVINCE_REFERENCE_SEED_METADATA } from "../../../modules/geography/infrastructure/seeds/province-reference.seed";
+import { PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA } from "../../../modules/products/infrastructure/database/seeds/product-category.seed";
+import { PRODUCTS_DEV_SEED_METADATA } from "../../../modules/products/infrastructure/database/seeds/product-development-seed.service";
+import { PROFILES_ROLE_PROFILES_DEV_SEED_METADATA } from "../../../modules/profiles/infrastructure/database/seeds/profile-role-development.seed";
+import { REVIEWS_DEV_PRODUCT_FEEDBACK_SEED_METADATA } from "../../../modules/reviews/infrastructure/database/seeds/review-development-seed.service";
+import { USERS_DEV_SEED_METADATA } from "../../../modules/users/infrastructure/database/seeds/user.seed";
+import { orderSeedMetadata } from "./seed-metadata";
 
 function collectTypeScriptSources(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -25,12 +34,14 @@ describe("seed entrypoint safety and retirement regressions", () => {
     join(__dirname, "..", "..", "..", "main.ts"),
     "utf8",
   );
-  const centralSource = readFileSync(
-    join(__dirname, "..", "..", "dev-seed.service.ts"),
-    "utf8",
+  const centralSourcePath = join(__dirname, "..", "..", "dev-seed.service.ts");
+  const legacyRemainingSourcePath = join(
+    __dirname,
+    "..",
+    "legacy-remaining-dev-seed.group.ts",
   );
-  const legacyRemainingSource = readFileSync(
-    join(__dirname, "..", "legacy-remaining-dev-seed.group.ts"),
+  const appModuleSource = readFileSync(
+    join(__dirname, "..", "..", "..", "app.module.ts"),
     "utf8",
   );
   const packageSource = readFileSync(
@@ -41,6 +52,25 @@ describe("seed entrypoint safety and retirement regressions", () => {
     "README.md",
     "admin-dev-seed-decisions.md",
     "admin-dev-product-decisions.md",
+    "dev-seed-service-decomposition.md",
+    "seed-inventory.md",
+  ].map((file) =>
+    readFileSync(
+      join(
+        repositoryRoot,
+        "docs",
+        "architecture",
+        "persistence",
+        "phases",
+        "phase-08",
+        file,
+      ),
+      "utf8",
+    ),
+  );
+  const centralRetirementDocuments = [
+    "README.md",
+    "dev-seed-c3-decisions.md",
     "dev-seed-service-decomposition.md",
     "seed-inventory.md",
   ].map((file) =>
@@ -142,13 +172,10 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(guard).toBeLessThan(
       mainSource.indexOf("const seedOrchestrator = new SeedOrchestrator"),
     );
-    expect(guard).toBeLessThan(
-      mainSource.indexOf("new LegacyRemainingDevSeedGroup"),
-    );
     expect(mainSource).not.toContain(".seedAll(");
   });
 
-  it("runs canonical owner groups and the central continuation in one DAG", () => {
+  it("runs canonical owner groups without central continuation scaffolding", () => {
     expect(
       mainSource.match(/app\.get\(ProductDevelopmentSeedService\)/g),
     ).toHaveLength(1);
@@ -161,27 +188,12 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(mainSource).toContain("createProductsCategoryReferenceSeedGroup");
     expect(mainSource).toContain("createUsersDevSeedGroup");
     expect(mainSource).toContain("createProfilesRoleProfilesDevSeedGroup");
-    expect(mainSource).toContain("new LegacyRemainingDevSeedGroup");
-    expect(legacyRemainingSource).toContain(
-      'LEGACY_REMAINING_DEV_SEED_GROUP_ID = "legacy.dev.remaining"',
+    expect(existsSync(centralSourcePath)).toBe(false);
+    expect(existsSync(legacyRemainingSourcePath)).toBe(false);
+    expect(mainSource).not.toMatch(
+      /DevSeedService|LegacyRemainingDevSeedGroup|legacy\.dev\.remaining|seedRemainingLegacySections/,
     );
-    expect(legacyRemainingSource).toContain(
-      "id: LEGACY_REMAINING_DEV_SEED_GROUP_ID",
-    );
-    expect(centralSource).toContain("async resetAll(");
-    expect(centralSource).not.toContain("async seedForum(");
-    expect(centralSource).not.toContain("async seedAdPackages(");
-    expect(centralSource).not.toContain("async seedAdCampaigns(");
-    expect(centralSource).not.toContain("async seedBulkListings(");
-    expect(centralSource).not.toContain("async seedHarvestSchedules(");
-    expect(centralSource).not.toContain("skipProducts: true");
-    expect(centralSource).not.toContain("products.XOAI_HOA_LOC");
-    expect(centralSource).not.toMatch(
-      /seedReviews|getRepository\(Review\)|review\.entity/,
-    );
-    expect(centralSource).not.toMatch(
-      /getRepository\(Product\)|products\[|productIds\[/,
-    );
+    expect(appModuleSource).not.toMatch(/DevSeedService|dev-seed\.service/);
     expect(mainSource).not.toContain("devSeed.seedAll");
     expect(mainSource).not.toContain("seedForDevelopment(");
     expect(cliSource).not.toContain("ProductDevelopmentSeedService");
@@ -191,13 +203,36 @@ describe("seed entrypoint safety and retirement regressions", () => {
     expect(cooperativeMembersSeedSource).toContain(
       "dependencies: [USERS_DEV_SEED_GROUP_ID]",
     );
-    expect(legacyRemainingSource).toContain(
-      "dependencies: [USERS_DEV_SEED_GROUP_ID]",
-    );
-    expect(legacyRemainingSource).not.toContain("PRODUCTS_DEV_SEED_GROUP_ID");
     expect(mainSource).not.toMatch(
       /cooperatives\.dev\.(?:bulk-operations|harvest)/,
     );
+  });
+
+  it("keeps the canonical owner-local metadata inventory complete and acyclic", () => {
+    const metadata = [
+      ADS_PACKAGE_REFERENCE_SEED_METADATA,
+      COOPERATIVES_DEV_MEMBERS_SEED_METADATA,
+      GEOGRAPHY_PROVINCE_REFERENCE_SEED_METADATA,
+      PRODUCTS_CATEGORY_REFERENCE_SEED_METADATA,
+      PRODUCTS_DEV_SEED_METADATA,
+      PROFILES_ROLE_PROFILES_DEV_SEED_METADATA,
+      REVIEWS_DEV_PRODUCT_FEEDBACK_SEED_METADATA,
+      USERS_DEV_SEED_METADATA,
+    ];
+
+    expect(metadata).toHaveLength(8);
+    expect(new Set(metadata.map(({ id }) => id)).size).toBe(8);
+    expect(orderSeedMetadata(metadata).map(({ id }) => id)).toEqual([
+      "ads.reference.packages",
+      "geography.reference.provinces",
+      "products.reference.categories",
+      "users.dev.users",
+      "cooperatives.dev.members",
+      "products.dev.products",
+      "profiles.dev.role-profiles",
+      "reviews.dev.product-feedback",
+    ]);
+    expect(metadata.map(({ id }) => id)).not.toContain("legacy.dev.remaining");
   });
 
   it("retires destructive Product reset before application bootstrap", () => {
@@ -240,11 +275,25 @@ describe("seed entrypoint safety and retirement regressions", () => {
       expect(document).toContain(
         "P8_05D_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW",
       );
-      expect(document).toContain(
-        "P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO",
-      );
+      expect(document).toContain("P8_05C4D_CENTRAL_RETIREMENT_AUTHORIZED=NO");
       expect(document).toContain("SCHEMA_CHANGES=0");
       expect(document).toContain("MIGRATIONS_CREATED=0");
+    }
+  });
+
+  it("records C4D retirement as pending review without closing Phase 8", () => {
+    for (const document of centralRetirementDocuments) {
+      expect(document).toContain(
+        "P8_05C3C4_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_142",
+      );
+      expect(document).toContain(
+        "P8_05C4D_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW",
+      );
+      expect(document).toContain("CENTRAL_DEVSEEDSERVICE_RETIRED=YES");
+      expect(document).toContain("LEGACY_DEV_REMAINING_EXISTS=NO");
+      expect(document).toContain("CENTRAL_PERSISTENCE_CAPABLE_METHOD_COUNT=0");
+      expect(document).toContain("IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED");
+      expect(document).toContain("PHASE_08_COMPLETE=NO");
     }
   });
 });

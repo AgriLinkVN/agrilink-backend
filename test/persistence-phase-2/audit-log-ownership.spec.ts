@@ -56,13 +56,8 @@ describe('Persistence Phase 2 Audit Log ownership', () => {
       'userId',
     ]);
 
-    const seedSource = fs.readFileSync(
-      path.join(root, 'src/database/dev-seed.service.ts'),
-      'utf8',
-    );
-    expect(seedSource).not.toMatch(/\boldData\b|\bnewData\b/);
-    expect(seedSource).toContain(
-      "changes: { before: { status: 'active' }, after:",
-    );
+    expect(
+      fs.existsSync(path.join(root, 'src/database/dev-seed.service.ts')),
+    ).toBe(false);
   });
 });

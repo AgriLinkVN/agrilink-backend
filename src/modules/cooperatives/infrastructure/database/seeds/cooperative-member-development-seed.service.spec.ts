@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 import {
@@ -310,44 +310,27 @@ describe("CooperativeMemberDevelopmentSeedService", () => {
   });
 
   it("retires central Member and Harvest DEV persistence without owner replacement", () => {
-    const centralSource = readFileSync(
-      join(__dirname, "../../../../../database/dev-seed.service.ts"),
-      "utf8",
+    const centralSourcePath = join(
+      __dirname,
+      "../../../../../database/dev-seed.service.ts",
     );
     const mainSource = readFileSync(
       join(__dirname, "../../../../../main.ts"),
       "utf8",
     );
-    const legacySource = readFileSync(
-      join(
-        __dirname,
-        "../../../../../database/seeds/legacy-remaining-dev-seed.group.ts",
-      ),
-      "utf8",
+    const legacySourcePath = join(
+      __dirname,
+      "../../../../../database/seeds/legacy-remaining-dev-seed.group.ts",
     );
 
-    expect(centralSource).not.toMatch(
-      /seedCoopMembers|CooperativeMemberEntity|cooperative-member\.entity|['"]cooperative_members['"]/,
-    );
-    expect(centralSource).not.toContain("seedBulkListings");
-    expect(centralSource).not.toContain("seedHarvestSchedules");
-    expect(centralSource).not.toContain("HarvestScheduleEntity");
-    expect(centralSource).not.toContain("harvest_schedules");
-    expect(centralSource).not.toContain("bulkListingId: listing.id");
-    expect(
-      centralSource.match(/expectedHarvestDate: new Date\(["']2026-/g),
-    ).toBeNull();
+    expect(existsSync(centralSourcePath)).toBe(false);
+    expect(existsSync(legacySourcePath)).toBe(false);
     expect(
       mainSource.match(/app\.get\(CooperativeMemberDevelopmentSeedService\)/g),
     ).toHaveLength(1);
     expect(mainSource).not.toMatch(
       /cooperatives\.dev\.(?:bulk-operations|harvest)/,
     );
-    expect(legacySource).not.toContain('COOP: "cooperative@sandbox.com"');
-    expect(legacySource).not.toContain('FARMER: "farmer@sandbox.com"');
-    expect(legacySource).not.toContain('BUYER: "buyer@agrilink.vn"');
-    expect(legacySource).not.toContain("XOAI_HOA_LOC");
-    expect(legacySource).not.toContain("PRODUCTS_DEV_SEED_GROUP_ID");
   });
 
   it("retains the schema-backed cooperative/Farmer unique pair", () => {

@@ -28,8 +28,6 @@ import { SmsRoute } from "./shared/sms/sms.route";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { validateApplicationEnvironment } from "./config/environment-validation";
 
-import { DevSeedService } from "./database/dev-seed.service";
-
 @Module({
   imports: [
     // Configuration — must be first
@@ -68,7 +66,6 @@ import { DevSeedService } from "./database/dev-seed.service";
   controllers: [AppController],
   providers: [
     AppService,
-    DevSeedService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
