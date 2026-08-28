@@ -14,6 +14,8 @@ import {
   createDisposableDatabaseName,
   dropDisposableDatabase,
 } from '../../src/database/reconciliation/disposable-database';
+import { PersistenceTestPurpose } from '../../src/database/reconciliation/database-target.guard';
+import { SeedClassification } from '../../src/database/seeds/framework/seed-contract';
 import { IdempotencyConflictError } from '../../src/modules/commerce/application/errors/commerce-application.error';
 import { TypeOrmCommerceOperationRepository } from '../../src/modules/commerce/infrastructure/persistence/repositories/typeorm-commerce-operation.repository';
 import { TypeOrmContractRepository, TypeOrmPurchaseRequestRepository } from '../../src/modules/contracts/infrastructure/persistence/repositories/typeorm-contract.repository';
@@ -31,7 +33,13 @@ const PRODUCT = '44444444-4444-4444-8444-444444444444';
 
 describe('Persistence Phase 6 PostgreSQL concurrency', () => {
   const database = createDisposableDatabaseName();
-  const admin = createAdminDataSource(process.env);
+  const testTarget = {
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+    database,
+    acknowledgement: database,
+  } as const;
+  const admin = createAdminDataSource(process.env, testTarget);
   let dataSource: DataSource;
   let orders: TypeOrmOrderRepository;
   let payments: TypeOrmPaymentRepository;
@@ -40,7 +48,7 @@ describe('Persistence Phase 6 PostgreSQL concurrency', () => {
 
   beforeAll(async () => {
     await admin.initialize();
-    await createDisposableDatabase(admin, database);
+    await createDisposableDatabase(admin, testTarget);
     dataSource = new DataSource(
       createDataSourceOptions(
         { ...process.env, DB_NAME: database, DB_SYNCHRONIZE: 'false' },
@@ -68,7 +76,7 @@ describe('Persistence Phase 6 PostgreSQL concurrency', () => {
   afterAll(async () => {
     if (dataSource?.isInitialized) await dataSource.destroy();
     if (admin.isInitialized) {
-      await dropDisposableDatabase(admin, database);
+      await dropDisposableDatabase(admin, testTarget);
       await admin.destroy();
     }
   });

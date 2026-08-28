@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { dataSourceOptions } from '../database/data-source';
+import { createDataSourceOptions } from '../database/data-source-options';
+import { CLI_ENTITY_REGISTRY } from '../database/entity-registry';
 import { AddProvinceMapFields1748665200000 } from '../database/migrations/1748665200000-AddProvinceMapFields';
 import { AddFirebaseUidToUsers1782860400000 } from '../database/migrations/1782860400000-AddFirebaseUidToUsers';
 import { AddProductStatusChangedNotificationType1783123200000 } from '../database/migrations/1783123200000-AddProductStatusChangedNotificationType';
@@ -11,11 +12,39 @@ import { AddStoredFileContentValidation1783558800000 } from '../database/migrati
 import { AddStoredFileDeletionRetry1783645200000 } from '../database/migrations/1783645200000-AddStoredFileDeletionRetry';
 import { EstablishCooperativePersistenceBoundaries1783731600000 } from '../database/migrations/1783731600000-EstablishCooperativePersistenceBoundaries';
 import { AddStoredFileIdToPrivateDocuments1783818000000 } from '../database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments';
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from '../database/reconciliation/database-target.guard';
+import { SeedClassification } from '../database/seeds/framework/seed-contract';
 
 const REQUIRED_DATABASE = 'agrilink_migration_test';
+const target = assertSafePersistenceTestEnvironment({
+  environment: process.env,
+  classification: SeedClassification.TEST,
+  purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+  operation: PersistenceTestOperation.MIGRATION_VERIFICATION,
+  acknowledgement: process.env.PERSISTENCE_TEST_TARGET_ACK,
+});
+const dataSourceOptions = createDataSourceOptions(
+  {
+    ...process.env,
+    DB_SYNCHRONIZE: 'false',
+    PRODUCT_DEV_SEED: 'false',
+    PRODUCT_DEV_SEED_RESET: 'false',
+  },
+  {
+    entities: CLI_ENTITY_REGISTRY,
+    logging: false,
+  },
+);
 const configuredDatabase = String(dataSourceOptions.database);
 
-if (configuredDatabase !== REQUIRED_DATABASE) {
+if (
+  target.database !== REQUIRED_DATABASE ||
+  configuredDatabase !== REQUIRED_DATABASE
+) {
   throw new Error(
     `Migration verification requires DB_NAME=${REQUIRED_DATABASE}; received ${configuredDatabase}`,
   );
@@ -45,4 +74,17 @@ const verificationOptions: DataSourceOptions = {
   ],
 } as DataSourceOptions;
 
-export default new DataSource(verificationOptions);
+class SafeMigrationVerificationDataSource extends DataSource {
+  override async initialize(): Promise<this> {
+    assertSafePersistenceTestEnvironment({
+      environment: process.env,
+      classification: SeedClassification.TEST,
+      purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+      operation: PersistenceTestOperation.MIGRATION_VERIFICATION,
+      acknowledgement: process.env.PERSISTENCE_TEST_TARGET_ACK,
+    });
+    return super.initialize();
+  }
+}
+
+export default new SafeMigrationVerificationDataSource(verificationOptions);

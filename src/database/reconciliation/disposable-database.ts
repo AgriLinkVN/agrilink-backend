@@ -2,9 +2,22 @@ import { randomBytes } from "crypto";
 import { DataSource } from "typeorm";
 
 import { parseDatabaseEnvironment } from "../../config/database-environment";
-import { assertDisposableDatabaseTarget } from "./database-target.guard";
+import {
+  assertDisposableDatabaseTarget,
+  assertSafePersistenceTestTarget,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from "./database-target.guard";
+import { SeedClassification } from "../seeds/framework/seed-contract";
 
 const DATABASE_IDENTIFIER = /^[a-z][a-z0-9_]{0,62}$/;
+
+export interface DisposableDatabaseTestTarget {
+  readonly classification: SeedClassification.TEST;
+  readonly purpose: PersistenceTestPurpose;
+  readonly database: string;
+  readonly acknowledgement: string;
+}
 
 export function createDisposableDatabaseName(): string {
   const timestamp = Date.now().toString(36);
@@ -16,13 +29,23 @@ export function createDisposableDatabaseName(): string {
 
 export function createAdminDataSource(
   env: Record<string, unknown>,
+  target: DisposableDatabaseTestTarget,
 ): DataSource {
+  if (
+    typeof env.DATABASE_URL === "string" &&
+    env.DATABASE_URL.trim() !== ""
+  ) {
+    throw new Error(
+      "Generated disposable database lifecycle requires explicit DB_* settings, not DATABASE_URL",
+    );
+  }
   const parsed = parseDatabaseEnvironment({
     ...env,
     DB_SYNCHRONIZE: "false",
     PRODUCT_DEV_SEED: "false",
     PRODUCT_DEV_SEED_RESET: "false",
   });
+  assertLifecycleTarget(parsed.host, target);
   return new DataSource({
     type: "postgres",
     host: parsed.host,
@@ -44,19 +67,21 @@ export function createAdminDataSource(
 
 export async function createDisposableDatabase(
   admin: DataSource,
-  database: string,
+  target: DisposableDatabaseTestTarget,
 ): Promise<void> {
+  const { database } = target;
   assertSafeDatabaseIdentifier(database);
-  assertDisposableDatabaseTarget(database);
+  assertLifecycleTarget(adminHost(admin), target);
   await admin.query(`CREATE DATABASE "${database}"`);
 }
 
 export async function dropDisposableDatabase(
   admin: DataSource,
-  database: string,
+  target: DisposableDatabaseTestTarget,
 ): Promise<void> {
+  const { database } = target;
   assertSafeDatabaseIdentifier(database);
-  assertDisposableDatabaseTarget(database);
+  assertLifecycleTarget(adminHost(admin), target);
   await admin.query(
     `
       SELECT pg_terminate_backend(pid)
@@ -67,6 +92,27 @@ export async function dropDisposableDatabase(
     [database],
   );
   await admin.query(`DROP DATABASE IF EXISTS "${database}"`);
+}
+
+function assertLifecycleTarget(
+  host: string,
+  target: DisposableDatabaseTestTarget,
+): void {
+  assertSafePersistenceTestTarget({
+    classification: target.classification,
+    purpose: target.purpose,
+    operation: PersistenceTestOperation.DISPOSABLE_DATABASE_LIFECYCLE,
+    host,
+    database: target.database,
+    acknowledgement: target.acknowledgement,
+  });
+}
+
+function adminHost(admin: DataSource): string {
+  if (admin.options.type !== "postgres") {
+    throw new Error("Disposable database lifecycle requires PostgreSQL");
+  }
+  return String(admin.options.host ?? "");
 }
 
 function assertSafeDatabaseIdentifier(database: string): void {

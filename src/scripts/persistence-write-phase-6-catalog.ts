@@ -27,6 +27,8 @@ import {
   createDisposableDatabaseName,
   dropDisposableDatabase,
 } from '../database/reconciliation/disposable-database';
+import { PersistenceTestPurpose } from '../database/reconciliation/database-target.guard';
+import { SeedClassification } from '../database/seeds/framework/seed-contract';
 import { verifyTypeOrmCompatibilityParity } from '../database/reconciliation/typeorm-compatibility-parity';
 
 dotenv.config();
@@ -90,11 +92,17 @@ async function main(): Promise<void> {
   }
   const previous = readCatalogManifest();
   const database = createDisposableDatabaseName();
-  const admin = createAdminDataSource(process.env);
+  const testTarget = {
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+    database,
+    acknowledgement: database,
+  } as const;
+  const admin = createAdminDataSource(process.env, testTarget);
   let target: DataSource | null = null;
   await admin.initialize();
   try {
-    await createDisposableDatabase(admin, database);
+    await createDisposableDatabase(admin, testTarget);
     target = new DataSource(
       createDataSourceOptions(
         { ...process.env, DB_NAME: database, DB_SYNCHRONIZE: 'false' },
@@ -163,7 +171,7 @@ async function main(): Promise<void> {
     );
   } finally {
     if (target?.isInitialized) await target.destroy();
-    await dropDisposableDatabase(admin, database);
+    await dropDisposableDatabase(admin, testTarget);
     await admin.destroy();
   }
 }

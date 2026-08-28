@@ -25,6 +25,140 @@ SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ```
 
+## P8-06A Test Execution Safety And Metadata Boundary Implementation Overlay
+
+PR #144 merged this audit into `develop` at
+`a8f1541ff4babfe10f35c50367f18e3e46ab7a49`. P8-06A implements only its
+shared execution-safety and classification boundary. The historical source,
+ownership, raw-SQL, and proposed-group matrices above remain the P8-06 audit
+baseline; no business fixture has moved owners.
+
+### Merged Authority And Slice Status
+
+```text
+P8_05C4D_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_143
+P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_BY_MERGED_PR_144
+P8_06A_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_06_AUDIT_PR_144_MERGE
+P8_06A_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_06A_BLOCKERS=NONE
+
+P8_06_IMPLEMENTATION_AUTHORIZED=NO
+P8_06_IMPLEMENTATION_STATUS=IMPLEMENTATION_IN_PROGRESS
+P8_06B_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06A_MERGE_AND_PRODUCT_TEST_IDENTITY_REVIEW
+PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED=YES
+```
+
+### Shared Contract
+
+`database-target.guard.ts` now supplies a framework-neutral persistence TEST
+target contract. Business fixtures use `SeedClassification.TEST`; non-SeedGroup
+migration, inspection, and infrastructure harnesses additionally declare one
+explicit `PersistenceTestPurpose`. Every request declares an operation class:
+`READ_ONLY_INSPECTION`, `DISPOSABLE_DATABASE_LIFECYCLE`,
+`MIGRATION_VERIFICATION`, `FIXTURE_WRITE`, or `DESTRUCTIVE_CLEANUP`.
+
+The positive host allowlist is derived from current CI and local integration
+source: `localhost`, `127.0.0.1`, and `::1` (including bracket-normalized IPv6).
+No container service name or remote host was invented. Known dedicated test
+databases (`agrilink_test`, `agrilink_migration_test`, and
+`agrilink_p3_phase1_verify`) remain supported on allowed local hosts alongside
+the existing disposable prefixes. `agrilink_db` remains protected. A safe
+database-looking name on an unknown host fails closed.
+
+```text
+TEST_CLASSIFICATION_CONTRACT_EXISTS=YES
+TEST_BUSINESS_FIXTURE_CLASSIFICATION=TEST
+MIGRATION_TEST_HARNESS_CLASSIFICATION_EXPLICIT=YES
+TEST_TARGET_HOST_ALLOWLIST_REQUIRED=YES
+TEST_TARGET_REMOTE_HOST_DEFAULT=DENY
+TEST_TARGET_UNKNOWN_HOST_POLICY=FAIL_CLOSED
+PROTECTED_DATABASE_TARGET_POLICY=FAIL_CLOSED
+DISPOSABLE_DATABASE_NAME_REQUIRED=YES
+DESTRUCTIVE_OPERATION_ACKNOWLEDGEMENT_REQUIRED=YES
+READ_ONLY_TEST_HARNESS_WRITE_CAPABILITY_ADDED=NO
+```
+
+Database lifecycle, migration verification, and destructive cleanup require
+an acknowledgement exactly equal to the database name. Read-only inspection
+does not acquire destructive semantics or require an unnecessary destructive
+acknowledgement. Ambiguous `DATABASE_URL` versus discrete `DB_HOST`/`DB_NAME`
+targets fail before DataSource construction or initialization.
+
+### Post-A 15-Source Safety Matrix
+
+`INHERITED` identifies the source through which the shared guard executes
+before the source can open a connection. TF-02 also exports explicit TEST
+business-fixture metadata without changing `seedRuntimeFixture`.
+
+| Source | Classification explicit | Direct shared guard | Inherited shared guard | Read-only | Explicit purpose | Production reachable after A |
+| --- | --- | --- | --- | --- | --- | --- |
+| TF-01 | YES | NO | TF-03 before admin construction; direct fixture-write recheck before TF-02 | NO | `MIGRATION_TEST_HARNESS` | NO |
+| TF-02 | YES | NO | TF-01 fixture-write check and TF-03 lifecycle boundary | NO | `BUSINESS_FIXTURE` | NO |
+| TF-03 | YES | YES | NONE | NO | caller-declared TEST purpose | NO |
+| TF-04 | YES | NO | TF-03 | NO | `BUSINESS_FIXTURE` | NO |
+| TF-05 | YES | NO | TF-03 | NO | `BUSINESS_FIXTURE` | NO |
+| TF-06 | YES | NO | TF-03 | NO | `BUSINESS_FIXTURE` | NO |
+| TF-07 | YES | YES | NONE | NO | `BUSINESS_FIXTURE` | NO |
+| TF-08 | YES | YES | NONE | NO | `MIGRATION_TEST_HARNESS` | NO |
+| TF-09 | YES | YES | NONE | NO | `MIGRATION_TEST_HARNESS` | NO |
+| TF-10 | YES | NO | TF-03 | NO | `MIGRATION_TEST_HARNESS` | NO |
+| TF-11 | YES | YES | NONE | YES | `READ_ONLY_TEST_HARNESS` | NO |
+| TF-12 | YES | YES | NONE | YES | `READ_ONLY_TEST_HARNESS` | NO |
+| TF-13 | YES | YES | NONE | YES | `READ_ONLY_TEST_HARNESS` | NO |
+| TF-14 | YES | YES | NONE | YES | `READ_ONLY_TEST_HARNESS` | NO |
+| TF-15 | YES | YES before configuration and again in overridden `initialize` | NONE | NO | `MIGRATION_TEST_HARNESS` | NO |
+
+```text
+TEST_PERSISTENCE_SOURCE_COUNT=15
+ALL_DATABASE_CAPABLE_TEST_SOURCES_HAVE_EXPLICIT_PURPOSE=YES
+ALL_DATABASE_CAPABLE_TEST_SOURCES_HAVE_SAFE_TARGET_BOUNDARY=YES
+TEST_FIXTURE_CLASSIFICATION_EXPLICIT=YES
+TEST_FIXTURE_NORMAL_STARTUP_REACHABLE=NO
+TEST_FIXTURE_PRODUCTION_REACHABLE=NO
+
+TF03_SHARED_TARGET_GUARD=YES
+TF03_DATABASE_NAME_GUARD=YES
+TF03_HOST_CLUSTER_GUARD=YES
+TF03_PROTECTED_TARGET_GUARD=YES
+
+TF08_EXPLICIT_OPT_IN_REMAINS=YES
+TF08_SHARED_TARGET_GUARD=YES
+TF08_ARBITRARY_REMOTE_TARGET_REACHABLE=NO
+
+TF15_SAFE_TARGET_REQUIRED_BEFORE_INITIALIZE=YES
+```
+
+### Ownership And Payload Preservation
+
+P8-06A adds metadata to TF-02 and safety calls around it, but changes none of
+its 15 raw inserts, Wishlist reconciliation, Product UUID/SKU behavior,
+REFERENCE duplication, or positional Ad Package behavior. No proposed TEST
+business group is implemented.
+
+```text
+CLEAN_V2_BUSINESS_FIXTURE_CHANGES=0
+CLEAN_V2_OWNER_SPLIT_IMPLEMENTED=NO
+NEW_BUSINESS_TEST_SEED_GROUP_COUNT=0
+PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED=YES
+PRODUCTS_TEST_GROUP_CREATED=NO
+P8_06B_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06A_MERGE_AND_PRODUCT_TEST_IDENTITY_REVIEW
+
+OWNER_LOCAL_RUNTIME_SEED_CHANGES=0
+REFERENCE_GROUP_RUNTIME_PAYLOAD_CHANGES=0
+DEV_GROUP_RUNTIME_PAYLOAD_CHANGES=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+```
+
+### Remaining Phase Gates
+
+```text
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
+
 This audit is static authority only. It classifies current database-capable
 test sources, assigns each business fixture table to a proposed owner, and
 defines later implementation slices. It does not execute or change any test
@@ -361,6 +495,26 @@ P8_05_CENTRAL_DEV_SEED_DECOMPOSITION_STATUS=IMPLEMENTED_BY_MERGED_PR_143
 P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_06_IMPLEMENTATION_STATUS=NOT_STARTED
 P8_06_IMPLEMENTATION_AUTHORIZED=NO
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
+
+## P8-06A Trailing Merged-Authority Handoff
+
+```text
+P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_BY_MERGED_PR_144
+P8_06A_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_06_AUDIT_PR_144_MERGE
+P8_06A_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_06A_BLOCKERS=NONE
+TEST_FIXTURE_CLASSIFICATION_EXPLICIT=YES
+TEST_FIXTURE_NORMAL_STARTUP_REACHABLE=NO
+TEST_FIXTURE_PRODUCTION_REACHABLE=NO
+P8_06_IMPLEMENTATION_AUTHORIZED=NO
+P8_06_IMPLEMENTATION_STATUS=IMPLEMENTATION_IN_PROGRESS
+P8_06B_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06A_MERGE_AND_PRODUCT_TEST_IDENTITY_REVIEW
+PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED=YES
 IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
 DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED

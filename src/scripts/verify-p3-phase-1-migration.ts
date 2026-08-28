@@ -1,10 +1,23 @@
 import { DataSource, QueryRunner } from 'typeorm';
 import { EstablishCooperativePersistenceBoundaries1783731600000 } from '../database/migrations/1783731600000-EstablishCooperativePersistenceBoundaries';
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from '../database/reconciliation/database-target.guard';
+import { SeedClassification } from '../database/seeds/framework/seed-contract';
 
 const verificationDatabase = 'agrilink_p3_phase1_verify';
 
 function createDataSource(): DataSource {
-  if (process.env.DB_NAME !== verificationDatabase) {
+  const target = assertSafePersistenceTestEnvironment({
+    environment: process.env,
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+    operation: PersistenceTestOperation.MIGRATION_VERIFICATION,
+    acknowledgement: process.env.PERSISTENCE_TEST_TARGET_ACK,
+  });
+  if (target.database !== verificationDatabase) {
     throw new Error(
       `Refusing to run P3 migration verification outside ${verificationDatabase}.`,
     );
@@ -12,7 +25,7 @@ function createDataSource(): DataSource {
 
   return new DataSource({
     type: 'postgres',
-    host: process.env.DB_HOST ?? '127.0.0.1',
+    host: target.host,
     port: Number(process.env.DB_PORT ?? 55432),
     username: process.env.DB_USER ?? 'p3verify',
     password: process.env.DB_PASS ?? '',
