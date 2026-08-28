@@ -9,7 +9,11 @@ import {
   catalogFingerprint,
   catalogObjectCount,
 } from "../database/reconciliation/catalog-inspector";
-import { assertDisposableDatabaseTarget } from "../database/reconciliation/database-target.guard";
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from "../database/reconciliation/database-target.guard";
 import {
   CompatibilityObjectType,
   TypeOrmCompatibilityManifest,
@@ -24,6 +28,7 @@ import {
   getMigrationNames,
   V2_MIGRATIONS,
 } from "../database/migration-registry";
+import { SeedClassification } from "../database/seeds/framework/seed-contract";
 
 dotenv.config();
 
@@ -242,8 +247,13 @@ async function main(): Promise<void> {
   if (!process.argv.includes("--write")) {
     throw new Error("Manifest generation requires explicit --write");
   }
-  const database = process.env.DB_NAME ?? "";
-  assertDisposableDatabaseTarget(database);
+  const target = assertSafePersistenceTestEnvironment({
+    environment: process.env,
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.READ_ONLY_TEST_HARNESS,
+    operation: PersistenceTestOperation.READ_ONLY_INSPECTION,
+  });
+  const database = target.database;
   const dataSource = new DataSource(
     createDataSourceOptions(process.env, {
       entities: CLI_ENTITY_REGISTRY,

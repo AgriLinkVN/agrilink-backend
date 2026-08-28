@@ -29,10 +29,17 @@ import { CooperativeProfile } from "../../modules/profiles/infrastructure/persis
 import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity";
 import { FarmerProfile } from "../../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity";
 import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
+import { SeedClassification } from "../seeds/framework/seed-contract";
+import { PersistenceTestPurpose } from "./database-target.guard";
 
 const USER_ID = "10000000-0000-4000-8000-000000000001";
 const PRODUCT_ID = "20000000-0000-4000-8000-000000000001";
 const CATEGORY_ID = "30000000-0000-4000-8000-000000000001";
+
+export const CLEAN_V2_TEST_FIXTURE_METADATA = Object.freeze({
+  classification: SeedClassification.TEST,
+  purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+});
 
 export interface RuntimeBaseline {
   smoke: Record<string, boolean>;

@@ -20,6 +20,8 @@ import {
   createDisposableDatabaseName,
   dropDisposableDatabase,
 } from '../src/database/reconciliation/disposable-database';
+import { PersistenceTestPurpose } from '../src/database/reconciliation/database-target.guard';
+import { SeedClassification } from '../src/database/seeds/framework/seed-contract';
 import {
   COMMERCE_OPERATION_REPOSITORY,
   CommerceOperationRepository,
@@ -96,14 +98,20 @@ const FRACTIONAL_PRODUCT = '77777777-7777-4777-8777-777777777777';
 
 describe('Commerce Phase 6 E2E', () => {
   const database = createDisposableDatabaseName();
-  const admin = createAdminDataSource(process.env);
+  const testTarget = {
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+    database,
+    acknowledgement: database,
+  } as const;
+  const admin = createAdminDataSource(process.env, testTarget);
   let dataSource: DataSource;
   let module: TestingModule;
   let app: INestApplication;
 
   beforeAll(async () => {
     await admin.initialize();
-    await createDisposableDatabase(admin, database);
+    await createDisposableDatabase(admin, testTarget);
     dataSource = new DataSource(
       createDataSourceOptions(
         { ...process.env, DB_NAME: database, DB_SYNCHRONIZE: 'false' },
@@ -211,7 +219,7 @@ describe('Commerce Phase 6 E2E', () => {
     if (app) await app.close();
     if (dataSource?.isInitialized) await dataSource.destroy();
     if (admin.isInitialized) {
-      await dropDisposableDatabase(admin, database);
+      await dropDisposableDatabase(admin, testTarget);
       await admin.destroy();
     }
   });

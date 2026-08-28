@@ -14,6 +14,8 @@ import {
   createDisposableDatabaseName,
   dropDisposableDatabase,
 } from '../../src/database/reconciliation/disposable-database';
+import { PersistenceTestPurpose } from '../../src/database/reconciliation/database-target.guard';
+import { SeedClassification } from '../../src/database/seeds/framework/seed-contract';
 import { NotificationRealtimePublisherPort } from '../../src/modules/notifications/application/ports/outbound/notification-realtime-publisher.port';
 import { MarkNotificationReadUseCase } from '../../src/modules/notifications/application/use-cases/mark-notification-read.use-case';
 import { NotificationOrmEntity } from '../../src/modules/notifications/infrastructure/persistence/notification.orm-entity';
@@ -41,14 +43,20 @@ class QueryCounter implements Logger {
 
 describe('Persistence Phase 7A notification concurrency and query count', () => {
   const database = createDisposableDatabaseName();
-  const admin = createAdminDataSource(process.env);
+  const testTarget = {
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+    database,
+    acknowledgement: database,
+  } as const;
+  const admin = createAdminDataSource(process.env, testTarget);
   const queryCounter = new QueryCounter();
   let dataSource: DataSource;
   let repository: TypeOrmNotificationRepository;
 
   beforeAll(async () => {
     await admin.initialize();
-    await createDisposableDatabase(admin, database);
+    await createDisposableDatabase(admin, testTarget);
     const options = createDataSourceOptions(
       { ...process.env, DB_NAME: database, DB_SYNCHRONIZE: 'false' },
       {
@@ -74,7 +82,7 @@ describe('Persistence Phase 7A notification concurrency and query count', () => 
   afterAll(async () => {
     if (dataSource?.isInitialized) await dataSource.destroy();
     if (admin.isInitialized) {
-      await dropDisposableDatabase(admin, database);
+      await dropDisposableDatabase(admin, testTarget);
       await admin.destroy();
     }
   });

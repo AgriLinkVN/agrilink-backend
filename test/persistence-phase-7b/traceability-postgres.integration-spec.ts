@@ -2,7 +2,12 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 
 import { createDataSourceOptions } from "../../src/database/data-source-options";
-import { assertDisposableDatabaseTarget } from "../../src/database/reconciliation/database-target.guard";
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from "../../src/database/reconciliation/database-target.guard";
+import { SeedClassification } from "../../src/database/seeds/framework/seed-contract";
 import { CreateTraceabilityEventModelV21800000002000 } from "../../src/database/migrations-v2/1800000002000-CreateTraceabilityEventModelV2";
 import { TraceabilityEventFact } from "../../src/modules/traceability/application/traceability-projection";
 import { TraceabilityBatch } from "../../src/modules/traceability/entities/traceability-batch.entity";
@@ -18,23 +23,18 @@ describe("Phase 7B traceability on disposable PostgreSQL", () => {
 
   beforeAll(async () => {
     const database = process.env.DB_NAME ?? "";
-    assertDisposableDatabaseTarget(database);
+    assertSafePersistenceTestEnvironment({
+      environment: process.env,
+      classification: SeedClassification.TEST,
+      purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+      operation: PersistenceTestOperation.DESTRUCTIVE_CLEANUP,
+      acknowledgement: process.env.PHASE7B_DISPOSABLE_DB_ACK,
+    });
     if (!database.startsWith("agrilink_persistence_test_phase7b_")) {
       throw new Error(
         "Phase 7B integration tests require their dedicated disposable database prefix",
       );
     }
-    if (process.env.PHASE7B_DISPOSABLE_DB_ACK !== database) {
-      throw new Error(
-        "Phase 7B disposable database identity was not explicitly acknowledged",
-      );
-    }
-    if (!["127.0.0.1", "localhost"].includes(process.env.DB_HOST ?? "")) {
-      throw new Error(
-        "Phase 7B integration tests require an isolated local PostgreSQL host",
-      );
-    }
-
     dataSource = new DataSource(
       createDataSourceOptions(process.env, {
         entities: [TraceabilityBatch, TraceabilityEvent],

@@ -1,5 +1,11 @@
 import { DataSource, QueryRunner } from 'typeorm';
 import { AddStoredFileIdToPrivateDocuments1783818000000 } from '../src/database/migrations/1783818000000-AddStoredFileIdToPrivateDocuments';
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from '../src/database/reconciliation/database-target.guard';
+import { SeedClassification } from '../src/database/seeds/framework/seed-contract';
 
 const runMigrationTests = process.env.STORAGE_MIGRATION_TESTS === 'true';
 const describeMigration = runMigrationTests ? describe : describe.skip;
@@ -10,13 +16,20 @@ describeMigration('Storage Phase 9 PostgreSQL migration', () => {
   const schema = `phase9_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
   beforeAll(async () => {
+    const target = assertSafePersistenceTestEnvironment({
+      environment: process.env,
+      classification: SeedClassification.TEST,
+      purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+      operation: PersistenceTestOperation.MIGRATION_VERIFICATION,
+      acknowledgement: process.env.PERSISTENCE_TEST_TARGET_ACK,
+    });
     dataSource = new DataSource({
       type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
+      host: target.host,
       port: Number(process.env.DB_PORT ?? 5432),
       username: process.env.DB_USER ?? 'postgres',
       password: process.env.DB_PASS ?? 'postgres',
-      database: process.env.DB_NAME ?? 'agrilink_test',
+      database: target.database,
       schema,
       synchronize: false,
       logging: false,

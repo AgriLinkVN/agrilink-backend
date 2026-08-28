@@ -13,6 +13,12 @@ import {
   dropDisposableDatabase,
 } from "../database/reconciliation/disposable-database";
 import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from "../database/reconciliation/database-target.guard";
+import { SeedClassification } from "../database/seeds/framework/seed-contract";
+import {
   assertCanonicalParity,
   verifyCanonicalParity,
 } from "../database/reconciliation/parity-verifier";
@@ -28,6 +34,7 @@ import {
   excludeDeferredEntitiesFromSchemaBuild,
 } from "../database/entity-registry";
 import {
+  CLEAN_V2_TEST_FIXTURE_METADATA,
   captureOpenApiBaseline,
   captureRuntimeBaseline,
   OpenApiBaseline,
@@ -38,12 +45,18 @@ dotenv.config();
 
 async function main(): Promise<void> {
   const database = createDisposableDatabaseName();
-  const admin = createAdminDataSource(process.env);
+  const testTarget = {
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.MIGRATION_TEST_HARNESS,
+    database,
+    acknowledgement: database,
+  } as const;
+  const admin = createAdminDataSource(process.env, testTarget);
   let target: DataSource | null = null;
 
   await admin.initialize();
   try {
-    await createDisposableDatabase(admin, database);
+    await createDisposableDatabase(admin, testTarget);
     target = new DataSource(
       createDataSourceOptions(
         { ...process.env, DB_NAME: database, DB_SYNCHRONIZE: "false" },
@@ -85,6 +98,12 @@ async function main(): Promise<void> {
     await assertBaselineTableSet(target);
     const finalParity = await verifyCanonicalParity(target);
     assertCanonicalParity(finalParity);
+    assertSafePersistenceTestEnvironment({
+      environment: { ...process.env, DB_NAME: database },
+      classification: CLEAN_V2_TEST_FIXTURE_METADATA.classification,
+      purpose: CLEAN_V2_TEST_FIXTURE_METADATA.purpose,
+      operation: PersistenceTestOperation.FIXTURE_WRITE,
+    });
     const runtimeBaseline = await captureRuntimeBaseline(target);
     const openApiBaseline = await captureOpenApiBaseline(database);
     verifyOrWriteRuntimeBaselines(runtimeBaseline, openApiBaseline);
@@ -143,7 +162,7 @@ async function main(): Promise<void> {
     );
   } finally {
     if (target?.isInitialized) await target.destroy();
-    await dropDisposableDatabase(admin, database);
+      await dropDisposableDatabase(admin, testTarget);
     await admin.destroy();
   }
 }

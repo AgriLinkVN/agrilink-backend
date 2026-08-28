@@ -79,6 +79,7 @@ jobs:
       - name: Run Storage Phase 9 migration integration
         env:
           STORAGE_MIGRATION_TESTS: "true"
+          PERSISTENCE_TEST_TARGET_ACK: agrilink_test
           DB_HOST: localhost
           DB_PORT: 5432
           DB_USER: postgres
