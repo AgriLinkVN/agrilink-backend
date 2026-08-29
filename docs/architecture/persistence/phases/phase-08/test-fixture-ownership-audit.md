@@ -520,3 +520,213 @@ DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-06B0 Product TEST Identity Decision Audit
+
+PR #145 merged the shared TEST execution boundary into `develop` at
+`29ee0b6e8fa0a7f8da60f4f4b9f03e215eb3c494`. This overlay is a static
+Product identity and ownership decision only. It creates no TEST group,
+changes no fixture, and executes no database-capable path.
+
+```text
+P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_BY_MERGED_PR_144
+P8_06A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_145
+TEST_FIXTURE_CLASSIFICATION_EXPLICIT=YES
+TEST_FIXTURE_PRODUCTION_REACHABLE=NO
+P8_06B0_PRODUCT_TEST_IDENTITY_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+```
+
+### Canonical Product Identity Evidence
+
+| Question | Current authority | Evidence |
+| --- | --- | --- |
+| Primary key | generated UUID `id` | `Product.id` is a `PrimaryGeneratedColumn('uuid')`; canonical baseline v2 declares `PRIMARY KEY (id)` |
+| SKU field | persisted nullable string, maximum 50 | Product entity, application models, create input, and public DTO/response surfaces |
+| SKU uniqueness | unique when non-null | Product entity `unique: true`; canonical baseline v2 `UNIQUE (sku)` and unique index |
+| SKU immutability | no | `UpdateProductDto` includes optional `sku`; `UpdateProductUseCase` assigns the input onto the Product before save |
+| Runtime repository SKU lookup | none | `ProductRepositoryPort` and `TypeOrmProductRepository` use Product UUID for reads and writes |
+| Seed reconciliation SKU lookup | yes, DEV-specific | `TypeOrmProductDevSeedWriter.findProductsBySku` and `reconcileProductDevelopmentSeeds` reconcile zero/one match by SKU |
+| DEV stable key and output | SKU; `product.id.by-sku` | `products.dev.products` rejects duplicate SKU declarations and emits the reconciled UUID keyed by SKU |
+
+There is no separate Product domain entity after the reviewed Products
+persistence split; application models and policies are the domain-facing
+authority. They expose `sku` as `string | null`. No current migration in
+`src/database/migrations` creates or changes Product SKU; the Product entity
+and canonical baseline v2 agree on its persisted nullable unique contract.
+
+```text
+PRODUCT_PRIMARY_KEY=id
+PRODUCT_PRIMARY_KEY_GENERATION=GENERATED_UUID
+PRODUCT_SKU_FIELD_EXISTS=YES
+PRODUCT_SKU_PERSISTED=YES
+PRODUCT_SKU_NULLABLE=YES
+PRODUCT_SKU_UNIQUE=YES
+PRODUCT_SKU_IMMUTABLE=NO
+PRODUCT_SKU_DOMAIN_VISIBLE=YES
+PRODUCT_REPOSITORY_FIND_BY_SKU_EXISTS=NO
+PRODUCT_REPOSITORY_FIND_BY_SKU_SCOPE=DEV_SEED_WRITER_ONLY
+PRODUCT_REPOSITORY_RECONCILE_BY_SKU_EXISTS=YES_DEV_SEED_PATH
+PRODUCT_DEV_SEED_STABLE_KEY=sku
+PRODUCT_DEV_SEED_OUTPUT_KIND=product.id.by-sku
+IS_SKU_CANONICAL_PRODUCT_DOMAIN_IDENTITY=YES
+PRODUCT_SKU_IDENTITY_SCOPE=PERSISTED_ALTERNATE_BUSINESS_KEY
+SKU_CANONICAL_FOR_RUNTIME=YES
+CURRENT_TEST_FIXTURE_HAS_APPROVED_SKU=NO
+```
+
+SKU is therefore a legitimate persisted Product identity for an owner-local
+TEST reconciliation contract, even though UUID remains the primary key and
+runtime updates do not enforce SKU immutability. A TEST provider must treat
+its declared SKU as immutable fixture identity; this audit does not change the
+runtime update contract.
+
+### Current Product TEST Fixture Inventory
+
+The TF-04 `FRACTIONAL_PRODUCT` UUID is a Product Commerce reader stub used for
+a numeric compatibility case. It is not inserted into `products`, so it is
+not counted as a persisted Product fixture.
+
+| Source | Product count | Product ID | Product SKU | SKU explicit | SKU persisted | Fixture purpose | Reusable across harnesses | Migration-local only |
+| --- | ---: | --- | --- | --- | --- | --- | --- | --- |
+| TF-02 clean-v2 | 1 | `20000000-0000-4000-8000-000000000001` | `NULL` | NO | NO | clean-v2 runtime baseline prerequisite for Product, Review, and Wishlist behavior | YES, if exact SKU is approved | NO |
+| TF-04 Commerce E2E | 1 persisted | `66666666-6666-4666-8666-666666666666` | `NULL` | NO | NO | active Commerce `Rice` reference Product | YES with TF-05 after exact shared SKU approval | NO |
+| TF-05 repository concurrency | 1 | `44444444-4444-4444-8444-444444444444` | `NULL` | NO | NO | active Commerce `Rice` reference Product | YES with TF-04 after exact shared SKU approval | NO |
+| TF-08 Storage migration | 4 | `product-1`; `product-external`; `product-null`; `product-blank` | not represented by legacy schema | NO | NO | minimal legacy parents for certification/document migration cases | NO | YES |
+
+TF-08 deliberately creates a migration-local compatibility table containing
+only `id` and `seller_id`. Its four rows cannot establish ordinary Product
+TEST identity policy and must remain inside the Storage migration harness.
+
+```text
+CLEAN_V2_PRODUCT_ID=20000000-0000-4000-8000-000000000001
+CLEAN_V2_PRODUCT_SKU=NULL
+CLEAN_V2_PRODUCT_SKU_EXPLICIT=NO
+CLEAN_V2_PRODUCT_REPOSITORY_WRITE_PATH=TRANSACTIONAL_RAW_SQL_INSERT
+CLEAN_V2_PRODUCT_REUSABLE_IDENTITY_NEEDED=YES_FOR_OWNER_PROVIDER_SPLIT
+
+COMMERCE_E2E_PRODUCT_IDENTITY=FIXED_UUID_66666666-6666-4666-8666-666666666666_WITH_NO_SKU
+CONCURRENCY_PRODUCT_IDENTITY=FIXED_UUID_44444444-4444-4444-8444-444444444444_WITH_NO_SKU
+TF04_TF05_PRODUCT_CONCEPT_EQUIVALENT=YES
+TF04_TF05_PRODUCT_FIXTURE_REUSE_JUSTIFIED=YES_CONDITIONED_ON_ONE_HUMAN_APPROVED_SHARED_SKU
+```
+
+TF-04 and TF-05 were introduced together by the same Commerce boundary commit.
+They use the same seller UUID and email, seller type, name, price, unit,
+quantity, and active status for the same Commerce prerequisite role. That
+history and intent, rather than display-name similarity alone, justify a
+single future shared Commerce Product declaration. Their different fixed UUIDs
+are harness identifiers, not evidence of distinct business Products.
+
+### Identity Options And Value Policy
+
+| Option | Decision | Reason |
+| --- | --- | --- |
+| `USE_EXISTING_PERSISTED_SKU_AS_TEST_IDENTITY` | unavailable | none of TF-02, TF-04, or TF-05 persists a SKU |
+| `ASSIGN_EXPLICIT_HUMAN_APPROVED_TEST_SKU` | recommended | SKU is the existing persisted unique seed identity and reuse is proven, but exact TEST values have no source authority |
+| `KEEP_PRODUCT_FIXTURES_HARNESS_LOCAL` | safe fallback | required if human review declines exact SKU assignment or shared provider reuse |
+| `USE_ANOTHER_EXISTING_DOMAIN_IDENTITY` | unsupported | generated UUID is the primary key, but no alternative persisted business key or owner reconciliation contract is proven |
+
+```text
+PRODUCT_TEST_ONLY_DOMAIN_FIELD_AUTHORIZED=NO
+PRODUCT_SCHEMA_CHANGE_REQUIRED_FOR_TEST_IDENTITY=NO
+PRODUCT_TEST_IDENTITY_DECISION=HUMAN_APPROVED_TEST_SKU_REQUIRED
+PRODUCT_TEST_SKU_POLICY=DETERMINISTIC;EXPLICIT;TEST_RESERVED;UNIQUE_WITHIN_TEST_CATALOG;MAX_50_CHARACTERS;IMMUTABLE_AFTER_FIXTURE_CREATION;NOT_DERIVED_FROM_GENERATED_UUID;NOT_ACCIDENTALLY_REUSED_FROM_DEV
+PRODUCT_TEST_SKU_VALUE_DECISION_REQUIRED=YES
+PRODUCT_TEST_SKU_VALUE_CANDIDATES_FROM_EXISTING_SOURCE=NONE
+PRODUCT_TEST_SKU_EXACT_VALUE_DECISION=REQUIRED_FOR_CLEAN_V2_PHASE_ONE_PRODUCT_AND_SHARED_COMMERCE_RICE_PRODUCT
+```
+
+The DTO example and DEV SKUs are not TEST fixture authority and are not value
+candidates. This audit intentionally records no proposed or approved TEST SKU
+string.
+
+### Provider Feasibility And Reference Reuse
+
+An owner-local `products.test.catalog` provider is technically feasible after
+the two exact SKU decisions. It can use the same zero/one SKU reconciliation
+shape and scalar Product UUID output already proven by the DEV owner, without
+changing Product schema or runtime behavior. Seller IDs must come from
+`users.test.identities`; applicable categories must come from
+`products.reference.categories` through `category.id.by-slug` rather than be
+recreated as TEST reference data.
+
+```text
+PRODUCTS_TEST_PROVIDER_FEASIBLE=YES_AFTER_EXACT_SKU_APPROVAL
+PROPOSED_PRODUCT_TEST_STABLE_KEY=sku
+PROPOSED_PRODUCT_TEST_OUTPUT_KIND=product.id.by-sku
+PROPOSED_PRODUCT_TEST_DEPENDENCIES=users.test.identities;products.reference.categories
+PRODUCT_TEST_CATEGORY_REFERENCE_REUSE=YES_WHEN_CANONICAL_CATEGORY_APPLIES
+```
+
+### Wishlist And Certification Ownership Correction
+
+Products owns `wishlists` and `product_certifications`: both entities,
+repository ports, repository implementations, use cases, and module
+registrations are Products-local, consistent with ADR 0007.
+
+The clean-v2 Wishlist row is not prerequisite fixture data. The harness calls
+`TypeOrmProductRepository.addIfAbsent` twice and asserts one resulting row to
+verify the Products-owned concurrency contract. Preseeding that row through
+`products.test.catalog` would invalidate the workflow assertion. It therefore
+stays in the clean-v2 harness as a Products-owned test action, correcting the
+broad #144 provider proposal without changing runtime ownership.
+
+TF-08 certifications are legacy compatibility inputs for a Storage migration.
+They remain migration-local. TF-02, TF-04, and TF-05 declare no reusable
+Product certification, so P8-06B has no current certification payload to move.
+
+```text
+WISHLIST_DOMAIN_OWNER=PRODUCTS
+WISHLIST_TEST_FIXTURE_OWNER_DECISION=KEEP_PRODUCTS_OWNED_CLEAN_V2_WORKFLOW_ACTION_OUT_OF_PRODUCTS_TEST_CATALOG_PRESEED
+PRODUCT_CERTIFICATION_DOMAIN_OWNER=PRODUCTS
+PRODUCT_CERTIFICATION_TEST_PROVIDER_DECISION=NO_CURRENT_REUSABLE_CERTIFICATION_KEEP_TF08_MIGRATION_LOCAL
+```
+
+### P8-06B0 Human Decisions Required
+
+```text
+CLEAN_V2_PHASE_ONE_PRODUCT_DECISION=ASSIGN_EXACT_HUMAN_APPROVED_TEST_SKU_OR_KEEP_HARNESS_LOCAL
+COMMERCE_RICE_PRODUCT_DECISION=ASSIGN_ONE_EXACT_HUMAN_APPROVED_SHARED_TEST_SKU_OR_KEEP_TF04_TF05_HARNESS_LOCAL
+SKU_HUMAN_ASSIGNMENT_REQUIRED=YES
+```
+
+No exact SKU can be selected from current source. Until both retained reusable
+Product declarations have an approved value, P8-06B cannot create or consume a
+Products TEST provider.
+
+```text
+PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED=YES
+PRODUCTS_TEST_GROUP_CREATED=NO
+P8_06B_IMPLEMENTATION_AUTHORIZED=NO
+P8_06B_BLOCKERS=CLEAN_V2_PRODUCT_TEST_SKU_EXACT_VALUE_NOT_APPROVED;COMMERCE_RICE_PRODUCT_TEST_SKU_EXACT_VALUE_NOT_APPROVED
+```
+
+### P8-06B0 Preservation And Current Handoff
+
+```text
+RUNTIME_FILES_CHANGED=0
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+NEW_BUSINESS_TEST_SEED_GROUP_COUNT=0
+
+PROTECTED_LOCAL_DB_ACCESSED=NO
+PRODUCTION_DB_ACCESSED=NO
+DATABASE_CONNECTIONS=0
+SQL_EXECUTED=0
+DML_EXECUTED=0
+TEST_FIXTURES_EXECUTED=0
+SEEDS_EXECUTED=0
+MIGRATIONS_EXECUTED=0
+
+P8_06A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_145
+P8_06B0_PRODUCT_TEST_IDENTITY_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+PRODUCT_TEST_SKU_IDENTITY_UNRESOLVED=YES
+PRODUCT_TEST_IDENTITY_DECISION=HUMAN_APPROVED_TEST_SKU_REQUIRED
+PRODUCT_TEST_SKU_EXACT_VALUE_DECISION=REQUIRED_FOR_CLEAN_V2_PHASE_ONE_PRODUCT_AND_SHARED_COMMERCE_RICE_PRODUCT
+P8_06B_IMPLEMENTATION_AUTHORIZED=NO
+P8_06_IMPLEMENTATION_STATUS=IMPLEMENTATION_IN_PROGRESS
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
