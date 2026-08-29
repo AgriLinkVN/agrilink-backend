@@ -27,14 +27,21 @@ const BUSINESS_TEST_GROUP_IDS = [
   "traceability.test.lifecycle",
 ] as const;
 
+const IMPLEMENTED_P8_06B_GROUP_IDS = [
+  "users.test.identities",
+  "products.test.catalog",
+] as const;
+
 const COVERAGE: readonly GuardCoverage[] = [
   inherited("TF-01", "src/scripts/persistence-verify-clean-v2.ts"),
   {
     id: "TF-02",
-    source:
-      "src/database/reconciliation/clean-v2-runtime-baseline.ts",
+    source: "src/database/reconciliation/clean-v2-runtime-baseline.ts",
     guardAuthority: "src/scripts/persistence-verify-clean-v2.ts",
-    markers: ["captureRuntimeBaseline", "PersistenceTestPurpose.MIGRATION_TEST_HARNESS"],
+    markers: [
+      "captureRuntimeBaseline",
+      "PersistenceTestPurpose.MIGRATION_TEST_HARNESS",
+    ],
   },
   {
     id: "TF-03",
@@ -73,7 +80,10 @@ function direct(id: string, source: string): GuardCoverage {
     id,
     source,
     guardAuthority: source,
-    markers: ["assertSafePersistenceTestEnvironment", "SeedClassification.TEST"],
+    markers: [
+      "assertSafePersistenceTestEnvironment",
+      "SeedClassification.TEST",
+    ],
   };
 }
 
@@ -82,7 +92,10 @@ function inherited(id: string, source: string): GuardCoverage {
     id,
     source,
     guardAuthority: source,
-    markers: ["createAdminDataSource(process.env, testTarget)", "SeedClassification.TEST"],
+    markers: [
+      "createAdminDataSource(process.env, testTarget)",
+      "SeedClassification.TEST",
+    ],
   };
 }
 
@@ -91,13 +104,11 @@ function read(relative: string): string {
 }
 
 function sourceFiles(directory: string): string[] {
-  return fs
-    .readdirSync(directory, { withFileTypes: true })
-    .flatMap((entry) => {
-      const target = path.join(directory, entry.name);
-      if (entry.isDirectory()) return sourceFiles(target);
-      return entry.isFile() && target.endsWith(".ts") ? [target] : [];
-    });
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) return sourceFiles(target);
+    return entry.isFile() && target.endsWith(".ts") ? [target] : [];
+  });
 }
 
 describe("P8-06A persistence TEST entrypoint safety", () => {
@@ -124,10 +135,12 @@ describe("P8-06A persistence TEST entrypoint safety", () => {
       "src/scripts/persistence-migration-verification-data-source.ts",
     );
     expect(source).toContain("class SafeMigrationVerificationDataSource");
-    const initializeBody = source.slice(source.indexOf("override async initialize"));
-    expect(initializeBody.indexOf("assertSafePersistenceTestEnvironment")).toBeLessThan(
-      initializeBody.indexOf("super.initialize()"),
+    const initializeBody = source.slice(
+      source.indexOf("override async initialize"),
     );
+    expect(
+      initializeBody.indexOf("assertSafePersistenceTestEnvironment"),
+    ).toBeLessThan(initializeBody.indexOf("super.initialize()"));
   });
 
   it("does not select TEST from normal seed startup", () => {
@@ -136,12 +149,14 @@ describe("P8-06A persistence TEST entrypoint safety", () => {
     );
   });
 
-  it("does not create any proposed business TEST group", () => {
+  it("creates only the two approved P8-06B business TEST groups", () => {
     const runtime = sourceFiles(path.join(ROOT, "src"))
       .filter((file) => !file.endsWith(".spec.ts"))
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
-    for (const id of BUSINESS_TEST_GROUP_IDS) expect(runtime).not.toContain(id);
+    expect(
+      BUSINESS_TEST_GROUP_IDS.filter((id) => runtime.includes(id)),
+    ).toEqual(IMPLEMENTED_P8_06B_GROUP_IDS);
   });
 
   it("preserves the clean-v2 fixture payload boundary", () => {
