@@ -30,6 +30,8 @@ import { EnterpriseProfile } from "../../modules/profiles/infrastructure/persist
 import { FarmerProfile } from "../../modules/profiles/infrastructure/persistence/entities/farmer-profile.entity";
 import { SupplierProfile } from "../../modules/profiles/infrastructure/persistence/entities/supplier-profile.entity";
 import { SeedClassification } from "../seeds/framework/seed-contract";
+import { SeedOrchestrator } from "../seeds/framework/seed-orchestrator";
+import { createCleanV2OwnerTestSeedGroups } from "../seeds/test-seed-groups.registry";
 import { PersistenceTestPurpose } from "./database-target.guard";
 
 const USER_ID = "10000000-0000-4000-8000-000000000001";
@@ -271,6 +273,28 @@ async function countQueries<T>(
 
 async function seedRuntimeFixture(dataSource: DataSource): Promise<void> {
   await dataSource.transaction(async (manager) => {
+    const databaseName = (dataSource.options as { database?: unknown })
+      .database;
+    if (typeof databaseName !== "string" || databaseName.trim() === "") {
+      throw new Error(
+        "Clean-v2 owner TEST providers require an explicit database name",
+      );
+    }
+    const executedGroups = await new SeedOrchestrator(
+      createCleanV2OwnerTestSeedGroups(manager),
+    ).execute({
+      environment: { NODE_ENV: "test", DB_NAME: databaseName },
+      classifications: [SeedClassification.TEST],
+    });
+    if (
+      JSON.stringify(executedGroups) !==
+      JSON.stringify(["admin.test.system-configs"])
+    ) {
+      throw new Error(
+        `Unexpected clean-v2 TEST provider plan: ${executedGroups.join(", ")}`,
+      );
+    }
+
     await manager.query(
       `
         INSERT INTO users
@@ -367,17 +391,12 @@ async function seedRuntimeFixture(dataSource: DataSource): Promise<void> {
     );
     await manager.query(
       `
-        INSERT INTO system_configs (id, key, value)
-        VALUES ('a0000000-0000-4000-8000-000000000001', 'phase1', 'enabled')
-      `,
-    );
-    await manager.query(
-      `
         INSERT INTO audit_logs
           (id, user_id, action, entity_type, entity_id, changes)
         VALUES
           ('a1000000-0000-4000-8000-000000000001', $1, 'PHASE2_READ',
-           'SystemConfig', 'a0000000-0000-4000-8000-000000000001',
+           'SystemConfig',
+           (SELECT id FROM system_configs WHERE key = 'phase1'),
            '{"before": null, "after": {"value": "enabled"}}'::jsonb)
       `,
       [USER_ID],

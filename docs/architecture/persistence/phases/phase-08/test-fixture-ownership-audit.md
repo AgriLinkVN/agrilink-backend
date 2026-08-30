@@ -25,6 +25,167 @@ SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ```
 
+## P8-06C Clean-v2 Owner Provider Split Implementation Overlay
+
+PR #147 merged the two P8-06B shared TEST identity groups into `develop` at
+`594d03feb04b146d6b4649e8f2e1f1ba4c7d815f` after human review and a
+successful Backend Quality Gate. P8-06C re-read current TF-02 source rather
+than adopting the broad #144 proposal. The exact machine-readable action
+inventory is in `clean-v2-write-inventory.ts` and is verified without database
+execution.
+
+### Current Clean-v2 Persistence Action Inventory
+
+`P` is prerequisite fixture, `W` is workflow action, and `C` is migration or
+parity control.
+
+| Write ID | Table/control | Owner | Mechanism | P | W | C | Stable identity | Current disposition |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `CV2-F01` | `users` | Users | raw SQL insert | YES | NO | NO | email | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F02` | `farmer_profiles` | Profiles | raw SQL insert | YES | NO | NO | CCCD | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F03` | `product_categories` | Products | raw SQL insert | YES | NO | NO | slug | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F04` | `products` | Products | raw SQL insert | YES | NO | NO | NO SKU | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F05` | `reviews` | Reviews | raw SQL insert | YES | NO | NO | reviewer + Product | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F06` | `notifications` | Notifications | raw SQL insert | YES | NO | NO | NO | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F07` | `provinces` | Geography | raw SQL insert | YES | NO | NO | code | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F08` | `districts` | Geography | raw SQL insert | YES | NO | NO | NO schema-unique code | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F09` | `stored_files` | Storage | raw SQL insert | YES | NO | NO | object key | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F10` | `ad_packages` | Ads | raw SQL insert | YES | NO | NO | no declared package code | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F11` | `ad_campaigns` | Ads | raw SQL insert | YES | NO | NO | NO | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F12` | `forum_posts` | Forum | raw SQL insert | YES | NO | NO | NO | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F13` | `system_configs` | Admin | owner TEST reconciliation | YES | NO | NO | unique key | `MOVE_TO_OWNER_LOCAL_TEST_PROVIDER` |
+| `CV2-F14` | `audit_logs` | Admin | raw SQL insert | YES | NO | NO | NO | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-F15` | `incident_reports` | Compliance | raw SQL insert | YES | NO | NO | NO | `KEEP_HARNESS_LOCAL_SYNTHETIC_FIXTURE` |
+| `CV2-W01` | `wishlists` | Products | repository `addIfAbsent` twice | NO | YES | NO | User + Product | `KEEP_HARNESS_LOCAL_WORKFLOW_ACTION` |
+| `CV2-W02` | `products` | Products | repository `viewCount` increment | NO | YES | NO | NO SKU | `KEEP_HARNESS_LOCAL_WORKFLOW_ACTION` |
+| `CV2-C01` | disposable database | Persistence harness | create database | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C02` | schema | Persistence harness | first migration up | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C03` | schema | Persistence harness | second-run no-op verification | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C04` | schema | Persistence harness | migration down cycle | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C05` | schema | Persistence harness | migration rerun | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C06` | baseline artifacts | Persistence harness | verify or explicitly write baselines | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C07` | `migrations_v2` | Persistence harness | drop lineage table | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C08` | schema lineage | Persistence harness | existing-schema onboarding | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+| `CV2-C09` | disposable database | Persistence harness | drop database | NO | NO | YES | n/a | `KEEP_HARNESS_CONTROL` |
+
+```text
+CLEAN_V2_WRITE_COUNT=26
+CLEAN_V2_PREREQUISITE_FIXTURE_COUNT=15
+CLEAN_V2_WORKFLOW_ACTION_COUNT=2
+CLEAN_V2_HARNESS_CONTROL_COUNT=9
+```
+
+### Eligibility And Owner Split
+
+Only `system_configs` satisfies all six eligibility gates. Admin owns the
+table; `key` is schema-unique; the declaration uses no test-only schema
+identity or cross-owner persistence; it is not a migration compatibility row;
+and it supports the Admin list baseline, smoke result, and the retained audit
+row's entity reference. The provider reconciles by `key`, creates when absent,
+updates only `value`, fails closed on ambiguous matches, and publishes the
+persisted UUID. Its historical UUID remains create payload, not lookup
+identity; the retained audit insert resolves the persisted reference by key.
+
+```text
+GROUP_ID=admin.test.system-configs
+OWNER=ADMIN
+CLASSIFICATION=TEST
+STABLE_KEY=key
+DEPENDENCIES=NONE
+TABLES=system_configs
+OUTPUTS=system-config.id.by-key
+SOURCE_FIXTURES=TF-02_CV2-F13
+```
+
+The Phase One User is source-local to TF-02. Moving it would broaden P8-06B
+identity authority, so it stays local without triggering a new identity
+decision. Profiles, Reviews, Notifications, Storage, Ads Campaign, Forum,
+Audit, and Incident rows consequently either retain local parents or lack an
+approved stable key. The Category and Product remain explicitly local. The
+Product detail view-count increment and Wishlist concurrency call remain the
+Products-owned workflow assertions.
+
+### Reference Duplicate Decisions
+
+| Reference duplicate | Canonical exact match | Decision |
+| --- | --- | --- |
+| `phase-one-category` | NO | keep synthetic category and Product local |
+| Province `P1` / District `D1` | NO; canonical Provinces contain no `P1`, and no canonical District declaration matches `D1` | keep compatibility-specific Geography rows local |
+| `Phase One Package` | NO; it declares no canonical `packageCode` | keep the generated-ID Ads compatibility pair local |
+
+No new TEST reference catalog or REFERENCE payload was created.
+
+### Orchestration, Raw SQL, And Preservation
+
+The existing P8-06A guard remains immediately before runtime capture. Inside
+the existing fixture transaction, clean-v2 explicitly invokes a
+`SeedOrchestrator` over only `admin.test.system-configs`. Normal application
+startup and the normal DEV/REFERENCE CLI still import no TEST registry. There
+are no cross-owner group dependencies in this slice.
+
+The raw SQL prerequisite count falls from 15 to 14 solely because the direct
+`system_configs` insert moved. Remaining writes are justified by: the local
+Phase One identity dependency cluster; the explicitly retained Product and
+Category; synthetic Geography and Ads compatibility shapes with no canonical
+mapping; or rows without an approved non-generated reconciliation identity.
+
+```text
+P8_06_TEST_FIXTURE_AUDIT_STATUS=IMPLEMENTED_BY_MERGED_PR_144
+P8_06A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_145
+P8_06B0_PRODUCT_TEST_IDENTITY_STATUS=IMPLEMENTED_BY_MERGED_PR_146
+P8_06B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_147
+P8_06C_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_06B_PR_147_MERGE
+
+CLEAN_V2_PHASE_ONE_PRODUCT_PROVIDER_DECISION=KEEP_HARNESS_LOCAL_DUE_NO_CANONICAL_CATEGORY_MAPPING
+CLEAN_V2_PHASE_ONE_CATEGORY_REMAINS_LOCAL=YES
+CLEAN_V2_PHASE_ONE_PRODUCT_REMAINS_LOCAL=YES
+CLEAN_V2_PHASE_ONE_PRODUCT_RUNTIME_PAYLOAD_CHANGES=0
+CLEAN_V2_WISHLIST_WORKFLOW_REMAINS_HARNESS_LOCAL=YES
+PRODUCTS_TEST_WISHLIST_PRESEED_COUNT=0
+WISHLIST_TEST_SEED_GROUP_CREATED=NO
+CLEAN_V2_DIRECT_BUSINESS_FIXTURE_WRITE_REMOVED=YES
+CLEAN_V2_TEST_GROUP_EXECUTION_EXPLICIT=YES_IF_USED
+
+P8_06C_NEW_GROUP_COUNT=1
+P8_06C_NEW_GROUP_IDS=admin.test.system-configs
+P8_06C_TOTAL_TEST_GROUP_COUNT=3
+P8_06C_DEV_DEPENDENCY_COUNT=0
+P8_06C_MISSING_DEPENDENCY_COUNT=0
+P8_06C_DUPLICATE_GROUP_ID_COUNT=0
+P8_06C_DEPENDENCY_CYCLE_COUNT=0
+CROSS_OWNER_TEST_REPOSITORY_ACCESS_ADDED=0
+CROSS_OWNER_TEST_ENTITY_ACCESS_ADDED=0
+
+CLEAN_V2_RAW_SQL_BUSINESS_FIXTURE_WRITE_COUNT_BEFORE=15
+CLEAN_V2_RAW_SQL_BUSINESS_FIXTURE_WRITE_COUNT_AFTER=14
+MOVED_FIXTURE_TABLES=system_configs
+REMAINING_HARNESS_LOCAL_FIXTURE_TABLES=users;farmer_profiles;product_categories;products;reviews;notifications;provinces;districts;stored_files;ad_packages;ad_campaigns;forum_posts;audit_logs;incident_reports
+
+USERS_TEST_PROVIDER_RUNTIME_CHANGES=0
+PRODUCTS_TEST_PROVIDER_RUNTIME_CHANGES=0
+TF04_RUNTIME_FIXTURE_CHANGES=0
+TF05_RUNTIME_FIXTURE_CHANGES=0
+TF08_RUNTIME_FIXTURE_CHANGES=0
+TF08_PRODUCTS_MOVED_TO_TEST_PROVIDER=NO
+CLEAN_V2_RUNTIME_ASSERTION_COUNT_REDUCED=NO
+CLEAN_V2_OPENAPI_BASELINE_PURPOSE_CHANGED=NO
+CLEAN_V2_SCHEMA_PARITY_PURPOSE_CHANGED=NO
+CLEAN_V2_WISHLIST_IDEMPOTENCY_ASSERTION_PRESERVED=YES
+NORMAL_APPLICATION_TEST_REGISTRATION_ADDED=NO
+NORMAL_DEV_REFERENCE_CLI_TEST_REGISTRATION_ADDED=NO
+SCHEMA_CHANGES=0
+MIGRATIONS_CREATED=0
+REFERENCE_DEV_SEED_PAYLOAD_CHANGES=0
+
+P8_06C_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_06C_BLOCKERS=NONE
+P8_06D_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06C_MERGE_AND_REVIEW
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
+
 ## P8-06A Test Execution Safety And Metadata Boundary Implementation Overlay
 
 PR #144 merged this audit into `develop` at
@@ -820,6 +981,25 @@ MIGRATIONS_CREATED=0
 P8_06B_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
 P8_06B_BLOCKERS=NONE
 P8_06C_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06B_MERGE_AND_REVIEW
+P8_06D_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06C_MERGE_AND_REVIEW
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
+
+## P8-06C Trailing Current-Authority Handoff
+
+```text
+P8_06B_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_147
+P8_06C_IMPLEMENTATION_AUTHORIZED=YES_AFTER_P8_06B_PR_147_MERGE
+P8_06C_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_06C_BLOCKERS=NONE
+P8_06C_NEW_GROUP_COUNT=1
+P8_06C_NEW_GROUP_IDS=admin.test.system-configs
+CLEAN_V2_PHASE_ONE_PRODUCT_PROVIDER_DECISION=KEEP_HARNESS_LOCAL_DUE_NO_CANONICAL_CATEGORY_MAPPING
+CLEAN_V2_PHASE_ONE_PRODUCT_REMAINS_LOCAL=YES
+CLEAN_V2_WISHLIST_WORKFLOW_REMAINS_HARNESS_LOCAL=YES
 P8_06D_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_06C_MERGE_AND_REVIEW
 IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
 DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED

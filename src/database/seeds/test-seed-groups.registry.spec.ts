@@ -6,7 +6,11 @@ import {
   buildSeedExecutionPlan,
   orderSeedMetadata,
 } from "./framework/seed-metadata";
-import { createSharedTestIdentitySeedGroups } from "./test-seed-groups.registry";
+import {
+  createCleanV2OwnerTestSeedGroups,
+  createPhaseEightTestSeedGroups,
+  createSharedTestIdentitySeedGroups,
+} from "./test-seed-groups.registry";
 
 describe("Phase 8 shared TEST identity registration", () => {
   it("exposes exactly the two approved groups in an acyclic owner order", () => {
@@ -32,6 +36,54 @@ describe("Phase 8 shared TEST identity registration", () => {
       [],
     );
     expect(dataSource.getRepository).toHaveBeenCalledTimes(2);
+  });
+
+  it("adds only the Admin system config to the clean-v2 owner subset", () => {
+    const dataSource = {
+      getRepository: jest.fn(() => ({})),
+    } as unknown as DataSource;
+
+    expect(
+      createCleanV2OwnerTestSeedGroups(dataSource).map(
+        ({ metadata }) => metadata,
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: "admin.test.system-configs",
+        owner: "admin",
+        classification: SeedClassification.TEST,
+        dependencies: [],
+      }),
+    ]);
+    expect(dataSource.getRepository).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps all three Phase 8 TEST groups unique and acyclic", () => {
+    const dataSource = {
+      getRepository: jest.fn(() => ({})),
+    } as unknown as DataSource;
+    const groups = createPhaseEightTestSeedGroups(dataSource);
+
+    expect(groups).toHaveLength(3);
+    expect(new Set(groups.map(({ metadata }) => metadata.id)).size).toBe(3);
+    expect(
+      orderSeedMetadata(groups.map(({ metadata }) => metadata)).map(
+        ({ id }) => id,
+      ),
+    ).toEqual([
+      "admin.test.system-configs",
+      "users.test.identities",
+      "products.test.catalog",
+    ]);
+    expect(
+      buildSeedExecutionPlan(groups, [SeedClassification.TEST]).map(
+        ({ metadata }) => metadata.id,
+      ),
+    ).toEqual([
+      "admin.test.system-configs",
+      "users.test.identities",
+      "products.test.catalog",
+    ]);
   });
 
   it("keeps TEST groups out of normal startup and the DEV/REFERENCE CLI", () => {
