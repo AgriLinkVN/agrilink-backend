@@ -19,6 +19,7 @@ const BUSINESS_TEST_GROUP_IDS = [
   "ads.test.campaigns",
   "forum.test.posts",
   "admin.test.system-and-audit",
+  "admin.test.system-configs",
   "compliance.test.incidents",
   "orders.test.orders",
   "commerce.test.operations",
@@ -31,6 +32,8 @@ const IMPLEMENTED_P8_06B_GROUP_IDS = [
   "users.test.identities",
   "products.test.catalog",
 ] as const;
+
+const IMPLEMENTED_P8_06C_GROUP_IDS = ["admin.test.system-configs"] as const;
 
 const COVERAGE: readonly GuardCoverage[] = [
   inherited("TF-01", "src/scripts/persistence-verify-clean-v2.ts"),
@@ -149,21 +152,26 @@ describe("P8-06A persistence TEST entrypoint safety", () => {
     );
   });
 
-  it("creates only the two approved P8-06B business TEST groups", () => {
+  it("creates only the approved P8-06B and P8-06C business TEST groups", () => {
     const runtime = sourceFiles(path.join(ROOT, "src"))
       .filter((file) => !file.endsWith(".spec.ts"))
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
     expect(
       BUSINESS_TEST_GROUP_IDS.filter((id) => runtime.includes(id)),
-    ).toEqual(IMPLEMENTED_P8_06B_GROUP_IDS);
+    ).toEqual([
+      ...IMPLEMENTED_P8_06B_GROUP_IDS,
+      ...IMPLEMENTED_P8_06C_GROUP_IDS,
+    ]);
   });
 
   it("preserves the clean-v2 fixture payload boundary", () => {
     const source = read(
       "src/database/reconciliation/clean-v2-runtime-baseline.ts",
     );
-    expect(source.match(/^\s*INSERT INTO\s+/gm)).toHaveLength(15);
+    expect(source.match(/^\s*INSERT INTO\s+/gm)).toHaveLength(14);
+    expect(source).toContain("createCleanV2OwnerTestSeedGroups(manager)");
+    expect(source).not.toContain("INSERT INTO system_configs");
     expect(source).toContain("products.addIfAbsent(USER_ID, PRODUCT_ID)");
     expect(source).toContain("'phase-one-category'");
     expect(source).toContain("$1, 1, 'Phase One Ad'");
