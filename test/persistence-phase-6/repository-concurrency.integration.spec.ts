@@ -16,20 +16,31 @@ import {
 } from '../../src/database/reconciliation/disposable-database';
 import { PersistenceTestPurpose } from '../../src/database/reconciliation/database-target.guard';
 import { SeedClassification } from '../../src/database/seeds/framework/seed-contract';
+import { executeSharedTestIdentitySeedGroupsWithOutputs } from '../../src/database/seeds/test-seed-output-executor';
 import { IdempotencyConflictError } from '../../src/modules/commerce/application/errors/commerce-application.error';
 import { TypeOrmCommerceOperationRepository } from '../../src/modules/commerce/infrastructure/persistence/repositories/typeorm-commerce-operation.repository';
 import { TypeOrmContractRepository, TypeOrmPurchaseRequestRepository } from '../../src/modules/contracts/infrastructure/persistence/repositories/typeorm-contract.repository';
 import { TypeOrmOrderRepository } from '../../src/modules/orders/infrastructure/persistence/repositories/typeorm-order.repository';
 import { TypeOrmPaymentRepository } from '../../src/modules/payments/infrastructure/persistence/repositories/typeorm-payment.repository';
+import {
+  PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+  PRODUCTS_TEST_SEED_GROUP_ID,
+} from '../../src/modules/products/application/contracts/product-seed-output.contract';
 import { TypeOrmTransactionContext } from '../../src/shared/infrastructure/persistence/transaction/typeorm-transaction-context';
+import {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
+  USERS_TEST_SEED_GROUP_ID,
+} from '../../src/modules/users/application/contracts/user-seed-output.contract';
 
 dotenv.config();
 jest.setTimeout(120_000);
 
 const BUYER = '11111111-1111-4111-8111-111111111111';
-const SELLER = '22222222-2222-4222-8222-222222222222';
 const ADMIN = '33333333-3333-4333-8333-333333333333';
-const PRODUCT = '44444444-4444-4444-8444-444444444444';
+const SHARED_SELLER_EMAIL = 'seller@example.test';
+const SHARED_PRODUCT_SKU = 'TEST-COMMERCE-RICE-001';
+let SELLER: string;
+let PRODUCT: string;
 
 describe('Persistence Phase 6 PostgreSQL concurrency', () => {
   const database = createDisposableDatabaseName();
@@ -63,7 +74,9 @@ describe('Persistence Phase 6 PostgreSQL concurrency', () => {
     await dataSource.initialize();
     excludeDeferredEntitiesFromSchemaBuild(dataSource);
     await dataSource.runMigrations();
-    await seedReferences(dataSource);
+    const sharedIdentities = await seedReferences(dataSource, database);
+    SELLER = sharedIdentities.sellerId;
+    PRODUCT = sharedIdentities.productId;
 
     const transactions = new TypeOrmTransactionContext(dataSource);
     const operations = new TypeOrmCommerceOperationRepository(transactions);
@@ -318,20 +331,38 @@ function contractInput(
   };
 }
 
-async function seedReferences(dataSource: DataSource): Promise<void> {
+interface SharedCommerceIdentityIds {
+  readonly sellerId: string;
+  readonly productId: string;
+}
+
+async function seedReferences(
+  dataSource: DataSource,
+  database: string,
+): Promise<SharedCommerceIdentityIds> {
+  const sharedIdentities =
+    await executeSharedTestIdentitySeedGroupsWithOutputs(dataSource, {
+      environment: { ...process.env, NODE_ENV: 'test', DB_NAME: database },
+      classifications: [SeedClassification.TEST],
+    });
+  const sellerId = sharedIdentities.outputs.requireString(
+    USERS_TEST_SEED_GROUP_ID,
+    USER_ID_BY_EMAIL_OUTPUT_KIND,
+    SHARED_SELLER_EMAIL,
+  );
+  const productId = sharedIdentities.outputs.requireString(
+    PRODUCTS_TEST_SEED_GROUP_ID,
+    PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+    SHARED_PRODUCT_SKU,
+  );
+
   await dataSource.query(
     `INSERT INTO users (id, email, password_hash, role, status)
      VALUES
        ($1, 'buyer@example.test', 'x', 'buyer', 'active'),
-       ($2, 'seller@example.test', 'x', 'farmer', 'active'),
-       ($3, 'admin@example.test', 'x', 'admin', 'active')`,
-    [BUYER, SELLER, ADMIN],
+       ($2, 'admin@example.test', 'x', 'admin', 'active')`,
+    [BUYER, ADMIN],
   );
-  await dataSource.query(
-    `INSERT INTO products
-       (id, seller_id, seller_type, name, price_per_unit, unit,
-        available_quantity, status)
-     VALUES ($1, $2, 'farmer', 'Rice', 100, 'kg', 100, 'active')`,
-    [PRODUCT, SELLER],
-  );
+
+  return { sellerId, productId };
 }
