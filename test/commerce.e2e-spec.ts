@@ -22,6 +22,7 @@ import {
 } from '../src/database/reconciliation/disposable-database';
 import { PersistenceTestPurpose } from '../src/database/reconciliation/database-target.guard';
 import { SeedClassification } from '../src/database/seeds/framework/seed-contract';
+import { executeSharedTestIdentitySeedGroupsWithOutputs } from '../src/database/seeds/test-seed-output-executor';
 import {
   COMMERCE_OPERATION_REPOSITORY,
   CommerceOperationRepository,
@@ -80,21 +81,31 @@ import {
   ProductCommercePriceIncompatibleError,
   ProductCommerceReader,
 } from '../src/modules/products/application/ports/inbound/product-commerce.port';
+import {
+  PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+  PRODUCTS_TEST_SEED_GROUP_ID,
+} from '../src/modules/products/application/contracts/product-seed-output.contract';
 import { Review } from '../src/modules/reviews/infrastructure/persistence/entities/review.entity';
 import { TypeOrmReviewsRepository } from '../src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository';
 import { CreateProductReviewUseCase } from '../src/modules/reviews/application/use-cases/reviews.use-cases';
 import { TypeOrmTransactionContext } from '../src/shared/infrastructure/persistence/transaction/typeorm-transaction-context';
+import {
+  USER_ID_BY_EMAIL_OUTPUT_KIND,
+  USERS_TEST_SEED_GROUP_ID,
+} from '../src/modules/users/application/contracts/user-seed-output.contract';
 
 dotenv.config();
 jest.setTimeout(120_000);
 
 const BUYER = '11111111-1111-4111-8111-111111111111';
-const SELLER = '22222222-2222-4222-8222-222222222222';
 const ADMIN = '33333333-3333-4333-8333-333333333333';
 const LOGISTICS = '44444444-4444-4444-8444-444444444444';
 const OTHER = '55555555-5555-4555-8555-555555555555';
-const PRODUCT = '66666666-6666-4666-8666-666666666666';
 const FRACTIONAL_PRODUCT = '77777777-7777-4777-8777-777777777777';
+const SHARED_SELLER_EMAIL = 'seller@example.test';
+const SHARED_PRODUCT_SKU = 'TEST-COMMERCE-RICE-001';
+let SELLER: string;
+let PRODUCT: string;
 
 describe('Commerce Phase 6 E2E', () => {
   const database = createDisposableDatabaseName();
@@ -126,7 +137,9 @@ describe('Commerce Phase 6 E2E', () => {
     await dataSource.initialize();
     excludeDeferredEntitiesFromSchemaBuild(dataSource);
     await dataSource.runMigrations();
-    await seedReferences(dataSource);
+    const sharedIdentities = await seedReferences(dataSource, database);
+    SELLER = sharedIdentities.sellerId;
+    PRODUCT = sharedIdentities.productId;
 
     module = await Test.createTestingModule({
       controllers: [OrdersController, PaymentsController, ContractsController],
@@ -520,22 +533,40 @@ function actor(id: string, role: UserRole): Record<string, string> {
   return { 'X-User-Id': id, 'X-User-Role': role };
 }
 
-async function seedReferences(dataSource: DataSource): Promise<void> {
+interface SharedCommerceIdentityIds {
+  readonly sellerId: string;
+  readonly productId: string;
+}
+
+async function seedReferences(
+  dataSource: DataSource,
+  database: string,
+): Promise<SharedCommerceIdentityIds> {
+  const sharedIdentities =
+    await executeSharedTestIdentitySeedGroupsWithOutputs(dataSource, {
+      environment: { NODE_ENV: 'test', DB_NAME: database },
+      classifications: [SeedClassification.TEST],
+    });
+  const sellerId = sharedIdentities.outputs.requireString(
+    USERS_TEST_SEED_GROUP_ID,
+    USER_ID_BY_EMAIL_OUTPUT_KIND,
+    SHARED_SELLER_EMAIL,
+  );
+  const productId = sharedIdentities.outputs.requireString(
+    PRODUCTS_TEST_SEED_GROUP_ID,
+    PRODUCT_ID_BY_SKU_OUTPUT_KIND,
+    SHARED_PRODUCT_SKU,
+  );
+
   await dataSource.query(
     `INSERT INTO users (id, email, password_hash, role, status)
      VALUES
        ($1, 'buyer@example.test', 'x', 'buyer', 'active'),
-       ($2, 'seller@example.test', 'x', 'farmer', 'active'),
-       ($3, 'admin@example.test', 'x', 'admin', 'active'),
-       ($4, 'logistics@example.test', 'x', 'logistics', 'active'),
-       ($5, 'other@example.test', 'x', 'buyer', 'active')`,
-    [BUYER, SELLER, ADMIN, LOGISTICS, OTHER],
+       ($2, 'admin@example.test', 'x', 'admin', 'active'),
+       ($3, 'logistics@example.test', 'x', 'logistics', 'active'),
+       ($4, 'other@example.test', 'x', 'buyer', 'active')`,
+    [BUYER, ADMIN, LOGISTICS, OTHER],
   );
-  await dataSource.query(
-    `INSERT INTO products
-       (id, seller_id, seller_type, name, price_per_unit, unit,
-        available_quantity, status)
-     VALUES ($1, $2, 'farmer', 'Rice', 100, 'kg', 100, 'active')`,
-    [PRODUCT, SELLER],
-  );
+
+  return { sellerId, productId };
 }
