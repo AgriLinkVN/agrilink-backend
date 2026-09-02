@@ -2529,3 +2529,135 @@ DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-07 Canonical Seed DAG And Orchestration Closure Inventory Overlay
+
+This overlay supersedes only the current authority fields of the preserved
+P8-06E pending-review snapshot. PR #150 merged that slice at
+`b50596d9c410c43882e830c8a4c0a19cfad91951`.
+
+### Executable canonical groups
+
+`NORMAL_STARTUP_REACHABLE` describes the current opt-in `PRODUCT_DEV_SEED`
+composition, not unconditional application startup. `TEST_ONLY` means the
+group is absent from both normal startup and the normal seed CLI.
+
+| GROUP_ID | OWNER | CLASSIFICATION | DEPENDENCIES | OUTPUT_KINDS | REGISTRATION_PATH | NORMAL_STARTUP_REACHABLE | TEST_ONLY | WRITES_TABLES |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ads.reference.packages` | ads | REFERENCE | none | none | `src/main.ts`; `src/database/seeds/seed.ts` | YES | NO | `ad_packages` |
+| `geography.reference.provinces` | geography | REFERENCE | none | `province.id.by-code` | `src/database/seeds/seed.ts` | NO | NO | `provinces` |
+| `products.reference.categories` | products | REFERENCE | none | `category.id.by-slug` | `src/main.ts`; `src/database/seeds/seed.ts` | YES | NO | `product_categories` |
+| `users.dev.users` | users | DEV | none | `user.id.by-email` | `src/main.ts`; `src/database/seeds/seed.ts` | YES | NO | `users` |
+| `cooperatives.dev.members` | cooperatives | DEV | `users.dev.users` | none | `src/main.ts` via `CooperativesModule` | YES | NO | `cooperative_members` |
+| `products.dev.products` | products | DEV | `products.reference.categories`; `users.dev.users` | `product.id.by-sku` | `src/main.ts` via `ProductsModule` | YES | NO | `products`; `product_images`; `product_certifications` |
+| `profiles.dev.role-profiles` | profiles | DEV | `users.dev.users` | none | `src/main.ts` | YES | NO | `farmer_profiles`; `cooperative_profiles`; `enterprise_profiles`; `supplier_profiles` |
+| `reviews.dev.product-feedback` | reviews | DEV | `users.dev.users`; `products.dev.products` | none | `src/main.ts` via `ReviewsModule` | YES | NO | `product_reviews` |
+| `users.test.identities` | users | TEST | none | `user.id.by-email` | `createSharedTestIdentitySeedGroups` | NO | YES | `users` |
+| `products.test.catalog` | products | TEST | `users.test.identities` | `product.id.by-sku` | `createSharedTestIdentitySeedGroups` | NO | YES | `products` |
+| `admin.test.system-configs` | admin | TEST | none | `system-config.id.by-key` | `createCleanV2OwnerTestSeedGroups` | NO | YES | `system_configs` |
+
+The complete TEST metadata view is composed by
+`createPhaseEightTestSeedGroups`; composing the same owner implementations in
+subset registries is not a duplicate registration or a second owner.
+
+### Full canonical DAG
+
+| CONSUMER | PROVIDER | CLASSIFICATIONS | OUTPUT_KIND |
+| --- | --- | --- | --- |
+| `cooperatives.dev.members` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `products.dev.products` | `products.reference.categories` | DEV -> REFERENCE | `category.id.by-slug` |
+| `products.dev.products` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `profiles.dev.role-profiles` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `reviews.dev.product-feedback` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `reviews.dev.product-feedback` | `products.dev.products` | DEV -> DEV | `product.id.by-sku` |
+| `products.test.catalog` | `users.test.identities` | TEST -> TEST | `user.id.by-email` |
+
+Every consumer declares the provider group ID and resolves its foreign scalar
+through `SeedDependencyOutputs.requireString`. No consumer imports a provider
+repository or entity, and none uses generated position or table count as an
+identity.
+
+### Writable-table ownership
+
+| TABLE | SEED_OWNER | GROUP_ID | CLASSIFICATION |
+| --- | --- | --- | --- |
+| `ad_packages` | ads | `ads.reference.packages` | REFERENCE |
+| `provinces` | geography | `geography.reference.provinces` | REFERENCE |
+| `product_categories` | products | `products.reference.categories` | REFERENCE |
+| `users` | users | `users.dev.users` | DEV |
+| `cooperative_members` | cooperatives | `cooperatives.dev.members` | DEV |
+| `products` | products | `products.dev.products` | DEV |
+| `product_images` | products | `products.dev.products` | DEV |
+| `product_certifications` | products | `products.dev.products` | DEV |
+| `farmer_profiles` | profiles | `profiles.dev.role-profiles` | DEV |
+| `cooperative_profiles` | profiles | `profiles.dev.role-profiles` | DEV |
+| `enterprise_profiles` | profiles | `profiles.dev.role-profiles` | DEV |
+| `supplier_profiles` | profiles | `profiles.dev.role-profiles` | DEV |
+| `product_reviews` | reviews | `reviews.dev.product-feedback` | DEV |
+| `users` | users | `users.test.identities` | TEST |
+| `products` | products | `products.test.catalog` | TEST |
+| `system_configs` | admin | `admin.test.system-configs` | TEST |
+
+```text
+P8_06E_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_150
+P8_06_CLOSURE_STATUS=IMPLEMENTED_BY_MERGED_PR_150
+P8_06_TEST_FIXTURE_OWNERSHIP_STATUS=COMPLETE_BY_MERGED_PR_150
+P8_06_BLOCKERS=NONE
+
+CANONICAL_SEED_GROUP_COUNT=11
+REFERENCE_GROUP_COUNT=3
+DEV_GROUP_COUNT=5
+TEST_GROUP_COUNT=3
+CANONICAL_SEED_GROUP_IDS=ads.reference.packages;geography.reference.provinces;products.reference.categories;users.dev.users;cooperatives.dev.members;products.dev.products;profiles.dev.role-profiles;reviews.dev.product-feedback;users.test.identities;products.test.catalog;admin.test.system-configs
+CANONICAL_DAG_GROUP_COUNT=11
+CANONICAL_DAG_EDGE_COUNT=7
+CANONICAL_CROSS_GROUP_DEPENDENCY_COUNT=7
+CANONICAL_DAG_MISSING_DEPENDENCY_COUNT=0
+CANONICAL_DAG_DUPLICATE_GROUP_ID_COUNT=0
+CANONICAL_DAG_DEPENDENCY_CYCLE_COUNT=0
+DUPLICATE_CANONICAL_GROUP_ID_COUNT=0
+DUPLICATE_CANONICAL_REGISTRATION_COUNT=0
+LEGACY_CANONICAL_SEED_REGISTRATION_COUNT=0
+REFERENCE_TO_DEV_DEPENDENCY_COUNT=0
+REFERENCE_TO_TEST_DEPENDENCY_COUNT=0
+DEV_TO_TEST_DEPENDENCY_COUNT=0
+TEST_TO_DEV_DEPENDENCY_COUNT=0
+UNDECLARED_OUTPUT_DEPENDENCY_COUNT=0
+CROSS_OWNER_SEED_REPOSITORY_ACCESS_COUNT=0
+CROSS_OWNER_SEED_ENTITY_ACCESS_COUNT=0
+CENTRAL_ORCHESTRATOR_BUSINESS_WRITE_COUNT=0
+CENTRAL_ORCHESTRATOR_REPOSITORY_ACCESS_COUNT=0
+CENTRAL_ORCHESTRATOR_ENTITY_ACCESS_COUNT=0
+CENTRAL_ORCHESTRATOR_RESET_METHOD_COUNT=0
+CANONICAL_SEEDED_TABLE_MULTI_OWNER_COUNT=0
+CANONICAL_SEED_OWNER_CONFLICT_COUNT=0
+REFERENCE_DEV_TEST_SEEDS_SEPARATED=YES
+SEED_GROUP_DYNAMIC_CLASSIFICATION_COUNT=0
+NORMAL_STARTUP_REFERENCE_REACHABLE=YES
+NORMAL_STARTUP_DEV_REACHABLE=YES
+NORMAL_STARTUP_TEST_REACHABLE=NO
+NORMAL_SEED_CLI_TEST_REACHABLE=NO
+TEST_REGISTRY_GROUP_COUNT=3
+TEST_REGISTRY_DEV_GROUP_COUNT=0
+TEST_REGISTRY_NORMAL_STARTUP_REACHABLE=NO
+TEST_REGISTRY_NORMAL_CLI_REACHABLE=NO
+SEED_DATASOURCE_SYNCHRONIZE_TRUE_COUNT=0
+SYNCHRONIZE_USED_FOR_SEEDING=NO
+DEVSEEDSERVICE_EXISTS=NO
+LEGACY_DEV_REMAINING_EXISTS=NO
+CENTRAL_BUSINESS_SEED_WRITE_COUNT=0
+CENTRAL_DESTRUCTIVE_RESET_METHOD_COUNT=0
+ALL_CANONICAL_SEED_GROUPS_INVENTORIED=YES
+
+P8_07_CLOSURE_AUTHORIZED=YES
+P8_07_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_07_BLOCKERS=NONE
+P8_07_CANONICAL_DAG_STATUS=COMPLETE_PENDING_HUMAN_REVIEW
+DEPENDENCY_DAG_REQUIRED=SATISFIED_PENDING_HUMAN_REVIEW
+CENTRAL_SEEDER_ORCHESTRATION_ONLY=SATISFIED_PENDING_HUMAN_REVIEW
+P8_08_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_07_MERGE_AND_REVIEW
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
