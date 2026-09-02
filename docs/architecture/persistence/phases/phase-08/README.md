@@ -3122,3 +3122,75 @@ DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-07 Canonical Seed DAG And Orchestration Closure Overlay
+
+PR #150 was human-reviewed, passed the Backend Quality Gate, and merged into
+`develop` at `b50596d9c410c43882e830c8a4c0a19cfad91951`. The current static
+inventory contains 11 executable canonical groups: three REFERENCE, five DEV,
+and three TEST. Their combined metadata graph has seven declared edges, no
+missing dependency, duplicate ID, or cycle, and no forbidden classification
+edge.
+
+Normal startup remains opt-in through `PRODUCT_DEV_SEED` and reaches two
+REFERENCE plus all five DEV groups. The normal CLI reaches all three REFERENCE
+groups and `users.dev.users`. Those entrypoints intentionally exclude TEST;
+the three TEST groups remain behind the explicit TEST registry and guarded
+TEST adapters. The generic orchestrator only validates, orders, exposes scalar
+dependency outputs, and executes groups. It owns no fixture payload,
+repository, entity, business write, schema synchronization, or reset method.
+
+### Canonical dependency edges
+
+| Consumer | Provider | Classifications | Scalar output |
+| --- | --- | --- | --- |
+| `cooperatives.dev.members` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `products.dev.products` | `products.reference.categories` | DEV -> REFERENCE | `category.id.by-slug` |
+| `products.dev.products` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `profiles.dev.role-profiles` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `reviews.dev.product-feedback` | `users.dev.users` | DEV -> DEV | `user.id.by-email` |
+| `reviews.dev.product-feedback` | `products.dev.products` | DEV -> DEV | `product.id.by-sku` |
+| `products.test.catalog` | `users.test.identities` | TEST -> TEST | `user.id.by-email` |
+
+```text
+P8_06E_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_150
+P8_06_CLOSURE_STATUS=IMPLEMENTED_BY_MERGED_PR_150
+P8_06_TEST_FIXTURE_OWNERSHIP_STATUS=COMPLETE_BY_MERGED_PR_150
+P8_06_BLOCKERS=NONE
+
+CANONICAL_SEED_GROUP_COUNT=11
+REFERENCE_GROUP_COUNT=3
+DEV_GROUP_COUNT=5
+TEST_GROUP_COUNT=3
+CANONICAL_DAG_GROUP_COUNT=11
+CANONICAL_DAG_EDGE_COUNT=7
+CANONICAL_DAG_MISSING_DEPENDENCY_COUNT=0
+CANONICAL_DAG_DUPLICATE_GROUP_ID_COUNT=0
+CANONICAL_DAG_DEPENDENCY_CYCLE_COUNT=0
+REFERENCE_TO_DEV_DEPENDENCY_COUNT=0
+REFERENCE_TO_TEST_DEPENDENCY_COUNT=0
+DEV_TO_TEST_DEPENDENCY_COUNT=0
+TEST_TO_DEV_DEPENDENCY_COUNT=0
+UNDECLARED_OUTPUT_DEPENDENCY_COUNT=0
+CROSS_OWNER_SEED_REPOSITORY_ACCESS_COUNT=0
+CROSS_OWNER_SEED_ENTITY_ACCESS_COUNT=0
+CENTRAL_ORCHESTRATOR_BUSINESS_WRITE_COUNT=0
+CANONICAL_SEEDED_TABLE_MULTI_OWNER_COUNT=0
+CANONICAL_SEED_OWNER_CONFLICT_COUNT=0
+REFERENCE_DEV_TEST_SEEDS_SEPARATED=YES
+NORMAL_STARTUP_TEST_CLASSIFICATION_REACHABLE=NO
+NORMAL_SEED_CLI_TEST_REACHABLE=NO
+SEED_DATASOURCE_SYNCHRONIZE_TRUE_COUNT=0
+
+P8_07_CLOSURE_AUTHORIZED=YES
+P8_07_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_07_BLOCKERS=NONE
+P8_07_CANONICAL_DAG_STATUS=COMPLETE_PENDING_HUMAN_REVIEW
+DEPENDENCY_DAG_REQUIRED=SATISFIED_PENDING_HUMAN_REVIEW
+CENTRAL_SEEDER_ORCHESTRATION_ONLY=SATISFIED_PENDING_HUMAN_REVIEW
+P8_08_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_07_MERGE_AND_REVIEW
+IDEMPOTENCY_VERIFIED=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+PHASE_08_COMPLETE=NO
+```
