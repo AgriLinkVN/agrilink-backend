@@ -544,7 +544,7 @@ async function seedReferences(
 ): Promise<SharedCommerceIdentityIds> {
   const sharedIdentities =
     await executeSharedTestIdentitySeedGroupsWithOutputs(dataSource, {
-      environment: { NODE_ENV: 'test', DB_NAME: database },
+      environment: { ...process.env, NODE_ENV: 'test', DB_NAME: database },
       classifications: [SeedClassification.TEST],
     });
   const sellerId = sharedIdentities.outputs.requireString(

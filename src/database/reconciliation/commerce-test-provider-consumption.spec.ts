@@ -104,7 +104,9 @@ describe("P8-06D Commerce harness shared provider consumption", () => {
         "purpose: PersistenceTestPurpose.BUSINESS_FIXTURE",
       );
       expect(source).toContain("acknowledgement: database");
-      expect(source).toContain("NODE_ENV: 'test', DB_NAME: database");
+      expect(source).toContain(
+        "...process.env, NODE_ENV: 'test', DB_NAME: database",
+      );
       expect(source).toContain("classifications: [SeedClassification.TEST]");
     }
   });
@@ -125,6 +127,26 @@ describe("P8-06D Commerce harness shared provider consumption", () => {
       "executeSharedTestIdentitySeedGroupsWithOutputs",
     );
     expect(normalCli).not.toContain("SeedClassification.TEST");
+  });
+
+  it("binds the request and actual DataSource target before provider access", () => {
+    const adapter = read("src/database/seeds/test-seed-output-executor.ts");
+    const seedGuard = adapter.indexOf("assertSeedExecutionSafety(request)");
+    const targetBinding = adapter.indexOf(
+      "assertDataSourceTargetMatchesRequest(",
+      seedGuard,
+    );
+    const providerAccess = adapter.indexOf(
+      "const groups = createSharedTestIdentitySeedGroups(dataSource)",
+    );
+
+    expect(seedGuard).toBeGreaterThan(-1);
+    expect(targetBinding).toBeGreaterThan(seedGuard);
+    expect(providerAccess).toBeGreaterThan(targetBinding);
+    expect(adapter).toContain("const options = dataSource.options");
+    expect(adapter).toContain("assertSafePersistenceTestEnvironment({");
+    expect(adapter).toContain("TEST_DATASOURCE_TARGET_MISMATCH");
+    expect(adapter).toContain("TEST_DATASOURCE_TARGET_UNKNOWN");
   });
 
   it("adds no cross-owner entity or repository lookup for output recovery", () => {

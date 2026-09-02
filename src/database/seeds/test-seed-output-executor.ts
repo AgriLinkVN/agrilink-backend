@@ -1,5 +1,11 @@
 import { DataSource } from "typeorm";
 import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+  VerifiedPersistenceTestTarget,
+} from "../reconciliation/database-target.guard";
+import {
   SeedClassification,
   SeedDependencyOutputs,
   SeedGroupMetadata,
@@ -15,6 +21,52 @@ import { createSharedTestIdentitySeedGroups } from "./test-seed-groups.registry"
 export interface SharedTestIdentitySeedExecution {
   readonly executedGroupIds: readonly string[];
   readonly outputs: SeedDependencyOutputs;
+}
+
+function assertDataSourceTargetMatchesRequest(
+  dataSource: DataSource,
+  request: SeedExecutionSafetyRequest,
+  databaseName: string,
+): void {
+  const requestedTarget = assertSafePersistenceTestEnvironment({
+    environment: request.environment,
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+    operation: PersistenceTestOperation.FIXTURE_WRITE,
+  });
+  const actualTarget = resolveActualDataSourceTarget(dataSource);
+
+  if (
+    requestedTarget.database !== databaseName ||
+    requestedTarget.database !== actualTarget.database ||
+    requestedTarget.host !== actualTarget.host
+  ) {
+    throw new Error(
+      "TEST_DATASOURCE_TARGET_MISMATCH: request and DataSource targets must match",
+    );
+  }
+}
+
+function resolveActualDataSourceTarget(
+  dataSource: DataSource,
+): VerifiedPersistenceTestTarget {
+  const options = dataSource.options;
+  if (options.type !== "postgres") {
+    throw new Error(
+      "TEST_DATASOURCE_TARGET_UNKNOWN: shared TEST identity execution requires PostgreSQL",
+    );
+  }
+
+  return assertSafePersistenceTestEnvironment({
+    environment: {
+      DATABASE_URL: options.url,
+      DB_HOST: options.host,
+      DB_NAME: options.database,
+    },
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.BUSINESS_FIXTURE,
+    operation: PersistenceTestOperation.FIXTURE_WRITE,
+  });
 }
 
 /**
@@ -36,6 +88,11 @@ export async function executeSharedTestIdentitySeedGroupsWithOutputs(
   }
 
   const safeTarget = assertSeedExecutionSafety(request);
+  assertDataSourceTargetMatchesRequest(
+    dataSource,
+    request,
+    safeTarget.databaseName,
+  );
   const groups = createSharedTestIdentitySeedGroups(dataSource);
   const plan = buildSeedExecutionPlan(groups, safeTarget.classifications);
   const outputRegistry = new SeedOutputRegistry();

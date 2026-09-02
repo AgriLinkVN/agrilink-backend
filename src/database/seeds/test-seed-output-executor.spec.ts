@@ -13,10 +13,20 @@ import { executeSharedTestIdentitySeedGroupsWithOutputs } from "./test-seed-outp
 
 const SAFE_ENVIRONMENT = Object.freeze({
   NODE_ENV: "test",
+  DB_HOST: "localhost",
   DB_NAME: "agrilink_persistence_test_p8_06d_unit",
 });
 
-function createPersistenceDouble(): {
+type ActualTargetOptions = {
+  readonly type?: string;
+  readonly host?: string;
+  readonly database?: string;
+  readonly url?: string;
+};
+
+function createPersistenceDouble(
+  actualTarget: ActualTargetOptions = {},
+): {
   dataSource: DataSource;
   userRepository: {
     find: jest.Mock;
@@ -31,6 +41,12 @@ function createPersistenceDouble(): {
     update: jest.Mock;
   };
 } {
+  const options = {
+    type: "postgres",
+    host: "localhost",
+    database: SAFE_ENVIRONMENT.DB_NAME,
+    ...actualTarget,
+  };
   const userRepository = {
     find: jest.fn().mockResolvedValue([]),
     create: jest.fn((data) => data),
@@ -44,6 +60,7 @@ function createPersistenceDouble(): {
     update: jest.fn(),
   };
   const dataSource = {
+    options,
     getRepository: jest
       .fn()
       .mockReturnValueOnce(userRepository)
@@ -96,6 +113,88 @@ describe("shared TEST identity output execution adapter", () => {
         classifications: [SeedClassification.DEV],
       }),
     ).rejects.toThrow("requires explicit TEST-only selection");
+    expect(persistence.dataSource.getRepository).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["protected database", { database: "agrilink_db" }],
+    [
+      "different disposable database",
+      { database: "agrilink_persistence_test_p8_06d_other" },
+    ],
+    ["unauthorized remote host", { host: "db.example.internal" }],
+    ["missing database", { database: undefined }],
+    ["missing host", { host: undefined }],
+    [
+      "ambiguous URL and host",
+      {
+        host: "127.0.0.1",
+        url: `postgresql://user:pass@localhost:5432/${SAFE_ENVIRONMENT.DB_NAME}`,
+      },
+    ],
+  ])("rejects a safe request with an actual %s", async (_label, options) => {
+    const persistence = createPersistenceDouble(options);
+
+    await expect(
+      executeSharedTestIdentitySeedGroupsWithOutputs(persistence.dataSource, {
+        environment: SAFE_ENVIRONMENT,
+        classifications: [SeedClassification.TEST],
+      }),
+    ).rejects.toThrow();
+    expect(persistence.dataSource.getRepository).not.toHaveBeenCalled();
+  });
+
+  it("rejects a request/DataSource host mismatch even when both hosts are allowed", async () => {
+    const persistence = createPersistenceDouble({ host: "127.0.0.1" });
+
+    await expect(
+      executeSharedTestIdentitySeedGroupsWithOutputs(persistence.dataSource, {
+        environment: SAFE_ENVIRONMENT,
+        classifications: [SeedClassification.TEST],
+      }),
+    ).rejects.toThrow("TEST_DATASOURCE_TARGET_MISMATCH");
+    expect(persistence.dataSource.getRepository).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "different database",
+      `postgresql://user:pass@localhost:5432/agrilink_persistence_test_p8_06d_url_other`,
+      "agrilink_persistence_test_p8_06d_url_other",
+    ],
+    [
+      "remote host",
+      `postgresql://user:pass@db.example.internal:5432/${SAFE_ENVIRONMENT.DB_NAME}`,
+      SAFE_ENVIRONMENT.DB_NAME,
+    ],
+  ])(
+    "rejects an actual PostgreSQL URL with a %s",
+    async (_label, url, database) => {
+      const persistence = createPersistenceDouble({
+        host: undefined,
+        url,
+        database,
+      });
+
+      await expect(
+        executeSharedTestIdentitySeedGroupsWithOutputs(persistence.dataSource, {
+          environment: SAFE_ENVIRONMENT,
+          classifications: [SeedClassification.TEST],
+        }),
+      ).rejects.toThrow();
+      expect(persistence.dataSource.getRepository).not.toHaveBeenCalled();
+    },
+  );
+
+  it("rejects an unknown non-PostgreSQL DataSource target", async () => {
+    const persistence = createPersistenceDouble({ type: "sqlite" });
+
+    await expect(
+      executeSharedTestIdentitySeedGroupsWithOutputs(persistence.dataSource, {
+        environment: SAFE_ENVIRONMENT,
+        classifications: [SeedClassification.TEST],
+      }),
+    ).rejects.toThrow("TEST_DATASOURCE_TARGET_UNKNOWN");
     expect(persistence.dataSource.getRepository).not.toHaveBeenCalled();
   });
 
