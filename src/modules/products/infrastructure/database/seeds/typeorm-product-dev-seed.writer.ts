@@ -6,10 +6,13 @@ import { ProductCertification } from "../../persistence/entities/product-certifi
 import { ProductImage } from "../../persistence/entities/product-image.entity";
 import {
   ProductDevCertificationRecord,
+  ProductDevCertificationMutableData,
   ProductDevCertificationWriteData,
+  ProductDevPrimaryImageMutableData,
   ProductDevPrimaryImageRecord,
   ProductDevPrimaryImageWriteData,
   ProductDevSeedRecord,
+  ProductDevSeedMutableData,
   ProductDevSeedWriteData,
   ProductDevSeedWriter,
 } from "./product-development-seed.service";
@@ -38,7 +41,7 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
 
   async updateProduct(
     id: string,
-    data: ProductDevSeedWriteData,
+    data: ProductDevSeedMutableData,
   ): Promise<void> {
     await this.productRepository.update(id, data);
   }
@@ -60,7 +63,7 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
 
   async updatePrimaryImage(
     id: string,
-    data: ProductDevPrimaryImageWriteData,
+    data: ProductDevPrimaryImageMutableData,
   ): Promise<void> {
     await this.imageRepository.update(id, data);
   }
@@ -85,7 +88,7 @@ export class TypeOrmProductDevSeedWriter implements ProductDevSeedWriter {
 
   async updateCertification(
     id: string,
-    data: ProductDevCertificationWriteData,
+    data: ProductDevCertificationMutableData,
   ): Promise<void> {
     await this.certificationRepository.update(id, data);
   }

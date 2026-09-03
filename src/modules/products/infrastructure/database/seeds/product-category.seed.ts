@@ -216,12 +216,17 @@ export interface ProductCategoryReferenceWriteData {
   readonly isActive: boolean;
 }
 
+export type ProductCategoryReferenceMutableData = Omit<
+  ProductCategoryReferenceWriteData,
+  "slug"
+>;
+
 export interface ProductCategoryReferenceSeedWriter {
   findBySlug(slug: string): Promise<ProductCategoryReferenceRecord | null>;
   create(
     data: ProductCategoryReferenceWriteData,
   ): Promise<ProductCategoryReferenceRecord>;
-  update(id: string, data: ProductCategoryReferenceWriteData): Promise<void>;
+  update(id: string, data: ProductCategoryReferenceMutableData): Promise<void>;
 }
 
 export async function reconcileProductCategoryReferences(
@@ -251,7 +256,8 @@ export async function reconcileProductCategoryReferences(
     const existing = await writer.findBySlug(record.slug);
     let categoryId: string;
     if (existing) {
-      await writer.update(existing.id, writeData);
+      const { slug: _immutableSlug, ...mutableData } = writeData;
+      await writer.update(existing.id, mutableData);
       categoryId = existing.id;
     } else {
       categoryId = (await writer.create(writeData)).id;
@@ -303,7 +309,7 @@ class TypeOrmProductCategoryReferenceSeedWriter implements ProductCategoryRefere
 
   async update(
     id: string,
-    data: ProductCategoryReferenceWriteData,
+    data: ProductCategoryReferenceMutableData,
   ): Promise<void> {
     await this.repository.update(id, data);
   }

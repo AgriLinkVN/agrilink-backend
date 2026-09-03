@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Review } from '../../persistence/entities/review.entity';
 import {
   ReviewDevSeedRecord,
+  ReviewDevSeedMutableData,
   ReviewDevSeedWriteData,
   ReviewDevSeedWriter,
 } from './review-development-seed.service';
@@ -30,7 +31,10 @@ export class TypeOrmReviewDevSeedWriter implements ReviewDevSeedWriter {
     await this.reviewRepository.save(this.reviewRepository.create(data));
   }
 
-  async updateReview(id: string, data: ReviewDevSeedWriteData): Promise<void> {
+  async updateReview(
+    id: string,
+    data: ReviewDevSeedMutableData,
+  ): Promise<void> {
     await this.reviewRepository.update(id, data);
   }
 }

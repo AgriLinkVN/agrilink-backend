@@ -5,12 +5,16 @@ import { FarmerProfile } from "../../persistence/entities/farmer-profile.entity"
 import { SupplierProfile } from "../../persistence/entities/supplier-profile.entity";
 import {
   CooperativeProfileDevWriteData,
+  CooperativeProfileDevMutableData,
   EnterpriseProfileDevWriteData,
+  EnterpriseProfileDevMutableData,
   FarmerProfileDevWriteData,
+  FarmerProfileDevMutableData,
   ProfileDevRecord,
   ProfileRoleDevSeedWriter,
   ProfilesRoleProfilesDevSeedGroup,
   SupplierProfileDevWriteData,
+  SupplierProfileDevMutableData,
 } from "./profile-role-development.seed";
 
 export class TypeOrmProfileRoleDevSeedWriter implements ProfileRoleDevSeedWriter {
@@ -43,7 +47,7 @@ export class TypeOrmProfileRoleDevSeedWriter implements ProfileRoleDevSeedWriter
 
   async updateFarmer(
     id: string,
-    data: FarmerProfileDevWriteData,
+    data: FarmerProfileDevMutableData,
   ): Promise<void> {
     await this.farmers.update(id, data);
   }
@@ -77,7 +81,7 @@ export class TypeOrmProfileRoleDevSeedWriter implements ProfileRoleDevSeedWriter
 
   async updateCooperative(
     id: string,
-    data: CooperativeProfileDevWriteData,
+    data: CooperativeProfileDevMutableData,
   ): Promise<void> {
     await this.cooperatives.update(id, data);
   }
@@ -102,7 +106,7 @@ export class TypeOrmProfileRoleDevSeedWriter implements ProfileRoleDevSeedWriter
 
   async updateEnterprise(
     id: string,
-    data: EnterpriseProfileDevWriteData,
+    data: EnterpriseProfileDevMutableData,
   ): Promise<void> {
     await this.enterprises.update(id, data);
   }
@@ -120,7 +124,7 @@ export class TypeOrmProfileRoleDevSeedWriter implements ProfileRoleDevSeedWriter
 
   async updateSupplier(
     id: string,
-    data: SupplierProfileDevWriteData,
+    data: SupplierProfileDevMutableData,
   ): Promise<void> {
     await this.suppliers.update(id, data);
   }

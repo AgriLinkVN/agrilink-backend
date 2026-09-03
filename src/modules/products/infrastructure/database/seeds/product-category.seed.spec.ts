@@ -5,6 +5,7 @@ import {
 import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
 import {
   CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+  ProductCategoryReferenceMutableData,
   ProductCategoryReferenceSeedWriter,
   ProductCategoryReferenceWriteData,
   ProductsCategoryReferenceSeedGroup,
@@ -22,7 +23,7 @@ function createWriter(existingSlugs: readonly string[] = []): {
   writer: ProductCategoryReferenceSeedWriter;
   rows: Map<string, { id: string; data?: ProductCategoryReferenceWriteData }>;
   creates: ProductCategoryReferenceWriteData[];
-  updates: ProductCategoryReferenceWriteData[];
+  updates: ProductCategoryReferenceMutableData[];
   finds: string[];
 } {
   const rows = new Map<
@@ -30,7 +31,7 @@ function createWriter(existingSlugs: readonly string[] = []): {
     { id: string; data?: ProductCategoryReferenceWriteData }
   >(existingSlugs.map((slug) => [slug, { id: `category-${slug}` }]));
   const creates: ProductCategoryReferenceWriteData[] = [];
-  const updates: ProductCategoryReferenceWriteData[] = [];
+  const updates: ProductCategoryReferenceMutableData[] = [];
   const finds: string[] = [];
   const writer: ProductCategoryReferenceSeedWriter = {
     async findBySlug(slug) {
@@ -45,7 +46,8 @@ function createWriter(existingSlugs: readonly string[] = []): {
     },
     async update(id, data) {
       updates.push(data);
-      rows.set(data.slug, { id, data });
+      const slug = id.replace("category-", "");
+      rows.set(slug, { id, data: { slug, ...data } });
     },
   };
 
@@ -100,7 +102,8 @@ describe("ProductsCategoryReferenceSeedGroup", () => {
     const firstResult = await group.execute(referenceContext);
 
     expect(state.finds).toHaveLength(37);
-    expect(state.updates.map(({ slug }) => slug)).toEqual([existingSlug]);
+    expect(state.updates).toHaveLength(1);
+    expect(state.updates[0]).not.toHaveProperty("slug");
     expect(state.creates).toHaveLength(36);
     expect(state.rows.size).toBe(37);
     expect(firstResult.outputs).toEqual(

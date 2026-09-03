@@ -6,6 +6,7 @@ import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../database/seeds/framew
 import {
   GeographyProvinceReferenceSeedGroup,
   PROVINCE_ID_BY_CODE_OUTPUT_KIND,
+  ProvinceReferenceMutableData,
   ProvinceReferenceSeedWriter,
   provinceReferenceSeedData,
 } from "./province-reference.seed";
@@ -21,12 +22,12 @@ function createWriter(existingCodes: readonly string[] = []): {
   writer: ProvinceReferenceSeedWriter;
   codes: Set<string>;
   creates: string[];
-  updates: string[];
+  updates: ProvinceReferenceMutableData[];
   finds: string[];
 } {
   const codes = new Set(existingCodes);
   const creates: string[] = [];
-  const updates: string[] = [];
+  const updates: ProvinceReferenceMutableData[] = [];
   const finds: string[] = [];
   const writer: ProvinceReferenceSeedWriter = {
     async findByCode(code) {
@@ -39,7 +40,7 @@ function createWriter(existingCodes: readonly string[] = []): {
       return { id: `province-${data.code}` };
     },
     async update(_id, data) {
-      updates.push(data.code);
+      updates.push(data);
     },
   };
 
@@ -76,7 +77,8 @@ describe("GeographyProvinceReferenceSeedGroup", () => {
     const firstResult = await group.execute(referenceContext);
 
     expect(state.finds).toHaveLength(34);
-    expect(state.updates).toEqual([firstCode]);
+    expect(state.updates).toHaveLength(1);
+    expect(state.updates[0]).not.toHaveProperty("code");
     expect(state.creates).toHaveLength(33);
     expect(state.codes.size).toBe(34);
     expect(firstResult.outputs).toEqual(

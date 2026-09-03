@@ -353,10 +353,12 @@ export interface ProvinceReferenceRecord {
   readonly id: string;
 }
 
+export type ProvinceReferenceMutableData = Omit<ProvinceSeedData, "code">;
+
 export interface ProvinceReferenceSeedWriter {
   findByCode(code: string): Promise<ProvinceReferenceRecord | null>;
   create(data: ProvinceSeedData): Promise<ProvinceReferenceRecord>;
-  update(id: string, data: ProvinceSeedData): Promise<void>;
+  update(id: string, data: ProvinceReferenceMutableData): Promise<void>;
 }
 
 export async function reconcileProvinceReferences(
@@ -368,7 +370,8 @@ export async function reconcileProvinceReferences(
     const existing = await writer.findByCode(record.code);
     let provinceId: string;
     if (existing) {
-      await writer.update(existing.id, record);
+      const { code: _immutableCode, ...mutableData } = record;
+      await writer.update(existing.id, mutableData);
       provinceId = existing.id;
     } else {
       provinceId = (await writer.create(record)).id;
@@ -413,7 +416,7 @@ class TypeOrmProvinceReferenceSeedWriter implements ProvinceReferenceSeedWriter 
     return this.repository.save(this.repository.create(data));
   }
 
-  async update(id: string, data: ProvinceSeedData): Promise<void> {
+  async update(id: string, data: ProvinceReferenceMutableData): Promise<void> {
     await this.repository.update(id, data);
   }
 }

@@ -222,15 +222,17 @@ export interface UserDevRecord {
   readonly id: string;
 }
 
-export interface UserDevWriteData extends UserDevSeedData {
+export interface UserDevCreateData extends UserDevSeedData {
   readonly passwordHash: string;
 }
+
+export type UserDevMutableData = Omit<UserDevSeedData, "phone" | "email">;
 
 export interface UserDevSeedWriter {
   findByPhone(phone: string): Promise<UserDevRecord | null>;
   findByEmail(email: string): Promise<UserDevRecord | null>;
-  create(data: UserDevWriteData): Promise<UserDevRecord>;
-  update(id: string, data: UserDevWriteData): Promise<void>;
+  create(data: UserDevCreateData): Promise<UserDevRecord>;
+  update(id: string, data: UserDevMutableData): Promise<void>;
 }
 
 export interface UserDevPasswordHasher {
@@ -239,11 +241,25 @@ export interface UserDevPasswordHasher {
 
 export async function reconcileUserDevSeeds(
   writer: UserDevSeedWriter,
-  passwordHash: string,
+  passwordHasher: UserDevPasswordHasher,
   records: readonly UserDevSeedData[] = userDevSeedData,
 ): Promise<readonly SeedOutputBinding[]> {
-  const outputs: SeedOutputBinding[] = [];
+  const declaredPhones = new Set<string>();
+  const declaredEmails = new Set<string>();
+  const preflight: Array<{
+    readonly record: UserDevSeedData;
+    readonly existing: UserDevRecord | null;
+  }> = [];
+
   for (const record of records) {
+    if (declaredPhones.has(record.phone) || declaredEmails.has(record.email)) {
+      throw new Error(
+        `users.dev.users declares duplicate identity for ${record.email}`,
+      );
+    }
+    declaredPhones.add(record.phone);
+    declaredEmails.add(record.email);
+
     const phoneMatch = await writer.findByPhone(record.phone);
     const emailMatch = await writer.findByEmail(record.email);
     if (phoneMatch && emailMatch && phoneMatch.id !== emailMatch.id) {
@@ -251,15 +267,31 @@ export async function reconcileUserDevSeeds(
         `users.dev.users identity conflict for ${record.email}: phone and email resolve to different users`,
       );
     }
+    if ((phoneMatch && !emailMatch) || (!phoneMatch && emailMatch)) {
+      throw new Error(
+        `users.dev.users partial identity conflict for ${record.email}: phone and email must resolve together`,
+      );
+    }
+    preflight.push({ record, existing: phoneMatch ?? emailMatch });
+  }
 
-    const writeData: UserDevWriteData = { ...record, passwordHash };
-    const existing = phoneMatch ?? emailMatch;
+  const outputs: SeedOutputBinding[] = [];
+  let createPasswordHash: string | undefined;
+  for (const { record, existing } of preflight) {
     let userId: string;
     if (existing) {
-      await writer.update(existing.id, writeData);
+      const {
+        phone: _immutablePhone,
+        email: _immutableEmail,
+        ...mutableData
+      } = record;
+      await writer.update(existing.id, mutableData);
       userId = existing.id;
     } else {
-      userId = (await writer.create(writeData)).id;
+      createPasswordHash ??= await passwordHasher.hash(DECLARED_DEV_PASSWORD);
+      userId = (
+        await writer.create({ ...record, passwordHash: createPasswordHash })
+      ).id;
     }
     outputs.push({
       kind: USER_ID_BY_EMAIL_OUTPUT_KIND,
@@ -283,8 +315,10 @@ export class UsersDevSeedGroup implements SeedGroup {
       throw new Error(`${this.metadata.id} requires explicit DEV selection`);
     }
 
-    const passwordHash = await this.passwordHasher.hash(DECLARED_DEV_PASSWORD);
-    const outputs = await reconcileUserDevSeeds(this.writer, passwordHash);
+    const outputs = await reconcileUserDevSeeds(
+      this.writer,
+      this.passwordHasher,
+    );
     return { outputs };
   }
 }
@@ -300,11 +334,11 @@ class TypeOrmUserDevSeedWriter implements UserDevSeedWriter {
     return this.repository.findOne({ select: { id: true }, where: { email } });
   }
 
-  async create(data: UserDevWriteData): Promise<UserDevRecord> {
+  async create(data: UserDevCreateData): Promise<UserDevRecord> {
     return this.repository.save(this.repository.create(data));
   }
 
-  async update(id: string, data: UserDevWriteData): Promise<void> {
+  async update(id: string, data: UserDevMutableData): Promise<void> {
     await this.repository.update(id, data);
   }
 }

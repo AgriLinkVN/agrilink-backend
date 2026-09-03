@@ -6,8 +6,9 @@ import {
 import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
 import {
   USER_ID_BY_EMAIL_OUTPUT_KIND,
+  UserTestIdentityCreateData,
+  UserTestIdentityMutableData,
   UserTestIdentitySeedWriter,
-  UserTestIdentityWriteData,
   UsersTestIdentitySeedGroup,
   userTestIdentitySeedData,
 } from "./user-test.seed";
@@ -21,20 +22,20 @@ const testContext: SeedExecutionContext = {
 
 interface InMemoryUser {
   readonly id: string;
-  data: UserTestIdentityWriteData;
+  data: UserTestIdentityCreateData;
 }
 
 function createWriter(initialRows: readonly InMemoryUser[] = []): {
   writer: UserTestIdentitySeedWriter;
   rows: Map<string, InMemoryUser>;
   finds: string[];
-  creates: UserTestIdentityWriteData[];
-  updates: UserTestIdentityWriteData[];
+  creates: UserTestIdentityCreateData[];
+  updates: UserTestIdentityMutableData[];
 } {
   const rows = new Map(initialRows.map((row) => [row.id, row]));
   const finds: string[] = [];
-  const creates: UserTestIdentityWriteData[] = [];
-  const updates: UserTestIdentityWriteData[] = [];
+  const creates: UserTestIdentityCreateData[] = [];
+  const updates: UserTestIdentityMutableData[] = [];
   const writer: UserTestIdentitySeedWriter = {
     async findByEmail(email) {
       finds.push(email);
@@ -48,7 +49,8 @@ function createWriter(initialRows: readonly InMemoryUser[] = []): {
     },
     async update(id, data) {
       updates.push(data);
-      rows.set(id, { id, data });
+      const existing = rows.get(id)!;
+      rows.set(id, { id, data: { ...existing.data, ...data } });
     },
   };
 
@@ -99,6 +101,7 @@ describe("UsersTestIdentitySeedGroup", () => {
   it("reconciles by email per record and publishes user.id.by-email", async () => {
     const stale = {
       ...userTestIdentitySeedData[0],
+      passwordHash: "preserve-existing-hash",
       status: UserStatus.LOCKED,
     };
     const state = createWriter([{ id: "seller-id", data: stale }]);
@@ -109,10 +112,15 @@ describe("UsersTestIdentitySeedGroup", () => {
 
     expect(state.finds).toEqual(["seller@example.test", "seller@example.test"]);
     expect(state.creates).toEqual([]);
-    expect(state.updates).toEqual([
-      userTestIdentitySeedData[0],
-      userTestIdentitySeedData[0],
-    ]);
+    const {
+      email: _immutableEmail,
+      passwordHash: _createOnlyPasswordHash,
+      ...mutableData
+    } = userTestIdentitySeedData[0];
+    expect(state.updates).toEqual([mutableData, mutableData]);
+    expect(state.rows.get("seller-id")?.data.passwordHash).toBe(
+      "preserve-existing-hash",
+    );
     expect(second).toEqual(first);
     expect(first.outputs).toEqual([
       {

@@ -492,7 +492,7 @@ describe("P8-07 canonical SeedGroup DAG and orchestration closure", () => {
     );
   });
 
-  it("records merged P8-06 authority and pending-review P8-07 closure", () => {
+  it("records merged P8-06/P8-07 authority and the current P8-08 overlay", () => {
     const documents = [
       "docs/architecture/persistence/phases/phase-08/README.md",
       "docs/architecture/persistence/phases/phase-08/seed-inventory.md",
@@ -517,6 +517,21 @@ describe("P8-07 canonical SeedGroup DAG and orchestration closure", () => {
       expect(document).toContain("P8_07_BLOCKERS=NONE");
       expect(document).toContain(
         "P8_08_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_07_MERGE_AND_REVIEW",
+      );
+      expect(document).toContain(
+        "P8_07_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_151",
+      );
+      expect(document).toContain(
+        "P8_07_CANONICAL_DAG_STATUS=COMPLETE_BY_MERGED_PR_151",
+      );
+      expect(document).toContain(
+        "DEPENDENCY_DAG_REQUIRED=SATISFIED_BY_MERGED_PR_151",
+      );
+      expect(document).toContain(
+        "CENTRAL_SEEDER_ORCHESTRATION_ONLY=SATISFIED_BY_MERGED_PR_151",
+      );
+      expect(document).toContain(
+        "P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW",
       );
       expect(document).toContain("PHASE_08_COMPLETE=NO");
     }

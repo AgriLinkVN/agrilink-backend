@@ -74,6 +74,11 @@ export interface FarmerProfileDevWriteData {
   readonly districtId: number | null;
 }
 
+export type FarmerProfileDevMutableData = Omit<
+  FarmerProfileDevWriteData,
+  "userId" | "cccdNumber" | "verifiedAt"
+>;
+
 export interface CooperativeProfileDevWriteData {
   readonly userId: string;
   readonly cooperativeName: string;
@@ -95,6 +100,11 @@ export interface CooperativeProfileDevWriteData {
   readonly verifiedAt?: Date | null;
 }
 
+export type CooperativeProfileDevMutableData = Omit<
+  CooperativeProfileDevWriteData,
+  "userId" | "businessLicenseNumber" | "taxCode" | "verifiedAt"
+>;
+
 export interface EnterpriseProfileDevWriteData {
   readonly userId: string;
   readonly companyName: string;
@@ -108,6 +118,11 @@ export interface EnterpriseProfileDevWriteData {
   readonly isVerified: boolean;
 }
 
+export type EnterpriseProfileDevMutableData = Omit<
+  EnterpriseProfileDevWriteData,
+  "userId" | "taxCode"
+>;
+
 export interface SupplierProfileDevWriteData {
   readonly userId: string;
   readonly companyName: string;
@@ -120,6 +135,11 @@ export interface SupplierProfileDevWriteData {
   readonly verifiedBy?: null;
 }
 
+export type SupplierProfileDevMutableData = Omit<
+  SupplierProfileDevWriteData,
+  "userId"
+>;
+
 export interface ProfileRoleDevSeedData {
   readonly farmer: readonly FarmerProfileDevWriteData[];
   readonly cooperative: readonly CooperativeProfileDevWriteData[];
@@ -131,7 +151,7 @@ export interface ProfileRoleDevSeedWriter {
   findFarmerByUserId(userId: string): Promise<ProfileDevRecord | null>;
   findFarmerByCccd(cccdNumber: string): Promise<ProfileDevRecord | null>;
   createFarmer(data: FarmerProfileDevWriteData): Promise<void>;
-  updateFarmer(id: string, data: FarmerProfileDevWriteData): Promise<void>;
+  updateFarmer(id: string, data: FarmerProfileDevMutableData): Promise<void>;
 
   findCooperativeByUserId(userId: string): Promise<ProfileDevRecord | null>;
   findCooperativeByBusinessLicense(
@@ -141,7 +161,7 @@ export interface ProfileRoleDevSeedWriter {
   createCooperative(data: CooperativeProfileDevWriteData): Promise<void>;
   updateCooperative(
     id: string,
-    data: CooperativeProfileDevWriteData,
+    data: CooperativeProfileDevMutableData,
   ): Promise<void>;
 
   findEnterpriseByUserId(userId: string): Promise<ProfileDevRecord | null>;
@@ -149,12 +169,15 @@ export interface ProfileRoleDevSeedWriter {
   createEnterprise(data: EnterpriseProfileDevWriteData): Promise<void>;
   updateEnterprise(
     id: string,
-    data: EnterpriseProfileDevWriteData,
+    data: EnterpriseProfileDevMutableData,
   ): Promise<void>;
 
   findSupplierByUserId(userId: string): Promise<ProfileDevRecord | null>;
   createSupplier(data: SupplierProfileDevWriteData): Promise<void>;
-  updateSupplier(id: string, data: SupplierProfileDevWriteData): Promise<void>;
+  updateSupplier(
+    id: string,
+    data: SupplierProfileDevMutableData,
+  ): Promise<void>;
 }
 
 function requireUserId(context: SeedExecutionContext, email: string): string {
@@ -363,6 +386,11 @@ function resolveOneIdentity(
       `profiles.dev.role-profiles identity conflict for ${profile}: unique keys resolve to different rows`,
     );
   }
+  if (existing.length > 0 && existing.length !== matches.length) {
+    throw new Error(
+      `profiles.dev.role-profiles partial identity conflict for ${profile}: all unique keys must resolve together`,
+    );
+  }
   return existing[0] ?? null;
 }
 
@@ -504,20 +532,43 @@ export async function reconcileProfileRoleDevSeeds(
   assertDistinctExistingRows("supplier", suppliers);
 
   for (const { data: profile, existing } of farmers) {
-    if (existing) await writer.updateFarmer(existing.id, profile);
-    else await writer.createFarmer(profile);
+    if (existing) {
+      const {
+        userId: _immutableUserId,
+        cccdNumber: _immutableCccd,
+        verifiedAt: _createOnlyVerifiedAt,
+        ...mutableData
+      } = profile;
+      await writer.updateFarmer(existing.id, mutableData);
+    } else await writer.createFarmer(profile);
   }
   for (const { data: profile, existing } of cooperatives) {
-    if (existing) await writer.updateCooperative(existing.id, profile);
-    else await writer.createCooperative(profile);
+    if (existing) {
+      const {
+        userId: _immutableUserId,
+        businessLicenseNumber: _immutableLicense,
+        taxCode: _immutableTaxCode,
+        verifiedAt: _createOnlyVerifiedAt,
+        ...mutableData
+      } = profile;
+      await writer.updateCooperative(existing.id, mutableData);
+    } else await writer.createCooperative(profile);
   }
   for (const { data: profile, existing } of enterprises) {
-    if (existing) await writer.updateEnterprise(existing.id, profile);
-    else await writer.createEnterprise(profile);
+    if (existing) {
+      const {
+        userId: _immutableUserId,
+        taxCode: _immutableTaxCode,
+        ...mutableData
+      } = profile;
+      await writer.updateEnterprise(existing.id, mutableData);
+    } else await writer.createEnterprise(profile);
   }
   for (const { data: profile, existing } of suppliers) {
-    if (existing) await writer.updateSupplier(existing.id, profile);
-    else await writer.createSupplier(profile);
+    if (existing) {
+      const { userId: _immutableUserId, ...mutableData } = profile;
+      await writer.updateSupplier(existing.id, mutableData);
+    } else await writer.createSupplier(profile);
   }
 }
 export class ProfilesRoleProfilesDevSeedGroup implements SeedGroup {
