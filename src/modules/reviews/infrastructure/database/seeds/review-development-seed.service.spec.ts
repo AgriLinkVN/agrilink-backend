@@ -20,6 +20,7 @@ import {
   REVIEW_DEV_SEED_DEFINITIONS,
   REVIEWS_DEV_PRODUCT_FEEDBACK_SEED_METADATA,
   ReviewDevelopmentSeedService,
+  ReviewDevSeedMutableData,
   ReviewDevSeedRecord,
   ReviewDevSeedWriteData,
   ReviewDevSeedWriter,
@@ -30,7 +31,7 @@ import {
 class InMemoryReviewDevSeedWriter implements ReviewDevSeedWriter {
   readonly rows: Array<ReviewDevSeedRecord & ReviewDevSeedWriteData>;
   readonly creates: ReviewDevSeedWriteData[] = [];
-  readonly updates: Array<{ id: string; data: ReviewDevSeedWriteData }> = [];
+  readonly updates: Array<{ id: string; data: ReviewDevSeedMutableData }> = [];
 
   constructor(rows: Array<ReviewDevSeedRecord & ReviewDevSeedWriteData> = []) {
     this.rows = rows;
@@ -52,10 +53,13 @@ class InMemoryReviewDevSeedWriter implements ReviewDevSeedWriter {
     this.rows.push({ id: `review:${this.rows.length + 1}`, ...data });
   }
 
-  async updateReview(id: string, data: ReviewDevSeedWriteData): Promise<void> {
+  async updateReview(
+    id: string,
+    data: ReviewDevSeedMutableData,
+  ): Promise<void> {
     this.updates.push({ id, data });
     const index = this.rows.findIndex((row) => row.id === id);
-    if (index >= 0) this.rows[index] = { id, ...data };
+    if (index >= 0) this.rows[index] = { ...this.rows[index], ...data };
   }
 }
 
@@ -264,7 +268,14 @@ describe('ReviewDevelopmentSeedService', () => {
 
     expect(writer.creates).toHaveLength(8);
     expect(writer.updates).toEqual([
-      { id: 'existing-review', data: records[0] },
+      {
+        id: 'existing-review',
+        data: {
+          rating: records[0].rating,
+          comment: records[0].comment,
+          isVerifiedPurchase: records[0].isVerifiedPurchase,
+        },
+      },
     ]);
     expect(writer.rows.find(({ id }) => id === 'unrelated-review')).toEqual(
       unrelated,

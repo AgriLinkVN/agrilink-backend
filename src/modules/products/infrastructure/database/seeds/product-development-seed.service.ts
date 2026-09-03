@@ -91,6 +91,8 @@ export interface ProductDevSeedRecord {
   readonly id: string;
 }
 
+export type ProductDevSeedMutableData = Omit<ProductDevSeedWriteData, 'sku'>;
+
 export interface ProductDevSeedDefinition extends ProductDevSeedWriteData {
   /** Undefined uses the canonical fallback; null declares no managed image. */
   readonly primaryImageUrl?: string | null;
@@ -108,6 +110,11 @@ export interface ProductDevPrimaryImageWriteData {
   readonly isPrimary: true;
 }
 
+export type ProductDevPrimaryImageMutableData = Omit<
+  ProductDevPrimaryImageWriteData,
+  'productId' | 'isPrimary'
+>;
+
 export interface ProductDevCertificationRecord {
   readonly id: string;
 }
@@ -124,6 +131,11 @@ export interface ProductDevCertificationWriteData {
   readonly status: CertificationStatus.VERIFIED;
 }
 
+export type ProductDevCertificationMutableData = Omit<
+  ProductDevCertificationWriteData,
+  'productId' | 'certNumber'
+>;
+
 export interface ProductDevCertificationDefinition extends Omit<
   ProductDevCertificationWriteData,
   'productId'
@@ -134,14 +146,14 @@ export interface ProductDevCertificationDefinition extends Omit<
 export interface ProductDevSeedWriter {
   findProductsBySku(sku: string): Promise<readonly ProductDevSeedRecord[]>;
   createProduct(data: ProductDevSeedWriteData): Promise<ProductDevSeedRecord>;
-  updateProduct(id: string, data: ProductDevSeedWriteData): Promise<void>;
+  updateProduct(id: string, data: ProductDevSeedMutableData): Promise<void>;
   findPrimaryImages(
     productId: string,
   ): Promise<readonly ProductDevPrimaryImageRecord[]>;
   createPrimaryImage(data: ProductDevPrimaryImageWriteData): Promise<void>;
   updatePrimaryImage(
     id: string,
-    data: ProductDevPrimaryImageWriteData,
+    data: ProductDevPrimaryImageMutableData,
   ): Promise<void>;
   findCertifications(
     productId: string,
@@ -150,7 +162,7 @@ export interface ProductDevSeedWriter {
   createCertification(data: ProductDevCertificationWriteData): Promise<void>;
   updateCertification(
     id: string,
-    data: ProductDevCertificationWriteData,
+    data: ProductDevCertificationMutableData,
   ): Promise<void>;
 }
 
@@ -1026,7 +1038,8 @@ export function buildProductDevelopmentSeedData(
       categoryId: RAU,
       name: 'Rau xà lách thủy canh Hà Nội',
       sku: 'DEV-XA-LACH-THUY-CANH-001',
-      description: 'Xà lách romano thuỷ canh không đất tại Hà Nội. Lá xanh tươi giòn, không thuốc, không chì.',
+      description:
+        'Xà lách romano thuỷ canh không đất tại Hà Nội. Lá xanh tươi giòn, không thuốc, không chì.',
       pricePerUnit: 42000,
       unit: ProductUnit.KG,
       availableQuantity: 100,
@@ -1063,7 +1076,8 @@ export function buildProductDevelopmentSeedData(
       categoryId: TC,
       name: 'Mận hậu Bắc Hà Lào Cai',
       sku: 'DEV-MAN-HAU-BAC-HA-001',
-      description: 'Mận hậu Bắc Hà chín muộn tháng 6–7, quả to đồng đều, vỏ tím mỡ màng, ruột vàng giòn ngọt.',
+      description:
+        'Mận hậu Bắc Hà chín muộn tháng 6–7, quả to đồng đều, vỏ tím mỡ màng, ruột vàng giòn ngọt.',
       pricePerUnit: 38000,
       unit: ProductUnit.KG,
       availableQuantity: 600,
@@ -1080,7 +1094,8 @@ export function buildProductDevelopmentSeedData(
       categoryId: TC,
       name: 'Lê VH6 Bắc Giang',
       sku: 'DEV-LE-VH6-BAC-GIANG-001',
-      description: 'Lê VH6 lai tạo tại Bắc Giang, quả to hình quả lê cổ điển, vỏ vàng xanh, cùi giòn nhiều nước.',
+      description:
+        'Lê VH6 lai tạo tại Bắc Giang, quả to hình quả lê cổ điển, vỏ vàng xanh, cùi giòn nhiều nước.',
       pricePerUnit: 48000,
       unit: ProductUnit.KG,
       availableQuantity: 400,
@@ -1501,7 +1516,8 @@ export async function reconcileProductDevelopmentSeeds(
     const { primaryImageUrl: _declaredImage, ...productData } = record;
     let productId: string;
     if (matches.length === 1) {
-      await writer.updateProduct(matches[0].id, productData);
+      const { sku: _immutableSku, ...mutableData } = productData;
+      await writer.updateProduct(matches[0].id, mutableData);
       productId = matches[0].id;
     } else {
       productId = (await writer.createProduct(productData)).id;
@@ -1556,7 +1572,12 @@ export async function reconcileProductDevelopmentSeeds(
       isPrimary: true,
     };
     if (primaryImages.length === 1) {
-      await writer.updatePrimaryImage(primaryImages[0].id, imageData);
+      const {
+        productId: _immutableProductId,
+        isPrimary: _immutablePrimarySlot,
+        ...mutableData
+      } = imageData;
+      await writer.updatePrimaryImage(primaryImages[0].id, mutableData);
     } else {
       await writer.createPrimaryImage(imageData);
     }
@@ -1645,7 +1666,12 @@ export async function reconcileProductDevelopmentCertifications(
 
   for (const { matches, data } of preflight) {
     if (matches.length === 1) {
-      await writer.updateCertification(matches[0].id, data);
+      const {
+        productId: _immutableProductId,
+        certNumber: _immutableCertNumber,
+        ...mutableData
+      } = data;
+      await writer.updateCertification(matches[0].id, mutableData);
     } else {
       await writer.createCertification(data);
     }

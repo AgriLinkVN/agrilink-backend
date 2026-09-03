@@ -157,12 +157,12 @@ describe("P8-06D Commerce harness shared provider consumption", () => {
     }
   });
 
-  it("preserves approved providers, clean-v2, and TF-08 byte-for-byte", () => {
+  it("pins the P8-08 Users provider and preserves unrelated authorities byte-for-byte", () => {
     expect(
       normalizedSha256(
         "src/modules/users/infrastructure/database/seeds/user-test.seed.ts",
       ),
-    ).toBe("48ba69c7af367b4a519befa341db47f2c7191a5a544fb30b275b776b374297a7");
+    ).toBe("6872dc953e0fa01683bed4602df031b674900494497febd6100ae6126f69ac64");
     expect(
       normalizedSha256(
         "src/modules/products/infrastructure/database/seeds/product-test.seed.ts",

@@ -61,12 +61,16 @@ export interface UserTestIdentityRecord {
   readonly id: string;
 }
 
-export type UserTestIdentityWriteData = UserTestIdentitySeedData;
+export type UserTestIdentityCreateData = UserTestIdentitySeedData;
+export type UserTestIdentityMutableData = Omit<
+  UserTestIdentitySeedData,
+  "email" | "passwordHash"
+>;
 
 export interface UserTestIdentitySeedWriter {
   findByEmail(email: string): Promise<readonly UserTestIdentityRecord[]>;
-  create(data: UserTestIdentityWriteData): Promise<UserTestIdentityRecord>;
-  update(id: string, data: UserTestIdentityWriteData): Promise<void>;
+  create(data: UserTestIdentityCreateData): Promise<UserTestIdentityRecord>;
+  update(id: string, data: UserTestIdentityMutableData): Promise<void>;
 }
 
 export async function reconcileUserTestIdentities(
@@ -99,7 +103,12 @@ export async function reconcileUserTestIdentities(
   for (const { record, matches } of preflight) {
     let userId: string;
     if (matches.length === 1) {
-      await writer.update(matches[0].id, record);
+      const {
+        email: _immutableEmail,
+        passwordHash: _createOnlyPasswordHash,
+        ...mutableData
+      } = record;
+      await writer.update(matches[0].id, mutableData);
       userId = matches[0].id;
     } else {
       userId = (await writer.create(record)).id;
@@ -137,11 +146,11 @@ class TypeOrmUserTestIdentitySeedWriter implements UserTestIdentitySeedWriter {
     return this.repository.find({ select: { id: true }, where: { email } });
   }
 
-  create(data: UserTestIdentityWriteData): Promise<UserTestIdentityRecord> {
+  create(data: UserTestIdentityCreateData): Promise<UserTestIdentityRecord> {
     return this.repository.save(this.repository.create(data));
   }
 
-  async update(id: string, data: UserTestIdentityWriteData): Promise<void> {
+  async update(id: string, data: UserTestIdentityMutableData): Promise<void> {
     await this.repository.update(id, data);
   }
 }

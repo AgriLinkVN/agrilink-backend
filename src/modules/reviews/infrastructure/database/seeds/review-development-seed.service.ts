@@ -45,6 +45,11 @@ export interface ReviewDevSeedWriteData {
   readonly isVerifiedPurchase: boolean;
 }
 
+export type ReviewDevSeedMutableData = Omit<
+  ReviewDevSeedWriteData,
+  'reviewerId' | 'productId'
+>;
+
 export interface ReviewDevSeedRecord {
   readonly id: string;
 }
@@ -55,7 +60,7 @@ export interface ReviewDevSeedWriter {
     productId: string,
   ): Promise<readonly ReviewDevSeedRecord[]>;
   createReview(data: ReviewDevSeedWriteData): Promise<void>;
-  updateReview(id: string, data: ReviewDevSeedWriteData): Promise<void>;
+  updateReview(id: string, data: ReviewDevSeedMutableData): Promise<void>;
 }
 
 export const REVIEW_DEV_SEED_DEFINITIONS: readonly ReviewDevSeedDefinition[] =
@@ -201,7 +206,12 @@ export async function reconcileReviewDevelopmentSeeds(
 
   for (const { matches, data } of preflight) {
     if (matches.length === 1) {
-      await writer.updateReview(matches[0].id, data);
+      const {
+        reviewerId: _immutableReviewerId,
+        productId: _immutableProductId,
+        ...mutableData
+      } = data;
+      await writer.updateReview(matches[0].id, mutableData);
     } else {
       await writer.createReview(data);
     }

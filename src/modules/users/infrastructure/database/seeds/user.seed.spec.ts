@@ -5,9 +5,10 @@ import {
 import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
 import {
   USER_ID_BY_EMAIL_OUTPUT_KIND,
+  UserDevCreateData,
+  UserDevMutableData,
   UserDevPasswordHasher,
   UserDevSeedWriter,
-  UserDevWriteData,
   UsersDevSeedGroup,
   adminDevDashboardUserSeedData,
   baseUserDevSeedData,
@@ -23,18 +24,18 @@ const devContext: SeedExecutionContext = {
 
 interface InMemoryUser {
   readonly id: string;
-  data: UserDevWriteData;
+  data: UserDevCreateData;
 }
 
 function createWriter(initialRows: readonly InMemoryUser[] = []): {
   writer: UserDevSeedWriter;
   rows: Map<string, InMemoryUser>;
-  creates: UserDevWriteData[];
-  updates: UserDevWriteData[];
+  creates: UserDevCreateData[];
+  updates: UserDevMutableData[];
 } {
   const rows = new Map(initialRows.map((row) => [row.id, row]));
-  const creates: UserDevWriteData[] = [];
-  const updates: UserDevWriteData[] = [];
+  const creates: UserDevCreateData[] = [];
+  const updates: UserDevMutableData[] = [];
   const writer: UserDevSeedWriter = {
     async findByPhone(phone) {
       return [...rows.values()].find((row) => row.data.phone === phone) ?? null;
@@ -50,7 +51,11 @@ function createWriter(initialRows: readonly InMemoryUser[] = []): {
     },
     async update(id, data) {
       updates.push(data);
-      rows.set(id, { id, data });
+      const existing = rows.get(id);
+      if (!existing) {
+        throw new Error(`Missing user ${id}`);
+      }
+      rows.set(id, { id, data: { ...existing.data, ...data } });
     },
   };
 
@@ -235,7 +240,8 @@ describe("UsersDevSeedGroup", () => {
     const firstResult = await group.execute(devContext);
 
     expect(state.updates).toHaveLength(1);
-    expect(state.updates[0]).toEqual({ ...first, passwordHash });
+    const { phone: _phone, email: _email, ...mutableFirst } = first;
+    expect(state.updates[0]).toEqual(mutableFirst);
     expect(state.creates).toHaveLength(17);
     expect(state.rows.size).toBe(18);
     expect(firstResult.outputs).toHaveLength(18);
@@ -251,12 +257,15 @@ describe("UsersDevSeedGroup", () => {
 
     expect(state.creates).toHaveLength(17);
     expect(state.updates).toHaveLength(19);
-    expect(credentials).toEqual(["demo123", "demo123"]);
+    expect(credentials).toEqual(["demo123"]);
     expect(secondResult).toEqual(firstResult);
+    expect(state.rows.get("existing-admin")?.data.passwordHash).toBe(
+      "old-password-hash",
+    );
     expect(
-      [...state.rows.values()].every(
-        ({ data }) => data.passwordHash === passwordHash,
-      ),
+      [...state.rows.values()]
+        .filter(({ id }) => id !== "existing-admin")
+        .every(({ data }) => data.passwordHash === passwordHash),
     ).toBe(true);
   });
 
@@ -300,8 +309,13 @@ describe("UsersDevSeedGroup", () => {
 
     await new UsersDevSeedGroup(state.writer, hasher).execute(devContext);
 
-    expect(state.updates[0].phone).toBe(first.phone);
-    expect(state.updates[0].email).toBe(first.email);
+    expect(state.updates[0]).not.toHaveProperty("phone");
+    expect(state.updates[0]).not.toHaveProperty("email");
+    expect(state.rows.get("same-user")?.data.phone).toBe(first.phone);
+    expect(state.rows.get("same-user")?.data.email).toBe(first.email);
+    expect(state.rows.get("same-user")?.data.passwordHash).toBe(
+      "old-password-hash",
+    );
     expect(state.creates.map(({ email }) => email)).not.toContain(first.email);
   });
 
@@ -330,6 +344,50 @@ describe("UsersDevSeedGroup", () => {
     await expect(
       new UsersDevSeedGroup(state.writer, hasher).execute(devContext),
     ).rejects.toThrow("phone and email resolve to different users");
+    expect(state.creates).toEqual([]);
+    expect(state.updates).toEqual([]);
+  });
+
+  it("fails closed when only the phone identity exists", async () => {
+    const first = userDevSeedData[0];
+    const state = createWriter([
+      {
+        id: "phone-only",
+        data: {
+          ...first,
+          email: "other@agrilink.vn",
+          passwordHash: "old-password-hash",
+        },
+      },
+    ]);
+    const { hasher, credentials } = createHasher();
+
+    await expect(
+      new UsersDevSeedGroup(state.writer, hasher).execute(devContext),
+    ).rejects.toThrow("partial identity conflict");
+    expect(credentials).toEqual([]);
+    expect(state.creates).toEqual([]);
+    expect(state.updates).toEqual([]);
+  });
+
+  it("fails closed when only the email identity exists", async () => {
+    const first = userDevSeedData[0];
+    const state = createWriter([
+      {
+        id: "email-only",
+        data: {
+          ...first,
+          phone: "+84909999999",
+          passwordHash: "old-password-hash",
+        },
+      },
+    ]);
+    const { hasher, credentials } = createHasher();
+
+    await expect(
+      new UsersDevSeedGroup(state.writer, hasher).execute(devContext),
+    ).rejects.toThrow("partial identity conflict");
+    expect(credentials).toEqual([]);
     expect(state.creates).toEqual([]);
     expect(state.updates).toEqual([]);
   });

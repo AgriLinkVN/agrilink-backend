@@ -76,10 +76,13 @@ function createWriter(
     creates.push(kind);
     rows[kind].push({ id: `${kind}-${rows[kind].length + 1}`, data });
   };
-  const update = (kind: ProfileKind, id: string, data: ProfileWriteData) => {
+  const update = (kind: ProfileKind, id: string, data: object) => {
     updates.push(kind);
     const index = rows[kind].findIndex((row) => row.id === id);
-    rows[kind][index] = { id, data };
+    rows[kind][index] = {
+      id,
+      data: { ...rows[kind][index].data, ...data } as ProfileWriteData,
+    };
   };
 
   const writer: ProfileRoleDevSeedWriter = {
@@ -302,6 +305,42 @@ describe("ProfilesRoleProfilesDevSeedGroup", () => {
       await expect(
         reconcileProfileRoleDevSeeds(state.writer, data),
       ).rejects.toThrow("identity conflict");
+      expect(state.creates).toEqual([]);
+      expect(state.updates).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["farmer", 0, "cccdNumber"],
+    ["cooperative", 1, "businessLicenseNumber"],
+    ["cooperative", 2, "taxCode"],
+    ["enterprise", 1, "taxCode"],
+  ] as const)(
+    "fails closed when %s[%s] has only its %s identity",
+    async (kind, index, secondaryField) => {
+      const context = createContext();
+      const data = buildProfileRoleDevSeedData(context);
+      const intended = data[kind][index] as ProfileWriteData;
+      const state = createWriter({
+        [kind]: [
+          {
+            id: `${kind}-partial`,
+            data: {
+              ...intended,
+              userId: `other-user:${kind}`,
+            } as ProfileWriteData,
+          },
+        ],
+      } as Partial<Record<ProfileKind, StoredProfile[]>>);
+
+      await expect(
+        reconcileProfileRoleDevSeeds(state.writer, data),
+      ).rejects.toThrow("partial identity conflict");
+      expect(
+        (state.rows[kind][0].data as unknown as Record<string, unknown>)[
+          secondaryField
+        ],
+      ).toBe((intended as unknown as Record<string, unknown>)[secondaryField]);
       expect(state.creates).toEqual([]);
       expect(state.updates).toEqual([]);
     },

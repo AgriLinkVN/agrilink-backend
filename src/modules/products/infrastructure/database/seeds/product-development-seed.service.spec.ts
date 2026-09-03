@@ -27,8 +27,11 @@ import {
   D3_REQUIRED_SELLER_EMAILS,
   PRODUCTS_DEV_SEED_METADATA,
   PRODUCT_DEV_PRIMARY_IMAGE_URL,
+  ProductDevCertificationMutableData,
   ProductDevCertificationWriteData,
+  ProductDevPrimaryImageMutableData,
   ProductDevPrimaryImageWriteData,
+  ProductDevSeedMutableData,
   ProductDevSeedWriteData,
   ProductDevSeedWriter,
   ProductDevelopmentSeedService,
@@ -208,21 +211,21 @@ function createWriter(initialProducts: readonly StoredProduct[] = []): {
   images: Map<string, StoredImage[]>;
   certifications: Map<string, StoredCertification[]>;
   productCreates: ProductDevSeedWriteData[];
-  productUpdates: ProductDevSeedWriteData[];
+  productUpdates: ProductDevSeedMutableData[];
   imageCreates: ProductDevPrimaryImageWriteData[];
-  imageUpdates: ProductDevPrimaryImageWriteData[];
+  imageUpdates: ProductDevPrimaryImageMutableData[];
   certificationCreates: ProductDevCertificationWriteData[];
-  certificationUpdates: ProductDevCertificationWriteData[];
+  certificationUpdates: ProductDevCertificationMutableData[];
 } {
   const products = new Map(initialProducts.map((row) => [row.data.sku, row]));
   const images = new Map<string, StoredImage[]>();
   const certifications = new Map<string, StoredCertification[]>();
   const productCreates: ProductDevSeedWriteData[] = [];
-  const productUpdates: ProductDevSeedWriteData[] = [];
+  const productUpdates: ProductDevSeedMutableData[] = [];
   const imageCreates: ProductDevPrimaryImageWriteData[] = [];
-  const imageUpdates: ProductDevPrimaryImageWriteData[] = [];
+  const imageUpdates: ProductDevPrimaryImageMutableData[] = [];
   const certificationCreates: ProductDevCertificationWriteData[] = [];
-  const certificationUpdates: ProductDevCertificationWriteData[] = [];
+  const certificationUpdates: ProductDevCertificationMutableData[] = [];
   const writer: ProductDevSeedWriter = {
     async findProductsBySku(sku) {
       const product = products.get(sku);
@@ -236,7 +239,13 @@ function createWriter(initialProducts: readonly StoredProduct[] = []): {
     },
     async updateProduct(id, data) {
       productUpdates.push(data);
-      products.set(data.sku, { id, data });
+      const current = [...products.entries()].find(
+        ([, product]) => product.id === id,
+      );
+      if (current) {
+        const [sku, product] = current;
+        products.set(sku, { id, data: { ...product.data, ...data } });
+      }
     },
     async findPrimaryImages(productId) {
       return images.get(productId) ?? [];
@@ -252,7 +261,14 @@ function createWriter(initialProducts: readonly StoredProduct[] = []): {
     },
     async updatePrimaryImage(id, data) {
       imageUpdates.push(data);
-      images.set(data.productId, [{ id, data }]);
+      const current = [...images.entries()].find(([, rows]) =>
+        rows.some((row) => row.id === id),
+      );
+      if (current) {
+        const [productId, rows] = current;
+        const image = rows.find((row) => row.id === id)!;
+        images.set(productId, [{ id, data: { ...image.data, ...data } }]);
+      }
     },
     async findCertifications(productId, certNumber) {
       return (certifications.get(productId) ?? []).filter(
@@ -270,10 +286,15 @@ function createWriter(initialProducts: readonly StoredProduct[] = []): {
     },
     async updateCertification(id, data) {
       certificationUpdates.push(data);
-      const current = certifications.get(data.productId) ?? [];
-      const index = current.findIndex((row) => row.id === id);
-      if (index >= 0) current[index] = { id, data };
-      certifications.set(data.productId, current);
+      const current = [...certifications.entries()].find(([, rows]) =>
+        rows.some((row) => row.id === id),
+      );
+      if (current) {
+        const [productId, rows] = current;
+        const index = rows.findIndex((row) => row.id === id);
+        rows[index] = { id, data: { ...rows[index].data, ...data } };
+        certifications.set(productId, rows);
+      }
     },
   };
 
@@ -728,7 +749,8 @@ describe('ProductDevelopmentSeedService', () => {
       value: 'product-DEV-CA-ROT-DA-LAT-001',
     });
     expect(state.productUpdates).toHaveLength(1);
-    expect(state.productUpdates[0]).toEqual(first);
+    const { sku: _immutableSku, ...firstMutableData } = first;
+    expect(state.productUpdates[0]).toEqual(firstMutableData);
     expect(state.productCreates).toHaveLength(68);
     expect(state.products.size).toBe(69);
     expect(state.imageCreates).toHaveLength(67);
@@ -758,11 +780,9 @@ describe('ProductDevelopmentSeedService', () => {
     expect(state.imageCreates).toHaveLength(1);
     expect(state.imageUpdates).toHaveLength(1);
     expect(state.imageUpdates[0]).toEqual({
-      productId: `product-${record.sku}`,
       imageUrl: 'image-v2',
       altText: record.name,
       sortOrder: 0,
-      isPrimary: true,
     });
   });
 
