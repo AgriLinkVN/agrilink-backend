@@ -66,12 +66,10 @@ describe('Persistence Phase 3 ownership boundaries', () => {
     'user-address.entity.ts',
     'refresh-token.entity.ts',
     'otp-verification.entity.ts',
-  ])('keeps central compatibility file %s decorator-free', (file) => {
-    const source = read(`src/database/entities/${file}`);
-    expect(source).toMatch(/^export \{ \w+ \} from /);
-    expect(source).not.toMatch(
-      /@(Entity|Column|PrimaryGeneratedColumn|ManyToOne|OneToMany|JoinColumn|Index)\b/,
-    );
+  ])('retires central compatibility file %s', (file) => {
+    expect(
+      fs.existsSync(path.join(root, 'src/database/entities', file)),
+    ).toBe(false);
   });
 
   it('does not export TypeOrmModule or register User outside Users', () => {
@@ -125,20 +123,18 @@ describe('Persistence Phase 3 ownership boundaries', () => {
     }
   });
 
-  it('prevents the legacy generator from recreating scoped decorators', () => {
+  it('prevents the legacy generator from recreating retired paths', () => {
     const generator = read('generate-entities.js');
+    expect(generator).toContain('retiredCentralCompatibilityFiles');
     for (const file of [
       'user.entity.ts',
       'user-address.entity.ts',
       'refresh-token.entity.ts',
       'otp-verification.entity.ts',
     ]) {
-      const marker = `'${file}':`;
-      const start = generator.indexOf(marker);
-      const end = generator.indexOf('`,', start);
-      expect(generator.slice(start, end)).toContain('export {');
-      expect(generator.slice(start, end)).not.toContain('@Entity');
+      expect(generator).toContain(`'${file}',`);
     }
+    expect(generator).toContain('delete entities[filename]');
   });
 });
 

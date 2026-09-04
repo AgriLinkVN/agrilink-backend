@@ -26,15 +26,12 @@ describe('Persistence Phase 2 Notifications ownership', () => {
     ).toBe(NotificationOrmEntity);
   });
 
-  it('keeps the compatibility path decorator-free', () => {
-    const source = fs.readFileSync(
-      path.join(root, 'src/database/entities/notification.entity.ts'),
-      'utf8',
-    );
-    expect(source).not.toMatch(
-      /@(Entity|Column|PrimaryGeneratedColumn|CreateDateColumn)\b/,
-    );
-    expect(source).toContain('NotificationOrmEntity as Notification');
+  it('retires the zero-consumer compatibility path', () => {
+    expect(
+      fs.existsSync(
+        path.join(root, 'src/database/entities/notification.entity.ts'),
+      ),
+    ).toBe(false);
   });
 
   it('preserves deployed nullability and the WebSocket event contract', () => {

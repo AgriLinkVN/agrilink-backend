@@ -40,3 +40,21 @@ PRODUCTION_PARITY_VERIFIED=NO_NOT_AUTHORIZED
 The implementation DAG deliberately ends with authorized production parity.
 P9-00 does not grant that authorization and does not select any human-owned
 mapping, migration-ledger, or deployed-data decision.
+
+## P9-01 Implementation Overlay
+
+PR #156 merged the kickoff inventory as
+`8cbde69ade0149f0297e79fbdaf88af3891b42a6`. P9-01 executes only the merged
+database-free “Safe compatibility and authority cleanup” slice. It removes 27
+zero-consumer central re-exports, prevents their generator recreation, closes
+the stale database-boolean exception, and preserves every later decision gate.
+
+```text
+P9_00_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_156
+P9_01_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P9_01_BLOCKERS=NONE
+P9_02_IMPLEMENTATION_AUTHORIZED=YES_REQUIRES_HUMAN_DECISION
+P9_03_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P9_01_AND_P9_02_MERGE
+PHASE_09_IMPLEMENTATION_STATUS=IN_PROGRESS
+PHASE_09_COMPLETE=NO
+```

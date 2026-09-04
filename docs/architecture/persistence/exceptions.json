@@ -23,15 +23,6 @@
       "registrations": [
         "src/modules/admin/admin.route.ts:IncidentReport"
       ]
-    },
-    {
-      "id": "unsafe-database-boolean-parsing",
-      "exceptionType": "configuration-gap",
-      "owner": "database-composition",
-      "reason": "Nest ConfigService generic does not coerce string false and production synchronize guard is absent.",
-      "phase": "1",
-      "expiresAt": "2027-01-31",
-      "files": ["src/config/database.config.ts"]
     }
   ],
   "openApiWhitelist": []

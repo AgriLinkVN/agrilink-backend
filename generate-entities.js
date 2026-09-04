@@ -1095,6 +1095,42 @@ const phase5CompatibilityEntities = {
 };
 Object.assign(entities, phase5CompatibilityEntities);
 
+// P9-01: owner-local mappings are authoritative. Keep the generator from
+// recreating retired, zero-consumer central compatibility exports.
+const retiredCentralCompatibilityFiles = [
+  'ad-campaign.entity.ts',
+  'ad-event.entity.ts',
+  'ad-package.entity.ts',
+  'audit-log.entity.ts',
+  'contract.entity.ts',
+  'cooperative-profile.entity.ts',
+  'district.entity.ts',
+  'enterprise-profile.entity.ts',
+  'farmer-profile.entity.ts',
+  'notification.entity.ts',
+  'order-item.entity.ts',
+  'order-status-history.entity.ts',
+  'order.entity.ts',
+  'otp-verification.entity.ts',
+  'payment.entity.ts',
+  'product-category.entity.ts',
+  'product-certification.entity.ts',
+  'product-image.entity.ts',
+  'product-wishlist.entity.ts',
+  'product.entity.ts',
+  'province.entity.ts',
+  'purchase-request.entity.ts',
+  'refresh-token.entity.ts',
+  'review.entity.ts',
+  'supplier-profile.entity.ts',
+  'system-config.entity.ts',
+  'user-address.entity.ts',
+  'user.entity.ts',
+];
+for (const filename of retiredCentralCompatibilityFiles) {
+  delete entities[filename];
+}
+
 for (const [filename, content] of Object.entries(entities)) {
   fs.writeFileSync(path.join(entitiesDir, filename), content, 'utf8');
 }

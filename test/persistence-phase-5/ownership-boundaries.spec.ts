@@ -54,24 +54,15 @@ describe('Persistence Phase 5 ownership boundaries', () => {
     ['product-image.entity.ts', 'ProductImage'],
     ['product-certification.entity.ts', 'ProductCertification'],
     ['product-wishlist.entity.ts', 'ProductWishlist'],
-  ])('keeps central compatibility path %s decorator-free', (file, symbol) => {
-    const source = read(`src/database/entities/${file}`);
-    expect(source).toContain(symbol);
-    expect(source).toMatch(/^export \{/);
-    expect(source).not.toMatch(
-      /@(Entity|Column|PrimaryGeneratedColumn|ManyToOne|OneToMany|OneToOne|JoinColumn|Index|Check)\b/,
-    );
+  ])('retires central compatibility path %s', (file, _symbol) => {
+    expect(
+      fs.existsSync(path.join(root, 'src/database/entities', file)),
+    ).toBe(false);
   });
 
-  it('prevents the generator from recreating scoped central decorators', () => {
+  it('prevents the generator from recreating retired central paths', () => {
     const generator = read('generate-entities.js');
-    const start = generator.indexOf('const phase5CompatibilityEntities');
-    const end = generator.indexOf(
-      'Object.assign(entities, phase5CompatibilityEntities)',
-      start,
-    );
-    const overrides = generator.slice(start, end);
-    expect(start).toBeGreaterThanOrEqual(0);
+    expect(generator).toContain('retiredCentralCompatibilityFiles');
     for (const file of [
       'product.entity.ts',
       'product-category.entity.ts',
@@ -80,10 +71,9 @@ describe('Persistence Phase 5 ownership boundaries', () => {
       'product-wishlist.entity.ts',
       'review.entity.ts',
     ]) {
-      expect(overrides).toContain(`'${file}':`);
+      expect(generator).toContain(`'${file}',`);
     }
-    expect(overrides).toContain('export {');
-    expect(overrides).not.toContain('@Entity');
+    expect(generator).toContain('delete entities[filename]');
   });
 
   it('keeps Reviews and Admin behind typed capability ports', () => {

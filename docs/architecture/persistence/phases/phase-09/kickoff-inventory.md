@@ -348,3 +348,142 @@ PHASE_09_COMPLETE=NO
 P9-00 initialized no DataSource, opened no database connection, executed no
 SQL, seed, TEST fixture, migration, or synchronization, and attempted no
 protected-local or production access.
+
+## P9-01 Implementation Overlay
+
+### Merged authority
+
+PR #156 was human-reviewed, passed the Backend Quality Gate, and merged as
+`8cbde69ade0149f0297e79fbdaf88af3891b42a6`. The exact P9-01 row above is the
+authority for this implementation.
+
+```text
+P9_00_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_156
+P9_01_TITLE=Safe compatibility and authority cleanup
+P9_01_DEPENDS_ON=P9-00
+P9_01_DATABASE_REQUIRED=NO
+P9_01_PRODUCTION_REQUIRED=NO
+P9_01_HUMAN_DECISION_REQUIRED=NO
+P9_01_EXPECTED_MUTATION_SCOPE=ZERO_CONSUMER_CENTRAL_REEXPORTS;STALE_EXCEPTION_METADATA;STATIC_TESTS_AND_DOCS
+P9_01_EXIT_CRITERIA=REVIEWED_REEXPORTS_REMOVED;STALE_BOOLEAN_EXCEPTION_CLOSED
+```
+
+### Alias-aware central import audit
+
+All production TypeScript import declarations were resolved through both
+relative paths and the wildcard aliases in `tsconfig.json`, with transitive
+barrel export resolution. Three relative imports resolve into
+`src/database/entities`; all target the retained decorated
+`incident-report.entity.ts`. No alias import resolves into the directory, and
+no import resolves to any of the 27 reviewed re-exports.
+
+The wider repository scan initially found one additional DEV-only tooling
+consumer in `scripts/generate-test-token.ts`. P9-01 moves that import directly
+to the Users-owned entity before deleting the central User re-export. The
+post-change repository-wide count therefore equals the production count.
+
+```text
+CENTRAL_ENTITY_RELATIVE_IMPORT_CONSUMER_COUNT=3
+CENTRAL_ENTITY_ALIAS_IMPORT_CONSUMER_COUNT=0
+CENTRAL_ENTITY_TOTAL_IMPORT_CONSUMER_COUNT=3
+CENTRAL_ENTITY_IMPORT_CONSUMERS=src/database/entity-registry.ts;src/modules/admin/admin.route.ts;src/modules/admin/admin.service.ts
+CENTRAL_ENTITY_REPOSITORY_IMPORT_CONSUMER_COUNT_BEFORE=4
+CENTRAL_ENTITY_REPOSITORY_IMPORT_CONSUMER_COUNT_AFTER=3
+CENTRAL_ENTITY_FILE_COUNT_AFTER=8
+CENTRAL_DECORATED_ENTITY_COUNT_AFTER=8
+CENTRAL_REEXPORT_COUNT_AFTER=0
+```
+
+### Changed production files
+
+Each deleted source file was a decorator-free, zero-consumer re-export with an
+existing owner-local declaration. The generator change prevents those paths
+from being recreated. No decorated entity is removed.
+
+| File | Reason | P9-01 authority |
+| --- | --- | --- |
+| `generate-entities.js` | prevent recreation of retired central re-exports | static compatibility cleanup |
+| `scripts/generate-test-token.ts` | replace its DEV-only central User import with the Users-owned declaration | reviewed re-export retirement |
+| `src/database/entities/ad-campaign.entity.ts` | zero-consumer Ads re-export | reviewed re-exports removed |
+| `src/database/entities/ad-event.entity.ts` | zero-consumer Ads re-export | reviewed re-exports removed |
+| `src/database/entities/ad-package.entity.ts` | zero-consumer Ads re-export | reviewed re-exports removed |
+| `src/database/entities/audit-log.entity.ts` | zero-consumer Admin re-export | reviewed re-exports removed |
+| `src/database/entities/contract.entity.ts` | zero-consumer Contracts re-export | reviewed re-exports removed |
+| `src/database/entities/cooperative-profile.entity.ts` | zero-consumer Profiles re-export | reviewed re-exports removed |
+| `src/database/entities/district.entity.ts` | zero-consumer Geography re-export | reviewed re-exports removed |
+| `src/database/entities/enterprise-profile.entity.ts` | zero-consumer Profiles re-export | reviewed re-exports removed |
+| `src/database/entities/farmer-profile.entity.ts` | zero-consumer Profiles re-export | reviewed re-exports removed |
+| `src/database/entities/notification.entity.ts` | zero-consumer Notifications re-export | reviewed re-exports removed |
+| `src/database/entities/order-item.entity.ts` | zero-consumer Orders re-export | reviewed re-exports removed |
+| `src/database/entities/order-status-history.entity.ts` | zero-consumer Orders re-export | reviewed re-exports removed |
+| `src/database/entities/order.entity.ts` | zero-consumer Orders re-export | reviewed re-exports removed |
+| `src/database/entities/otp-verification.entity.ts` | zero-consumer Auth re-export | reviewed re-exports removed |
+| `src/database/entities/payment.entity.ts` | zero-consumer Payments re-export | reviewed re-exports removed |
+| `src/database/entities/product-category.entity.ts` | zero-consumer Products re-export | reviewed re-exports removed |
+| `src/database/entities/product-certification.entity.ts` | zero-consumer Products re-export | reviewed re-exports removed |
+| `src/database/entities/product-image.entity.ts` | zero-consumer Products re-export | reviewed re-exports removed |
+| `src/database/entities/product-wishlist.entity.ts` | zero-consumer alias to canonical Wishlist; historical name evidence retained | reviewed re-exports removed |
+| `src/database/entities/product.entity.ts` | zero-consumer Products re-export | reviewed re-exports removed |
+| `src/database/entities/province.entity.ts` | zero-consumer Geography re-export | reviewed re-exports removed |
+| `src/database/entities/purchase-request.entity.ts` | zero-consumer Contracts re-export | reviewed re-exports removed |
+| `src/database/entities/refresh-token.entity.ts` | zero-consumer Auth re-export | reviewed re-exports removed |
+| `src/database/entities/supplier-profile.entity.ts` | zero-consumer Profiles re-export | reviewed re-exports removed |
+| `src/database/entities/system-config.entity.ts` | zero-consumer Admin re-export | reviewed re-exports removed |
+| `src/database/entities/user-address.entity.ts` | zero-consumer Users re-export | reviewed re-exports removed |
+| `src/database/entities/user.entity.ts` | zero-consumer Users re-export | reviewed re-exports removed |
+
+The ownership registry also clears the six Phase 6 compatibility-target and
+expiry pointers whose files are now retired. The historical
+`public.product_wishlist` record remains unchanged pending P9-06 deployed
+evidence.
+
+### Counts and preserved decisions
+
+Decorator-free file retirement does not change mapping counts. Both
+`market_prices` declarations remain. The TypeORM compatibility manifest is
+unchanged. Only the source-proven obsolete `unsafe-database-boolean-parsing`
+exception is removed; the two IncidentReport exceptions remain.
+
+```text
+TOTAL_DECORATED_TABLE_MAPPING_COUNT_BEFORE=49
+TOTAL_DECORATED_PHYSICAL_TABLE_COUNT_BEFORE=48
+MULTI_WRITABLE_MAPPING_TABLE_COUNT_BEFORE=1
+TOTAL_DECORATED_TABLE_MAPPING_COUNT_AFTER=49
+TOTAL_DECORATED_PHYSICAL_TABLE_COUNT_AFTER=48
+MULTI_WRITABLE_MAPPING_TABLE_COUNT_AFTER=1
+MULTI_WRITABLE_MAPPING_TABLES_AFTER=public.market_prices
+ONE_WRITABLE_MAPPING_PER_TABLE=NO
+
+TYPEORM_COMPATIBILITY_MANIFEST_ENTRY_COUNT_BEFORE=3
+TYPEORM_COMPATIBILITY_MANIFEST_ENTRY_COUNT_AFTER=3
+ARCHITECTURE_EXCEPTION_COUNT_BEFORE=3
+ARCHITECTURE_EXCEPTION_COUNT_AFTER=2
+
+MARKET_PRICES_AUTOMATIC_DECISION_MADE=NO
+WISHLIST_DEPLOYED_DISPOSITION_INVENTED=NO
+LEGACY_MIGRATION_RETIREMENT_INVENTED=NO
+PRODUCTION_ACCESS_ATTEMPTED=NO
+OUT_OF_SLICE_CHANGE_COUNT=0
+```
+
+### Status and successor authorization
+
+P9-02 is the only immediate decision slice whose dependency is satisfied. It
+still requires the documented human `MARKET_PRICES_CANONICAL_MODEL` decision.
+P9-03 remains unauthorized until both P9-01 and P9-02 are merged.
+
+```text
+P9_01_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P9_01_BLOCKERS=NONE
+P9_01_REVIEWED_REEXPORTS_REMOVED=YES
+P9_01_STALE_BOOLEAN_EXCEPTION_CLOSED=YES
+P9_01_GENERATOR_RECREATION_BLOCKED=YES
+P9_02_IMPLEMENTATION_AUTHORIZED=YES_REQUIRES_HUMAN_DECISION
+P9_03_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P9_01_AND_P9_02_MERGE
+PHASE_09_IMPLEMENTATION_STATUS=IN_PROGRESS
+PHASE_09_COMPLETE=NO
+```
+
+P9-01 initialized no DataSource, opened no database connection, executed no
+SQL, seed, TEST fixture, migration, or synchronization, and attempted no
+protected-local or production access.
