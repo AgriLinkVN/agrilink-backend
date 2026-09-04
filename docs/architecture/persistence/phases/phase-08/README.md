@@ -3268,3 +3268,31 @@ DISPOSABLE_DB_SEED_RUN_PASS=NO
 P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-09 Disposable PostgreSQL Runtime Verification Rerun Overlay
+
+PR #153 was human-reviewed, passed the Backend Quality Gate, and merged as
+`2ffe4db08e3e57b252bb714d51a1897ea8f8a881`. The complete P8-09 proof was then
+rerun from two fresh guarded PostgreSQL 16 databases. All six V2 migrations and
+all 11 canonical groups completed; the second run retained all counts,
+identities, outputs, declared state, password hashes, and create-only
+timestamps. An interrupted four-group prefix also converged to the same fresh
+final state on retry. See the
+[P8-09 runtime proof](disposable-postgres-runtime-proof.md).
+
+The earlier `cooperative_members` failure remains historical evidence. It is
+not the current result after the merged P8-09A correction and successful rerun.
+
+```text
+P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_152
+P8_09A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_153
+P8_09A_SCHEMA_PARITY_STATUS=CORRECTED_BY_MERGED_PR_153
+P8_09_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_09_RUNTIME_STATUS=PASS_PENDING_HUMAN_REVIEW
+P8_09_BLOCKERS=NONE
+IDEMPOTENCY_VERIFIED=YES
+SECOND_SEED_RUN_NO_DUPLICATES=YES
+DISPOSABLE_DB_SEED_RUN_PASS=YES
+P8_10_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_09_MERGE_AND_REVIEW
+PHASE_08_COMPLETE=NO
+```
