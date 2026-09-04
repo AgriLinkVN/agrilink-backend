@@ -1,48 +1,58 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsDateString,
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from "class-validator";
+import {
+  TRACEABILITY_EVENT_KINDS,
+  TraceabilityEventKind,
+} from "../application/traceability-projection";
 
 export class CreateTraceabilityDto {
-  @ApiProperty()
+  @ApiProperty({ description: "Products-owned product identifier" })
   @IsUUID()
   productId: string;
 
-  @ApiPropertyOptional({ description: 'Custom QR code string; auto-generated if omitted' })
-  @IsOptional()
+  @ApiProperty({ description: "Stable lot/batch identifier" })
   @IsString()
-  qrCode?: string;
+  batchCode: string;
 
-  @ApiPropertyOptional({ example: 'Hoa Loc, Tien Giang' })
-  @IsOptional()
+  @ApiProperty({ description: "Stable public QR identifier" })
   @IsString()
-  farmLocation?: string;
+  qrCode: string;
 
-  @ApiPropertyOptional({ example: 'VietGAP' })
-  @IsOptional()
+  @ApiProperty({
+    description: "Durable idempotency key for canonical batch creation",
+  })
   @IsString()
-  farmingMethod?: string;
+  operationKey: string;
+}
 
-  @ApiPropertyOptional({ example: '2026-01-10' })
-  @IsOptional()
+export class AppendTraceabilityEventDto {
+  @ApiProperty({ enum: TRACEABILITY_EVENT_KINDS })
+  @IsIn(TRACEABILITY_EVENT_KINDS)
+  kind: TraceabilityEventKind;
+
+  @ApiProperty({ description: "Business occurrence time carried by the event" })
   @IsDateString()
-  plantedDate?: string;
+  occurredAt: string;
 
-  @ApiPropertyOptional({ example: '2026-06-01' })
-  @IsOptional()
-  @IsDateString()
-  harvestedDate?: string;
-
-  @ApiPropertyOptional({ example: 'Khong su dung thuoc tru sau' })
-  @IsOptional()
-  @IsString()
-  pesticidesUsed?: string;
-
-  @ApiPropertyOptional({ description: 'JSON object with certification details' })
-  @IsOptional()
+  @ApiProperty({ description: "Discriminated event facts" })
   @IsObject()
-  certifications?: object;
+  payload: Record<string, unknown>;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [String] })
   @IsOptional()
+  @IsUUID("4", { each: true })
+  evidenceFileIds?: string[];
+
+  @ApiProperty({
+    description: "Durable idempotency key for this append operation",
+  })
   @IsString()
-  notes?: string;
+  operationKey: string;
 }

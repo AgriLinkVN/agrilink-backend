@@ -1,0 +1,5533 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "evidenceClassification": "Observed decorators plus module-level persistence candidates",
+  "globalAuthentication": "JwtAuthGuard and RolesGuard are APP_GUARD providers; @Public bypass is analyzed per endpoint",
+  "endpoints": [
+    {
+      "entryPoint": "DELETE /api/v1/forum/comments/:commentId",
+      "controller": "ForumController",
+      "handler": "deleteComment",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/forum/posts/:id",
+      "controller": "ForumController",
+      "handler": "deletePost",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/products/:id",
+      "controller": "ProductsController",
+      "handler": "remove",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/products/:id/certifications/:certId",
+      "controller": "ProductsController",
+      "handler": "removeCertification",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/products/:id/images/:imageId",
+      "controller": "ProductsController",
+      "handler": "removeImage",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/storage/files/:id",
+      "controller": "StorageController",
+      "handler": "deleteById",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "DELETE /api/v1/wishlist/:productId",
+      "controller": "WishlistController",
+      "handler": "removeFromWishlist",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/",
+      "controller": "AppController",
+      "handler": "getHealth",
+      "module": "AppModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "appService",
+          "type": "AppService"
+        }
+      ],
+      "repositoriesUsed": [],
+      "tablesRead": [],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "object",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/audit-logs",
+      "controller": "AdminController",
+      "handler": "getAuditLogs",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "PaginationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/cooperatives-enterprises",
+      "controller": "AdminController",
+      "handler": "getCooperativesAndEnterprises",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/disputes",
+      "controller": "AdminController",
+      "handler": "getDisputes",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "PaginationDto",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/pending-profiles",
+      "controller": "AdminController",
+      "handler": "getPendingProfiles",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/products/pending",
+      "controller": "AdminController",
+      "handler": "getPendingProducts",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "PaginationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/products/violating",
+      "controller": "AdminController",
+      "handler": "getViolatingProducts",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "PaginationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/reports/system.pdf",
+      "controller": "AdminController",
+      "handler": "exportSystemReport",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "Response"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/stats",
+      "controller": "AdminController",
+      "handler": "getStats",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/admin/system-configs",
+      "controller": "AdminController",
+      "handler": "getSystemConfigs",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/admin/campaigns",
+      "controller": "AdsController",
+      "handler": "listForModeration",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "AdCampaignModerationQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/admin/campaigns/:id",
+      "controller": "AdsController",
+      "handler": "getForModeration",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/banners",
+      "controller": "AdsController",
+      "handler": "getBanners",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "AdBannerQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/campaigns",
+      "controller": "AdsController",
+      "handler": "list",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "AdCampaignQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/campaigns/:id",
+      "controller": "AdsController",
+      "handler": "get",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/ads/packages",
+      "controller": "AdsController",
+      "handler": "getPackages",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/farm/:userId",
+      "controller": "FarmPublicController",
+      "handler": "getFarmPublic",
+      "module": "ProfilesRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "profilesService",
+          "type": "ProfilesService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ProfilesService:CooperativeProfile",
+        "ProfilesService:EnterpriseProfile",
+        "ProfilesService:FarmerProfile",
+        "ProfilesService:SupplierProfile"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.supplier_profiles"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/profiles/profiles.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/forum/posts",
+      "controller": "ForumController",
+      "handler": "listPosts",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "ListForumPostsDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/forum/posts/:id",
+      "controller": "ForumController",
+      "handler": "getPost",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/forum/posts/:id/comments",
+      "controller": "ForumController",
+      "handler": "listComments",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "PaginationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/geography/provinces",
+      "controller": "GeographyController",
+      "handler": "findAllProvinces",
+      "module": "GeographyModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "geographyService",
+          "type": "GeographyService"
+        }
+      ],
+      "repositoriesUsed": [
+        "GeographyService:District",
+        "GeographyService:Province"
+      ],
+      "tablesRead": [
+        "public.districts",
+        "public.provinces"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/geography/provinces/:id/districts",
+      "controller": "GeographyController",
+      "handler": "findDistricts",
+      "module": "GeographyModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "geographyService",
+          "type": "GeographyService"
+        }
+      ],
+      "repositoriesUsed": [
+        "GeographyService:District",
+        "GeographyService:Province"
+      ],
+      "tablesRead": [
+        "public.districts",
+        "public.provinces"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/market-prices",
+      "controller": "MarketPricesController",
+      "handler": "findAll",
+      "module": "MarketPricesModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "marketPricesService",
+          "type": "MarketPricesService"
+        }
+      ],
+      "repositoriesUsed": [
+        "MarketPricesService:MarketPrice"
+      ],
+      "tablesRead": [
+        "public.market_prices"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "not applicable until TODO service implementation exists",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "MarketPriceFilterDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/notifications",
+      "controller": "NotificationsController",
+      "handler": "findAll",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "PaginationDto"
+      ],
+      "responseModel": "Promise<NotificationListResponseDto>",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/notifications/count",
+      "controller": "NotificationsController",
+      "handler": "countUnread",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "Promise<NotificationCountResponseDto>",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/notifications/unread",
+      "controller": "NotificationsController",
+      "handler": "getUnread",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "Promise<NotificationResponseDto[]>",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products",
+      "controller": "ProductsController",
+      "handler": "findAll",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "ProductFilterDto",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products/:id",
+      "controller": "ProductsController",
+      "handler": "findOne",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products/categories",
+      "controller": "ProductsController",
+      "handler": "findCategories",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products/categories/tree",
+      "controller": "ProductsController",
+      "handler": "getCategoryTree",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products/certifications/pending",
+      "controller": "ProductsController",
+      "handler": "findPendingCertifications",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/products/me",
+      "controller": "ProductsController",
+      "handler": "findMine",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "ProductFilterDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/reviews/admin/reviews",
+      "controller": "ReviewsController",
+      "handler": "getModerationReviews",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "AdminReviewQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/reviews/product/:id",
+      "controller": "ReviewsController",
+      "handler": "getPublicReviews",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "ReviewPaginationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/reviews/seller/me",
+      "controller": "ReviewsController",
+      "handler": "getSellerReviews",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "SellerReviewQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/storage/files/:id/download-url",
+      "controller": "StorageController",
+      "handler": "downloadById",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [
+        "public.stored_files"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/trace/:qrCode",
+      "controller": "TraceabilityController",
+      "handler": "findByQrCode",
+      "module": "TraceabilityModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "traceabilityService",
+          "type": "TraceabilityService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TraceabilityService:TraceabilityRecord"
+      ],
+      "tablesRead": [
+        "public.traceability_records"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "not applicable until TODO service implementation exists",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/trace/product/:productId",
+      "controller": "TraceabilityController",
+      "handler": "findByProduct",
+      "module": "TraceabilityModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "traceabilityService",
+          "type": "TraceabilityService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TraceabilityService:TraceabilityRecord"
+      ],
+      "tablesRead": [
+        "public.traceability_records"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "not applicable until TODO service implementation exists",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/users/:id",
+      "controller": "UsersController",
+      "handler": "adminGetUser",
+      "module": "UsersModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "usersService",
+          "type": "UsersService"
+        }
+      ],
+      "repositoriesUsed": [
+        "UsersService:User"
+      ],
+      "tablesRead": [
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/users/me",
+      "controller": "UsersController",
+      "handler": "getMe",
+      "module": "UsersModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "usersService",
+          "type": "UsersService"
+        }
+      ],
+      "repositoriesUsed": [
+        "UsersService:User"
+      ],
+      "tablesRead": [
+        "public.users"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/wishlist",
+      "controller": "WishlistController",
+      "handler": "getWishlist",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "WishlistQueryDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "GET /api/v1/wishlist/ids",
+      "controller": "WishlistController",
+      "handler": "getWishlistedIds",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.wishlists"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/admin/disputes/:id/status",
+      "controller": "AdminController",
+      "handler": "updateDisputeStatus",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/admin/profiles/:type/:profileId/verify",
+      "controller": "AdminController",
+      "handler": "verifyProfile",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "VerifyProfileDto",
+        "string",
+        "StorageReviewerRole"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/admin/system-configs/:key",
+      "controller": "AdminController",
+      "handler": "updateSystemConfig",
+      "module": "AdminRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "adminService",
+          "type": "AdminService"
+        },
+        {
+          "name": "adminReportService",
+          "type": "AdminReportService"
+        }
+      ],
+      "repositoriesUsed": [
+        "AdminService:AuditLog",
+        "AdminService:CooperativeProfile",
+        "AdminService:EnterpriseProfile",
+        "AdminService:FarmerProfile",
+        "AdminService:IncidentReport",
+        "AdminService:Product",
+        "AdminService:SupplierProfile",
+        "AdminService:SystemConfig",
+        "AdminService:User"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.audit_logs",
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.incident_reports",
+        "public.notifications",
+        "public.products",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.system_configs",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "Storage file review/lifecycle transitions",
+        "PDFKit report generation",
+        "notification publication"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/admin/admin.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/ads/admin/campaigns/:id/approve",
+      "controller": "AdsController",
+      "handler": "approve",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/ads/admin/campaigns/:id/reject",
+      "controller": "AdsController",
+      "handler": "reject",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "RejectAdCampaignDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/ads/campaigns/:id/pause",
+      "controller": "AdsController",
+      "handler": "pause",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/ads/campaigns/:id/resume",
+      "controller": "AdsController",
+      "handler": "resume",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/forum/posts/:id",
+      "controller": "ForumController",
+      "handler": "updatePost",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "string",
+        "UpdatePostDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/forum/posts/:id/moderate",
+      "controller": "ForumController",
+      "handler": "moderatePost",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "boolean"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/notifications/:id/read",
+      "controller": "NotificationsController",
+      "handler": "markAsRead",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "Promise<NotificationResponseDto>",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/notifications/mark-all-read",
+      "controller": "NotificationsController",
+      "handler": "markAllRead",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "Promise<MarkAllNotificationsReadResponseDto>",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/notifications/read-all",
+      "controller": "NotificationsController",
+      "handler": "markAllAsRead",
+      "module": "NotificationsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listNotificationsUseCase",
+          "type": "ListNotificationsUseCase"
+        },
+        {
+          "name": "listUnreadNotificationsUseCase",
+          "type": "ListUnreadNotificationsUseCase"
+        },
+        {
+          "name": "countUnreadNotificationsUseCase",
+          "type": "CountUnreadNotificationsUseCase"
+        },
+        {
+          "name": "markNotificationReadUseCase",
+          "type": "MarkNotificationReadUseCase"
+        },
+        {
+          "name": "markAllNotificationsReadUseCase",
+          "type": "MarkAllNotificationsReadUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmNotificationRepository:NotificationOrmEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "Socket.IO notification publication"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.spec.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.spec.ts",
+        "src/modules/notifications/notifications.controller.spec.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/products/:id",
+      "controller": "ProductsController",
+      "handler": "update",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "UpdateProductDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/products/:id/status",
+      "controller": "ProductsController",
+      "handler": "updateStatus",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER",
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "UserRole",
+        "UpdateProductStatusDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/products/certifications/:certId/verify",
+      "controller": "ProductsController",
+      "handler": "verifyCertification",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "StorageReviewerRole",
+        "VerifyProductCertificationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/reviews/:id/reply",
+      "controller": "ReviewsController",
+      "handler": "reply",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "ReplyReviewDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/reviews/admin/reviews/:id/hide",
+      "controller": "ReviewsController",
+      "handler": "hide",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "HideReviewDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/reviews/admin/reviews/:id/unhide",
+      "controller": "ReviewsController",
+      "handler": "unhide",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PATCH /api/v1/users/me",
+      "controller": "UsersController",
+      "handler": "updateMe",
+      "module": "UsersModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "usersService",
+          "type": "UsersService"
+        }
+      ],
+      "repositoriesUsed": [
+        "UsersService:User"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "UpdateUserDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/ads/campaigns",
+      "controller": "AdsController",
+      "handler": "create",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "CreateAdCampaignDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/ads/events",
+      "controller": "AdsController",
+      "handler": "track",
+      "module": "AdsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPackages",
+          "type": "ListAdPackagesUseCase"
+        },
+        {
+          "name": "createCampaign",
+          "type": "CreateAdCampaignUseCase"
+        },
+        {
+          "name": "listCampaigns",
+          "type": "ListSupplierAdCampaignsUseCase"
+        },
+        {
+          "name": "getCampaign",
+          "type": "GetSupplierAdCampaignUseCase"
+        },
+        {
+          "name": "pauseCampaign",
+          "type": "PauseAdCampaignUseCase"
+        },
+        {
+          "name": "resumeCampaign",
+          "type": "ResumeAdCampaignUseCase"
+        },
+        {
+          "name": "listBanners",
+          "type": "ListActiveAdBannersUseCase"
+        },
+        {
+          "name": "trackEvent",
+          "type": "TrackAdEventUseCase"
+        },
+        {
+          "name": "listModerationCampaigns",
+          "type": "ListAdCampaignsForModerationUseCase"
+        },
+        {
+          "name": "getModerationCampaign",
+          "type": "GetAdCampaignForModerationUseCase"
+        },
+        {
+          "name": "approveCampaign",
+          "type": "ApproveAdCampaignUseCase"
+        },
+        {
+          "name": "rejectCampaign",
+          "type": "RejectAdCampaignUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmAdsRepository:AdCampaign",
+        "TypeOrmAdsRepository:AdEvent",
+        "TypeOrmAdsRepository:AdPackage"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.ad_campaigns",
+        "public.ad_events",
+        "public.ad_packages",
+        "public.notifications"
+      ],
+      "externalSideEffects": [
+        "notification publication for moderation changes"
+      ],
+      "transactionExpectation": "database write and notification side effect are not atomically coupled",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "TrackAdEventDto",
+        "string | undefined",
+        "Request"
+      ],
+      "responseModel": "Promise<void>",
+      "currentTests": [
+        "src/modules/ads/application/use-cases/ads.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/login",
+      "controller": "AuthController",
+      "handler": "login",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "LoginDto",
+        "Response"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/login-otp",
+      "controller": "AuthController",
+      "handler": "loginOtp",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "multiple persistence operations; no enclosing transaction observed",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "VerifyOtpDto",
+        "Response"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/logout",
+      "controller": "AuthController",
+      "handler": "logout",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "multiple persistence operations; no enclosing transaction observed",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "Response"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/refresh",
+      "controller": "AuthController",
+      "handler": "refresh",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "multiple persistence operations; no enclosing transaction observed",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "AuthGuard(\"jwt-refresh\")"
+      ],
+      "dtoTypes": [
+        "Request",
+        "Response"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/register",
+      "controller": "AuthController",
+      "handler": "register",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "RegisterDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/send-otp",
+      "controller": "AuthController",
+      "handler": "sendOtp",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "SendOtpDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/sync",
+      "controller": "AuthController",
+      "handler": "syncFirebaseUser",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "multiple persistence operations; no enclosing transaction observed",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "FirebaseAuthGuard"
+      ],
+      "dtoTypes": [
+        "DecodedIdToken",
+        "FirebaseSyncDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/auth/verify-otp",
+      "controller": "AuthController",
+      "handler": "verifyOtp",
+      "module": "AuthModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "registerUseCase",
+          "type": "RegisterUseCase"
+        },
+        {
+          "name": "loginUseCase",
+          "type": "LoginUseCase"
+        },
+        {
+          "name": "loginOtpUseCase",
+          "type": "LoginOtpUseCase"
+        },
+        {
+          "name": "syncFirebaseUserUseCase",
+          "type": "SyncFirebaseUserUseCase"
+        },
+        {
+          "name": "refreshTokenUseCase",
+          "type": "RefreshTokenUseCase"
+        },
+        {
+          "name": "logoutUseCase",
+          "type": "LogoutUseCase"
+        },
+        {
+          "name": "sendOtpUseCase",
+          "type": "SendOtpUseCase"
+        },
+        {
+          "name": "verifyOtpUseCase",
+          "type": "VerifyOtpUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "JwtTokenGeneratorAdapter:RefreshToken",
+        "NodemailerOtpSenderAdapter:OtpVerification"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.otp_verifications",
+        "public.refresh_tokens",
+        "public.users"
+      ],
+      "externalSideEffects": [
+        "JWT signing",
+        "Firebase Admin token verification",
+        "SMTP/Nodemailer OTP delivery"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "public-decorator",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "VerifyOtpDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/forum/posts",
+      "controller": "ForumController",
+      "handler": "createPost",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "CreatePostDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/forum/posts/:id/comments",
+      "controller": "ForumController",
+      "handler": "addComment",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "string",
+        "CreateCommentDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/forum/posts/:id/like",
+      "controller": "ForumController",
+      "handler": "toggleLike",
+      "module": "ForumModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "forumService",
+          "type": "ForumService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ForumService:ForumComment",
+        "ForumService:ForumLike",
+        "ForumService:ForumPost"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.forum_comments",
+        "public.forum_likes",
+        "public.forum_posts"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/market-prices",
+      "controller": "MarketPricesController",
+      "handler": "create",
+      "module": "MarketPricesModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "marketPricesService",
+          "type": "MarketPricesService"
+        }
+      ],
+      "repositoriesUsed": [
+        "MarketPricesService:MarketPrice"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.market_prices"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "not applicable until TODO service implementation exists",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "CreateMarketPriceDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/products",
+      "controller": "ProductsController",
+      "handler": "create",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed atomic database transaction for product and images",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "SellerType | undefined",
+        "UserRole",
+        "CreateProductDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/products/:id/certifications",
+      "controller": "ProductsController",
+      "handler": "addCertification",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "CreateProductCertificationDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/products/:id/images",
+      "controller": "ProductsController",
+      "handler": "addImage",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.districts",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.notifications",
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.provinces",
+        "public.stored_files",
+        "public.supplier_profiles",
+        "public.users",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle for certifications",
+        "notification publication for status changes"
+      ],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string",
+        "boolean"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/reviews",
+      "controller": "ReviewsController",
+      "handler": "create",
+      "module": "ReviewsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "listPublicReviews",
+          "type": "ListPublicProductReviewsUseCase"
+        },
+        {
+          "name": "createReview",
+          "type": "CreateProductReviewUseCase"
+        },
+        {
+          "name": "listSellerReviews",
+          "type": "ListSellerReviewsUseCase"
+        },
+        {
+          "name": "replyToReview",
+          "type": "ReplyToReviewUseCase"
+        },
+        {
+          "name": "listModerationReviews",
+          "type": "ListReviewsForModerationUseCase"
+        },
+        {
+          "name": "hideReview",
+          "type": "HideReviewUseCase"
+        },
+        {
+          "name": "unhideReview",
+          "type": "UnhideReviewUseCase"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmReviewsRepository:Product",
+        "TypeOrmReviewsRepository:Review"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.products",
+        "public.reviews",
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.BUYER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "CreateReviewDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/reviews/application/use-cases/reviews.use-cases.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/storage/files/:id/review",
+      "controller": "StorageController",
+      "handler": "reviewFile",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.ADMIN",
+        "UserRole.STATE_AGENCY"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "StorageReviewerRole",
+        "ReviewStoredFileDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/storage/images/upload",
+      "controller": "StorageController",
+      "handler": "uploadImage",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "Express.Multer.File",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/storage/uploads/:id/complete",
+      "controller": "StorageController",
+      "handler": "completeIntent",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/storage/uploads/intents",
+      "controller": "StorageController",
+      "handler": "createIntent",
+      "module": "StorageModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "storageService",
+          "type": "StorageService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmStoredFileRepository:StoredFileEntity"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary image storage",
+        "Supabase private storage"
+      ],
+      "transactionExpectation": "eventually consistent database/provider workflow",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "CreateUploadIntentDto",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/config/storage.config.spec.ts",
+        "src/modules/storage/application/content-validation.policy.spec.ts",
+        "src/modules/storage/application/storage-architecture.spec.ts",
+        "src/modules/storage/application/storage-load.spec.ts",
+        "src/modules/storage/application/storage-phase9-migration.spec.ts",
+        "src/modules/storage/application/storage-upload.policy.spec.ts",
+        "src/modules/storage/application/storage.service.spec.ts",
+        "src/modules/storage/infrastructure/observability/provider-resilience.spec.ts",
+        "src/modules/storage/infrastructure/observability/storage-observability.service.spec.ts",
+        "src/modules/storage/infrastructure/supabase/supabase-storage.contract.spec.ts",
+        "src/modules/storage/presentation/decorators/uploaded-interceptor.decorator.spec.ts",
+        "src/modules/storage/presentation/guards/storage-throttler.guard.spec.ts",
+        "src/modules/storage/presentation/middleware/retired-storage-route-telemetry.middleware.spec.ts",
+        "src/scripts/storage-phase9-rollout.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/trace",
+      "controller": "TraceabilityController",
+      "handler": "create",
+      "module": "TraceabilityModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "traceabilityService",
+          "type": "TraceabilityService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TraceabilityService:TraceabilityRecord"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.traceability_records"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "not applicable until TODO service implementation exists",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER",
+        "UserRole.COOPERATIVE",
+        "UserRole.ADMIN"
+      ],
+      "explicitGuards": [
+        "RolesGuard"
+      ],
+      "dtoTypes": [
+        "string",
+        "CreateTraceabilityDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "POST /api/v1/wishlist/:productId",
+      "controller": "WishlistController",
+      "handler": "addToWishlist",
+      "module": "ProductsModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "productsService",
+          "type": "ProductsService"
+        }
+      ],
+      "repositoriesUsed": [
+        "TypeOrmProductRepository:Product",
+        "TypeOrmProductRepository:ProductCategory",
+        "TypeOrmProductRepository:ProductCertification",
+        "TypeOrmProductRepository:ProductImage",
+        "TypeOrmProductRepository:Wishlist"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.product_categories",
+        "public.product_certifications",
+        "public.product_images",
+        "public.products",
+        "public.wishlists"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "string"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/products/application/products.service.spec.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PUT /api/v1/profiles/b2b",
+      "controller": "ProfilesController",
+      "handler": "upsertB2bProfile",
+      "module": "ProfilesRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "profilesService",
+          "type": "ProfilesService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ProfilesService:CooperativeProfile",
+        "ProfilesService:EnterpriseProfile",
+        "ProfilesService:FarmerProfile",
+        "ProfilesService:SupplierProfile"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.stored_files",
+        "public.supplier_profiles"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle through StorageService",
+        "FPT Vision adapter (currently mock behavior)"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.COOPERATIVE",
+        "UserRole.ENTERPRISE",
+        "UserRole.SUPPLIER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "UserRole",
+        "UpsertB2bProfileDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/profiles/profiles.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PUT /api/v1/profiles/farmer",
+      "controller": "ProfilesController",
+      "handler": "upsertFarmerProfile",
+      "module": "ProfilesRoute",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "profilesService",
+          "type": "ProfilesService"
+        }
+      ],
+      "repositoriesUsed": [
+        "ProfilesService:CooperativeProfile",
+        "ProfilesService:EnterpriseProfile",
+        "ProfilesService:FarmerProfile",
+        "ProfilesService:SupplierProfile"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.cooperative_profiles",
+        "public.enterprise_profiles",
+        "public.farmer_profiles",
+        "public.stored_files",
+        "public.supplier_profiles"
+      ],
+      "externalSideEffects": [
+        "Storage file lifecycle through StorageService",
+        "FPT Vision adapter (currently mock behavior)"
+      ],
+      "transactionExpectation": "observed manual compensation across database and external storage",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "UserRole.FARMER"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "UpsertFarmerProfileDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [
+        "src/modules/profiles/profiles.service.spec.ts"
+      ],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    },
+    {
+      "entryPoint": "PUT /api/v1/users/me/role",
+      "controller": "UsersController",
+      "handler": "updateMyRole",
+      "module": "UsersModule",
+      "moduleMounted": true,
+      "serviceDependencies": [
+        {
+          "name": "usersService",
+          "type": "UsersService"
+        }
+      ],
+      "repositoriesUsed": [
+        "UsersService:User"
+      ],
+      "tablesRead": [],
+      "tablesWritten": [
+        "public.users"
+      ],
+      "externalSideEffects": [],
+      "transactionExpectation": "single-operation or requires use-case-level review",
+      "authentication": "global-jwt-guard",
+      "authorization": [
+        "authenticated-default"
+      ],
+      "explicitGuards": [],
+      "dtoTypes": [
+        "string",
+        "UpdateRoleDto"
+      ],
+      "responseModel": "inferred",
+      "currentTests": [],
+      "persistenceEvidence": "candidate tables are module-level forFeature registrations; flow documents refine per-handler usage"
+    }
+  ],
+  "backgroundEntries": [
+    {
+      "type": "Cron",
+      "class": "StorageCleanupService",
+      "method": "cleanup",
+      "decorator": "Cron('0 */5 * * * *')",
+      "file": "src/modules/storage/application/storage-cleanup.service.ts",
+      "runtimeRegistered": true,
+      "module": "StorageModule",
+      "repositoriesUsed": [
+        "STORED_FILE_REPOSITORY"
+      ],
+      "tablesRead": [
+        "public.stored_files"
+      ],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary/Supabase object deletion"
+      ],
+      "transactionExpectation": "eventually consistent provider cleanup with retry state"
+    },
+    {
+      "type": "websocket-gateway",
+      "class": "NotificationsGateway",
+      "file": "src/modules/notifications/notifications.gateway.ts",
+      "runtimeRegistered": false,
+      "module": null,
+      "repositoriesUsed": [
+        "NOTIFICATION_REALTIME_PORT"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO delivery"
+      ],
+      "transactionExpectation": "delivery occurs after persistence and is not atomically coupled"
+    },
+    {
+      "type": "websocket-gateway",
+      "class": "NotificationsGateway",
+      "file": "src/modules/notifications/presentation/gateways/notifications.gateway.ts",
+      "runtimeRegistered": true,
+      "module": "NotificationsModule",
+      "repositoriesUsed": [
+        "NOTIFICATION_REALTIME_PORT"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO delivery"
+      ],
+      "transactionExpectation": "delivery occurs after persistence and is not atomically coupled"
+    }
+  ],
+  "knownLimitation": "Candidate tables are not claims of per-handler SQL; business-flow-map.md provides curated operations"
+}

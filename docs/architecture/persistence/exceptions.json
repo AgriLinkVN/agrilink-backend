@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "exceptions": [
+    {
+      "id": "legacy-central-entity-imports",
+      "exceptionType": "cross-module-infrastructure-import",
+      "owner": "persistence-roadmap",
+      "reason": "Exact baseline of modules still importing src/database/entities; no new edge is allowed.",
+      "phase": "3-7B",
+      "expiresAt": "2027-12-31",
+      "edges": [
+        "src/modules/admin/admin.route.ts -> ../../database/entities/incident-report.entity",
+        "src/modules/admin/admin.service.ts -> ../../database/entities/incident-report.entity"
+      ]
+    },
+    {
+      "id": "foreign-for-feature-registration",
+      "exceptionType": "foreign-entity-registration",
+      "owner": "admin",
+      "reason": "Admin still registers IncidentReport until the Compliance ownership phase.",
+      "phase": "7B",
+      "expiresAt": "2027-06-30",
+      "registrations": [
+        "src/modules/admin/admin.route.ts:IncidentReport"
+      ]
+    }
+  ],
+  "openApiWhitelist": []
+}

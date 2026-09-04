@@ -1,0 +1,935 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "policy": "Hybrid v2 baseline for new databases plus fingerprint-gated onboarding for existing databases",
+  "groupDefinitions": {
+    "A": "confirmed baseline",
+    "B": "include with compatibility",
+    "C": "exclude pending owner phase",
+    "D": "naming/reconciliation blocker",
+    "E": "retire candidate"
+  },
+  "note": "No physical source table is Group E: the dead-looking wishlist mapping stays Group D until deployed evidence exists.",
+  "entries": [
+    {
+      "schema": "public",
+      "table": "ad_campaigns",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "ads",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "ad_events",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "ads",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "ad_packages",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "ads",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "audit_logs",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/admin/entities/audit-log.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "audit",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "bulk_listing_contributions",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Persistence adapters and tests exist, but no production controller/use-case consumer proves the capability.",
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "cooperatives",
+      "risk": "low",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "bulk_listings",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Persistence adapters and tests exist, but no production controller/use-case consumer proves the capability.",
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "cooperatives",
+      "risk": "low",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "contracts",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented the greenfield Contracts capability with reviewed domain, persistence, transaction and concurrency contracts.",
+      "canonicalMappingCandidate": "src/modules/contracts/infrastructure/persistence/entities/contract.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "contracts",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "commerce_operations",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved the supporting database-backed idempotency ledger for Commerce mutations.",
+      "canonicalMappingCandidate": "src/modules/commerce/infrastructure/persistence/entities/commerce-operation.orm-entity.ts",
+      "requiredColumns": [
+        "actor_id, operation_type, idempotency_key, request_fingerprint",
+        "aggregate_id, result_reference, status and timestamps"
+      ],
+      "requiredConstraints": [
+        "UUID primary key and actor FK",
+        "unique actor/operation/key scope and status check"
+      ],
+      "legacyCompatibility": "none; Phase 6 greenfield supporting table",
+      "reconciliationOwner": "commerce",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity and concurrency verified"
+    },
+    {
+      "schema": "public",
+      "table": "conversations",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/conversation.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "messaging",
+      "risk": "medium",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_members",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "The merged Phase 8 canonical startup DAG executes cooperatives.dev.members, so migration-head schema must include this owner table.",
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "forward migration preserves the proven P3 membership identity, status check, user foreign keys and lookup index",
+      "reconciliationOwner": "cooperatives",
+      "risk": "low",
+      "evidenceLevel": "source-observed; disposable migration-head verified"
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_profiles",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Profile onboarding is active; duplicate mappings, member-count drift and Storage columns need compatibility.",
+      "canonicalMappingCandidate": "src/database/entities/cooperative-profile.entity.ts",
+      "requiredColumns": [
+        "legacy URL columns",
+        "cooperative_cert_file_id",
+        "business_license_file_id",
+        "representative_cccd_front_file_id",
+        "representative_cccd_back_file_id",
+        "members_list_file_id"
+      ],
+      "requiredConstraints": [
+        "unique user_id",
+        "reviewed stored_files foreign keys without destructive cascade"
+      ],
+      "legacyCompatibility": "dual-column compatibility for legacy URLs and file IDs",
+      "reconciliationOwner": "profiles",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_province_references",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Persistence adapters and tests exist, but no production controller/use-case consumer proves the capability.",
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "cooperatives",
+      "risk": "low",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "disputes",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/dispute.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "compliance",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "districts",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/geography/entities/district.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "geography",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "enterprise_profiles",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Profile onboarding is active; duplicate mappings and Storage file-ID columns need compatibility.",
+      "canonicalMappingCandidate": "src/database/entities/enterprise-profile.entity.ts",
+      "requiredColumns": [
+        "legacy URL columns",
+        "business_license_file_id"
+      ],
+      "requiredConstraints": [
+        "unique user_id",
+        "reviewed stored_files foreign keys without destructive cascade"
+      ],
+      "legacyCompatibility": "dual-column compatibility for legacy URLs and file IDs",
+      "reconciliationOwner": "profiles",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "farmer_profiles",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Profile onboarding is active; legacy document URLs and Storage file IDs must coexist.",
+      "canonicalMappingCandidate": "src/database/entities/farmer-profile.entity.ts",
+      "requiredColumns": [
+        "legacy URL columns",
+        "cccd_front_file_id",
+        "cccd_back_file_id"
+      ],
+      "requiredConstraints": [
+        "unique user_id",
+        "reviewed stored_files foreign keys without destructive cascade"
+      ],
+      "legacyCompatibility": "dual-column compatibility for legacy URLs and file IDs",
+      "reconciliationOwner": "profiles",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "forum_comments",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-comment.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "forum",
+      "risk": "low",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "forum_likes",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-like.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "forum",
+      "risk": "low",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "forum_posts",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/forum/entities/forum-post.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "forum",
+      "risk": "low",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "harvest_schedules",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Persistence adapters and tests exist, but no production controller/use-case consumer proves the capability.",
+      "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "cooperatives",
+      "risk": "low",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "incident_reports",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/database/entities/incident-report.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "compliance",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "logistics_profiles",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/logistics-profile.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "logistics",
+      "risk": "medium",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "market_prices",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "The controller is mounted, but application methods throw TODO and no working persistence flow is proven.",
+      "canonicalMappingCandidate": "src/modules/market-prices/entities/market-price.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "market-prices",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "messages",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/message.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "messaging",
+      "risk": "medium",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "notifications",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "order_items",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented immutable order line snapshots with exact quantity and VND arithmetic.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order-item.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "orders",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "order_status_history",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented immutable, operation-keyed order transition history.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order-status-history.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "orders",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "orders",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented the Orders aggregate, state machine, actor policy and atomic persistence boundary.",
+      "canonicalMappingCandidate": "src/modules/orders/infrastructure/persistence/entities/order.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "orders",
+      "risk": "critical",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "otp_verifications",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/database/entities/otp-verification.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "auth",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented manual VND payments, state transitions and bounded refunds without an external provider.",
+      "canonicalMappingCandidate": "src/modules/payments/infrastructure/persistence/entities/payment.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "payments",
+      "risk": "critical",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "product_categories",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "products",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "product_certifications",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Certification flows are active and need both legacy URL and Storage file ID during rollout.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+      "requiredColumns": [
+        "legacy certificate URL",
+        "certificate_file_id"
+      ],
+      "requiredConstraints": [
+        "product FK",
+        "stored_files FK and index"
+      ],
+      "legacyCompatibility": "keep URL and file ID in parallel",
+      "reconciliationOwner": "products",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "product_images",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "products",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "product_wishlist",
+      "includeInBaselineV2": false,
+      "group": "D",
+      "reason": "Wishlist naming and data lineage conflict must be reconciled before inclusion.",
+      "canonicalMappingCandidate": "src/database/entities/product-wishlist.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "products",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "products",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Product APIs are active, but raw seller/profile queries depend on columns absent from local schema evidence.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "requiredColumns": [
+        "runtime mapping plus seller-detail query dependencies"
+      ],
+      "requiredConstraints": [
+        "category and seller references",
+        "unique SKU if populated"
+      ],
+      "legacyCompatibility": "preserve current seller/profile read contract",
+      "reconciliationOwner": "products",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "provinces",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/geography/entities/province.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "geography",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "purchase_requests",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Phase 6 approved and implemented enterprise purchase requests with exact allocation and row-lock protection.",
+      "canonicalMappingCandidate": "src/modules/contracts/infrastructure/persistence/entities/purchase-request.orm-entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "contracts",
+      "risk": "high",
+      "evidenceLevel": "Phase 6 migration, catalog parity, integration and E2E verified"
+    },
+    {
+      "schema": "public",
+      "table": "quality_certificates",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/quality-certificate.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "compliance",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "refresh_tokens",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/database/entities/refresh-token.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "auth",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "reviews",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Review APIs are active, but local evidence lacks the required reviewer/product partial unique index.",
+      "canonicalMappingCandidate": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+      "requiredColumns": [
+        "runtime review mapping columns"
+      ],
+      "requiredConstraints": [
+        "reviewer/product FKs",
+        "partial unique reviewer/product index for non-deleted rows",
+        "rating range check"
+      ],
+      "legacyCompatibility": "deduplicate existing rows before enforcing uniqueness",
+      "reconciliationOwner": "reviews",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "shipment_tracking_events",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/shipment-tracking-event.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "logistics",
+      "risk": "medium",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "shipments",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/shipment.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "logistics",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "stored_files",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "storage",
+      "risk": "low",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "supplier_profiles",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Profile onboarding is active; duplicate mappings and Storage file-ID columns need compatibility.",
+      "canonicalMappingCandidate": "src/database/entities/supplier-profile.entity.ts",
+      "requiredColumns": [
+        "legacy URL columns",
+        "business_license_file_id"
+      ],
+      "requiredConstraints": [
+        "unique user_id",
+        "reviewed stored_files foreign keys without destructive cascade"
+      ],
+      "legacyCompatibility": "dual-column compatibility for legacy URLs and file IDs",
+      "reconciliationOwner": "profiles",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "system_configs",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/admin/entities/system-config.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "admin",
+      "risk": "medium",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "traceability_records",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "The controller is mounted, but application methods throw TODO and no working persistence flow is proven.",
+      "canonicalMappingCandidate": "src/modules/traceability/entities/traceability-record.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "traceability",
+      "risk": "critical",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "user_addresses",
+      "includeInBaselineV2": false,
+      "group": "C",
+      "reason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "canonicalMappingCandidate": "src/database/entities/user-address.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "users",
+      "risk": "medium",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "Authentication is active, but source-required email and local nullable email need identity reconciliation.",
+      "canonicalMappingCandidate": "src/database/entities/user.entity.ts",
+      "requiredColumns": [
+        "identity, credential, role, verification and audit columns"
+      ],
+      "requiredConstraints": [
+        "unique email/phone/firebase identity",
+        "email NOT NULL only after existing-row reconciliation"
+      ],
+      "legacyCompatibility": "preserve nullable email until backfill safety is proven",
+      "reconciliationOwner": "users",
+      "risk": "critical",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "wishlists",
+      "includeInBaselineV2": true,
+      "group": "A",
+      "reason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "products",
+      "risk": "high",
+      "evidenceLevel": "source-observed plus local-schema comparison"
+    },
+    {
+      "schema": "public",
+      "table": "product_wishlists",
+      "includeInBaselineV2": false,
+      "group": "D",
+      "reason": "Wishlist naming and data lineage conflict must be reconciled before inclusion.",
+      "canonicalMappingCandidate": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "requiredColumns": [
+        "all columns from reviewed canonical mapping candidate"
+      ],
+      "requiredConstraints": [
+        "primary key, declared unique indexes and proven FKs"
+      ],
+      "legacyCompatibility": "none beyond deployed-schema verification",
+      "reconciliationOwner": "products",
+      "risk": "high",
+      "evidenceLevel": "source-observed; deployed-schema unverified"
+    }
+  ]
+}
