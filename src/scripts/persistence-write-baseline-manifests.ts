@@ -37,10 +37,24 @@ interface CompatibilitySeed {
   objectType: CompatibilityObjectType;
   objectName: string;
   owner: string;
-  deferredPhase: "4" | "5";
+  deferredPhase: "4" | "5" | "8";
 }
 
 const COMPATIBILITY_OBJECTS: readonly CompatibilitySeed[] = [
+  {
+    table: "cooperative_members",
+    objectType: "foreign-key",
+    objectName: "fk_p3_member_cooperative",
+    owner: "cooperatives",
+    deferredPhase: "8",
+  },
+  {
+    table: "cooperative_members",
+    objectType: "foreign-key",
+    objectName: "fk_p3_member_farmer",
+    owner: "cooperatives",
+    deferredPhase: "8",
+  },
   {
     table: "cooperative_profiles",
     objectType: "column",

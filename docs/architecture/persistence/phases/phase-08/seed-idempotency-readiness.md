@@ -143,3 +143,25 @@ PHASE_08_COMPLETE=NO
 No DataSource was initialized, no SeedGroup or TEST fixture was executed, and
 no SQL, migration, protected local database, or production database was used
 for this audit.
+
+## P8-09A Canonical Schema Migration Parity Correction Overlay
+
+P8-09 remains a failed runtime proof: migration head lacked the
+`cooperative_members` table required by `cooperatives.dev.members`. P8-09A
+corrects only that migration parity gap; it does not convert the failed seed
+proof into idempotency success. See
+[canonical-schema-migration-parity.md](canonical-schema-migration-parity.md).
+
+```text
+P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_152
+P8_08_READINESS_STATUS=READY_FOR_DISPOSABLE_DB_VERIFICATION_BY_MERGED_PR_152
+P8_09_RUNTIME_STATUS=FAIL_BLOCKED_BY_SCHEMA_PARITY
+P8_09A_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_09A_SCHEMA_PARITY_STATUS=CORRECTED_PENDING_HUMAN_REVIEW
+P8_09A_BLOCKERS=NONE
+IDEMPOTENCY_VERIFIED=NO
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NO
+P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
+PHASE_08_COMPLETE=NO
+```

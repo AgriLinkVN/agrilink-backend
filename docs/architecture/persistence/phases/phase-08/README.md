@@ -3242,3 +3242,29 @@ DISPOSABLE_DB_SEED_RUN_PASS=NOT_YET_VERIFIED
 P8_09_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_08_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-09A Canonical Schema Migration Parity Correction Overlay
+
+The first guarded P8-09 PostgreSQL run preserved a real migration-head failure:
+`cooperatives.dev.members` reached a schema with zero pending migrations but no
+`public.cooperative_members`. The full canonical table/column/constraint audit
+found no second migration gap. P8-09A therefore adds one bounded forward
+migration and corrects the stale registry metadata that still excluded this
+now-startup-reachable table. See
+[canonical-schema-migration-parity.md](canonical-schema-migration-parity.md).
+
+```text
+P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_152
+P8_08_READINESS_STATUS=READY_FOR_DISPOSABLE_DB_VERIFICATION_BY_MERGED_PR_152
+P8_09_RUNTIME_STATUS=FAIL_BLOCKED_BY_SCHEMA_PARITY
+P8_09_RUNTIME_FAILURE_SQLSTATE=42P01
+P8_09_RUNTIME_FAILURE_GROUP=cooperatives.dev.members
+P8_09A_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_09A_SCHEMA_PARITY_STATUS=CORRECTED_PENDING_HUMAN_REVIEW
+P8_09A_BLOCKERS=NONE
+IDEMPOTENCY_VERIFIED=NO
+SECOND_SEED_RUN_NO_DUPLICATES=NOT_YET_VERIFIED
+DISPOSABLE_DB_SEED_RUN_PASS=NO
+P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
+PHASE_08_COMPLETE=NO
+```
