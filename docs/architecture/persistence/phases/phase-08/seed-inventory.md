@@ -2734,3 +2734,29 @@ DISPOSABLE_DB_SEED_RUN_PASS=NO
 P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-09 Disposable PostgreSQL Runtime Verification Rerun Overlay
+
+PR #153 merged the missing canonical schema authority. The guarded P8-09 rerun
+then executed this inventory's 11 groups against two fresh PostgreSQL 16
+databases without copying payloads or adding a group. Database A proved an
+unchanged 14-table state and 161 stable output bindings on its second run.
+Database B stopped after `users.dev.users` and converged to the same semantic
+final state when the complete plan retried. Both disposable databases were
+dropped. See the [runtime proof](disposable-postgres-runtime-proof.md).
+
+```text
+P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_152
+P8_09A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_153
+P8_09A_SCHEMA_PARITY_STATUS=CORRECTED_BY_MERGED_PR_153
+RUNTIME_CANONICAL_GROUP_COUNT=11
+P8_09_NEW_BUSINESS_SEED_GROUP_COUNT=0
+P8_09_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_09_RUNTIME_STATUS=PASS_PENDING_HUMAN_REVIEW
+P8_09_BLOCKERS=NONE
+IDEMPOTENCY_VERIFIED=YES
+SECOND_SEED_RUN_NO_DUPLICATES=YES
+DISPOSABLE_DB_SEED_RUN_PASS=YES
+P8_10_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_09_MERGE_AND_REVIEW
+PHASE_08_COMPLETE=NO
+```

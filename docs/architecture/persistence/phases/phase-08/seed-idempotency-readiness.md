@@ -165,3 +165,28 @@ DISPOSABLE_DB_SEED_RUN_PASS=NO
 P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-09 Disposable PostgreSQL Runtime Verification Rerun Overlay
+
+After PR #153 merged the canonical schema correction, the complete runtime
+proof executed all 11 groups twice on a fresh Database A and retried a committed
+four-group prefix on a separate fresh Database B. Both databases applied the
+six-migration V2 chain with synchronization disabled. All managed-table counts,
+logical identities, output bindings, declared fixture state, password hashes,
+and create-only timestamps remained stable. The guarded harness dropped both
+databases. Full measured evidence is in the
+[P8-09 runtime proof](disposable-postgres-runtime-proof.md).
+
+```text
+P8_08_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_152
+P8_09A_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_153
+P8_09A_SCHEMA_PARITY_STATUS=CORRECTED_BY_MERGED_PR_153
+P8_09_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P8_09_RUNTIME_STATUS=PASS_PENDING_HUMAN_REVIEW
+P8_09_BLOCKERS=NONE
+IDEMPOTENCY_VERIFIED=YES
+SECOND_SEED_RUN_NO_DUPLICATES=YES
+DISPOSABLE_DB_SEED_RUN_PASS=YES
+P8_10_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_09_MERGE_AND_REVIEW
+PHASE_08_COMPLETE=NO
+```
