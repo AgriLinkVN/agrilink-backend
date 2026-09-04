@@ -3321,3 +3321,20 @@ DISPOSABLE_DB_SEED_RUN_PASS=YES
 P8_10_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P8_09_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## Phase 9 Kickoff Authority Overlay
+
+PR #155 was human-reviewed, passed the Backend Quality Gate, and merged as
+`bd4eab9e2948310301829bfb12f5e97551e62620`. This final overlay advances the
+P8-10 pending-review values without modifying any historical Phase 8 record.
+The current plan continues in the
+[Phase 9 kickoff inventory](../phase-09/kickoff-inventory.md).
+
+```text
+P8_10_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_155
+PHASE_08_EXIT_CRITERIA_STATUS=ALL_SATISFIED_BY_MERGED_PR_155
+PHASE_08_COMPLETE=YES
+IDEMPOTENCY_VERIFIED=YES
+SECOND_SEED_RUN_NO_DUPLICATES=YES
+DISPOSABLE_DB_SEED_RUN_PASS=YES
+```
