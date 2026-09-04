@@ -155,3 +155,19 @@ DISPOSABLE_DB_SEED_RUN_PASS=NO
 P8_09_RERUN_AUTHORIZED=NO_WAITING_FOR_P8_09A_MERGE_AND_REVIEW
 PHASE_08_COMPLETE=NO
 ```
+
+## P8-09A1 remote Quality Gate correction
+
+The initial PR #153 Backend Quality Gate reached the unit-test step and exposed
+one stale static assertion in the A2 migration test. The assertion required A1
+and A2 to be the final two V2 migrations even though its stated contract is only
+that A2 immediately follows A1. Registering the new P8-09A forward migration
+correctly placed another migration after A2. P8-09A1 changes the test to assert
+the intended adjacency without changing either historical migration or the new
+runtime schema correction.
+
+```text
+P8_09A_REMOTE_GATE_INITIAL_STATUS=FAIL
+P8_09A_REMOTE_GATE_ROOT_CAUSE=STALE_A2_TEST_ASSUMED_A1_AND_A2_WERE_FINAL_V2_MIGRATIONS
+P8_09A1_CORRECTIVE_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+```
