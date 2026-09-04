@@ -32,15 +32,6 @@
       "phase": "1",
       "expiresAt": "2027-01-31",
       "files": ["src/config/database.config.ts"]
-    },
-    {
-      "id": "seed-synchronize",
-      "exceptionType": "test-development-datasource",
-      "owner": "seed-orchestrator",
-      "reason": "Legacy seed DataSource uses synchronize=true and a partial entity list.",
-      "phase": "8",
-      "expiresAt": "2027-12-31",
-      "files": ["src/database/seeds/seed.ts"]
     }
   ],
   "openApiWhitelist": []
