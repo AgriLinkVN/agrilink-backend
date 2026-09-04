@@ -177,9 +177,9 @@
     {
       "schema": "public",
       "table": "cooperative_members",
-      "includeInBaselineV2": false,
-      "group": "C",
-      "reason": "Persistence adapters and tests exist, but no production controller/use-case consumer proves the capability.",
+      "includeInBaselineV2": true,
+      "group": "B",
+      "reason": "The merged Phase 8 canonical startup DAG executes cooperatives.dev.members, so migration-head schema must include this owner table.",
       "canonicalMappingCandidate": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
       "requiredColumns": [
         "all columns from reviewed canonical mapping candidate"
@@ -187,10 +187,10 @@
       "requiredConstraints": [
         "primary key, declared unique indexes and proven FKs"
       ],
-      "legacyCompatibility": "none beyond deployed-schema verification",
+      "legacyCompatibility": "forward migration preserves the proven P3 membership identity, status check, user foreign keys and lookup index",
       "reconciliationOwner": "cooperatives",
       "risk": "low",
-      "evidenceLevel": "source-observed; deployed-schema unverified"
+      "evidenceLevel": "source-observed; disposable migration-head verified"
     },
     {
       "schema": "public",

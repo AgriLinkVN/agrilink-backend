@@ -3,6 +3,30 @@
   "entries": [
     {
       "schema": "public",
+      "table": "cooperative_members",
+      "objectType": "foreign-key",
+      "objectName": "fk_p3_member_cooperative",
+      "owner": "cooperatives",
+      "deferredPhase": "8",
+      "expectedDefinition": "{\"columns\":[\"cooperative_id\"],\"definition\":\"FOREIGN KEY (cooperative_id) REFERENCES users(id) ON DELETE CASCADE\",\"referencedSchema\":\"public\",\"referencedTable\":\"users\",\"referencedColumns\":[\"id\"],\"onUpdate\":\"NO ACTION\",\"onDelete\":\"CASCADE\",\"deferrable\":false,\"initiallyDeferred\":false}",
+      "reason": "Cross-owner User references preserve the reviewed P3 delete policy without adding ORM relations",
+      "expiresAt": "2027-12-31",
+      "source": "src/database/migrations-v2/1800000005000-RestoreCanonicalCooperativeMemberSchema.ts"
+    },
+    {
+      "schema": "public",
+      "table": "cooperative_members",
+      "objectType": "foreign-key",
+      "objectName": "fk_p3_member_farmer",
+      "owner": "cooperatives",
+      "deferredPhase": "8",
+      "expectedDefinition": "{\"columns\":[\"farmer_id\"],\"definition\":\"FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE RESTRICT\",\"referencedSchema\":\"public\",\"referencedTable\":\"users\",\"referencedColumns\":[\"id\"],\"onUpdate\":\"NO ACTION\",\"onDelete\":\"RESTRICT\",\"deferrable\":false,\"initiallyDeferred\":false}",
+      "reason": "Cross-owner User references preserve the reviewed P3 delete policy without adding ORM relations",
+      "expiresAt": "2027-12-31",
+      "source": "src/database/migrations-v2/1800000005000-RestoreCanonicalCooperativeMemberSchema.ts"
+    },
+    {
+      "schema": "public",
       "table": "stored_files",
       "objectType": "check-constraint",
       "objectName": "CHK_stored_files_status",

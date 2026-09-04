@@ -58,10 +58,15 @@ describe("P8-05C3C2A2 Ad Package identifier backfill and contract", () => {
 
   it("orders A2 immediately after A1", () => {
     const names = getMigrationNames(V2_MIGRATIONS);
-    expect(names.slice(-2)).toEqual([
+    const a1Index = names.indexOf(
       "ExpandAdPackageReferenceIdentity1800000003000",
+    );
+    const a2Index = names.indexOf(
       "BackfillAndContractAdPackageReferenceIdentity1800000004000",
-    ]);
+    );
+
+    expect(a1Index).toBeGreaterThanOrEqual(0);
+    expect(a2Index).toBe(a1Index + 1);
   });
 
   it("preflights all three ambiguous fingerprints before any update", () => {

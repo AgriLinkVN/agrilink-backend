@@ -74,7 +74,7 @@ export const RUNTIME_ENTITY_ENTRIES = Object.freeze([
   entry("ad_packages", AdPackage, true),
   entry("bulk_listing_contributions", BulkListingContributionEntity, false),
   entry("bulk_listings", BulkListingEntity, false),
-  entry("cooperative_members", CooperativeMemberEntity, false),
+  entry("cooperative_members", CooperativeMemberEntity, true),
   entry(
     "cooperative_province_references",
     CooperativeProvinceReferenceEntity,

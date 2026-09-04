@@ -125,7 +125,7 @@ const GROUPS: readonly CanonicalGroupAudit[] = Object.freeze([
     REVIEWS_DEV_PRODUCT_FEEDBACK_SEED_METADATA,
     "src/modules/reviews/infrastructure/database/seeds/review-development-seed.service.ts",
     [],
-    ["product_reviews"],
+    ["reviews"],
     ["NORMAL_STARTUP"],
     true,
     [

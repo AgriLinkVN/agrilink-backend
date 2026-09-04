@@ -1,9 +1,9 @@
 {
   "version": 1,
   "lineage": "v2",
-  "migration": "BackfillAndContractAdPackageReferenceIdentity1800000004000",
-  "fingerprint": "e2f98ba1ccc4da003050d377f19072a2876f7503fd6878385ee342ee7c3d7581",
-  "objectCount": 681,
+  "migration": "RestoreCanonicalCooperativeMemberSchema1800000005000",
+  "fingerprint": "ad242954433cf036868c08f999632d4d2bec920f28243c9b2f7ce511be0a38c8",
+  "objectCount": 698,
   "snapshot": {
     "schema": "public",
     "schemas": [
@@ -777,7 +777,7 @@
           {
             "table": "ad_packages",
             "name": "UQ_ad_packages_package_code",
-            "type": "unique",
+            "type": "unique-constraint",
             "columns": [
               "package_code"
             ],
@@ -1595,6 +1595,231 @@
             "primary": true,
             "method": "btree",
             "definition": "CREATE UNIQUE INDEX contracts_pkey ON contracts USING btree (id)",
+            "predicate": null
+          }
+        ]
+      },
+      {
+        "name": "cooperative_members",
+        "columns": [
+          {
+            "name": "cooperative_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "created_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "farmer_id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "id",
+            "dataType": "uuid",
+            "udtSchema": "pg_catalog",
+            "udtName": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "joined_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "role",
+            "dataType": "text",
+            "udtSchema": "pg_catalog",
+            "udtName": "text",
+            "nullable": true,
+            "default": null,
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "status",
+            "dataType": "character varying",
+            "udtSchema": "pg_catalog",
+            "udtName": "varchar",
+            "nullable": false,
+            "default": "'pending'::character varying",
+            "characterMaximumLength": 20,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          },
+          {
+            "name": "updated_at",
+            "dataType": "timestamp with time zone",
+            "udtSchema": "pg_catalog",
+            "udtName": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "characterMaximumLength": null,
+            "numericPrecision": null,
+            "numericScale": null,
+            "identity": null,
+            "generated": null
+          }
+        ],
+        "constraints": [
+          {
+            "table": "cooperative_members",
+            "name": "ck_p3_member_status",
+            "type": "check-constraint",
+            "columns": [
+              "status"
+            ],
+            "definition": "CHECK (status::text = ANY (ARRAY['pending'::character varying, 'active'::character varying, 'suspended'::character varying, 'rejected'::character varying, 'left'::character varying]::text[]))",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "cooperative_members",
+            "name": "fk_p3_member_cooperative",
+            "type": "foreign-key",
+            "columns": [
+              "cooperative_id"
+            ],
+            "definition": "FOREIGN KEY (cooperative_id) REFERENCES users(id) ON DELETE CASCADE",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "CASCADE",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "cooperative_members",
+            "name": "fk_p3_member_farmer",
+            "type": "foreign-key",
+            "columns": [
+              "farmer_id"
+            ],
+            "definition": "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE RESTRICT",
+            "referencedSchema": "public",
+            "referencedTable": "users",
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT",
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "cooperative_members",
+            "name": "PK_21a623647dd89d31e42f4e4fe09",
+            "type": "primary-key",
+            "columns": [
+              "id"
+            ],
+            "definition": "PRIMARY KEY (id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          },
+          {
+            "table": "cooperative_members",
+            "name": "uq_p3_member_cooperative_farmer",
+            "type": "unique-constraint",
+            "columns": [
+              "cooperative_id",
+              "farmer_id"
+            ],
+            "definition": "UNIQUE (cooperative_id, farmer_id)",
+            "referencedSchema": null,
+            "referencedTable": null,
+            "referencedColumns": [],
+            "onUpdate": null,
+            "onDelete": null,
+            "deferrable": false,
+            "initiallyDeferred": false
+          }
+        ],
+        "indexes": [
+          {
+            "table": "cooperative_members",
+            "name": "PK_21a623647dd89d31e42f4e4fe09",
+            "unique": true,
+            "primary": true,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX \"PK_21a623647dd89d31e42f4e4fe09\" ON cooperative_members USING btree (id)",
+            "predicate": null
+          },
+          {
+            "table": "cooperative_members",
+            "name": "idx_p3_member_cooperative_status",
+            "unique": false,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE INDEX idx_p3_member_cooperative_status ON cooperative_members USING btree (cooperative_id, status)",
+            "predicate": null
+          },
+          {
+            "table": "cooperative_members",
+            "name": "uq_p3_member_cooperative_farmer",
+            "unique": true,
+            "primary": false,
+            "method": "btree",
+            "definition": "CREATE UNIQUE INDEX uq_p3_member_cooperative_farmer ON cooperative_members USING btree (cooperative_id, farmer_id)",
             "predicate": null
           }
         ]

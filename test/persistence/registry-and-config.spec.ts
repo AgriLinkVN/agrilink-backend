@@ -93,19 +93,19 @@ describe("Persistence Phase 1 registry and configuration", () => {
   it("uses one deterministic runtime/CLI/test registry", () => {
     expect(RUNTIME_ENTITY_REGISTRY).toBe(CLI_ENTITY_REGISTRY);
     expect(RUNTIME_ENTITY_REGISTRY).toBe(TEST_ENTITY_REGISTRY);
-    expect(RUNTIME_ENTITY_REGISTRY).toHaveLength(33);
-    expect(new Set(RUNTIME_ENTITY_REGISTRY).size).toBe(33);
-    expect(getRegisteredEntityKeys()).toHaveLength(33);
-    expect(new Set(getRegisteredEntityKeys()).size).toBe(33);
+    expect(RUNTIME_ENTITY_REGISTRY).toHaveLength(41);
+    expect(new Set(RUNTIME_ENTITY_REGISTRY).size).toBe(41);
+    expect(getRegisteredEntityKeys()).toHaveLength(41);
+    expect(new Set(getRegisteredEntityKeys()).size).toBe(41);
     expect(
       RUNTIME_ENTITY_ENTRIES.map(({ entity }) => getEntityTableKey(entity)),
     ).toEqual(RUNTIME_ENTITY_ENTRIES.map(({ key }) => key));
   });
 
-  it("keeps the reviewed 26-table baseline separate from seven runtime extras", () => {
-    expect(CANONICAL_BASELINE_ENTITY_REGISTRY).toHaveLength(26);
-    expect(CANONICAL_BASELINE_TABLE_KEYS).toHaveLength(26);
-    expect(EXCLUDED_RUNTIME_TABLE_KEYS).toHaveLength(7);
+  it("keeps the reviewed 36-table migration head separate from five runtime extras", () => {
+    expect(CANONICAL_BASELINE_ENTITY_REGISTRY).toHaveLength(36);
+    expect(CANONICAL_BASELINE_TABLE_KEYS).toHaveLength(36);
+    expect(EXCLUDED_RUNTIME_TABLE_KEYS).toHaveLength(5);
 
     const matrixPath = path.join(
       process.cwd(),
@@ -122,15 +122,39 @@ describe("Persistence Phase 1 registry and configuration", () => {
       .filter(({ includeInBaselineV2 }) => includeInBaselineV2)
       .map(({ schema, table }) => `${schema}.${table}`)
       .sort();
-    expect(CANONICAL_BASELINE_TABLE_KEYS).toEqual(reviewed);
-    expect([...CANONICAL_BASELINE_V2_TABLES].sort()).toEqual(
-      reviewed.map((key) => key.replace("public.", "")),
+    expect(CANONICAL_BASELINE_TABLE_KEYS).toEqual(
+      [
+        ...reviewed,
+        "public.traceability_batches",
+        "public.traceability_events",
+      ].sort(),
     );
+    const initialBaseline: string[] = [...CANONICAL_BASELINE_V2_TABLES].sort();
+    const migrationHead = reviewed.map((key) => key.replace("public.", ""));
+    expect(
+      CANONICAL_BASELINE_TABLE_KEYS.map((key) => key.replace("public.", ""))
+        .filter((table) => !initialBaseline.includes(table))
+        .sort(),
+    ).toEqual([
+      "commerce_operations",
+      "contracts",
+      "cooperative_members",
+      "order_items",
+      "order_status_history",
+      "orders",
+      "payments",
+      "purchase_requests",
+      "traceability_batches",
+      "traceability_events",
+    ]);
+    expect(
+      initialBaseline.every((table) => migrationHead.includes(table)),
+    ).toBe(true);
   });
 
   it("uses explicit, ordered migration registries without test files", () => {
     expect(LEGACY_MIGRATIONS).toHaveLength(11);
-    expect(V2_MIGRATIONS).toHaveLength(1);
+    expect(V2_MIGRATIONS).toHaveLength(6);
     expect(() => assertDeterministicMigrationRegistry()).not.toThrow();
     const names = [
       ...getMigrationNames(LEGACY_MIGRATIONS),
