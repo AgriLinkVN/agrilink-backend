@@ -34,22 +34,15 @@ describe('Persistence Phase 2 Ads ownership', () => {
     }
   });
 
-  it('keeps legacy Ads paths decorator-free', () => {
+  it('retires zero-consumer central Ads paths', () => {
     for (const file of [
       'ad-package.entity.ts',
       'ad-campaign.entity.ts',
       'ad-event.entity.ts',
     ]) {
-      const source = fs.readFileSync(
-        path.join(root, 'src/database/entities', file),
-        'utf8',
-      );
-      expect(source).not.toMatch(
-        /@(Entity|Column|PrimaryGeneratedColumn|CreateDateColumn|UpdateDateColumn|ManyToOne|OneToMany|JoinColumn)\b/,
-      );
-      expect(source).toContain(
-        "from '../../modules/ads/infrastructure/persistence/entities/",
-      );
+      expect(
+        fs.existsSync(path.join(root, 'src/database/entities', file)),
+      ).toBe(false);
     }
   });
 

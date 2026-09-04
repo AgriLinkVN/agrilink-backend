@@ -218,9 +218,9 @@ describe("P9-00 Phase 9 kickoff inventory", () => {
       );
     });
 
-    expect(centralFiles).toHaveLength(35);
+    expect(centralFiles).toHaveLength(8);
     expect(centralMappings).toHaveLength(8);
-    expect(reexports).toHaveLength(27);
+    expect(reexports).toHaveLength(0);
     expect(centralImportConsumers(productionSources)).toEqual([
       "src/database/entity-registry.ts",
       "src/modules/admin/admin.route.ts",
@@ -301,11 +301,10 @@ describe("P9-00 Phase 9 kickoff inventory", () => {
       expect(existsSync(join(ROOT, entry.source))).toBe(true);
       expect(read(entry.source)).toContain(entry.objectName);
     }
-    expect(exceptions.exceptions).toHaveLength(3);
+    expect(exceptions.exceptions).toHaveLength(2);
     expect(exceptions.exceptions.map(({ id }) => id).sort()).toEqual([
       "foreign-for-feature-registration",
       "legacy-central-entity-imports",
-      "unsafe-database-boolean-parsing",
     ]);
     expect(read("src/database/data-source-options.ts")).toContain(
       "synchronize: false",

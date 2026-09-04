@@ -25,17 +25,12 @@ describe('Persistence Phase 2 Audit Log ownership', () => {
     ).toBe(AuditLog);
   });
 
-  it('keeps the central compatibility file decorator-free', () => {
-    const source = fs.readFileSync(
-      path.join(root, 'src/database/entities/audit-log.entity.ts'),
-      'utf8',
-    );
-    expect(source).not.toMatch(
-      /@(Entity|Column|PrimaryGeneratedColumn|CreateDateColumn)\b/,
-    );
-    expect(source).toContain(
-      "from '../../modules/admin/entities/audit-log.entity'",
-    );
+  it('retires the zero-consumer central compatibility file', () => {
+    expect(
+      fs.existsSync(
+        path.join(root, 'src/database/entities/audit-log.entity.ts'),
+      ),
+    ).toBe(false);
   });
 
   it('uses the deployed changes contract without legacy old/new columns', () => {

@@ -57,33 +57,29 @@ describe("Persistence Phase 4 ownership boundaries", () => {
     "cooperative-profile.entity.ts",
     "enterprise-profile.entity.ts",
     "supplier-profile.entity.ts",
-  ])("keeps central and legacy Profiles path %s decorator-free", (file) => {
-    for (const directory of [
-      "src/database/entities",
-      "src/modules/profiles/entities",
-    ]) {
-      const source = read(`${directory}/${file}`);
-      expect(source).toMatch(/^export \{ \w+ \} from /);
-      expect(source).not.toMatch(
-        /@(Entity|Column|PrimaryGeneratedColumn|ManyToOne|OneToOne|JoinColumn|Index)\b/,
-      );
-    }
+  ])("retires central path and keeps legacy Profiles path safe for %s", (file) => {
+    expect(
+      fs.existsSync(path.join(root, "src/database/entities", file)),
+    ).toBe(false);
+    const legacySource = read(`src/modules/profiles/entities/${file}`);
+    expect(legacySource).toMatch(/^export \{ \w+ \} from /);
+    expect(legacySource).not.toMatch(
+      /@(Entity|Column|PrimaryGeneratedColumn|ManyToOne|OneToOne|JoinColumn|Index)\b/,
+    );
   });
 
-  it("prevents the generator from recreating profile decorators", () => {
+  it("prevents the generator from recreating retired central profiles", () => {
     const generator = read("generate-entities.js");
+    expect(generator).toContain("retiredCentralCompatibilityFiles");
     for (const file of [
       "farmer-profile.entity.ts",
       "cooperative-profile.entity.ts",
       "enterprise-profile.entity.ts",
       "supplier-profile.entity.ts",
     ]) {
-      const marker = `'${file}':`;
-      const start = generator.indexOf(marker);
-      const end = generator.indexOf("`,", start);
-      expect(generator.slice(start, end)).toContain("export {");
-      expect(generator.slice(start, end)).not.toContain("@Entity");
+      expect(generator).toContain(`'${file}',`);
     }
+    expect(generator).toContain("delete entities[filename]");
   });
 
   it("keeps Admin behind typed Profiles capabilities", () => {

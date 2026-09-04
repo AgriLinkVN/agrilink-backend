@@ -26,16 +26,11 @@ describe('Persistence Phase 2 Geography ownership', () => {
     ]);
   });
 
-  it('keeps compatibility files decorator-free and registry paths canonical', () => {
+  it('retires compatibility files and keeps registry paths canonical', () => {
     for (const file of ['province.entity.ts', 'district.entity.ts']) {
-      const source = fs.readFileSync(
-        path.join(root, 'src/database/entities', file),
-        'utf8',
-      );
-      expect(source).not.toMatch(
-        /@(Entity|Column|PrimaryGeneratedColumn|ManyToOne|OneToMany|JoinColumn)\b/,
-      );
-      expect(source).toContain("from '../../modules/geography/entities/");
+      expect(
+        fs.existsSync(path.join(root, 'src/database/entities', file)),
+      ).toBe(false);
     }
 
     expect(
@@ -49,13 +44,10 @@ describe('Persistence Phase 2 Geography ownership', () => {
   });
 
   it('does not restore unverified legacy Province fields', () => {
-    const sourceFiles = [
+    const source = fs.readFileSync(
       path.join(root, 'src/modules/geography/entities/province.entity.ts'),
-      path.join(root, 'src/database/entities/province.entity.ts'),
-    ];
-    const source = sourceFiles
-      .map((file) => fs.readFileSync(file, 'utf8'))
-      .join('\n');
+      'utf8',
+    );
 
     expect(source).not.toMatch(
       /\bis_key_agri\b|\bisKeyAgri\b|\bcreatedAt\b|\bupdatedAt\b/,
@@ -77,9 +69,7 @@ describe('Persistence Phase 2 Geography ownership', () => {
     ]);
   });
 
-  it('retains the reviewed 26-table baseline and canonical Geography columns', () => {
-    expect(CANONICAL_BASELINE_TABLE_KEYS).toHaveLength(26);
-
+  it('retains the current reviewed baseline and canonical Geography columns', () => {
     const catalog = JSON.parse(
       fs.readFileSync(
         path.join(
@@ -96,6 +86,9 @@ describe('Persistence Phase 2 Geography ownership', () => {
         }>;
       };
     };
+    expect(CANONICAL_BASELINE_TABLE_KEYS).toHaveLength(
+      catalog.snapshot.tables.length,
+    );
     const provinces = catalog.snapshot.tables.find(
       ({ name }) => name === 'provinces',
     );

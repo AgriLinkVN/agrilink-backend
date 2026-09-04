@@ -25,17 +25,12 @@ describe('Persistence Phase 2 System Config ownership', () => {
     ).toBe(SystemConfig);
   });
 
-  it('keeps the central compatibility file decorator-free', () => {
-    const source = fs.readFileSync(
-      path.join(root, 'src/database/entities/system-config.entity.ts'),
-      'utf8',
-    );
-    expect(source).not.toMatch(
-      /@(Entity|Column|PrimaryColumn|PrimaryGeneratedColumn|CreateDateColumn|UpdateDateColumn)\b/,
-    );
-    expect(source).toContain(
-      "from '../../modules/admin/entities/system-config.entity'",
-    );
+  it('retires the zero-consumer central compatibility file', () => {
+    expect(
+      fs.existsSync(
+        path.join(root, 'src/database/entities/system-config.entity.ts'),
+      ),
+    ).toBe(false);
   });
 
   it('preserves the deployed UUID key/value representation', () => {
