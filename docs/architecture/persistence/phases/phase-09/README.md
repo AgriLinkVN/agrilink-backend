@@ -58,3 +58,29 @@ P9_03_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P9_01_AND_P9_02_MERGE
 PHASE_09_IMPLEMENTATION_STATUS=IN_PROGRESS
 PHASE_09_COMPLETE=NO
 ```
+
+## P9-02 Decision Overlay
+
+PR #157 merged P9-01 as
+`2909d5687b9627f87ba5e9bc37d034f318111a0b`. The human owner subsequently
+approved retaining both Market Price semantic models and splitting them into
+separate physical tables. The [P9-02 decision contract](market-prices-split-decision.md)
+records the source-derived models, naming boundary, API preservation, and
+required future expand/copy/verify/switch/contract sequence.
+
+P9-02 is documentation-only. Both mappings still target
+`public.market_prices`; no schema, migration, runtime, or deployed-data change
+is claimed.
+
+```text
+P9_00_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_156
+P9_01_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_157
+MARKET_PRICES_CANONICAL_MODEL=SPLIT_MODELS_INTO_SEPARATE_TABLES
+HUMAN_DECISION_STATUS=APPROVED
+P9_02_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P9_02_HUMAN_DECISION=MARKET_PRICES_CANONICAL_MODEL=SPLIT_MODELS_INTO_SEPARATE_TABLES
+P9_02_BLOCKERS=NONE
+P9_03_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P9_02_MERGE_AND_REVIEW
+PHASE_09_IMPLEMENTATION_STATUS=IN_PROGRESS
+PHASE_09_COMPLETE=NO
+```

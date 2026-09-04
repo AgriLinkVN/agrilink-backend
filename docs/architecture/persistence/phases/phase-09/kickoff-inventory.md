@@ -487,3 +487,78 @@ PHASE_09_COMPLETE=NO
 P9-01 initialized no DataSource, opened no database connection, executed no
 SQL, seed, TEST fixture, migration, or synchronization, and attempted no
 protected-local or production access.
+
+## P9-02 Decision and Contract Overlay
+
+PR #157 was human-reviewed, passed the Backend Quality Gate, and merged as
+`2909d5687b9627f87ba5e9bc37d034f318111a0b`. The human owner then supplied the
+exact decision `SPLIT_MODELS_INTO_SEPARATE_TABLES` for the P9-02
+`MARKET_PRICES_CANONICAL_MODEL` gate.
+
+The source audit confirms two distinct models. The central declaration is a
+category/province/date aggregate with min/max/average values and no runtime
+consumer. The owner-module declaration is a reported product-price model and
+is selected by the runtime registry, module, repository injection, DTOs, and
+the existing GET/POST controller paths. Those service paths remain TODO.
+
+The complete [Market Prices split decision contract](market-prices-split-decision.md)
+records field-level contracts, consumers, target ownership, candidate names,
+API impact, row-evidence limits, and the required future migration sequence.
+
+```text
+P9_00_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_156
+P9_01_IMPLEMENTATION_STATUS=IMPLEMENTED_BY_MERGED_PR_157
+P9_02_TITLE=Decide market_prices canonical semantic model
+P9_02_DEPENDS_ON=P9-00
+P9_02_DATABASE_REQUIRED=NO_FOR_DECISION
+P9_02_PRODUCTION_REQUIRED=NO
+P9_02_HUMAN_DECISION_REQUIRED=YES_SATISFIED
+P9_02_EXPECTED_MUTATION_SCOPE=DECISION_DOCUMENTATION_ONLY
+P9_02_EXIT_CRITERIA=ONE_APPROVED_MODEL_OR_DISPOSITION_AND_MIGRATION_REQUIREMENT
+
+MARKET_PRICES_CANONICAL_MODEL=SPLIT_MODELS_INTO_SEPARATE_TABLES
+HUMAN_DECISION_SOURCE=EXPLICIT_HUMAN_APPROVAL
+HUMAN_DECISION_STATUS=APPROVED
+MARKET_PRICES_HUMAN_DECISION_REQUIRED=NO
+MARKET_PRICES_SPLIT_DECISION_APPROVED=YES
+
+SEMANTIC_MODEL_COUNT=2
+SEMANTIC_MODELS_ARE_DISTINCT=YES
+MODEL_A_ID=AGGREGATED_CATEGORY_PROVINCE_PRICE
+MODEL_B_ID=REPORTED_PRODUCT_PRICE
+MODEL_A_OWNER=market-prices
+MODEL_B_OWNER=market-prices
+PREFERRED_MODEL_A_TABLE=public.market_price_aggregates
+PREFERRED_MODEL_B_TABLE=public.market_prices
+TABLE_NAME_HUMAN_DECISION_REQUIRED=YES
+
+CURRENT_ROW_SEMANTIC_OWNERSHIP=UNKNOWN_REQUIRES_DEPLOYED_EVIDENCE
+MARKET_PRICE_DATA_MIGRATION_REQUIRES_DEPLOYED_EVIDENCE=YES
+MIGRATION_IMPLEMENTED=NO
+SCHEMA_CHANGED=NO
+API_BREAKING_CHANGE_COUNT=0
+API_CONTRACT_DECISION_REQUIRED=NO_FOR_PRESERVING_CURRENT_ENDPOINTS
+
+CURRENT_WRITABLE_MAPPING_COUNT=2
+MULTI_WRITABLE_MAPPING_TABLE_COUNT=1
+MULTI_WRITABLE_MAPPING_TABLES=public.market_prices
+ONE_WRITABLE_MAPPING_PER_TABLE=NO
+
+COOPERATIVE_FK_DECISION_INVENTED=NO
+WISHLIST_DECISION_INVENTED=NO
+LEGACY_MIGRATION_DECISION_INVENTED=NO
+PRODUCTION_ACCESS_ATTEMPTED=NO
+
+P9_02_IMPLEMENTATION_STATUS=IMPLEMENTED_PENDING_HUMAN_REVIEW
+P9_02_HUMAN_DECISION=MARKET_PRICES_CANONICAL_MODEL=SPLIT_MODELS_INTO_SEPARATE_TABLES
+P9_02_BLOCKERS=NONE
+P9_03_IMPLEMENTATION_AUTHORIZED=NO_WAITING_FOR_P9_02_MERGE_AND_REVIEW
+P9_03_MARKET_PRICE_IMPLEMENTATION_PREREQUISITES=FINAL_TABLE_NAME_HUMAN_APPROVAL;AUTHORIZED_DEPLOYED_ROW_EVIDENCE;SEPARATE_SCHEMA_MIGRATION_SCOPE
+PHASE_09_IMPLEMENTATION_STATUS=IN_PROGRESS
+PHASE_09_COMPLETE=NO
+```
+
+P9-02 creates no migration and changes no entity, registry, repository,
+service, controller, DTO, schema, or runtime behavior. It initializes no
+DataSource, opens no database connection, executes no SQL, and attempts no
+protected-local, remote, or production access.
