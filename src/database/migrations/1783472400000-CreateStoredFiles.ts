@@ -1,0 +1,5 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+export class CreateStoredFiles1783472400000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<void> { await queryRunner.query(`CREATE TABLE IF NOT EXISTS "stored_files" ("id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(), "owner_id" uuid NOT NULL, "assetType" varchar NOT NULL, "provider" varchar NOT NULL, "visibility" varchar NOT NULL, "status" varchar NOT NULL DEFAULT 'PENDING', "object_key" varchar NOT NULL UNIQUE, "original_name" varchar NOT NULL, "extension" varchar, "declared_mime" varchar NOT NULL, "size_bytes" bigint NOT NULL, "expires_at" timestamptz NOT NULL, "resource_type" varchar, "resource_id" varchar, "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now()); CREATE UNIQUE INDEX IF NOT EXISTS "IDX_stored_files_provider_object_key" ON "stored_files" ("provider", "object_key"); CREATE INDEX IF NOT EXISTS "IDX_stored_files_owner_status" ON "stored_files" ("owner_id", "status");`); }
+  async down(queryRunner: QueryRunner): Promise<void> { await queryRunner.query('DROP TABLE IF EXISTS "stored_files"'); }
+}

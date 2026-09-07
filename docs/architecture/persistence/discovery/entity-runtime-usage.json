@@ -1,0 +1,1862 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "evidenceClassification": "Observed mapping, mounted forFeature registration, imports and repository injection",
+  "mappings": [
+    {
+      "entity": "AdCampaign",
+      "schema": "public",
+      "table": "ad_campaigns",
+      "file": "src/database/entities/ad-campaign.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AdEvent",
+      "schema": "public",
+      "table": "ad_events",
+      "file": "src/database/entities/ad-event.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AdPackage",
+      "schema": "public",
+      "table": "ad_packages",
+      "file": "src/database/entities/ad-package.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AuditLog",
+      "schema": "public",
+      "table": "audit_logs",
+      "file": "src/database/entities/audit-log.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Contract",
+      "schema": "public",
+      "table": "contracts",
+      "file": "src/database/entities/contract.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Conversation",
+      "schema": "public",
+      "table": "conversations",
+      "file": "src/database/entities/conversation.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "CooperativeProfile",
+      "schema": "public",
+      "table": "cooperative_profiles",
+      "file": "src/database/entities/cooperative-profile.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.route.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Dispute",
+      "schema": "public",
+      "table": "disputes",
+      "file": "src/database/entities/dispute.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "District",
+      "schema": "public",
+      "table": "districts",
+      "file": "src/database/entities/district.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "EnterpriseProfile",
+      "schema": "public",
+      "table": "enterprise_profiles",
+      "file": "src/database/entities/enterprise-profile.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.route.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "FarmerProfile",
+      "schema": "public",
+      "table": "farmer_profiles",
+      "file": "src/database/entities/farmer-profile.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.route.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "IncidentReport",
+      "schema": "public",
+      "table": "incident_reports",
+      "file": "src/database/entities/incident-report.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/admin/admin.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "LogisticsProfile",
+      "schema": "public",
+      "table": "logistics_profiles",
+      "file": "src/database/entities/logistics-profile.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": true,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "MarketPrice",
+      "schema": "public",
+      "table": "market_prices",
+      "file": "src/database/entities/market-price.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Message",
+      "schema": "public",
+      "table": "messages",
+      "file": "src/database/entities/message.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Notification",
+      "schema": "public",
+      "table": "notifications",
+      "file": "src/database/entities/notification.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "OrderItem",
+      "schema": "public",
+      "table": "order_items",
+      "file": "src/database/entities/order-item.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "OrderStatusHistory",
+      "schema": "public",
+      "table": "order_status_history",
+      "file": "src/database/entities/order-status-history.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Order",
+      "schema": "public",
+      "table": "orders",
+      "file": "src/database/entities/order.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/entities/order-item.entity.ts"
+      ],
+      "importedButNotRuntimeRegistered": true,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [
+        "OrderItem (src/database/entities/order-item.entity.ts)"
+      ],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "OtpVerification",
+      "schema": "public",
+      "table": "otp_verifications",
+      "file": "src/database/entities/otp-verification.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/auth/auth.module.ts",
+        "src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [
+        "NodemailerOtpSenderAdapter (src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AuthController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Payment",
+      "schema": "public",
+      "table": "payments",
+      "file": "src/database/entities/payment.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductCategory",
+      "schema": "public",
+      "table": "product_categories",
+      "file": "src/database/entities/product-category.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductCertification",
+      "schema": "public",
+      "table": "product_certifications",
+      "file": "src/database/entities/product-certification.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductImage",
+      "schema": "public",
+      "table": "product_images",
+      "file": "src/database/entities/product-image.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductWishlist",
+      "schema": "public",
+      "table": "product_wishlist",
+      "file": "src/database/entities/product-wishlist.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Product",
+      "schema": "public",
+      "table": "products",
+      "file": "src/database/entities/product.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/entities/product-image.entity.ts"
+      ],
+      "importedButNotRuntimeRegistered": true,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [
+        "ProductImage (src/database/entities/product-image.entity.ts)"
+      ],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Province",
+      "schema": "public",
+      "table": "provinces",
+      "file": "src/database/entities/province.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/entities/district.entity.ts"
+      ],
+      "importedButNotRuntimeRegistered": true,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [
+        "District (src/database/entities/district.entity.ts)"
+      ],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "PurchaseRequest",
+      "schema": "public",
+      "table": "purchase_requests",
+      "file": "src/database/entities/purchase-request.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "QualityCertificate",
+      "schema": "public",
+      "table": "quality_certificates",
+      "file": "src/database/entities/quality-certificate.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "RefreshToken",
+      "schema": "public",
+      "table": "refresh_tokens",
+      "file": "src/database/entities/refresh-token.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/auth/auth.module.ts",
+        "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [
+        "JwtTokenGeneratorAdapter (src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AuthController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ShipmentTrackingEvent",
+      "schema": "public",
+      "table": "shipment_tracking_events",
+      "file": "src/database/entities/shipment-tracking-event.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Shipment",
+      "schema": "public",
+      "table": "shipments",
+      "file": "src/database/entities/shipment.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "SupplierProfile",
+      "schema": "public",
+      "table": "supplier_profiles",
+      "file": "src/database/entities/supplier-profile.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.route.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/profiles/profiles.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "ProfilesService (src/modules/profiles/profiles.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController",
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "SystemConfig",
+      "schema": "public",
+      "table": "system_configs",
+      "file": "src/database/entities/system-config.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "TraceabilityRecord",
+      "schema": "public",
+      "table": "traceability_records",
+      "file": "src/database/entities/traceability-record.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "UserAddress",
+      "schema": "public",
+      "table": "user_addresses",
+      "file": "src/database/entities/user-address.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": false,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": true,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "legacy",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "User",
+      "schema": "public",
+      "table": "users",
+      "file": "src/database/entities/user.entity.ts",
+      "sourceOwner": "database-central",
+      "runtimeRegistered": true,
+      "cliRegistered": true,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/entities/cooperative-profile.entity.ts",
+        "src/database/entities/enterprise-profile.entity.ts",
+        "src/database/entities/farmer-profile.entity.ts",
+        "src/database/entities/otp-verification.entity.ts",
+        "src/database/entities/product.entity.ts",
+        "src/database/entities/refresh-token.entity.ts",
+        "src/database/entities/user-address.entity.ts",
+        "src/database/seeds/seed.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+        "src/modules/reviews/reviews.module.ts",
+        "src/modules/users/infrastructure/database/seeds/user.seed.ts",
+        "src/modules/users/seeds/seller.seed.ts",
+        "src/modules/users/users.module.ts",
+        "src/modules/users/users.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/users/users.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "UsersService (src/modules/users/users.service.ts)"
+      ],
+      "relationConsumers": [
+        "CooperativeProfile (src/database/entities/cooperative-profile.entity.ts)",
+        "EnterpriseProfile (src/database/entities/enterprise-profile.entity.ts)",
+        "FarmerProfile (src/database/entities/farmer-profile.entity.ts)",
+        "OtpVerification (src/database/entities/otp-verification.entity.ts)",
+        "Product (src/database/entities/product.entity.ts)",
+        "RefreshToken (src/database/entities/refresh-token.entity.ts)",
+        "UserAddress (src/database/entities/user-address.entity.ts)",
+        "Review (src/modules/reviews/infrastructure/persistence/entities/review.entity.ts)"
+      ],
+      "apiFlows": [
+        "AdminController",
+        "ReviewsController",
+        "UsersController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AuditLog",
+      "schema": "public",
+      "table": "audit_logs",
+      "file": "src/modules/admin/entities/audit-log.entity.ts",
+      "sourceOwner": "admin",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "SystemConfig",
+      "schema": "public",
+      "table": "system_configs",
+      "file": "src/modules/admin/entities/system-config.entity.ts",
+      "sourceOwner": "admin",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/admin/admin.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "AdminController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AdCampaign",
+      "schema": "public",
+      "table": "ad_campaigns",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+      "sourceOwner": "ads",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/ads/ads.module.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+        "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "relationConsumers": [
+        "AdEvent (src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts)"
+      ],
+      "apiFlows": [
+        "AdsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AdEvent",
+      "schema": "public",
+      "table": "ad_events",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+      "sourceOwner": "ads",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/ads/ads.module.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+        "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "relationConsumers": [
+        "AdCampaign (src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts)"
+      ],
+      "apiFlows": [
+        "AdsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "AdPackage",
+      "schema": "public",
+      "table": "ad_packages",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts",
+      "sourceOwner": "ads",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/ads/ads.module.ts",
+        "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+        "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmAdsRepository (src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts)"
+      ],
+      "relationConsumers": [
+        "AdCampaign (src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts)"
+      ],
+      "apiFlows": [
+        "AdsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "BulkListingContributionEntity",
+      "schema": "public",
+      "table": "bulk_listing_contributions",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts",
+      "sourceOwner": "cooperatives",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "unverified",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "BulkListingEntity",
+      "schema": "public",
+      "table": "bulk_listings",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts",
+      "sourceOwner": "cooperatives",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmBulkListingRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "unverified",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "CooperativeMemberEntity",
+      "schema": "public",
+      "table": "cooperative_members",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
+      "sourceOwner": "cooperatives",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.spec.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.spec.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.spec.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmCooperativeMemberRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "unverified",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "CooperativeProvinceReferenceEntity",
+      "schema": "public",
+      "table": "cooperative_province_references",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts",
+      "sourceOwner": "cooperatives",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.spec.ts"
+      ],
+      "importConsumers": [
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.spec.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [
+        "TypeOrmCooperativeProvinceReferenceRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "unverified",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "HarvestScheduleEntity",
+      "schema": "public",
+      "table": "harvest_schedules",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts",
+      "sourceOwner": "cooperatives",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.spec.ts",
+        "src/modules/cooperatives/infrastructure/persistence/mappers/cooperative-persistence.mapper.ts",
+        "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmHarvestScheduleRepository (src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "unverified",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ForumComment",
+      "schema": "public",
+      "table": "forum_comments",
+      "file": "src/modules/forum/entities/forum-comment.entity.ts",
+      "sourceOwner": "forum",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/forum.module.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "repositoryConsumers": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "ForumController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ForumLike",
+      "schema": "public",
+      "table": "forum_likes",
+      "file": "src/modules/forum/entities/forum-like.entity.ts",
+      "sourceOwner": "forum",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/forum.module.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "repositoryConsumers": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "ForumController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ForumPost",
+      "schema": "public",
+      "table": "forum_posts",
+      "file": "src/modules/forum/entities/forum-post.entity.ts",
+      "sourceOwner": "forum",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/dto/create-post.dto.ts",
+        "src/modules/forum/dto/list-posts.dto.ts",
+        "src/modules/forum/forum.module.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/forum/forum.service.ts"
+      ],
+      "repositoryConsumers": [
+        "ForumService (src/modules/forum/forum.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "ForumController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "District",
+      "schema": "public",
+      "table": "districts",
+      "file": "src/modules/geography/entities/district.entity.ts",
+      "sourceOwner": "geography",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/seeds/seed.ts",
+        "src/modules/geography/entities/province.entity.ts",
+        "src/modules/geography/geography.module.ts",
+        "src/modules/geography/geography.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/geography/geography.service.ts"
+      ],
+      "repositoryConsumers": [
+        "GeographyService (src/modules/geography/geography.service.ts)"
+      ],
+      "relationConsumers": [
+        "Province (src/modules/geography/entities/province.entity.ts)"
+      ],
+      "apiFlows": [
+        "GeographyController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Province",
+      "schema": "public",
+      "table": "provinces",
+      "file": "src/modules/geography/entities/province.entity.ts",
+      "sourceOwner": "geography",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/seeds/seed.ts",
+        "src/modules/geography/entities/district.entity.ts",
+        "src/modules/geography/geography.module.ts",
+        "src/modules/geography/geography.service.ts",
+        "src/modules/geography/seeds/province.seed.ts",
+        "src/modules/products/infrastructure/database/seeds/product.seed.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/geography/geography.service.ts"
+      ],
+      "repositoryConsumers": [
+        "GeographyService (src/modules/geography/geography.service.ts)"
+      ],
+      "relationConsumers": [
+        "District (src/modules/geography/entities/district.entity.ts)"
+      ],
+      "apiFlows": [
+        "GeographyController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "MarketPrice",
+      "schema": "public",
+      "table": "market_prices",
+      "file": "src/modules/market-prices/entities/market-price.entity.ts",
+      "sourceOwner": "market-prices",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/market-prices/market-prices.module.ts",
+        "src/modules/market-prices/market-prices.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/market-prices/market-prices.service.ts"
+      ],
+      "repositoryConsumers": [
+        "MarketPricesService (src/modules/market-prices/market-prices.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "MarketPricesController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "NotificationOrmEntity",
+      "schema": "public",
+      "table": "notifications",
+      "file": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "sourceOwner": "notifications",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts",
+        "src/modules/notifications/notifications.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmNotificationRepository (src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "NotificationsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductCategory",
+      "schema": "public",
+      "table": "product_categories",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts",
+      "sourceOwner": "products",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/seeds/seed.ts",
+        "src/modules/products/infrastructure/database/seeds/product-category.seed.ts",
+        "src/modules/products/infrastructure/database/seeds/product.seed.ts",
+        "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+        "src/modules/products/products.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "relationConsumers": [
+        "Product (src/modules/products/infrastructure/persistence/entities/product.entity.ts)"
+      ],
+      "apiFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductCertification",
+      "schema": "public",
+      "table": "product_certifications",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+      "sourceOwner": "products",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/seeds/seed.ts",
+        "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+        "src/modules/products/products.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "relationConsumers": [
+        "Product (src/modules/products/infrastructure/persistence/entities/product.entity.ts)"
+      ],
+      "apiFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "ProductImage",
+      "schema": "public",
+      "table": "product_images",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+      "sourceOwner": "products",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/seeds/seed.ts",
+        "src/modules/products/infrastructure/database/seeds/product.seed.ts",
+        "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+        "src/modules/products/products.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "relationConsumers": [
+        "Product (src/modules/products/infrastructure/persistence/entities/product.entity.ts)"
+      ],
+      "apiFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Product",
+      "schema": "public",
+      "table": "products",
+      "file": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "sourceOwner": "products",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/seeds/seed.ts",
+        "src/modules/admin/admin.route.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.ts",
+        "src/modules/products/infrastructure/database/seeds/product.seed.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+        "src/modules/products/products.module.ts",
+        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+        "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts",
+        "src/modules/reviews/reviews.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/admin/admin.service.ts",
+        "src/modules/products/infrastructure/database/seeds/product-development-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "AdminService (src/modules/admin/admin.service.ts)",
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)",
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "relationConsumers": [
+        "ProductCertification (src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts)",
+        "ProductImage (src/modules/products/infrastructure/persistence/entities/product-image.entity.ts)",
+        "Wishlist (src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts)",
+        "Review (src/modules/reviews/infrastructure/persistence/entities/review.entity.ts)"
+      ],
+      "apiFlows": [
+        "AdminController",
+        "ProductsController",
+        "WishlistController",
+        "ReviewsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Wishlist",
+      "schema": "public",
+      "table": "wishlists",
+      "file": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "sourceOwner": "products",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": true,
+      "testOnlyRegistered": false,
+      "testConsumers": [
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts"
+      ],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.spec.ts",
+        "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+        "src/modules/products/products.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmProductRepository (src/modules/products/infrastructure/repositories/typeorm-product.repository.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "CooperativeProfile",
+      "schema": "public",
+      "table": "cooperative_profiles",
+      "file": "src/modules/profiles/entities/cooperative-profile.entity.ts",
+      "sourceOwner": "profiles",
+      "runtimeRegistered": false,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "EnterpriseProfile",
+      "schema": "public",
+      "table": "enterprise_profiles",
+      "file": "src/modules/profiles/entities/enterprise-profile.entity.ts",
+      "sourceOwner": "profiles",
+      "runtimeRegistered": false,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "FarmerProfile",
+      "schema": "public",
+      "table": "farmer_profiles",
+      "file": "src/modules/profiles/entities/farmer-profile.entity.ts",
+      "sourceOwner": "profiles",
+      "runtimeRegistered": false,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "SupplierProfile",
+      "schema": "public",
+      "table": "supplier_profiles",
+      "file": "src/modules/profiles/entities/supplier-profile.entity.ts",
+      "sourceOwner": "profiles",
+      "runtimeRegistered": false,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [],
+      "relationConsumers": [],
+      "apiFlows": [],
+      "status": "duplicate",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "Review",
+      "schema": "public",
+      "table": "reviews",
+      "file": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+      "sourceOwner": "reviews",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts",
+        "src/modules/reviews/reviews.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TypeOrmReviewsRepository (src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "ReviewsController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "StoredFileEntity",
+      "schema": "public",
+      "table": "stored_files",
+      "file": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts",
+      "sourceOwner": "storage",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts",
+        "src/modules/storage/storage.module.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [],
+      "repositoryConsumers": [
+        "TypeOrmStoredFileRepository (src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "StorageController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": false,
+      "evidenceClassification": "Observed"
+    },
+    {
+      "entity": "TraceabilityRecord",
+      "schema": "public",
+      "table": "traceability_records",
+      "file": "src/modules/traceability/entities/traceability-record.entity.ts",
+      "sourceOwner": "traceability",
+      "runtimeRegistered": true,
+      "cliRegistered": false,
+      "testRegistered": false,
+      "testOnlyRegistered": false,
+      "testConsumers": [],
+      "importConsumers": [
+        "src/modules/traceability/traceability.module.ts",
+        "src/modules/traceability/traceability.service.ts"
+      ],
+      "importedButNotRuntimeRegistered": false,
+      "directServiceConsumers": [
+        "src/modules/traceability/traceability.service.ts"
+      ],
+      "repositoryConsumers": [
+        "TraceabilityService (src/modules/traceability/traceability.service.ts)"
+      ],
+      "relationConsumers": [],
+      "apiFlows": [
+        "TraceabilityController"
+      ],
+      "status": "active",
+      "duplicatePhysicalMapping": true,
+      "evidenceClassification": "Observed"
+    }
+  ]
+}

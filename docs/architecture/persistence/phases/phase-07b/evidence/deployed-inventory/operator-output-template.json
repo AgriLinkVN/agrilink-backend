@@ -1,0 +1,63 @@
+{
+  "environmentAlias": "SAFE_ALIAS_REQUIRED",
+  "inventoryTimestamp": null,
+  "operatorAuthorizationConfirmed": false,
+  "transactionReadOnly": null,
+  "isolationLevel": null,
+  "postgresMajorVersion": null,
+  "tables": [
+    {
+      "tableAlias": "quality_certificates",
+      "exists": null,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "product_certifications",
+      "exists": null,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "traceability_records",
+      "exists": null,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "incident_reports",
+      "exists": null,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "audit_logs",
+      "exists": null,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    }
+  ],
+  "columns": [],
+  "constraints": [],
+  "indexes": [],
+  "triggers": [],
+  "rowCountType": "NOT_RUN",
+  "aggregateCounts": {},
+  "schemaHash": null,
+  "queryExecutionStatus": "NOT_RUN",
+  "ddlCount": 0,
+  "dmlCount": 0,
+  "rawRowsExported": 0,
+  "secretsExposed": 0,
+  "blockers": []
+}

@@ -1,0 +1,2621 @@
+{
+  "database": {
+    "serverVersion": "16.14",
+    "database": "agrilink_db",
+    "schema": "public",
+    "user": "agrilink",
+    "readOnly": true
+  },
+  "lineage": {
+    "ledgers": [],
+    "classification": "reconciliation-required"
+  },
+  "fingerprint": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+  "catalog": {
+    "tableCount": 33,
+    "mismatchCount": 143,
+    "mismatches": [
+      {
+        "kind": "missing",
+        "key": "check-constraint:reviews.CHK_reviews_rating_range",
+        "expected": {
+          "table": "reviews",
+          "name": "CHK_reviews_rating_range",
+          "type": "check-constraint",
+          "columns": [
+            "rating"
+          ],
+          "definition": "CHECK (rating >= 1 AND rating <= 5)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "check-constraint:stored_files.CHK_stored_files_status",
+        "expected": {
+          "table": "stored_files",
+          "name": "CHK_stored_files_status",
+          "type": "check-constraint",
+          "columns": [
+            "status"
+          ],
+          "definition": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'UPLOADED'::character varying, 'QUARANTINED'::character varying, 'ACTIVE'::character varying, 'FAILED'::character varying, 'DELETE_RETRY'::character varying, 'DELETED'::character varying]::text[]))",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.bulk_listing_id",
+        "expected": null,
+        "actual": {
+          "name": "bulk_listing_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.farmer_id",
+        "expected": null,
+        "actual": {
+          "name": "farmer_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.quantity",
+        "expected": null,
+        "actual": {
+          "name": "quantity",
+          "dataType": "numeric",
+          "udtSchema": "pg_catalog",
+          "udtName": "numeric",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 12,
+          "numericScale": 2,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listing_contributions.unit",
+        "expected": null,
+        "actual": {
+          "name": "unit",
+          "dataType": "USER-DEFINED",
+          "udtSchema": "public",
+          "udtName": "bulk_listing_contributions_unit_enum",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.cooperative_id",
+        "expected": null,
+        "actual": {
+          "name": "cooperative_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.deadline",
+        "expected": null,
+        "actual": {
+          "name": "deadline",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.description",
+        "expected": null,
+        "actual": {
+          "name": "description",
+          "dataType": "text",
+          "udtSchema": "pg_catalog",
+          "udtName": "text",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.is_open",
+        "expected": null,
+        "actual": {
+          "name": "is_open",
+          "dataType": "boolean",
+          "udtSchema": "pg_catalog",
+          "udtName": "bool",
+          "nullable": false,
+          "default": "true",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.price_per_unit",
+        "expected": null,
+        "actual": {
+          "name": "price_per_unit",
+          "dataType": "numeric",
+          "udtSchema": "pg_catalog",
+          "udtName": "numeric",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 12,
+          "numericScale": 2,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.product_category_id",
+        "expected": null,
+        "actual": {
+          "name": "product_category_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.title",
+        "expected": null,
+        "actual": {
+          "name": "title",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.total_quantity",
+        "expected": null,
+        "actual": {
+          "name": "total_quantity",
+          "dataType": "numeric",
+          "udtSchema": "pg_catalog",
+          "udtName": "numeric",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 12,
+          "numericScale": 2,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.unit",
+        "expected": null,
+        "actual": {
+          "name": "unit",
+          "dataType": "USER-DEFINED",
+          "udtSchema": "public",
+          "udtName": "bulk_listings_unit_enum",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:bulk_listings.updated_at",
+        "expected": null,
+        "actual": {
+          "name": "updated_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.cooperative_id",
+        "expected": null,
+        "actual": {
+          "name": "cooperative_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.farmer_id",
+        "expected": null,
+        "actual": {
+          "name": "farmer_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.joined_at",
+        "expected": null,
+        "actual": {
+          "name": "joined_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.role",
+        "expected": null,
+        "actual": {
+          "name": "role",
+          "dataType": "text",
+          "udtSchema": "pg_catalog",
+          "udtName": "text",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.status",
+        "expected": null,
+        "actual": {
+          "name": "status",
+          "dataType": "USER-DEFINED",
+          "udtSchema": "public",
+          "udtName": "cooperative_members_status_enum",
+          "nullable": false,
+          "default": "'pending'::cooperative_members_status_enum",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:cooperative_members.updated_at",
+        "expected": null,
+        "actual": {
+          "name": "updated_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.business_license_file_id",
+        "expected": {
+          "name": "business_license_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.cooperative_cert_file_id",
+        "expected": {
+          "name": "cooperative_cert_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.member_count",
+        "expected": {
+          "name": "member_count",
+          "dataType": "integer",
+          "udtSchema": "pg_catalog",
+          "udtName": "int4",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 32,
+          "numericScale": 0,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.members_list_file_id",
+        "expected": {
+          "name": "members_list_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.representative_cccd_back_file_id",
+        "expected": {
+          "name": "representative_cccd_back_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:cooperative_profiles.representative_cccd_front_file_id",
+        "expected": {
+          "name": "representative_cccd_front_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:enterprise_profiles.business_license_file_id",
+        "expected": {
+          "name": "business_license_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:farmer_profiles.cccd_back_file_id",
+        "expected": {
+          "name": "cccd_back_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:farmer_profiles.cccd_front_file_id",
+        "expected": {
+          "name": "cccd_front_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:farmer_profiles.experience_years",
+        "expected": {
+          "name": "experience_years",
+          "dataType": "integer",
+          "udtSchema": "pg_catalog",
+          "udtName": "int4",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 32,
+          "numericScale": 0,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "column:farmer_profiles.farm_name",
+        "expected": {
+          "name": "farm_name",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": 255,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.crop_name",
+        "expected": null,
+        "actual": {
+          "name": "crop_name",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.estimated_quantity",
+        "expected": null,
+        "actual": {
+          "name": "estimated_quantity",
+          "dataType": "numeric",
+          "udtSchema": "pg_catalog",
+          "udtName": "numeric",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 12,
+          "numericScale": 2,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.expected_harvest_date",
+        "expected": null,
+        "actual": {
+          "name": "expected_harvest_date",
+          "dataType": "date",
+          "udtSchema": "pg_catalog",
+          "udtName": "date",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.notes",
+        "expected": null,
+        "actual": {
+          "name": "notes",
+          "dataType": "text",
+          "udtSchema": "pg_catalog",
+          "udtName": "text",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.product_id",
+        "expected": null,
+        "actual": {
+          "name": "product_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.unit",
+        "expected": null,
+        "actual": {
+          "name": "unit",
+          "dataType": "USER-DEFINED",
+          "udtSchema": "public",
+          "udtName": "harvest_schedules_unit_enum",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.updated_at",
+        "expected": null,
+        "actual": {
+          "name": "updated_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:harvest_schedules.user_id",
+        "expected": null,
+        "actual": {
+          "name": "user_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.category_id",
+        "expected": null,
+        "actual": {
+          "name": "category_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.price_date",
+        "expected": null,
+        "actual": {
+          "name": "price_date",
+          "dataType": "date",
+          "udtSchema": "pg_catalog",
+          "udtName": "date",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.price_per_unit",
+        "expected": null,
+        "actual": {
+          "name": "price_per_unit",
+          "dataType": "numeric",
+          "udtSchema": "pg_catalog",
+          "udtName": "numeric",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": 12,
+          "numericScale": 2,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.product_name",
+        "expected": null,
+        "actual": {
+          "name": "product_name",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.province_id",
+        "expected": null,
+        "actual": {
+          "name": "province_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.reported_by",
+        "expected": null,
+        "actual": {
+          "name": "reported_by",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.source",
+        "expected": null,
+        "actual": {
+          "name": "source",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.unit",
+        "expected": null,
+        "actual": {
+          "name": "unit",
+          "dataType": "USER-DEFINED",
+          "udtSchema": "public",
+          "udtName": "market_prices_unit_enum",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:market_prices.updated_at",
+        "expected": null,
+        "actual": {
+          "name": "updated_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "column:product_certifications.stored_file_id",
+        "expected": {
+          "name": "stored_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:product_wishlists.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:product_wishlists.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:product_wishlists.product_id",
+        "expected": null,
+        "actual": {
+          "name": "product_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:product_wishlists.user_id",
+        "expected": null,
+        "actual": {
+          "name": "user_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "column:supplier_profiles.business_license_file_id",
+        "expected": {
+          "name": "business_license_file_id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.certifications",
+        "expected": null,
+        "actual": {
+          "name": "certifications",
+          "dataType": "jsonb",
+          "udtSchema": "pg_catalog",
+          "udtName": "jsonb",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.created_at",
+        "expected": null,
+        "actual": {
+          "name": "created_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.farm_location",
+        "expected": null,
+        "actual": {
+          "name": "farm_location",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.farming_method",
+        "expected": null,
+        "actual": {
+          "name": "farming_method",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.harvested_date",
+        "expected": null,
+        "actual": {
+          "name": "harvested_date",
+          "dataType": "date",
+          "udtSchema": "pg_catalog",
+          "udtName": "date",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.id",
+        "expected": null,
+        "actual": {
+          "name": "id",
+          "dataType": "uuid",
+          "udtSchema": "pg_catalog",
+          "udtName": "uuid",
+          "nullable": false,
+          "default": "uuid_generate_v4()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.notes",
+        "expected": null,
+        "actual": {
+          "name": "notes",
+          "dataType": "text",
+          "udtSchema": "pg_catalog",
+          "udtName": "text",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.pesticides_used",
+        "expected": null,
+        "actual": {
+          "name": "pesticides_used",
+          "dataType": "text",
+          "udtSchema": "pg_catalog",
+          "udtName": "text",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.planted_date",
+        "expected": null,
+        "actual": {
+          "name": "planted_date",
+          "dataType": "date",
+          "udtSchema": "pg_catalog",
+          "udtName": "date",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.producer_id",
+        "expected": null,
+        "actual": {
+          "name": "producer_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.product_id",
+        "expected": null,
+        "actual": {
+          "name": "product_id",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.qr_code",
+        "expected": null,
+        "actual": {
+          "name": "qr_code",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "column:traceability_records.updated_at",
+        "expected": null,
+        "actual": {
+          "name": "updated_at",
+          "dataType": "timestamp with time zone",
+          "udtSchema": "pg_catalog",
+          "udtName": "timestamptz",
+          "nullable": false,
+          "default": "now()",
+          "characterMaximumLength": null,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "changed",
+        "key": "column:users.email",
+        "expected": {
+          "name": "email",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": false,
+          "default": null,
+          "characterMaximumLength": 255,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        },
+        "actual": {
+          "name": "email",
+          "dataType": "character varying",
+          "udtSchema": "pg_catalog",
+          "udtName": "varchar",
+          "nullable": true,
+          "default": null,
+          "characterMaximumLength": 255,
+          "numericPrecision": null,
+          "numericScale": null,
+          "identity": null,
+          "generated": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "enum:public.bulk_listing_contributions_unit_enum",
+        "expected": null,
+        "actual": {
+          "name": "bulk_listing_contributions_unit_enum",
+          "values": [
+            "kg",
+            "ton",
+            "box",
+            "bunch",
+            "liter",
+            "piece"
+          ]
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "enum:public.bulk_listings_unit_enum",
+        "expected": null,
+        "actual": {
+          "name": "bulk_listings_unit_enum",
+          "values": [
+            "kg",
+            "ton",
+            "box",
+            "bunch",
+            "liter",
+            "piece"
+          ]
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "enum:public.cooperative_members_status_enum",
+        "expected": null,
+        "actual": {
+          "name": "cooperative_members_status_enum",
+          "values": [
+            "pending",
+            "active",
+            "suspended",
+            "left"
+          ]
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "enum:public.harvest_schedules_unit_enum",
+        "expected": null,
+        "actual": {
+          "name": "harvest_schedules_unit_enum",
+          "values": [
+            "kg",
+            "ton",
+            "box",
+            "bunch",
+            "liter",
+            "piece"
+          ]
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "enum:public.market_prices_unit_enum",
+        "expected": null,
+        "actual": {
+          "name": "market_prices_unit_enum",
+          "values": [
+            "kg",
+            "ton",
+            "box",
+            "bunch",
+            "liter",
+            "piece"
+          ]
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:cooperative_profiles.FK_cooperative_profiles_business_license_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "FK_cooperative_profiles_business_license_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "business_license_file_id"
+          ],
+          "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:cooperative_profiles.FK_cooperative_profiles_cooperative_cert_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "FK_cooperative_profiles_cooperative_cert_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "cooperative_cert_file_id"
+          ],
+          "definition": "FOREIGN KEY (cooperative_cert_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:cooperative_profiles.FK_cooperative_profiles_members_list_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "FK_cooperative_profiles_members_list_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "members_list_file_id"
+          ],
+          "definition": "FOREIGN KEY (members_list_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:cooperative_profiles.FK_cooperative_profiles_representative_cccd_back_fi",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "FK_cooperative_profiles_representative_cccd_back_fi",
+          "type": "foreign-key",
+          "columns": [
+            "representative_cccd_back_file_id"
+          ],
+          "definition": "FOREIGN KEY (representative_cccd_back_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:cooperative_profiles.FK_cooperative_profiles_representative_cccd_front_f",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "FK_cooperative_profiles_representative_cccd_front_f",
+          "type": "foreign-key",
+          "columns": [
+            "representative_cccd_front_file_id"
+          ],
+          "definition": "FOREIGN KEY (representative_cccd_front_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:enterprise_profiles.FK_enterprise_profiles_business_license_file_id",
+        "expected": {
+          "table": "enterprise_profiles",
+          "name": "FK_enterprise_profiles_business_license_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "business_license_file_id"
+          ],
+          "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:farmer_profiles.FK_farmer_profiles_cccd_back_file_id",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "FK_farmer_profiles_cccd_back_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "cccd_back_file_id"
+          ],
+          "definition": "FOREIGN KEY (cccd_back_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:farmer_profiles.FK_farmer_profiles_cccd_front_file_id",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "FK_farmer_profiles_cccd_front_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "cccd_front_file_id"
+          ],
+          "definition": "FOREIGN KEY (cccd_front_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:product_certifications.FK_product_certifications_stored_file",
+        "expected": {
+          "table": "product_certifications",
+          "name": "FK_product_certifications_stored_file",
+          "type": "foreign-key",
+          "columns": [
+            "stored_file_id"
+          ],
+          "definition": "FOREIGN KEY (stored_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:supplier_profiles.FK_supplier_profiles_business_license_file_id",
+        "expected": {
+          "table": "supplier_profiles",
+          "name": "FK_supplier_profiles_business_license_file_id",
+          "type": "foreign-key",
+          "columns": [
+            "business_license_file_id"
+          ],
+          "definition": "FOREIGN KEY (business_license_file_id) REFERENCES stored_files(id)",
+          "referencedSchema": "public",
+          "referencedTable": "stored_files",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:supplier_profiles.FK_supplier_profiles_user",
+        "expected": {
+          "table": "supplier_profiles",
+          "name": "FK_supplier_profiles_user",
+          "type": "foreign-key",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "FOREIGN KEY (user_id) REFERENCES users(id)",
+          "referencedSchema": "public",
+          "referencedTable": "users",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "NO ACTION",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "foreign-key:wishlists.FK_wishlists_user",
+        "expected": {
+          "table": "wishlists",
+          "name": "FK_wishlists_user",
+          "type": "foreign-key",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+          "referencedSchema": "public",
+          "referencedTable": "users",
+          "referencedColumns": [
+            "id"
+          ],
+          "onUpdate": "NO ACTION",
+          "onDelete": "CASCADE",
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:bulk_listing_contributions.PK_d9ae367f69afcece4846f9fe244",
+        "expected": null,
+        "actual": {
+          "table": "bulk_listing_contributions",
+          "name": "PK_d9ae367f69afcece4846f9fe244",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_d9ae367f69afcece4846f9fe244\" ON bulk_listing_contributions USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:bulk_listings.PK_990c379c852e95cda640025168d",
+        "expected": null,
+        "actual": {
+          "table": "bulk_listings",
+          "name": "PK_990c379c852e95cda640025168d",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_990c379c852e95cda640025168d\" ON bulk_listings USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:cooperative_members.PK_21a623647dd89d31e42f4e4fe09",
+        "expected": null,
+        "actual": {
+          "table": "cooperative_members",
+          "name": "PK_21a623647dd89d31e42f4e4fe09",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_21a623647dd89d31e42f4e4fe09\" ON cooperative_members USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.IDX_cooperative_profiles_business_license_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "IDX_cooperative_profiles_business_license_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_cooperative_profiles_business_license_file_id\" ON cooperative_profiles USING btree (business_license_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.IDX_cooperative_profiles_cooperative_cert_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "IDX_cooperative_profiles_cooperative_cert_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_cooperative_profiles_cooperative_cert_file_id\" ON cooperative_profiles USING btree (cooperative_cert_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.IDX_cooperative_profiles_members_list_file_id",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "IDX_cooperative_profiles_members_list_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_cooperative_profiles_members_list_file_id\" ON cooperative_profiles USING btree (members_list_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.IDX_cooperative_profiles_representative_cccd_back_fi",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "IDX_cooperative_profiles_representative_cccd_back_fi",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_cooperative_profiles_representative_cccd_back_fi\" ON cooperative_profiles USING btree (representative_cccd_back_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.IDX_cooperative_profiles_representative_cccd_front_f",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "IDX_cooperative_profiles_representative_cccd_front_f",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_cooperative_profiles_representative_cccd_front_f\" ON cooperative_profiles USING btree (representative_cccd_front_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:cooperative_profiles.REL_2ee3321e75f5e1f2261baa4e80",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "REL_2ee3321e75f5e1f2261baa4e80",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"REL_2ee3321e75f5e1f2261baa4e80\" ON cooperative_profiles USING btree (user_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:cooperative_profiles.UQ_2ee3321e75f5e1f2261baa4e800",
+        "expected": null,
+        "actual": {
+          "table": "cooperative_profiles",
+          "name": "UQ_2ee3321e75f5e1f2261baa4e800",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"UQ_2ee3321e75f5e1f2261baa4e800\" ON cooperative_profiles USING btree (user_id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "index:enterprise_profiles.IDX_enterprise_profiles_business_license_file_id",
+        "expected": {
+          "table": "enterprise_profiles",
+          "name": "IDX_enterprise_profiles_business_license_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_enterprise_profiles_business_license_file_id\" ON enterprise_profiles USING btree (business_license_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:enterprise_profiles.REL_7b9aac16881c9af649fd74011b",
+        "expected": {
+          "table": "enterprise_profiles",
+          "name": "REL_7b9aac16881c9af649fd74011b",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"REL_7b9aac16881c9af649fd74011b\" ON enterprise_profiles USING btree (user_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:enterprise_profiles.UQ_7b9aac16881c9af649fd74011b9",
+        "expected": null,
+        "actual": {
+          "table": "enterprise_profiles",
+          "name": "UQ_7b9aac16881c9af649fd74011b9",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"UQ_7b9aac16881c9af649fd74011b9\" ON enterprise_profiles USING btree (user_id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "index:farmer_profiles.IDX_farmer_profiles_cccd_back_file_id",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "IDX_farmer_profiles_cccd_back_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_farmer_profiles_cccd_back_file_id\" ON farmer_profiles USING btree (cccd_back_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:farmer_profiles.IDX_farmer_profiles_cccd_front_file_id",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "IDX_farmer_profiles_cccd_front_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_farmer_profiles_cccd_front_file_id\" ON farmer_profiles USING btree (cccd_front_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:farmer_profiles.REL_77f5f5145225ffcaa3583fb0ee",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "REL_77f5f5145225ffcaa3583fb0ee",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"REL_77f5f5145225ffcaa3583fb0ee\" ON farmer_profiles USING btree (user_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:farmer_profiles.UQ_77f5f5145225ffcaa3583fb0ee1",
+        "expected": null,
+        "actual": {
+          "table": "farmer_profiles",
+          "name": "UQ_77f5f5145225ffcaa3583fb0ee1",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"UQ_77f5f5145225ffcaa3583fb0ee1\" ON farmer_profiles USING btree (user_id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:harvest_schedules.PK_4dcd0d0c0446c153af395a56574",
+        "expected": null,
+        "actual": {
+          "table": "harvest_schedules",
+          "name": "PK_4dcd0d0c0446c153af395a56574",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_4dcd0d0c0446c153af395a56574\" ON harvest_schedules USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:market_prices.PK_cb959017562b6fe816d5a5c91dd",
+        "expected": null,
+        "actual": {
+          "table": "market_prices",
+          "name": "PK_cb959017562b6fe816d5a5c91dd",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_cb959017562b6fe816d5a5c91dd\" ON market_prices USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "index:product_certifications.IDX_product_certifications_stored_file_id",
+        "expected": {
+          "table": "product_certifications",
+          "name": "IDX_product_certifications_stored_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_product_certifications_stored_file_id\" ON product_certifications USING btree (stored_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:product_wishlists.PK_802bc15fd5720830cb6efe16725",
+        "expected": null,
+        "actual": {
+          "table": "product_wishlists",
+          "name": "PK_802bc15fd5720830cb6efe16725",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_802bc15fd5720830cb6efe16725\" ON product_wishlists USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "index:reviews.IDX_reviews_reviewer_product_unique",
+        "expected": {
+          "table": "reviews",
+          "name": "IDX_reviews_reviewer_product_unique",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"IDX_reviews_reviewer_product_unique\" ON reviews USING btree (reviewer_id, product_id) WHERE product_id IS NOT NULL",
+          "predicate": "product_id IS NOT NULL"
+        },
+        "actual": null
+      },
+      {
+        "kind": "missing",
+        "key": "index:supplier_profiles.IDX_supplier_profiles_business_license_file_id",
+        "expected": {
+          "table": "supplier_profiles",
+          "name": "IDX_supplier_profiles_business_license_file_id",
+          "unique": false,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE INDEX \"IDX_supplier_profiles_business_license_file_id\" ON supplier_profiles USING btree (business_license_file_id)",
+          "predicate": null
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:traceability_records.PK_d68e6cd9c28500f6d07ee20c096",
+        "expected": null,
+        "actual": {
+          "table": "traceability_records",
+          "name": "PK_d68e6cd9c28500f6d07ee20c096",
+          "unique": true,
+          "primary": true,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"PK_d68e6cd9c28500f6d07ee20c096\" ON traceability_records USING btree (id)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "index:traceability_records.UQ_068d970b746cb72a57262bccab4",
+        "expected": null,
+        "actual": {
+          "table": "traceability_records",
+          "name": "UQ_068d970b746cb72a57262bccab4",
+          "unique": true,
+          "primary": false,
+          "method": "btree",
+          "definition": "CREATE UNIQUE INDEX \"UQ_068d970b746cb72a57262bccab4\" ON traceability_records USING btree (qr_code)",
+          "predicate": null
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:bulk_listing_contributions.PK_d9ae367f69afcece4846f9fe244",
+        "expected": null,
+        "actual": {
+          "table": "bulk_listing_contributions",
+          "name": "PK_d9ae367f69afcece4846f9fe244",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:bulk_listings.PK_990c379c852e95cda640025168d",
+        "expected": null,
+        "actual": {
+          "table": "bulk_listings",
+          "name": "PK_990c379c852e95cda640025168d",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:cooperative_members.PK_21a623647dd89d31e42f4e4fe09",
+        "expected": null,
+        "actual": {
+          "table": "cooperative_members",
+          "name": "PK_21a623647dd89d31e42f4e4fe09",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:harvest_schedules.PK_4dcd0d0c0446c153af395a56574",
+        "expected": null,
+        "actual": {
+          "table": "harvest_schedules",
+          "name": "PK_4dcd0d0c0446c153af395a56574",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:market_prices.PK_cb959017562b6fe816d5a5c91dd",
+        "expected": null,
+        "actual": {
+          "table": "market_prices",
+          "name": "PK_cb959017562b6fe816d5a5c91dd",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:product_wishlists.PK_802bc15fd5720830cb6efe16725",
+        "expected": null,
+        "actual": {
+          "table": "product_wishlists",
+          "name": "PK_802bc15fd5720830cb6efe16725",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "primary-key:traceability_records.PK_d68e6cd9c28500f6d07ee20c096",
+        "expected": null,
+        "actual": {
+          "table": "traceability_records",
+          "name": "PK_d68e6cd9c28500f6d07ee20c096",
+          "type": "primary-key",
+          "columns": [
+            "id"
+          ],
+          "definition": "PRIMARY KEY (id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.bulk_listing_contributions",
+        "expected": null,
+        "actual": {
+          "name": "bulk_listing_contributions"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.bulk_listings",
+        "expected": null,
+        "actual": {
+          "name": "bulk_listings"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.cooperative_members",
+        "expected": null,
+        "actual": {
+          "name": "cooperative_members"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.harvest_schedules",
+        "expected": null,
+        "actual": {
+          "name": "harvest_schedules"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.market_prices",
+        "expected": null,
+        "actual": {
+          "name": "market_prices"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.product_wishlists",
+        "expected": null,
+        "actual": {
+          "name": "product_wishlists"
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "table:public.traceability_records",
+        "expected": null,
+        "actual": {
+          "name": "traceability_records"
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "unique-constraint:cooperative_profiles.REL_2ee3321e75f5e1f2261baa4e80",
+        "expected": {
+          "table": "cooperative_profiles",
+          "name": "REL_2ee3321e75f5e1f2261baa4e80",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "unique-constraint:cooperative_profiles.UQ_2ee3321e75f5e1f2261baa4e800",
+        "expected": null,
+        "actual": {
+          "table": "cooperative_profiles",
+          "name": "UQ_2ee3321e75f5e1f2261baa4e800",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "unique-constraint:enterprise_profiles.REL_7b9aac16881c9af649fd74011b",
+        "expected": {
+          "table": "enterprise_profiles",
+          "name": "REL_7b9aac16881c9af649fd74011b",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "unique-constraint:enterprise_profiles.UQ_7b9aac16881c9af649fd74011b9",
+        "expected": null,
+        "actual": {
+          "table": "enterprise_profiles",
+          "name": "UQ_7b9aac16881c9af649fd74011b9",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "missing",
+        "key": "unique-constraint:farmer_profiles.REL_77f5f5145225ffcaa3583fb0ee",
+        "expected": {
+          "table": "farmer_profiles",
+          "name": "REL_77f5f5145225ffcaa3583fb0ee",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        },
+        "actual": null
+      },
+      {
+        "kind": "unexpected",
+        "key": "unique-constraint:farmer_profiles.UQ_77f5f5145225ffcaa3583fb0ee1",
+        "expected": null,
+        "actual": {
+          "table": "farmer_profiles",
+          "name": "UQ_77f5f5145225ffcaa3583fb0ee1",
+          "type": "unique-constraint",
+          "columns": [
+            "user_id"
+          ],
+          "definition": "UNIQUE (user_id)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      },
+      {
+        "kind": "unexpected",
+        "key": "unique-constraint:traceability_records.UQ_068d970b746cb72a57262bccab4",
+        "expected": null,
+        "actual": {
+          "table": "traceability_records",
+          "name": "UQ_068d970b746cb72a57262bccab4",
+          "type": "unique-constraint",
+          "columns": [
+            "qr_code"
+          ],
+          "definition": "UNIQUE (qr_code)",
+          "referencedSchema": null,
+          "referencedTable": null,
+          "referencedColumns": [],
+          "onUpdate": null,
+          "onDelete": null,
+          "deferrable": false,
+          "initiallyDeferred": false
+        }
+      }
+    ],
+    "knownPreservedExtras": [
+      {
+        "table": "bulk_listing_contributions",
+        "group": "C",
+        "owner": "cooperatives",
+        "rows": 0
+      },
+      {
+        "table": "bulk_listings",
+        "group": "C",
+        "owner": "cooperatives",
+        "rows": 0
+      },
+      {
+        "table": "cooperative_members",
+        "group": "C",
+        "owner": "cooperatives",
+        "rows": 0
+      },
+      {
+        "table": "harvest_schedules",
+        "group": "C",
+        "owner": "cooperatives",
+        "rows": 0
+      },
+      {
+        "table": "market_prices",
+        "group": "C",
+        "owner": "market-prices",
+        "rows": 0
+      },
+      {
+        "table": "product_wishlists",
+        "group": "D",
+        "owner": "products",
+        "rows": 0
+      },
+      {
+        "table": "traceability_records",
+        "group": "C",
+        "owner": "traceability",
+        "rows": 0
+      }
+    ],
+    "unknownTables": []
+  },
+  "groupB": {
+    "rowCounts": {
+      "users": 13,
+      "farmer_profiles": 0,
+      "cooperative_profiles": 0,
+      "enterprise_profiles": 0,
+      "supplier_profiles": 0,
+      "products": 54,
+      "product_certifications": 0,
+      "reviews": 0
+    },
+    "blockers": [
+      {
+        "check": "users.email is null",
+        "count": 2
+      },
+      {
+        "check": "reviews duplicate reviewer/product pairs",
+        "count": 0
+      }
+    ]
+  },
+  "storage": {
+    "occupancy": [],
+    "orphanReferences": []
+  },
+  "wishlist": [
+    {
+      "table": "wishlists",
+      "rows": 0,
+      "duplicatePairs": 0,
+      "foreignKeys": 1
+    },
+    {
+      "table": "product_wishlists",
+      "rows": 0,
+      "duplicatePairs": 0,
+      "foreignKeys": 0
+    }
+  ],
+  "result": "RECONCILIATION_REQUIRED",
+  "blockers": [
+    "users.email is null: 2"
+  ]
+}

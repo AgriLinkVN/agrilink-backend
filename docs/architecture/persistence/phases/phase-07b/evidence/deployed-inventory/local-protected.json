@@ -1,0 +1,473 @@
+{
+  "environmentAlias": "local-protected",
+  "inventoryTimestamp": "2026-08-03T18:05:18.2583020Z",
+  "operatorAuthorizationConfirmed": true,
+  "transactionReadOnly": true,
+  "isolationLevel": "repeatable read",
+  "postgresMajorVersion": 16,
+  "tables": [
+    {
+      "tableAlias": "quality_certificates",
+      "exists": false,
+      "rowCount": null,
+      "rowCountType": "NOT_RUN",
+      "rowLevelSecurityEnabled": null,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "product_certifications",
+      "exists": true,
+      "rowCount": 0,
+      "rowCountType": "EXACT",
+      "rowLevelSecurityEnabled": false,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "traceability_records",
+      "exists": true,
+      "rowCount": 0,
+      "rowCountType": "EXACT",
+      "rowLevelSecurityEnabled": false,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "incident_reports",
+      "exists": true,
+      "rowCount": 0,
+      "rowCountType": "EXACT",
+      "rowLevelSecurityEnabled": false,
+      "rowLevelSecurityForced": null
+    },
+    {
+      "tableAlias": "audit_logs",
+      "exists": true,
+      "rowCount": 0,
+      "rowCountType": "EXACT",
+      "rowLevelSecurityEnabled": false,
+      "rowLevelSecurityForced": null
+    }
+  ],
+  "columns": [
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "user_id",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "action",
+      "dataType": "varchar",
+      "nullable": false
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "entity_type",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "entity_id",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "method",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "path",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "changes",
+      "dataType": "jsonb",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "ip_address",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "audit_logs",
+      "columnName": "created_at",
+      "dataType": "timestamptz",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "shipment_id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "reported_by",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "incident_type",
+      "dataType": "enum",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "description",
+      "dataType": "text",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "evidence_urls",
+      "dataType": "text[]",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "status",
+      "dataType": "varchar",
+      "nullable": false
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "resolved_at",
+      "dataType": "timestamptz",
+      "nullable": true
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columnName": "created_at",
+      "dataType": "timestamptz",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "product_id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "cert_number",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "issued_by",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "issued_date",
+      "dataType": "date",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "expiry_date",
+      "dataType": "date",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "document_url",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "created_at",
+      "dataType": "timestamptz",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "is_verified",
+      "dataType": "boolean",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "verified_by",
+      "dataType": "uuid",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "cert_type",
+      "dataType": "enum",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "status",
+      "dataType": "enum",
+      "nullable": false
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "verified_at",
+      "dataType": "timestamptz",
+      "nullable": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columnName": "rejection_reason",
+      "dataType": "text",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "id",
+      "dataType": "uuid",
+      "nullable": false
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "product_id",
+      "dataType": "varchar",
+      "nullable": false
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "qr_code",
+      "dataType": "varchar",
+      "nullable": false
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "producer_id",
+      "dataType": "varchar",
+      "nullable": false
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "farm_location",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "farming_method",
+      "dataType": "varchar",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "planted_date",
+      "dataType": "date",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "harvested_date",
+      "dataType": "date",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "pesticides_used",
+      "dataType": "text",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "certifications",
+      "dataType": "jsonb",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "notes",
+      "dataType": "text",
+      "nullable": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "created_at",
+      "dataType": "timestamptz",
+      "nullable": false
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columnName": "updated_at",
+      "dataType": "timestamptz",
+      "nullable": false
+    }
+  ],
+  "constraints": [
+    {
+      "tableAlias": "audit_logs",
+      "constraintType": "PRIMARY_KEY",
+      "columns": ["id"]
+    },
+    {
+      "tableAlias": "incident_reports",
+      "constraintType": "PRIMARY_KEY",
+      "columns": ["id"]
+    },
+    {
+      "tableAlias": "product_certifications",
+      "constraintType": "PRIMARY_KEY",
+      "columns": ["id"]
+    },
+    {
+      "tableAlias": "product_certifications",
+      "constraintType": "FOREIGN_KEY",
+      "columns": ["product_id"],
+      "referencedTableAlias": "products",
+      "referencedColumns": ["id"],
+      "deleteAction": "CASCADE"
+    },
+    {
+      "tableAlias": "traceability_records",
+      "constraintType": "PRIMARY_KEY",
+      "columns": ["id"]
+    },
+    {
+      "tableAlias": "traceability_records",
+      "constraintType": "UNIQUE",
+      "columns": ["qr_code"]
+    }
+  ],
+  "indexes": [
+    {
+      "tableAlias": "audit_logs",
+      "columns": ["id"],
+      "accessMethod": "btree",
+      "primary": true,
+      "unique": true
+    },
+    {
+      "tableAlias": "incident_reports",
+      "columns": ["id"],
+      "accessMethod": "btree",
+      "primary": true,
+      "unique": true
+    },
+    {
+      "tableAlias": "product_certifications",
+      "columns": ["id"],
+      "accessMethod": "btree",
+      "primary": true,
+      "unique": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columns": ["id"],
+      "accessMethod": "btree",
+      "primary": true,
+      "unique": true
+    },
+    {
+      "tableAlias": "traceability_records",
+      "columns": ["qr_code"],
+      "accessMethod": "btree",
+      "primary": false,
+      "unique": true
+    }
+  ],
+  "triggers": [],
+  "rowCountType": "PER_TABLE",
+  "aggregateCounts": {
+    "sessionSafety": {
+      "statementCount": 45,
+      "transactionRolledBack": true,
+      "preliminaryReadOnlyAttemptsRolledBack": true,
+      "preliminaryCommandPolicy": "ALLOWLISTED_READ_ONLY_WITH_ONE_NON_IDENTICAL_CATALOG_DIAGNOSTIC"
+    },
+    "qualityCertificates": {
+      "aggregateStatus": "NOT_RUN_TABLE_ABSENT"
+    },
+    "productCertifications": {
+      "exactRowCount": 0,
+      "aggregateStatus": "SCHEMA_PRECONDITION_FAILED_MISSING_STORED_FILE_ID",
+      "emptySetImplication": "NULL_DUPLICATE_AND_STATUS_ROW_COUNTS_ARE_ZERO"
+    },
+    "traceability": {
+      "exactRowCount": 0,
+      "nullIdCount": 0,
+      "nullProductIdCount": 0,
+      "nullProducerIdCount": 0,
+      "nullQrCodeCount": 0,
+      "duplicateQrCodeGroups": 0,
+      "rowsUpdatedAfterCreation": 0,
+      "mappingBPreflight": "FAILED_COLUMNS_ABSENT",
+      "orphanQueryStatus": "NOT_RUN_TYPE_COMPATIBILITY_UNPROVEN",
+      "emptySetImplication": "ORPHAN_COUNTS_ARE_ZERO"
+    },
+    "incidents": {
+      "exactRowCount": 0,
+      "nullIdCount": 0,
+      "nullShipmentCount": 0,
+      "nullReporterCount": 0,
+      "nullStatusCount": 0,
+      "rowsWithEvidenceReferences": 0,
+      "terminalWithoutResolvedTimeCount": 0,
+      "nonterminalWithResolvedTimeCount": 0,
+      "statusOutsideApprovedLifecycleCount": 0,
+      "statusDistribution": []
+    },
+    "audit": {
+      "exactRowCount": 0,
+      "nullIdCount": 0,
+      "nullActorCount": 0,
+      "nullActionCount": 0,
+      "nullTargetTypeCount": 0,
+      "nullTargetIdCount": 0,
+      "nullCreatedAtCount": 0,
+      "optionalComplianceColumns": {
+        "correlation_id": false,
+        "operation_key": false,
+        "retention_class": false,
+        "retain_until": false,
+        "legal_hold": false
+      }
+    }
+  },
+  "schemaHash": "a865e090d975cd898848564c5593df4a",
+  "queryExecutionStatus": "EXECUTED_SANITIZED_ROLLED_BACK_WITH_SCHEMA_PRECONDITION_BLOCKERS",
+  "ddlCount": 0,
+  "dmlCount": 0,
+  "rawRowsExported": 0,
+  "secretsExposed": 0,
+  "blockers": [
+    "quality_certificates table is absent",
+    "one preliminary catalog-only diagnostic was allowlisted but not byte-identical to the reviewed pack",
+    "product_certifications is missing stored_file_id",
+    "traceability mapping-B columns are absent",
+    "traceability orphan queries were not type-safe for the observed ID types",
+    "audit compliance correlation, operation, retention and legal-hold columns are absent",
+    "production remains required and lacks approved read-only inventory"
+  ]
+}

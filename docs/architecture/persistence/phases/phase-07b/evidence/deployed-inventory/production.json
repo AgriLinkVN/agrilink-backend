@@ -1,0 +1,99 @@
+{
+  "environmentAlias": "production",
+  "inventoryTimestamp": "2026-08-08T22:46:27.8449202+07:00",
+  "operatorAuthorizationConfirmed": true,
+  "credentialClass": "DEDICATED_POSTGRESQL_READ_ONLY_CREDENTIAL",
+  "credentialAlias": "AGRILINK_PRODUCTION_READONLY_DATABASE_URL",
+  "transactionReadOnly": true,
+  "isolationLevel": "repeatable read",
+  "postgresMajorVersion": 18,
+  "tables": [
+    { "tableAlias": "quality_certificates", "exists": false, "rowCount": null, "rowCountType": "NOT_RUN", "rowLevelSecurityEnabled": null, "rowLevelSecurityForced": null, "classification": "TABLE_NOT_PRESENT", "dependentQueriesSkipped": true },
+    { "tableAlias": "product_certifications", "exists": true, "rowCount": 0, "rowCountType": "EXACT", "rowLevelSecurityEnabled": false, "rowLevelSecurityForced": false },
+    { "tableAlias": "traceability_records", "exists": false, "rowCount": null, "rowCountType": "NOT_RUN", "rowLevelSecurityEnabled": null, "rowLevelSecurityForced": null, "classification": "TABLE_NOT_PRESENT", "dependentQueriesSkipped": true },
+    { "tableAlias": "incident_reports", "exists": true, "rowCount": 0, "rowCountType": "EXACT", "rowLevelSecurityEnabled": false, "rowLevelSecurityForced": false },
+    { "tableAlias": "audit_logs", "exists": true, "rowCount": 0, "rowCountType": "EXACT", "rowLevelSecurityEnabled": false, "rowLevelSecurityForced": false }
+  ],
+  "structuralMetadata": {
+    "existingTableAliases": ["audit_logs", "incident_reports", "product_certifications"],
+    "relatedTableAliases": ["audit_logs", "incident_reports", "product_certifications"],
+    "schemaHash": "80086d7c385846bda88a354e5af33a8f",
+    "nonInternalTriggerCount": 0,
+    "constraintSummary": {
+      "audit_logs": { "primaryKey": true, "foreignKeyCount": 0 },
+      "incident_reports": { "primaryKey": true, "foreignKeyCount": 0 },
+      "product_certifications": { "primaryKey": true, "foreignKeyCount": 2 }
+    },
+    "indexSummary": {
+      "audit_logs": { "indexCount": 1, "primaryIndex": true },
+      "incident_reports": { "indexCount": 1, "primaryIndex": true },
+      "product_certifications": { "indexCount": 2, "primaryIndex": true }
+    }
+  },
+  "aggregateCounts": {
+    "product_certifications": {
+      "nullIdCount": 0,
+      "nullProductIdCount": 0,
+      "nullCertTypeCount": 0,
+      "nullPrivateFileReferenceCount": 0,
+      "legacyDocumentReferenceCount": 0,
+      "duplicateCertificateScopeGroups": 0
+    },
+    "incident_reports": {
+      "nullIdCount": 0,
+      "nullShipmentCount": 0,
+      "nullReporterCount": 0,
+      "nullStatusCount": 0,
+      "rowsWithEvidenceReferences": 0,
+      "terminalWithoutResolvedTimeCount": 0,
+      "nonterminalWithResolvedTimeCount": 0,
+      "statusOutsideApprovedLifecycleCount": 0
+    },
+    "audit_logs": {
+      "nullIdCount": 0,
+      "nullActorCount": 0,
+      "nullActionCount": 0,
+      "nullTargetTypeCount": 0,
+      "nullTargetIdCount": 0,
+      "nullCreatedAtCount": 0,
+      "optionalComplianceColumnsPresent": {
+        "correlation_id": false,
+        "operation_key": false,
+        "retention_class": false,
+        "retain_until": false,
+        "legal_hold": false
+      }
+    }
+  },
+  "queryExecution": {
+    "reviewedStatementsTotal": 59,
+    "statementsExecuted": 33,
+    "statementsSkippedTableAbsent": 22,
+    "statementsSkippedNotApplicable": 4,
+    "statementsFailed": 0,
+    "queryExecutionStatus": "EXECUTED_SANITIZED"
+  },
+  "evidenceReview": {
+    "manualReviewConfirmed": true,
+    "automatedSanitizationScanClean": true
+  },
+  "safety": {
+    "defaultTransactionReadOnly": true,
+    "inventoryTransactionRolledBack": true,
+    "dedicatedConnectionClosed": true,
+    "windowActiveWhenConnectionClosed": true,
+    "ddlCount": 0,
+    "dmlCount": 0,
+    "rawRowsExported": 0,
+    "secretsExposed": 0,
+    "migrations": 0,
+    "seeds": 0,
+    "applicationBootstrap": 0
+  },
+  "reconciliation": {
+    "p7b11": "PRODUCTION_TABLE_PRESENT=false; reconciliation remains required because the Storage Phase 9 source/CLI consumer disposition is not yet reviewed",
+    "p7b15": "PRODUCTION_TABLE_PRESENT=false; environment divergence remains visible and canonical mapping is not selected",
+    "p7b18": "P7B-18_POLICY_MODEL_APPROVED; RETENTION_DURATION_NOT_CONFIGURED; RETENTION_CLEANUP_DISABLED; LEGAL_HOLD_REQUIRED; CASCADE_HARD_DELETE_PROHIBITED"
+  },
+  "blockers": []
+}

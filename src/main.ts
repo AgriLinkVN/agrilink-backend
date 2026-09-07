@@ -1,30 +1,75 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { initSentry } from './config/sentry.config';
+import * as cookieParser from 'cookie-parser';
+import * as dns from 'dns';
+import { DataSource } from 'typeorm';
+import { ProductDevelopmentSeedService } from '@modules/products/infrastructure/database/seeds/product-development-seed.service';
+import { createProductsCategoryReferenceSeedGroup } from '@modules/products/infrastructure/database/seeds/product-category.seed';
+import { createAdsPackageReferenceSeedGroup } from '@modules/ads/infrastructure/persistence/seeds/ad-package-reference.seed';
+import { createUsersDevSeedGroup } from '@modules/users/infrastructure/database/seeds/user.seed';
+import { createProfilesRoleProfilesDevSeedGroup } from '@modules/profiles/infrastructure/database/seeds/typeorm-profile-role-development-seed.writer';
+import {
+  buildCorsOptions,
+  parseCorsOrigins,
+} from './config/http-security.config';
+import { parseEnvBoolean } from './config/parse-env-boolean';
+import { SeedClassification } from './database/seeds/framework/seed-contract';
+import { assertSeedExecutionSafety } from './database/seeds/framework/seed-environment.guard';
+import { SeedOrchestrator } from './database/seeds/framework/seed-orchestrator';
+import { ReviewDevelopmentSeedService } from '@modules/reviews/infrastructure/database/seeds/review-development-seed.service';
+import { CooperativeMemberDevelopmentSeedService } from '@modules/cooperatives/infrastructure/database/seeds/cooperative-member-development-seed.service';
+
+// Fix Node.js 18+ DNS resolution issues (IPv6 timeout / ENOTFOUND)
+dns.setDefaultResultOrder('ipv4first');
+
+initSentry();
 
 async function bootstrap() {
+  const productDevSeed = parseEnvBoolean(
+    process.env.PRODUCT_DEV_SEED,
+    'PRODUCT_DEV_SEED',
+    false,
+  );
+  const productDevSeedReset = parseEnvBoolean(
+    process.env.PRODUCT_DEV_SEED_RESET,
+    'PRODUCT_DEV_SEED_RESET',
+    false,
+  );
+  if (productDevSeed || productDevSeedReset) {
+    assertSeedExecutionSafety({
+      environment: process.env,
+      classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
+    });
+  }
+  if (productDevSeedReset) {
+    throw new Error(
+      'PRODUCT_DEV_SEED_RESET is retired; Products DEV seeding is convergent and non-destructive',
+    );
+  }
+
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('APP_PORT', 3000);
-  const corsOrigins = configService
-    .get<string>('CORS_ORIGINS', 'http://localhost:3000')
-    .split(',')
-    .map((o) => o.trim());
+  const corsOrigins = parseCorsOrigins(
+    configService.get<string>('CORS_ORIGINS'),
+  );
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
 
+  // Cookie parser
+  app.use(cookieParser());
+
   // CORS
-  app.enableCors({
-    origin: corsOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  });
+  app.enableCors(buildCorsOptions(corsOrigins));
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -39,10 +84,13 @@ async function bootstrap() {
   );
 
   // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
-  // Global response interceptor
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  // Global interceptors
+  app.useGlobalInterceptors(
+    new RequestLoggingInterceptor(),
+    new ResponseInterceptor(),
+  );
 
   // Swagger / OpenAPI
   const swaggerConfig = new DocumentBuilder()
@@ -84,6 +132,25 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   });
+
+  // Development data is opt-in so a local restart never resets records.
+  if (process.env.NODE_ENV !== 'production' && productDevSeed) {
+    const dataSource = app.get(DataSource);
+    const seedOrchestrator = new SeedOrchestrator([
+      createAdsPackageReferenceSeedGroup(dataSource),
+      createProductsCategoryReferenceSeedGroup(dataSource),
+      createUsersDevSeedGroup(dataSource),
+      createProfilesRoleProfilesDevSeedGroup(dataSource),
+      app.get(ProductDevelopmentSeedService),
+      app.get(ReviewDevelopmentSeedService),
+      app.get(CooperativeMemberDevelopmentSeedService),
+    ]);
+    await seedOrchestrator.execute({
+      environment: process.env,
+      classifications: [SeedClassification.REFERENCE, SeedClassification.DEV],
+    });
+    console.log('[Seed] canonical owner groups reconciled');
+  }
 
   await app.listen(port);
   console.log(`AgriLink API running on: http://localhost:${port}/api/v1`);

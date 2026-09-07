@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsPhoneNumber, IsString, IsUrl, IsUUID } from 'class-validator';
 import { FarmingType, Region } from '../../../common/enums';
 
 export class UpdateFarmerProfileDto {
@@ -47,4 +47,25 @@ export class UpdateFarmerProfileDto {
   @IsOptional()
   @IsInt()
   experienceYears?: number;
+
+  @ApiPropertyOptional({ example: '+84901234567' })
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/avatar.jpg' })
+  @IsOptional()
+  @IsUrl()
+  avatarUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/cover.jpg' })
+  @IsOptional()
+  @IsUrl()
+  coverImageUrl?: string;
+
+  @ApiPropertyOptional({ example: ['VietGAP', 'Organic'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  certifications?: string[];
 }
