@@ -256,8 +256,8 @@ describe("P9-01 safe compatibility and authority cleanup", () => {
     expect(audit.summary).toEqual(
       expect.objectContaining({
         writableMappings: 49,
-        physicalTables: 48,
-        duplicateTables: 1,
+        physicalTables: 49,
+        duplicateTables: 0,
         centralMappings: 8,
       }),
     );

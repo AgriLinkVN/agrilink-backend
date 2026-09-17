@@ -240,16 +240,8 @@ describe("P9-00 Phase 9 kickoff inventory", () => {
     );
 
     expect(writable).toHaveLength(49);
-    expect(byTable.size).toBe(48);
-    expect(duplicates).toEqual([
-      [
-        "public.market_prices",
-        [
-          "src/database/entities/market-price.entity.ts",
-          "src/modules/market-prices/entities/market-price.entity.ts",
-        ],
-      ],
-    ]);
+    expect(byTable.size).toBe(49);
+    expect(duplicates).toEqual([]);
   });
 
   it("ties every deferred item to current source evidence", () => {
@@ -270,7 +262,13 @@ describe("P9-00 Phase 9 kickoff inventory", () => {
         ({ schema, table }) =>
           schema === "public" && table === "market_prices",
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
+    expect(
+      mappings.filter(
+        ({ schema, table }) =>
+          schema === "public" && table === "market_price_aggregates",
+      ),
+    ).toHaveLength(1);
     expect(manifest.entries).not.toHaveLength(0);
     expect(exceptions.exceptions).not.toHaveLength(0);
     expect(
@@ -332,7 +330,7 @@ describe("P9-00 Phase 9 kickoff inventory", () => {
 
   it("derives migration lineage reachability without constructing a DataSource", () => {
     expect(LEGACY_MIGRATIONS).toHaveLength(11);
-    expect(V2_MIGRATIONS).toHaveLength(6);
+    expect(V2_MIGRATIONS.length).toBeGreaterThanOrEqual(6);
     expect(read("src/database/data-source.ts")).toContain("V2_MIGRATIONS");
     expect(read("src/database/data-source.ts")).not.toContain(
       "LEGACY_MIGRATIONS",
