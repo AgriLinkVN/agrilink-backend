@@ -1,0 +1,405 @@
+{
+  "version": 1,
+  "sourceDevelopCommit": "a6571ac846aab53171b5e940f061d5bc5e811e13",
+  "capturedAt": "2026-07-26",
+  "evidenceBoundary": {
+    "source": "repository source and generated persistence discovery",
+    "canonicalBaseline": "canonical-baseline-v2-catalog.json and v2 migration",
+    "protectedDatabase": "read-only local agrilink_db fixture, not production truth",
+    "architectureDecision": "central runtime schema is the base; only canonical or proven fields are retained"
+  },
+  "protectedDatabase": {
+    "name": "agrilink_db",
+    "serverVersion": "16.14",
+    "readOnly": true,
+    "publicTableCount": 33,
+    "migrationLedgers": [],
+    "catalogFingerprint": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "catalogFingerprintAfter": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "normalizedSchemaHashBefore": "0e17524285903bbefa348d1f28b6e5c1302419faf50ecc78fc0fe45e8cb2bc5e",
+    "normalizedSchemaHashAfter": "0e17524285903bbefa348d1f28b6e5c1302419faf50ecc78fc0fe45e8cb2bc5e",
+    "schemaUnchanged": true,
+    "catalogMismatchCount": 143,
+    "classification": "reconciliation-required",
+    "profileRows": {
+      "farmer_profiles": 0,
+      "cooperative_profiles": 0,
+      "enterprise_profiles": 0,
+      "supplier_profiles": 0
+    },
+    "statusDistribution": {
+      "farmer_profiles": {
+        "pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "cooperative_profiles": {
+        "pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "enterprise_profiles": {
+        "pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "supplier_profiles": {
+        "pending": 0,
+        "approved": 0,
+        "rejected": 0
+      }
+    },
+    "storageReferenceOccupancy": [],
+    "orphanStorageReferences": [],
+    "mutation": "none"
+  },
+  "tables": [
+    {
+      "table": "farmer_profiles",
+      "owner": "profiles",
+      "baselineV2": true,
+      "beforeMappings": [
+        "src/database/entities/farmer-profile.entity.ts",
+        "src/modules/profiles/entities/farmer-profile.entity.ts"
+      ],
+      "canonicalMapping": "src/modules/profiles/infrastructure/persistence/entities/farmer-profile.entity.ts",
+      "runtimeConsumersBefore": [
+        "ProfilesService",
+        "AdminService",
+        "entity registry",
+        "development seeds"
+      ],
+      "runtimeConsumersAfter": [
+        "ProfilesService",
+        "entity registry",
+        "development seeds"
+      ],
+      "adminAccessAfter": "typed Profiles reader and verification manager",
+      "canonicalColumns": [
+        "id",
+        "user_id",
+        "cccd_number",
+        "cccd_front_url",
+        "cccd_back_url",
+        "cccd_front_file_id",
+        "cccd_back_file_id",
+        "residence_address",
+        "ward",
+        "is_kyc_verified",
+        "verified_by",
+        "rejection_reason",
+        "province_id",
+        "district_id",
+        "bio",
+        "farm_name",
+        "experience_years",
+        "trust_score",
+        "total_sales",
+        "verified_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id uuid",
+      "userForeignKey": {
+        "column": "user_id",
+        "nullable": true,
+        "onDelete": "CASCADE"
+      },
+      "fileForeignKeys": [
+        "cccd_front_file_id -> stored_files.id NO ACTION",
+        "cccd_back_file_id -> stored_files.id NO ACTION"
+      ],
+      "uniqueConstraints": ["cccd_number", "user_id"],
+      "verificationFields": [
+        "is_kyc_verified",
+        "verified_by",
+        "verified_at",
+        "rejection_reason"
+      ],
+      "privateFields": [
+        "cccd_number",
+        "cccd_front_url",
+        "cccd_back_url",
+        "cccd_front_file_id",
+        "cccd_back_file_id",
+        "verified_by",
+        "rejection_reason"
+      ],
+      "localDatabaseMissingBaselineFields": [
+        "cccd_front_file_id",
+        "cccd_back_file_id",
+        "farm_name",
+        "experience_years"
+      ],
+      "migration": "NONE"
+    },
+    {
+      "table": "cooperative_profiles",
+      "owner": "profiles",
+      "baselineV2": true,
+      "beforeMappings": [
+        "src/database/entities/cooperative-profile.entity.ts",
+        "src/modules/profiles/entities/cooperative-profile.entity.ts"
+      ],
+      "canonicalMapping": "src/modules/profiles/infrastructure/persistence/entities/cooperative-profile.entity.ts",
+      "runtimeConsumersBefore": [
+        "ProfilesService",
+        "AdminService",
+        "entity registry",
+        "development seeds"
+      ],
+      "runtimeConsumersAfter": [
+        "ProfilesService",
+        "entity registry",
+        "development seeds"
+      ],
+      "adminAccessAfter": "typed Profiles reader and verification manager",
+      "canonicalColumns": [
+        "id",
+        "user_id",
+        "cooperative_name",
+        "business_license_number",
+        "tax_code",
+        "cooperative_cert_url",
+        "business_license_url",
+        "representative_name",
+        "representative_phone",
+        "representative_cccd",
+        "representative_cccd_front_url",
+        "representative_cccd_back_url",
+        "members_list_url",
+        "cooperative_cert_file_id",
+        "business_license_file_id",
+        "representative_cccd_front_file_id",
+        "representative_cccd_back_file_id",
+        "members_list_file_id",
+        "address",
+        "province_id",
+        "total_members",
+        "member_count",
+        "is_verified",
+        "verified_by",
+        "verified_at",
+        "rejection_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id uuid",
+      "userForeignKey": {
+        "column": "user_id",
+        "nullable": true,
+        "onDelete": "CASCADE"
+      },
+      "fileForeignKeys": [
+        "cooperative_cert_file_id -> stored_files.id NO ACTION",
+        "business_license_file_id -> stored_files.id NO ACTION",
+        "representative_cccd_front_file_id -> stored_files.id NO ACTION",
+        "representative_cccd_back_file_id -> stored_files.id NO ACTION",
+        "members_list_file_id -> stored_files.id NO ACTION"
+      ],
+      "uniqueConstraints": ["business_license_number", "tax_code", "user_id"],
+      "verificationFields": [
+        "is_verified",
+        "verified_by",
+        "verified_at",
+        "rejection_reason"
+      ],
+      "localDatabaseMissingBaselineFields": [
+        "member_count",
+        "cooperative_cert_file_id",
+        "business_license_file_id",
+        "representative_cccd_front_file_id",
+        "representative_cccd_back_file_id",
+        "members_list_file_id"
+      ],
+      "migration": "NONE"
+    },
+    {
+      "table": "enterprise_profiles",
+      "owner": "profiles",
+      "baselineV2": true,
+      "beforeMappings": [
+        "src/database/entities/enterprise-profile.entity.ts",
+        "src/modules/profiles/entities/enterprise-profile.entity.ts"
+      ],
+      "canonicalMapping": "src/modules/profiles/infrastructure/persistence/entities/enterprise-profile.entity.ts",
+      "runtimeConsumersBefore": [
+        "ProfilesService",
+        "AdminService",
+        "entity registry",
+        "development seeds"
+      ],
+      "runtimeConsumersAfter": [
+        "ProfilesService",
+        "entity registry",
+        "development seeds"
+      ],
+      "adminAccessAfter": "typed Profiles reader and verification manager",
+      "canonicalColumns": [
+        "id",
+        "user_id",
+        "company_name",
+        "tax_code",
+        "business_license_url",
+        "business_license_file_id",
+        "representative_name",
+        "representative_phone",
+        "address",
+        "province_id",
+        "industry",
+        "is_verified",
+        "verified_by",
+        "rejection_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id uuid",
+      "userForeignKey": {
+        "column": "user_id",
+        "nullable": true,
+        "onDelete": "CASCADE"
+      },
+      "fileForeignKeys": [
+        "business_license_file_id -> stored_files.id NO ACTION"
+      ],
+      "uniqueConstraints": ["tax_code", "user_id"],
+      "verificationFields": ["is_verified", "verified_by", "rejection_reason"],
+      "localDatabaseMissingBaselineFields": ["business_license_file_id"],
+      "migration": "NONE"
+    },
+    {
+      "table": "supplier_profiles",
+      "owner": "profiles",
+      "baselineV2": true,
+      "beforeMappings": [
+        "src/database/entities/supplier-profile.entity.ts",
+        "src/modules/profiles/entities/supplier-profile.entity.ts"
+      ],
+      "canonicalMapping": "src/modules/profiles/infrastructure/persistence/entities/supplier-profile.entity.ts",
+      "runtimeConsumersBefore": [
+        "ProfilesService",
+        "AdminService",
+        "entity registry",
+        "development seeds"
+      ],
+      "runtimeConsumersAfter": [
+        "ProfilesService",
+        "entity registry",
+        "development seeds"
+      ],
+      "adminAccessAfter": "typed Profiles reader and verification manager",
+      "canonicalColumns": [
+        "id",
+        "user_id",
+        "company_name",
+        "tax_code",
+        "address",
+        "province_id",
+        "supplier_type",
+        "is_verified",
+        "business_license_url",
+        "business_license_file_id",
+        "verified_by",
+        "rejection_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id uuid",
+      "userForeignKey": {
+        "column": "user_id",
+        "nullable": false,
+        "onDelete": "NO ACTION"
+      },
+      "fileForeignKeys": [
+        "business_license_file_id -> stored_files.id NO ACTION"
+      ],
+      "uniqueConstraints": ["user_id"],
+      "verificationFields": ["is_verified", "verified_by", "rejection_reason"],
+      "localDatabaseMissingBaselineFields": [
+        "business_license_file_id",
+        "user_id foreign key"
+      ],
+      "migration": "NONE"
+    }
+  ],
+  "fieldDecisions": {
+    "CANONICAL_BASELINE": [
+      "farmer_profiles.farm_name",
+      "farmer_profiles.experience_years",
+      "cooperative_profiles.member_count",
+      "all central runtime fields represented in canonical baseline v2"
+    ],
+    "LEGACY_LOCAL_ONLY": [
+      "farmer_profiles.farm_area_hectares",
+      "farmer_profiles.farming_type",
+      "farmer_profiles.region",
+      "farmer_profiles.phone_number",
+      "farmer_profiles.avatar_url",
+      "farmer_profiles.cover_image_url",
+      "farmer_profiles.certifications",
+      "cooperative_profiles.registration_number",
+      "cooperative_profiles.established_year",
+      "cooperative_profiles.region",
+      "cooperative_profiles.district_id",
+      "cooperative_profiles.description",
+      "cooperative_profiles.logo_url",
+      "enterprise_profiles.website_url",
+      "enterprise_profiles.logo_url",
+      "enterprise_profiles.district_id",
+      "enterprise_profiles.description",
+      "supplier_profiles.logo_url",
+      "supplier_profiles.website_url",
+      "supplier_profiles.district_id",
+      "supplier_profiles.description"
+    ],
+    "API_ONLY_DERIVED": [
+      "farmer public farmAreaHectares",
+      "farmer public farmingType",
+      "farmer public region",
+      "Admin user summary"
+    ],
+    "SCHEMA_CHANGE_REQUIRED": []
+  },
+  "verificationDecision": {
+    "initialState": "pending: verified=false and rejection_reason IS NULL",
+    "approval": "pending -> approved",
+    "rejection": "pending -> rejected with required reason",
+    "resubmission": "existing owner upsert resets to pending",
+    "terminalDirectTransitions": [
+      "approved -> rejected blocked",
+      "rejected -> approved blocked"
+    ],
+    "concurrency": "conditional update; affected=0 is stale reviewer conflict",
+    "reviewerMetadata": [
+      "verified_by",
+      "verified_at where present",
+      "rejection_reason"
+    ]
+  },
+  "queryBaseline": {
+    "profilePublicReadBefore": 2,
+    "profilePublicReadAfter": 1,
+    "pendingProfilePersistenceQueuesBefore": 4,
+    "pendingProfilePersistenceQueuesAfter": 4,
+    "adminUsersBatchAfter": 1,
+    "nPlusOne": false
+  },
+  "openApi": {
+    "before": {
+      "paths": 88,
+      "operations": 99,
+      "fingerprint": "5637fed8d1ae886ea9cb8fabc5b9f7813454990c5f52ac5c5cded8fcb0a0157f"
+    },
+    "after": {
+      "paths": 88,
+      "operations": 99,
+      "fingerprint": "5637fed8d1ae886ea9cb8fabc5b9f7813454990c5f52ac5c5cded8fcb0a0157f"
+    }
+  },
+  "migrationHistory": {
+    "baselineMigrationModified": false,
+    "legacyMigrationsModified": false,
+    "newMigration": null,
+    "decision": "NONE"
+  }
+}

@@ -1,0 +1,753 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "evidenceClassification": "Observed from Nest module metadata",
+  "applicationRoot": "src/app.module.ts",
+  "globalPrefix": "api/v1",
+  "modules": [
+    {
+      "module": "AppModule",
+      "file": "src/app.module.ts",
+      "imports": [
+        "ConfigModule.forRoot({\r\n      isGlobal: true,\r\n      envFilePath: \".env\",\r\n      validate: validateStorageEnvironment,\r\n    })",
+        "ThrottlerModule.forRoot([{ name: \"storage\", ttl: 60_000, limit: 30 }])",
+        "TypeOrmModule.forRootAsync({\r\n      inject: [ConfigService],\r\n      useFactory: databaseConfig,\r\n    })",
+        "AuthModule",
+        "UsersModule",
+        "ProfilesRoute",
+        "GeographyModule",
+        "ProductsModule",
+        "CooperativesModule",
+        "MarketPricesModule",
+        "TraceabilityModule",
+        "ReviewsModule",
+        "NotificationsModule",
+        "AdsModule",
+        "AdminRoute",
+        "StorageModule",
+        "ForumModule"
+      ],
+      "importedModuleFiles": [
+        "src/modules/admin/admin.route.ts",
+        "src/modules/ads/ads.module.ts",
+        "src/modules/auth/auth.module.ts",
+        "src/modules/cooperatives/cooperatives.module.ts",
+        "src/modules/forum/forum.module.ts",
+        "src/modules/geography/geography.module.ts",
+        "src/modules/market-prices/market-prices.module.ts",
+        "src/modules/notifications/notifications.module.ts",
+        "src/modules/products/products.module.ts",
+        "src/modules/profiles/profiles.route.ts",
+        "src/modules/reviews/reviews.module.ts",
+        "src/modules/storage/storage.module.ts",
+        "src/modules/traceability/traceability.module.ts",
+        "src/modules/users/users.module.ts"
+      ],
+      "controllers": [
+        "AppController"
+      ],
+      "providers": [
+        "AppService",
+        "DevSeedService",
+        "{\r\n      provide: APP_GUARD,\r\n      useClass: JwtAuthGuard,\r\n    }",
+        "{\r\n      provide: APP_GUARD,\r\n      useClass: RolesGuard,\r\n    }"
+      ],
+      "exports": [],
+      "forFeature": [],
+      "rootMounted": true
+    },
+    {
+      "module": "AdminRoute",
+      "file": "src/modules/admin/admin.route.ts",
+      "imports": [
+        "StorageModule",
+        "TypeOrmModule.forFeature([\r\n      SystemConfig,\r\n      AuditLog,\r\n      FarmerProfile,\r\n      CooperativeProfile,\r\n      EnterpriseProfile,\r\n      SupplierProfile,\r\n      User,\r\n      Product,\r\n      IncidentReport,\r\n    ])"
+      ],
+      "importedModuleFiles": [
+        "src/modules/storage/storage.module.ts"
+      ],
+      "controllers": [
+        "AdminController"
+      ],
+      "providers": [
+        "AdminService",
+        "AdminReportService"
+      ],
+      "exports": [
+        "AdminService"
+      ],
+      "forFeature": [
+        {
+          "entity": "SystemConfig",
+          "file": "src/modules/admin/entities/system-config.entity.ts"
+        },
+        {
+          "entity": "AuditLog",
+          "file": "src/modules/admin/entities/audit-log.entity.ts"
+        },
+        {
+          "entity": "FarmerProfile",
+          "file": "src/database/entities/farmer-profile.entity.ts"
+        },
+        {
+          "entity": "CooperativeProfile",
+          "file": "src/database/entities/cooperative-profile.entity.ts"
+        },
+        {
+          "entity": "EnterpriseProfile",
+          "file": "src/database/entities/enterprise-profile.entity.ts"
+        },
+        {
+          "entity": "SupplierProfile",
+          "file": "src/database/entities/supplier-profile.entity.ts"
+        },
+        {
+          "entity": "User",
+          "file": "src/database/entities/user.entity.ts"
+        },
+        {
+          "entity": "Product",
+          "file": "src/modules/products/infrastructure/persistence/entities/product.entity.ts"
+        },
+        {
+          "entity": "IncidentReport",
+          "file": "src/database/entities/incident-report.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "AdsModule",
+      "file": "src/modules/ads/ads.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([AdPackage, AdCampaign, AdEvent])",
+        "NotificationsModule"
+      ],
+      "importedModuleFiles": [
+        "src/modules/notifications/notifications.module.ts"
+      ],
+      "controllers": [
+        "AdsController"
+      ],
+      "providers": [
+        "TypeOrmAdsRepository",
+        "ListAdPackagesUseCase",
+        "CreateAdCampaignUseCase",
+        "ListSupplierAdCampaignsUseCase",
+        "GetSupplierAdCampaignUseCase",
+        "PauseAdCampaignUseCase",
+        "ResumeAdCampaignUseCase",
+        "ListActiveAdBannersUseCase",
+        "TrackAdEventUseCase",
+        "ListAdCampaignsForModerationUseCase",
+        "GetAdCampaignForModerationUseCase",
+        "ApproveAdCampaignUseCase",
+        "RejectAdCampaignUseCase",
+        "{\r\n      provide: ADS_REPOSITORY,\r\n      useExisting: TypeOrmAdsRepository,\r\n    }"
+      ],
+      "exports": [],
+      "forFeature": [
+        {
+          "entity": "AdPackage",
+          "file": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts"
+        },
+        {
+          "entity": "AdCampaign",
+          "file": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts"
+        },
+        {
+          "entity": "AdEvent",
+          "file": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "AuthModule",
+      "file": "src/modules/auth/auth.module.ts",
+      "imports": [
+        "PassportModule.register({ defaultStrategy: \"jwt\" })",
+        "JwtModule.registerAsync({\r\n      imports: [ConfigModule],\r\n      inject: [ConfigService],\r\n      useFactory: jwtConfig,\r\n    })",
+        "UsersModule",
+        "TypeOrmModule.forFeature([RefreshToken, OtpVerification])",
+        "HttpModule",
+        "SmsRoute",
+        "FirebaseModule",
+        "MailModule"
+      ],
+      "importedModuleFiles": [
+        "src/modules/users/users.module.ts",
+        "src/shared/firebase/firebase.module.ts",
+        "src/shared/mail/mail.module.ts",
+        "src/shared/sms/sms.route.ts"
+      ],
+      "controllers": [
+        "AuthController"
+      ],
+      "providers": [
+        "JwtStrategy",
+        "JwtRefreshStrategy",
+        "FirebaseAuthGuard",
+        "{\r\n      provide: USER_MANAGER_PORT,\r\n      useClass: LegacyUsersModuleAdapter,\r\n    }",
+        "{\r\n      provide: TOKEN_GENERATOR_PORT,\r\n      useClass: JwtTokenGeneratorAdapter,\r\n    }",
+        "{\r\n      provide: OTP_SENDER_PORT,\r\n      useClass: NodemailerOtpSenderAdapter,\r\n    }",
+        "{\r\n      provide: PASSWORD_HASHER_PORT,\r\n      useClass: BcryptPasswordHasherAdapter,\r\n    }",
+        "RegisterUseCase",
+        "LoginUseCase",
+        "LoginOtpUseCase",
+        "SyncFirebaseUserUseCase",
+        "RefreshTokenUseCase",
+        "LogoutUseCase",
+        "SendOtpUseCase",
+        "VerifyOtpUseCase"
+      ],
+      "exports": [
+        "JwtModule"
+      ],
+      "forFeature": [
+        {
+          "entity": "RefreshToken",
+          "file": "src/database/entities/refresh-token.entity.ts"
+        },
+        {
+          "entity": "OtpVerification",
+          "file": "src/database/entities/otp-verification.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "CooperativesModule",
+      "file": "src/modules/cooperatives/cooperatives.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([\r\n      CooperativeMemberEntity,\r\n      BulkListingEntity,\r\n      BulkListingContributionEntity,\r\n      HarvestScheduleEntity,\r\n      CooperativeProvinceReferenceEntity,\r\n    ])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [],
+      "providers": [
+        "TypeOrmCooperativeMemberRepository",
+        "TypeOrmBulkListingRepository",
+        "TypeOrmHarvestScheduleRepository",
+        "TypeOrmCooperativeProvinceReferenceRepository",
+        "TypeOrmCooperativeUnitOfWork",
+        "{\r\n      provide: COOPERATIVE_MEMBER_REPOSITORY,\r\n      useExisting: TypeOrmCooperativeMemberRepository,\r\n    }",
+        "{\r\n      provide: BULK_LISTING_REPOSITORY,\r\n      useExisting: TypeOrmBulkListingRepository,\r\n    }",
+        "{\r\n      provide: HARVEST_SCHEDULE_REPOSITORY,\r\n      useExisting: TypeOrmHarvestScheduleRepository,\r\n    }",
+        "{\r\n      provide: COOPERATIVE_PROVINCE_REFERENCE_REPOSITORY,\r\n      useExisting: TypeOrmCooperativeProvinceReferenceRepository,\r\n    }",
+        "{\r\n      provide: COOPERATIVE_UNIT_OF_WORK,\r\n      useExisting: TypeOrmCooperativeUnitOfWork,\r\n    }"
+      ],
+      "exports": [],
+      "forFeature": [
+        {
+          "entity": "CooperativeMemberEntity",
+          "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts"
+        },
+        {
+          "entity": "BulkListingEntity",
+          "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts"
+        },
+        {
+          "entity": "BulkListingContributionEntity",
+          "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts"
+        },
+        {
+          "entity": "HarvestScheduleEntity",
+          "file": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts"
+        },
+        {
+          "entity": "CooperativeProvinceReferenceEntity",
+          "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "ForumModule",
+      "file": "src/modules/forum/forum.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([ForumPost, ForumComment, ForumLike])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "ForumController"
+      ],
+      "providers": [
+        "ForumService"
+      ],
+      "exports": [
+        "ForumService"
+      ],
+      "forFeature": [
+        {
+          "entity": "ForumPost",
+          "file": "src/modules/forum/entities/forum-post.entity.ts"
+        },
+        {
+          "entity": "ForumComment",
+          "file": "src/modules/forum/entities/forum-comment.entity.ts"
+        },
+        {
+          "entity": "ForumLike",
+          "file": "src/modules/forum/entities/forum-like.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "GeographyModule",
+      "file": "src/modules/geography/geography.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([Province, District])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "GeographyController"
+      ],
+      "providers": [
+        "GeographyService"
+      ],
+      "exports": [
+        "GeographyService"
+      ],
+      "forFeature": [
+        {
+          "entity": "Province",
+          "file": "src/modules/geography/entities/province.entity.ts"
+        },
+        {
+          "entity": "District",
+          "file": "src/modules/geography/entities/district.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "MarketPricesModule",
+      "file": "src/modules/market-prices/market-prices.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([MarketPrice])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "MarketPricesController"
+      ],
+      "providers": [
+        "MarketPricesService"
+      ],
+      "exports": [
+        "MarketPricesService"
+      ],
+      "forFeature": [
+        {
+          "entity": "MarketPrice",
+          "file": "src/modules/market-prices/entities/market-price.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "NotificationsModule",
+      "file": "src/modules/notifications/notifications.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([NotificationOrmEntity])",
+        "AuthModule"
+      ],
+      "importedModuleFiles": [
+        "src/modules/auth/auth.module.ts"
+      ],
+      "controllers": [
+        "NotificationsController"
+      ],
+      "providers": [
+        "NotificationsGateway",
+        "TypeOrmNotificationRepository",
+        "ListNotificationsUseCase",
+        "ListUnreadNotificationsUseCase",
+        "CountUnreadNotificationsUseCase",
+        "MarkNotificationReadUseCase",
+        "MarkAllNotificationsReadUseCase",
+        "PublishNotificationUseCase",
+        "{\r\n      provide: NOTIFICATION_REPOSITORY,\r\n      useExisting: TypeOrmNotificationRepository,\r\n    }",
+        "{\r\n      provide: NOTIFICATION_REALTIME_PUBLISHER,\r\n      useExisting: NotificationsGateway,\r\n    }",
+        "{\r\n      provide: NOTIFICATION_PUBLISHER,\r\n      useExisting: PublishNotificationUseCase,\r\n    }"
+      ],
+      "exports": [
+        "NOTIFICATION_PUBLISHER"
+      ],
+      "forFeature": [
+        {
+          "entity": "NotificationOrmEntity",
+          "file": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "ProductsModule",
+      "file": "src/modules/products/products.module.ts",
+      "imports": [
+        "NotificationsModule",
+        "StorageModule",
+        "TypeOrmModule.forFeature([\r\n      Product,\r\n      ProductImage,\r\n      ProductCertification,\r\n      ProductCategory,\r\n      Wishlist,\r\n    ])"
+      ],
+      "importedModuleFiles": [
+        "src/modules/notifications/notifications.module.ts",
+        "src/modules/storage/storage.module.ts"
+      ],
+      "controllers": [
+        "ProductsController",
+        "WishlistController"
+      ],
+      "providers": [
+        "TypeOrmProductRepository",
+        "ProductDevelopmentSeedService",
+        "ProductsService",
+        "CreateProductUseCase",
+        "ListPublicProductsUseCase",
+        "GetProductDetailUseCase",
+        "ListSellerProductsUseCase",
+        "UpdateProductUseCase",
+        "DeleteProductUseCase",
+        "ChangeProductStatusUseCase",
+        "AddProductImageUseCase",
+        "RemoveProductImageUseCase",
+        "AddProductCertificationUseCase",
+        "RemoveProductCertificationUseCase",
+        "ListPendingProductCertificationsUseCase",
+        "VerifyProductCertificationUseCase",
+        "AddWishlistItemUseCase",
+        "RemoveWishlistItemUseCase",
+        "ListWishlistUseCase",
+        "ListWishlistedProductIdsUseCase",
+        "ListProductCategoriesUseCase",
+        "GetProductCategoryTreeUseCase",
+        "{ provide: PRODUCT_REPOSITORY, useExisting: TypeOrmProductRepository }",
+        "{ provide: PRODUCT_CATALOG_QUERY, useExisting: TypeOrmProductRepository }",
+        "{ provide: PRODUCT_DETAIL_QUERY, useExisting: TypeOrmProductRepository }",
+        "{ provide: PRODUCT_CATEGORY_QUERY, useExisting: TypeOrmProductRepository }",
+        "{\r\n      provide: PRODUCT_IMAGE_REPOSITORY,\r\n      useExisting: TypeOrmProductRepository,\r\n    }",
+        "{\r\n      provide: PRODUCT_CERTIFICATION_REPOSITORY,\r\n      useExisting: TypeOrmProductRepository,\r\n    }",
+        "{\r\n      provide: PRODUCT_WISHLIST_REPOSITORY,\r\n      useExisting: TypeOrmProductRepository,\r\n    }",
+        "{ provide: PRODUCT_SEED_REPOSITORY, useExisting: TypeOrmProductRepository }"
+      ],
+      "exports": [],
+      "forFeature": [
+        {
+          "entity": "Product",
+          "file": "src/modules/products/infrastructure/persistence/entities/product.entity.ts"
+        },
+        {
+          "entity": "ProductImage",
+          "file": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts"
+        },
+        {
+          "entity": "ProductCertification",
+          "file": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts"
+        },
+        {
+          "entity": "ProductCategory",
+          "file": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts"
+        },
+        {
+          "entity": "Wishlist",
+          "file": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "ProfilesRoute",
+      "file": "src/modules/profiles/profiles.route.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([\r\n      FarmerProfile,\r\n      CooperativeProfile,\r\n      EnterpriseProfile,\r\n      SupplierProfile,\r\n    ])",
+        "FptVisionRoute",
+        "StorageModule"
+      ],
+      "importedModuleFiles": [
+        "src/modules/storage/storage.module.ts",
+        "src/shared/fpt-vision/fpt-vision.route.ts"
+      ],
+      "controllers": [
+        "ProfilesController",
+        "FarmPublicController"
+      ],
+      "providers": [
+        "ProfilesService"
+      ],
+      "exports": [
+        "ProfilesService"
+      ],
+      "forFeature": [
+        {
+          "entity": "FarmerProfile",
+          "file": "src/database/entities/farmer-profile.entity.ts"
+        },
+        {
+          "entity": "CooperativeProfile",
+          "file": "src/database/entities/cooperative-profile.entity.ts"
+        },
+        {
+          "entity": "EnterpriseProfile",
+          "file": "src/database/entities/enterprise-profile.entity.ts"
+        },
+        {
+          "entity": "SupplierProfile",
+          "file": "src/database/entities/supplier-profile.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "ReviewsModule",
+      "file": "src/modules/reviews/reviews.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([Review, Product, User])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "ReviewsController"
+      ],
+      "providers": [
+        "TypeOrmReviewsRepository",
+        "ListPublicProductReviewsUseCase",
+        "CreateProductReviewUseCase",
+        "ListSellerReviewsUseCase",
+        "ReplyToReviewUseCase",
+        "ListReviewsForModerationUseCase",
+        "HideReviewUseCase",
+        "UnhideReviewUseCase",
+        "{ provide: REVIEWS_REPOSITORY, useExisting: TypeOrmReviewsRepository }"
+      ],
+      "exports": [],
+      "forFeature": [
+        {
+          "entity": "Review",
+          "file": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts"
+        },
+        {
+          "entity": "Product",
+          "file": "src/modules/products/infrastructure/persistence/entities/product.entity.ts"
+        },
+        {
+          "entity": "User",
+          "file": "src/database/entities/user.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "StorageModule",
+      "file": "src/modules/storage/storage.module.ts",
+      "imports": [
+        "ConfigModule",
+        "ScheduleModule.forRoot()",
+        "TypeOrmModule.forFeature([StoredFileEntity])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "StorageController"
+      ],
+      "providers": [
+        "{\r\n      provide: STORAGE_CONFIG,\r\n      useFactory: () => createStorageConfig(process.env),\r\n    }",
+        "SupabaseClientProvider",
+        "CloudinaryProvider",
+        "TypeOrmStoredFileRepository",
+        "CloudinaryService",
+        "SupabaseStorageService",
+        "StorageObservabilityService",
+        "{\r\n      provide: IMAGE_STORAGE,\r\n      useExisting: CloudinaryService,\r\n    }",
+        "{\r\n      provide: FILE_STORAGE,\r\n      useExisting: SupabaseStorageService,\r\n    }",
+        "{\r\n      provide: STORED_FILE_REPOSITORY,\r\n      useExisting: TypeOrmStoredFileRepository,\r\n    }",
+        "{\r\n      provide: STORAGE_OBSERVABILITY,\r\n      useExisting: StorageObservabilityService,\r\n    }",
+        "{ provide: STORED_FILE_ACCESS, useExisting: StorageService }",
+        "StorageService",
+        "StorageCleanupService",
+        "StorageThrottlerGuard",
+        "RetiredStorageRouteTelemetryMiddleware"
+      ],
+      "exports": [
+        "STORED_FILE_ACCESS"
+      ],
+      "forFeature": [
+        {
+          "entity": "StoredFileEntity",
+          "file": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "TraceabilityModule",
+      "file": "src/modules/traceability/traceability.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([TraceabilityRecord])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "TraceabilityController"
+      ],
+      "providers": [
+        "TraceabilityService"
+      ],
+      "exports": [
+        "TraceabilityService"
+      ],
+      "forFeature": [
+        {
+          "entity": "TraceabilityRecord",
+          "file": "src/modules/traceability/entities/traceability-record.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "UsersModule",
+      "file": "src/modules/users/users.module.ts",
+      "imports": [
+        "TypeOrmModule.forFeature([User])"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [
+        "UsersController"
+      ],
+      "providers": [
+        "UsersService"
+      ],
+      "exports": [
+        "UsersService",
+        "TypeOrmModule"
+      ],
+      "forFeature": [
+        {
+          "entity": "User",
+          "file": "src/database/entities/user.entity.ts"
+        }
+      ],
+      "rootMounted": true
+    },
+    {
+      "module": "FirebaseModule",
+      "file": "src/shared/firebase/firebase.module.ts",
+      "imports": [],
+      "importedModuleFiles": [],
+      "controllers": [],
+      "providers": [
+        "FirebaseService"
+      ],
+      "exports": [
+        "FirebaseService"
+      ],
+      "forFeature": [],
+      "rootMounted": true
+    },
+    {
+      "module": "FptVisionRoute",
+      "file": "src/shared/fpt-vision/fpt-vision.route.ts",
+      "imports": [],
+      "importedModuleFiles": [],
+      "controllers": [],
+      "providers": [
+        "FptVisionService",
+        "{ provide: KYC_VISION, useExisting: FptVisionService }"
+      ],
+      "exports": [
+        "KYC_VISION"
+      ],
+      "forFeature": [],
+      "rootMounted": true
+    },
+    {
+      "module": "MailModule",
+      "file": "src/shared/mail/mail.module.ts",
+      "imports": [],
+      "importedModuleFiles": [],
+      "controllers": [],
+      "providers": [
+        "MailService"
+      ],
+      "exports": [
+        "MailService"
+      ],
+      "forFeature": [],
+      "rootMounted": true
+    },
+    {
+      "module": "SmsRoute",
+      "file": "src/shared/sms/sms.route.ts",
+      "imports": [
+        "HttpModule"
+      ],
+      "importedModuleFiles": [],
+      "controllers": [],
+      "providers": [
+        "SmsService"
+      ],
+      "exports": [
+        "SmsService"
+      ],
+      "forFeature": [],
+      "rootMounted": true
+    }
+  ],
+  "backgroundEntries": [
+    {
+      "type": "Cron",
+      "class": "StorageCleanupService",
+      "method": "cleanup",
+      "decorator": "Cron('0 */5 * * * *')",
+      "file": "src/modules/storage/application/storage-cleanup.service.ts",
+      "runtimeRegistered": true,
+      "module": "StorageModule",
+      "repositoriesUsed": [
+        "STORED_FILE_REPOSITORY"
+      ],
+      "tablesRead": [
+        "public.stored_files"
+      ],
+      "tablesWritten": [
+        "public.stored_files"
+      ],
+      "externalSideEffects": [
+        "Cloudinary/Supabase object deletion"
+      ],
+      "transactionExpectation": "eventually consistent provider cleanup with retry state"
+    },
+    {
+      "type": "websocket-gateway",
+      "class": "NotificationsGateway",
+      "file": "src/modules/notifications/notifications.gateway.ts",
+      "runtimeRegistered": false,
+      "module": null,
+      "repositoriesUsed": [
+        "NOTIFICATION_REALTIME_PORT"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO delivery"
+      ],
+      "transactionExpectation": "delivery occurs after persistence and is not atomically coupled"
+    },
+    {
+      "type": "websocket-gateway",
+      "class": "NotificationsGateway",
+      "file": "src/modules/notifications/presentation/gateways/notifications.gateway.ts",
+      "runtimeRegistered": true,
+      "module": "NotificationsModule",
+      "repositoriesUsed": [
+        "NOTIFICATION_REALTIME_PORT"
+      ],
+      "tablesRead": [
+        "public.notifications"
+      ],
+      "tablesWritten": [],
+      "externalSideEffects": [
+        "Socket.IO delivery"
+      ],
+      "transactionExpectation": "delivery occurs after persistence and is not atomically coupled"
+    }
+  ],
+  "unmountedControllers": [],
+  "knownLimitation": "Dynamic providers and runtime-conditional behavior require flow review"
+}

@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "phase": "6",
+  "status": "complete",
+  "sourcePr": 89,
+  "mergeCommit": "924e2a60e779eaf3f938980784297991545d5637",
+  "historicalAuditPr": 86,
+  "branch": "refactor/persistence-phase-6-commerce-implementation",
+  "decisions": {
+    "D01": "APPROVED",
+    "D02": "APPROVED",
+    "D03": "APPROVED",
+    "D04": "APPROVED",
+    "D05": "APPROVED",
+    "D06": "APPROVED",
+    "D07": "APPROVED",
+    "D08": "APPROVED",
+    "D09": "APPROVED",
+    "D10": "APPROVED"
+  },
+  "reviewFixes": {
+    "copilotInlineCommentsAudited": 10,
+    "suppressedCommentsAudited": 1,
+    "status": "PASS"
+  },
+  "schema": {
+    "migration": "CreateCommerceBoundariesV21800000001000",
+    "businessTables": 6,
+    "supportingTables": 1,
+    "canonicalTables": 33,
+    "catalogObjects": 644,
+    "catalogFingerprint": "be704d36ffb557680535c6aa69b949f37b9ff843c2b523e224e96119da381d64",
+    "catalogDiff": 0,
+    "typeormRawDiff": 1,
+    "typeormReviewedCompatibility": 1,
+    "typeormUnexpected": 0,
+    "typeormStale": 0,
+    "secondMigrationRun": 0,
+    "downBusinessTables": 0
+  },
+  "parityGates": {
+    "schema": {
+      "command": "npm run persistence:schema-parity",
+      "entryPoint": "src/scripts/persistence-schema-parity.ts",
+      "asserts": "canonical catalog diff",
+      "result": "PASS"
+    },
+    "typeormCompatibility": {
+      "command": "npm run persistence:typeorm-compatibility-parity",
+      "entryPoint": "src/scripts/persistence-typeorm-compatibility-parity.ts",
+      "asserts": "unexpected operations, stale entries and catalog mismatches",
+      "result": "PASS"
+    }
+  },
+  "openApi": {
+    "intentionalCommercePaths": 19,
+    "pathCount": 107,
+    "operationCount": 118,
+    "fingerprint": "53f5047404bd0cd9947645d318a9ac2320803b7ff205b964425fc5c593367d25"
+  },
+  "focusedTests": {
+    "suites": 8,
+    "tests": 67,
+    "result": "PASS"
+  },
+  "commerceE2e": {
+    "tests": 3,
+    "result": "PASS",
+    "database": "disposable-postgresql"
+  },
+  "protectedDatabase": {
+    "database": "agrilink_db",
+    "access": "read-only",
+    "serverVersion": "16.14",
+    "tableCount": 33,
+    "ledgerCount": 0,
+    "fingerprintBefore": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "fingerprintAfter": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "railwayAccessed": false
+  },
+  "finalGates": {
+    "status": "PASS",
+    "npmCi": "PASS",
+    "typescript": "PASS",
+    "lint": {
+      "result": "PASS",
+      "errors": 0,
+      "existingWarnings": 13
+    },
+    "build": "PASS",
+    "persistenceAuditViolations": 0,
+    "focusedPhase6": {
+      "suites": 8,
+      "tests": 67,
+      "result": "PASS"
+    },
+    "unit": {
+      "passedSuites": 43,
+      "skippedSuites": 1,
+      "passedTests": 221,
+      "skippedTests": 1,
+      "result": "PASS"
+    },
+    "e2e": {
+      "suites": 11,
+      "tests": 103,
+      "result": "PASS"
+    },
+    "cleanV2": "PASS",
+    "catalogDiff": 0,
+    "typeormUnexpected": 0,
+    "typeormStale": 0,
+    "gitDiffCheck": "PASS",
+    "protectedDatabaseUnchanged": true
+  }
+}

@@ -1,0 +1,55 @@
+import "reflect-metadata";
+import * as dotenv from "dotenv";
+import { DataSource } from "typeorm";
+
+import {
+  assertSafePersistenceTestEnvironment,
+  PersistenceTestOperation,
+  PersistenceTestPurpose,
+} from "../database/reconciliation/database-target.guard";
+import { createDataSourceOptions } from "../database/data-source-options";
+import { SeedClassification } from "../database/seeds/framework/seed-contract";
+import {
+  CLI_ENTITY_REGISTRY,
+  excludeDeferredEntitiesFromSchemaBuild,
+} from "../database/entity-registry";
+import {
+  assertTypeOrmCompatibilityParity,
+  verifyCanonicalParity,
+} from "../database/reconciliation/parity-verifier";
+
+dotenv.config();
+
+async function main(): Promise<void> {
+  const target = assertSafePersistenceTestEnvironment({
+    environment: process.env,
+    classification: SeedClassification.TEST,
+    purpose: PersistenceTestPurpose.READ_ONLY_TEST_HARNESS,
+    operation: PersistenceTestOperation.READ_ONLY_INSPECTION,
+  });
+  const database = target.database;
+  const dataSource = new DataSource(
+    createDataSourceOptions(process.env, {
+      entities: CLI_ENTITY_REGISTRY,
+      logging: false,
+    }),
+  );
+  await dataSource.initialize();
+  excludeDeferredEntitiesFromSchemaBuild(dataSource);
+  try {
+    const parity = await verifyCanonicalParity(dataSource);
+    const result = {
+      database,
+      synchronize: dataSource.options.synchronize,
+      lineage: "v2",
+      gate: "typeorm-compatibility",
+      typeOrm: parity.typeOrm,
+    };
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    assertTypeOrmCompatibilityParity(parity);
+  } finally {
+    await dataSource.destroy();
+  }
+}
+
+void main();

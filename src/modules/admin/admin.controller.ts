@@ -1,30 +1,86 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AdminService } from './admin.service';
+import { AdminReportService } from './admin-report.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../common/enums';
+import { UserRole, UserStatus } from '../../common/enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { VerifyProfileDto } from './dto/verify-profile.dto';
+import { StorageReviewerRole } from '../storage/application/ports/inbound/stored-file-access.port';
 
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
 @UseGuards(RolesGuard)
-@Roles(UserRole.admin)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly adminReportService: AdminReportService,
+  ) {}
+
+  @Get('stats')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({
+    summary: 'System-wide statistics for admin/state-agency dashboard',
+  })
+  getStats() {
+    return this.adminService.getStats();
+  }
+
+  @Get('pending-profiles')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List all pending profiles for KYC verification' })
+  getPendingProfiles() {
+    return this.adminService.getPendingProfiles();
+  }
+
+  @Patch('profiles/:type/:profileId/verify')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Approve or reject a profile' })
+  verifyProfile(
+    @Param('type') type: string,
+    @Param('profileId') profileId: string,
+    @Body() dto: VerifyProfileDto,
+    @CurrentUser('sub') adminId: string,
+    @CurrentUser('role') reviewerRole: StorageReviewerRole,
+  ) {
+    return this.adminService.verifyProfile(
+      type,
+      profileId,
+      dto,
+      adminId,
+      reviewerRole,
+    );
+  }
 
   @Get('system-configs')
-  @ApiOperation({ summary: '(Admin) List all system configuration keys and values' })
-  @ApiResponse({ status: 200, description: 'Array of system configs' })
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'List all system configuration keys' })
   getSystemConfigs() {
     return this.adminService.getSystemConfigs();
   }
 
   @Patch('system-configs/:key')
-  @ApiOperation({ summary: '(Admin) Update a system configuration value' })
-  @ApiResponse({ status: 200, description: 'Config updated' })
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Update a system configuration value' })
   updateSystemConfig(
     @Param('key') key: string,
     @Body('value') value: string,
@@ -34,9 +90,112 @@ export class AdminController {
   }
 
   @Get('audit-logs')
-  @ApiOperation({ summary: '(Admin) Get paginated audit logs' })
-  @ApiResponse({ status: 200, description: 'Paginated audit log entries' })
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Paginated audit logs' })
   getAuditLogs(@Query() pagination: PaginationDto) {
     return this.adminService.getAuditLogs(pagination);
+  }
+
+  @Get('disputes')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List incident reports / disputes' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['open', 'in_progress', 'resolved'],
+  })
+  getDisputes(
+    @Query() pagination: PaginationDto,
+    @Query('status') status?: string,
+  ) {
+    return this.adminService.getDisputes(pagination, status);
+  }
+
+  @Patch('disputes/:id/status')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Update dispute status' })
+  updateDisputeStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.updateDisputeStatus(id, status, adminId);
+  }
+
+  @Get('products/pending')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List products awaiting approval' })
+  getPendingProducts(@Query() pagination: PaginationDto) {
+    return this.adminService.getPendingProducts(pagination);
+  }
+
+  @Get('products/violating')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({
+    summary: 'List suspended/rejected products (policy violations)',
+  })
+  getViolatingProducts(@Query() pagination: PaginationDto) {
+    return this.adminService.getViolatingProducts(pagination);
+  }
+
+  @Get('products/:id')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Get product detail with images and certifications' })
+  getProductDetail(@Param('id') id: string) {
+    return this.adminService.getProductDetail(id);
+  }
+
+  @Patch('products/:id/status')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Approve, reject, or suspend a product' })
+  updateProductStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @Body('reason') reason: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.updateProductStatus(id, status, reason, adminId);
+  }
+
+  @Get('cooperatives-enterprises')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List all cooperatives and enterprises' })
+  getCooperativesAndEnterprises() {
+    return this.adminService.getCooperativesAndEnterprises();
+  }
+
+  // ─── User management ──────────────────────────────────────────────
+
+  @Get('users')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'List all users (paginated)' })
+  getUsers(@Query() pagination: PaginationDto) {
+    return this.adminService.getUsers(pagination);
+  }
+
+  @Patch('users/:id/status')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Lock or unlock a user account' })
+  @ApiResponse({ status: 200, description: 'User status updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  toggleUserStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.adminService.toggleUserStatus(id, adminId, status as UserStatus);
+  }
+
+  @Get('reports/system.pdf')
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY)
+  @ApiOperation({ summary: 'Export a system-wide overview report as PDF' })
+  async exportSystemReport(@Res() res: Response) {
+    const pdf = await this.adminReportService.generateSystemReportPdf();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="agrilink-system-report-${Date.now()}.pdf"`,
+      'Content-Length': pdf.length,
+    });
+    res.end(pdf);
   }
 }

@@ -1,0 +1,578 @@
+{
+  "version": 1,
+  "phase": "5",
+  "sourceDevelopCommit": "72cfd645087efd1f9aa24a0d0c8f111810e1765c",
+  "capturedAt": "2026-07-30",
+  "evidenceBoundary": {
+    "source": "Repository source on refactor/persistence-phase-5-products-reviews before Phase 5 ownership edits.",
+    "canonicalBaseline": "docs/architecture/persistence/baselines/canonical-baseline-v2-catalog.json and migration 1800000000000.",
+    "protectedLocalDatabase": "The signed read-only agrilink_db snapshot from the completed persistence baseline; it is not production truth.",
+    "currentDatabaseProbe": "AVAILABLE after Docker recovery on 2026-07-30: persistence:verify-existing completed in a read-only transaction against localhost:5433.",
+    "deploymentEvidence": "NOT_AVAILABLE",
+    "approvedDecision": "Canonical baseline and active runtime evidence select Products-local mappings. No physical wishlist rename, copy, drop, or dual-write is approved."
+  },
+  "protectedDatabase": {
+    "name": "agrilink_db",
+    "evidenceType": "previously captured read-only local fixture",
+    "catalogFingerprintBefore": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "catalogFingerprintAfter": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+    "normalizedSchemaHashBefore": "17024b6c42e0bc04ffee0e809cf705da93a3c957c4dda479eb3d05b64c579f95",
+    "normalizedSchemaHashAfter": "17024b6c42e0bc04ffee0e809cf705da93a3c957c4dda479eb3d05b64c579f95",
+    "schemaHashNormalization": "pg_dump --schema-only --no-owner --no-privileges; LF line endings; generated pg_dump version and restrict/unrestrict lines removed.",
+    "publicTableCount": 33,
+    "migrationLedgers": [],
+    "classification": "reconciliation-required",
+    "catalogMismatchCount": 143,
+    "knownRows": {
+      "products": 54,
+      "product_certifications": 0,
+      "reviews": 0,
+      "wishlists": 0,
+      "product_wishlists": 0
+    },
+    "knownDuplicatePairs": {
+      "reviews_reviewer_product": 0,
+      "wishlists_user_product": 0,
+      "product_wishlists_user_product": 0
+    },
+    "mutation": "none",
+    "beforeAfterEquality": "exact",
+    "disposableDatabasesRemaining": 0
+  },
+  "tables": [
+    {
+      "physicalTable": "products",
+      "entityMappings": [
+        "src/database/entities/product.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product.entity.ts"
+      ],
+      "runtimeRegistration": "Products-local Product through entity-registry and ProductsModule",
+      "cliRegistration": "Products-local Product through entity-registry",
+      "repositoryConsumers": [
+        "TypeOrmProductRepository",
+        "AdminService (foreign writable repository before Phase 5)"
+      ],
+      "forFeatureConsumers": [
+        "ProductsModule",
+        "ReviewsModule (foreign before Phase 5)",
+        "AdminRoute (foreign before Phase 5)"
+      ],
+      "crossModuleImports": [
+        "Reviews -> Products persistence",
+        "Admin -> Products persistence"
+      ],
+      "apiConsumers": [
+        "/products",
+        "/wishlist",
+        "/reviews",
+        "/admin/products"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": 54
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "seller_id:varchar:NOT NULL",
+        "seller_type:enum:NOT NULL",
+        "name:varchar:NULL",
+        "description:text:NULL",
+        "category_id:uuid:NULL",
+        "sku:varchar:NULL",
+        "variety:varchar:NULL",
+        "price_per_unit:numeric:NOT NULL",
+        "unit:enum:NOT NULL",
+        "available_quantity:numeric:NOT NULL:0",
+        "min_order_quantity:numeric:NULL",
+        "status:enum:NOT NULL:draft",
+        "farming_type:enum:NULL",
+        "province_id:varchar:NULL",
+        "district_id:varchar:NULL",
+        "farm_latitude:float8:NULL",
+        "farm_longitude:float8:NULL",
+        "harvest_date:date:NULL",
+        "expiry_date:date:NULL",
+        "rejection_reason:text:NULL",
+        "is_featured:boolean:NOT NULL:false",
+        "view_count:int4:NOT NULL:0",
+        "sold_count:float8:NOT NULL:0",
+        "avg_rating:float8:NOT NULL:0",
+        "created_at:timestamptz:NOT NULL:now()",
+        "updated_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "category_id -> product_categories.id NO ACTION"
+      ],
+      "deleteBehavior": "Category is restricted by the database default; child image/certification rows cascade.",
+      "indexes": [
+        "primary key id",
+        "unique sku"
+      ],
+      "uniqueConstraints": [
+        "sku"
+      ],
+      "checkConstraints": [],
+      "enumUsage": [
+        "seller_type",
+        "unit",
+        "status",
+        "farming_type"
+      ],
+      "relationMappings": [
+        "category",
+        "images",
+        "certifications"
+      ],
+      "cascadeBehavior": "ORM child relation cascade is retained; Storage lifecycle is not delegated to ORM cascade.",
+      "migrationHistory": [
+        "canonical baseline v2",
+        "legacy product status notification migration"
+      ],
+      "seedConsumers": [
+        "Products development seed"
+      ],
+      "dataBlockers": [],
+      "recommendedDecision": "Products-local Product is canonical; central Product becomes a decorator-free compatibility re-export.",
+      "confidence": "HIGH"
+    },
+    {
+      "physicalTable": "product_categories",
+      "entityMappings": [
+        "src/database/entities/product-category.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts"
+      ],
+      "runtimeRegistration": "Products-local ProductCategory",
+      "cliRegistration": "Products-local ProductCategory",
+      "repositoryConsumers": [
+        "TypeOrmProductRepository"
+      ],
+      "forFeatureConsumers": [
+        "ProductsModule"
+      ],
+      "crossModuleImports": [],
+      "apiConsumers": [
+        "/products/categories",
+        "/products/categories/tree"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": "NOT_RECAPTURED"
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "name:varchar(100):NOT NULL",
+        "slug:varchar(100):NOT NULL",
+        "description:text:NULL",
+        "icon_url:text:NULL",
+        "parent_id:uuid:NULL",
+        "is_active:boolean:NOT NULL:true",
+        "sort_order:int4:NOT NULL:0",
+        "created_at:timestamptz:NOT NULL:now()",
+        "updated_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "parent_id -> product_categories.id NO ACTION"
+      ],
+      "deleteBehavior": "RESTRICT/NO ACTION while referenced.",
+      "indexes": [
+        "primary key id",
+        "unique slug"
+      ],
+      "uniqueConstraints": [
+        "slug"
+      ],
+      "checkConstraints": [],
+      "enumUsage": [],
+      "relationMappings": [
+        "self parent/children"
+      ],
+      "cascadeBehavior": "none",
+      "migrationHistory": [
+        "canonical baseline v2"
+      ],
+      "seedConsumers": [
+        "Products category seed"
+      ],
+      "dataBlockers": [],
+      "recommendedDecision": "Products-local ProductCategory is canonical; central mapping becomes a compatibility re-export.",
+      "confidence": "HIGH"
+    },
+    {
+      "physicalTable": "product_images",
+      "entityMappings": [
+        "src/database/entities/product-image.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts"
+      ],
+      "runtimeRegistration": "Products-local ProductImage",
+      "cliRegistration": "Products-local ProductImage",
+      "repositoryConsumers": [
+        "TypeOrmProductRepository"
+      ],
+      "forFeatureConsumers": [
+        "ProductsModule"
+      ],
+      "crossModuleImports": [],
+      "apiConsumers": [
+        "/products/:id/images",
+        "product detail"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": "NOT_RECAPTURED"
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "product_id:uuid:NOT NULL",
+        "image_url:varchar:NOT NULL",
+        "alt_text:varchar(255):NULL",
+        "is_primary:boolean:NOT NULL:false",
+        "sort_order:int4:NOT NULL:0",
+        "created_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "product_id -> products.id ON DELETE CASCADE"
+      ],
+      "deleteBehavior": "Product-row deletion cascades metadata rows only.",
+      "indexes": [
+        "primary key id"
+      ],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "enumUsage": [],
+      "relationMappings": [
+        "product"
+      ],
+      "cascadeBehavior": "Database metadata-row cascade; no StoredFile deletion is implied.",
+      "migrationHistory": [
+        "canonical baseline v2"
+      ],
+      "seedConsumers": [
+        "Products development seed"
+      ],
+      "dataBlockers": [],
+      "recommendedDecision": "Keep the active image_url contract and Products-local mapping. Storage file lifecycle remains deferred because the current flow stores public URLs only.",
+      "confidence": "HIGH"
+    },
+    {
+      "physicalTable": "product_certifications",
+      "entityMappings": [
+        "src/database/entities/product-certification.entity.ts",
+        "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts"
+      ],
+      "runtimeRegistration": "Products-local ProductCertification",
+      "cliRegistration": "Products-local ProductCertification",
+      "repositoryConsumers": [
+        "TypeOrmProductRepository"
+      ],
+      "forFeatureConsumers": [
+        "ProductsModule"
+      ],
+      "crossModuleImports": [
+        "Products application -> Storage inbound capability port"
+      ],
+      "apiConsumers": [
+        "product certification endpoints",
+        "product detail projection"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": 0
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "product_id:uuid:NOT NULL",
+        "cert_type:enum:NOT NULL",
+        "cert_number:varchar:NULL",
+        "issued_by:varchar:NULL",
+        "issued_date:date:NULL",
+        "expiry_date:date:NULL",
+        "document_url:varchar:NULL",
+        "stored_file_id:uuid:NULL",
+        "is_verified:boolean:NOT NULL:false",
+        "status:enum:NOT NULL:pending",
+        "verified_by:uuid:NULL",
+        "verified_at:timestamptz:NULL",
+        "rejection_reason:text:NULL",
+        "created_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "product_id -> products.id ON DELETE CASCADE",
+        "stored_file_id -> stored_files.id NO ACTION"
+      ],
+      "deleteBehavior": "Product metadata can cascade; StoredFile evidence is retained under Storage policy.",
+      "indexes": [
+        "primary key id",
+        "IDX_product_certifications_stored_file_id"
+      ],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "enumUsage": [
+        "cert_type",
+        "status: pending|verified|rejected"
+      ],
+      "relationMappings": [
+        "product"
+      ],
+      "cascadeBehavior": "Certification-row cascade does not authorize hard deletion of private evidence.",
+      "migrationHistory": [
+        "1783209600000-AddProductCertificationVerifyFlow",
+        "1783818000000-AddStoredFileIdToPrivateDocuments",
+        "canonical baseline v2"
+      ],
+      "seedConsumers": [],
+      "dataBlockers": [],
+      "recommendedDecision": "Products-local mapping is canonical. Preserve both document_url and stored_file_id; represent the baseline StoredFile FK/index without exposing private data.",
+      "confidence": "HIGH"
+    },
+    {
+      "physicalTable": "wishlists",
+      "entityMappings": [
+        "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts"
+      ],
+      "runtimeRegistration": "Wishlist through ProductsModule and entity-registry",
+      "cliRegistration": "Wishlist through entity-registry",
+      "repositoryConsumers": [
+        "TypeOrmProductRepository"
+      ],
+      "forFeatureConsumers": [
+        "ProductsModule"
+      ],
+      "crossModuleImports": [],
+      "apiConsumers": [
+        "/wishlist"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": 0
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "user_id:uuid:NOT NULL",
+        "product_id:uuid:NOT NULL",
+        "created_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "user_id -> users.id ON DELETE CASCADE",
+        "product_id -> products.id ON DELETE CASCADE"
+      ],
+      "deleteBehavior": "CASCADE for user and product.",
+      "indexes": [
+        "primary key id",
+        "unique user_id + product_id"
+      ],
+      "uniqueConstraints": [
+        "UNIQUE(user_id, product_id)"
+      ],
+      "checkConstraints": [],
+      "enumUsage": [],
+      "relationMappings": [
+        "product relation before Phase 5; scalar IDs remain canonical"
+      ],
+      "cascadeBehavior": "Database FK cascade.",
+      "migrationHistory": [
+        "canonical baseline v2"
+      ],
+      "seedConsumers": [],
+      "dataBlockers": [
+        "No deployed row inventory for alternate wishlist table names."
+      ],
+      "recommendedDecision": "Canonical runtime mapping remains public.wishlists. Consolidate code ownership only and retain conflict-safe insert behavior.",
+      "confidence": "HIGH for runtime/baseline; LOW for deployed lineage"
+    },
+    {
+      "physicalTable": "product_wishlist",
+      "entityMappings": [
+        "src/database/entities/product-wishlist.entity.ts"
+      ],
+      "runtimeRegistration": "none",
+      "cliRegistration": "none",
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "baselineInclusion": false,
+      "localDatabase": {
+        "exists": false,
+        "rowCount": 0
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": "Legacy declaration only; not a canonical contract.",
+      "primaryKey": "legacy declaration id",
+      "foreignKeys": [],
+      "deleteBehavior": "unverified",
+      "indexes": [],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "enumUsage": [],
+      "relationMappings": [],
+      "cascadeBehavior": "unverified",
+      "migrationHistory": [],
+      "seedConsumers": [],
+      "dataBlockers": [
+        "No deployed row inventory."
+      ],
+      "recommendedDecision": "Retire the decorator mapping as a compatibility re-export to Wishlist. Do not create, rename, copy, or drop a physical table.",
+      "confidence": "HIGH for dead source mapping; LOW for deployed lineage"
+    },
+    {
+      "physicalTable": "product_wishlists",
+      "entityMappings": [],
+      "runtimeRegistration": "none",
+      "cliRegistration": "none",
+      "repositoryConsumers": [],
+      "forFeatureConsumers": [],
+      "crossModuleImports": [],
+      "apiConsumers": [],
+      "baselineInclusion": false,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": 0
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": "Preserved local extra; exact catalog is in the signed local schema snapshot.",
+      "primaryKey": "local snapshot object",
+      "foreignKeys": [],
+      "deleteBehavior": "unverified",
+      "indexes": [],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "enumUsage": [],
+      "relationMappings": [],
+      "cascadeBehavior": "unverified",
+      "migrationHistory": "No canonical v2 lineage.",
+      "seedConsumers": [],
+      "dataBlockers": [
+        "No deployed row inventory or conflict policy."
+      ],
+      "recommendedDecision": "WISHLIST_SCHEMA_RECONCILIATION_REQUIRED. Preserve untouched as a non-canonical extra.",
+      "confidence": "HIGH for local presence; LOW for deployed lineage"
+    },
+    {
+      "physicalTable": "reviews",
+      "entityMappings": [
+        "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts"
+      ],
+      "runtimeRegistration": "Review through ReviewsModule and entity-registry",
+      "cliRegistration": "Review through entity-registry",
+      "repositoryConsumers": [
+        "TypeOrmReviewsRepository"
+      ],
+      "forFeatureConsumers": [
+        "ReviewsModule"
+      ],
+      "crossModuleImports": [
+        "Review entity -> User persistence before Phase 5",
+        "Review entity/repository/module -> Product persistence before Phase 5"
+      ],
+      "apiConsumers": [
+        "/products/:productId/reviews",
+        "/reviews/seller",
+        "/reviews/moderation"
+      ],
+      "baselineInclusion": true,
+      "localDatabase": {
+        "exists": true,
+        "rowCount": 0
+      },
+      "productionDeployedEvidenceAvailable": false,
+      "columns": [
+        "id:uuid:NOT NULL:uuid_generate_v4()",
+        "reviewer_id:uuid:NOT NULL",
+        "reviewee_id:uuid:NULL",
+        "product_id:uuid:NULL",
+        "order_id:uuid:NULL",
+        "rating:int2:NOT NULL",
+        "comment:text:NULL",
+        "images:text[]:NOT NULL:{}",
+        "is_verified_purchase:boolean:NOT NULL:false",
+        "seller_reply:text:NULL",
+        "seller_reply_at:timestamptz:NULL",
+        "is_hidden:boolean:NOT NULL:false",
+        "hidden_reason:text:NULL",
+        "hidden_by:uuid:NULL",
+        "hidden_at:timestamptz:NULL",
+        "created_at:timestamptz:NOT NULL:now()",
+        "updated_at:timestamptz:NOT NULL:now()"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        "reviewer_id -> users.id NO ACTION",
+        "product_id -> products.id NO ACTION"
+      ],
+      "deleteBehavior": "Retain review evidence; no cascading Product/User object graph.",
+      "indexes": [
+        "primary key id",
+        "IDX_reviews_reviewer_product_unique (partial unique)"
+      ],
+      "uniqueConstraints": [
+        "one reviewer/product row where product_id IS NOT NULL"
+      ],
+      "checkConstraints": [
+        "CHK_reviews_rating_range: rating between 1 and 5"
+      ],
+      "enumUsage": [],
+      "relationMappings": [
+        "reviewer and product ORM hydration before Phase 5"
+      ],
+      "cascadeBehavior": "none",
+      "migrationHistory": [
+        "1783382400000-AddReviewModerationAndConstraints",
+        "canonical baseline v2"
+      ],
+      "seedConsumers": [],
+      "dataBlockers": [],
+      "recommendedDecision": "Reviews owns one scalar-ID mapping. Replace ORM hydration with batched Products and Users capability ports; preserve partial uniqueness and rating check metadata.",
+      "confidence": "HIGH"
+    }
+  ],
+  "fieldDecisions": {
+    "products": {
+      "seller_id": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "category_id": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "name": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "price_per_unit": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "available_quantity": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "expiry_date": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "legacy price": "LEGACY_ONLY",
+      "legacy stock_quantity": "LEGACY_ONLY",
+      "legacy integer category/province/district IDs": "LEGACY_ONLY"
+    },
+    "productCertifications": {
+      "expiry_date": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "legacy expires_date": "LEGACY_ONLY",
+      "document_url": "CANONICAL_BASELINE compatibility field",
+      "stored_file_id": "CANONICAL_BASELINE private-file reference"
+    },
+    "productImages": {
+      "image_url": "CANONICAL_BASELINE and ACTIVE_RUNTIME",
+      "legacy url": "LEGACY_ONLY"
+    }
+  },
+  "decisions": {
+    "migration": "NONE",
+    "wishlist": "WISHLIST_SCHEMA_RECONCILIATION_REQUIRED; code ownership consolidation only",
+    "reviewUniqueness": "Preserve partial unique reviewer_id/product_id contract",
+    "reviewEligibility": "Preserve current no-purchase-required behavior; use typed Product and User readers",
+    "certificationLifecycle": [
+      "pending",
+      "verified",
+      "rejected"
+    ],
+    "storagePrivacy": "document_url and stored_file_id remain persistence compatibility fields; public product DTO must not expose either"
+  }
+}

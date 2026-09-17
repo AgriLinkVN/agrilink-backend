@@ -13,11 +13,21 @@ export class GeographyService {
     private readonly districtRepo: Repository<District>,
   ) {}
 
+  /**
+   * Return all provinces ordered by name.
+   * Includes lat/lng for map markers.
+   */
   async findAllProvinces(): Promise<Province[]> {
-    throw new Error('TODO: implement GeographyService.findAllProvinces()');
+    return this.provinceRepo.find({ order: { name: 'ASC' } });
   }
 
+  /**
+   * Return all districts within a given province.
+   */
   async findDistrictsByProvince(provinceId: string): Promise<District[]> {
-    throw new Error('TODO: implement GeographyService.findDistrictsByProvince()');
+    return this.districtRepo.find({
+      where: { provinceId },
+      order: { name: 'ASC' },
+    });
   }
 }

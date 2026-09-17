@@ -1,0 +1,788 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "evidenceClassification": "Observed constructor repository injection and static operation calls",
+  "usages": [
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "AuditLog",
+      "entityFile": "src/modules/admin/entities/audit-log.entity.ts",
+      "table": "public.audit_logs",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<AuditLog>",
+      "evidence": "src/modules/admin/admin.service.ts:1474"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "CooperativeProfile",
+      "entityFile": "src/database/entities/cooperative-profile.entity.ts",
+      "table": "public.cooperative_profiles",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<CooperativeProfile>",
+      "evidence": "src/modules/admin/admin.service.ts:1661"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "EnterpriseProfile",
+      "entityFile": "src/database/entities/enterprise-profile.entity.ts",
+      "table": "public.enterprise_profiles",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<EnterpriseProfile>",
+      "evidence": "src/modules/admin/admin.service.ts:1775"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "FarmerProfile",
+      "entityFile": "src/database/entities/farmer-profile.entity.ts",
+      "table": "public.farmer_profiles",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<FarmerProfile>",
+      "evidence": "src/modules/admin/admin.service.ts:1562"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "IncidentReport",
+      "entityFile": "src/database/entities/incident-report.entity.ts",
+      "table": "public.incident_reports",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<IncidentReport>",
+      "evidence": "src/modules/admin/admin.service.ts:2158"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "Product",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "table": "public.products",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": true,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<Product>",
+      "evidence": "src/modules/admin/admin.service.ts:2070"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "SupplierProfile",
+      "entityFile": "src/database/entities/supplier-profile.entity.ts",
+      "table": "public.supplier_profiles",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<SupplierProfile>",
+      "evidence": "src/modules/admin/admin.service.ts:1886"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "SystemConfig",
+      "entityFile": "src/modules/admin/entities/system-config.entity.ts",
+      "table": "public.system_configs",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<SystemConfig>",
+      "evidence": "src/modules/admin/admin.service.ts:1377"
+    },
+    {
+      "consumer": "AdminService",
+      "file": "src/modules/admin/admin.service.ts",
+      "module": "admin",
+      "entity": "User",
+      "entityFile": "src/database/entities/user.entity.ts",
+      "table": "public.users",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<User>",
+      "evidence": "src/modules/admin/admin.service.ts:1991"
+    },
+    {
+      "consumer": "TypeOrmAdsRepository",
+      "file": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts",
+      "module": "ads",
+      "entity": "AdCampaign",
+      "entityFile": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+      "table": "public.ad_campaigns",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<AdCampaign>",
+      "evidence": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts:1053"
+    },
+    {
+      "consumer": "TypeOrmAdsRepository",
+      "file": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts",
+      "module": "ads",
+      "entity": "AdEvent",
+      "entityFile": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+      "table": "public.ad_events",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<AdEvent>",
+      "evidence": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts:1145"
+    },
+    {
+      "consumer": "TypeOrmAdsRepository",
+      "file": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts",
+      "module": "ads",
+      "entity": "AdPackage",
+      "entityFile": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts",
+      "table": "public.ad_packages",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<AdPackage>",
+      "evidence": "src/modules/ads/infrastructure/persistence/repositories/typeorm-ads.repository.ts:964"
+    },
+    {
+      "consumer": "JwtTokenGeneratorAdapter",
+      "file": "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts",
+      "module": "auth",
+      "entity": "RefreshToken",
+      "entityFile": "src/database/entities/refresh-token.entity.ts",
+      "table": "public.refresh_tokens",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<RefreshToken>",
+      "evidence": "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts:754"
+    },
+    {
+      "consumer": "NodemailerOtpSenderAdapter",
+      "file": "src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts",
+      "module": "auth",
+      "entity": "OtpVerification",
+      "entityFile": "src/database/entities/otp-verification.entity.ts",
+      "table": "public.otp_verifications",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<OtpVerification>",
+      "evidence": "src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts:497"
+    },
+    {
+      "consumer": "TypeOrmBulkListingRepository",
+      "file": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts",
+      "module": "cooperatives",
+      "entity": "BulkListingContributionEntity",
+      "entityFile": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts",
+      "table": "public.bulk_listing_contributions",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<BulkListingContributionEntity>",
+      "evidence": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts:2197"
+    },
+    {
+      "consumer": "TypeOrmBulkListingRepository",
+      "file": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts",
+      "module": "cooperatives",
+      "entity": "BulkListingEntity",
+      "entityFile": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts",
+      "table": "public.bulk_listings",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<BulkListingEntity>",
+      "evidence": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts:2083"
+    },
+    {
+      "consumer": "TypeOrmCooperativeMemberRepository",
+      "file": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts",
+      "module": "cooperatives",
+      "entity": "CooperativeMemberEntity",
+      "entityFile": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
+      "table": "public.cooperative_members",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<CooperativeMemberEntity>",
+      "evidence": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts:1246"
+    },
+    {
+      "consumer": "TypeOrmCooperativeProvinceReferenceRepository",
+      "file": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts",
+      "module": "cooperatives",
+      "entity": "CooperativeProvinceReferenceEntity",
+      "entityFile": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts",
+      "table": "public.cooperative_province_references",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<CooperativeProvinceReferenceEntity>",
+      "evidence": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts:4226"
+    },
+    {
+      "consumer": "TypeOrmHarvestScheduleRepository",
+      "file": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts",
+      "module": "cooperatives",
+      "entity": "HarvestScheduleEntity",
+      "entityFile": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts",
+      "table": "public.harvest_schedules",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<HarvestScheduleEntity>",
+      "evidence": "src/modules/cooperatives/infrastructure/persistence/repositories/typeorm-cooperative-persistence.repositories.ts:3395"
+    },
+    {
+      "consumer": "ForumService",
+      "file": "src/modules/forum/forum.service.ts",
+      "module": "forum",
+      "entity": "ForumComment",
+      "entityFile": "src/modules/forum/entities/forum-comment.entity.ts",
+      "table": "public.forum_comments",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ForumComment>",
+      "evidence": "src/modules/forum/forum.service.ts:755"
+    },
+    {
+      "consumer": "ForumService",
+      "file": "src/modules/forum/forum.service.ts",
+      "module": "forum",
+      "entity": "ForumLike",
+      "entityFile": "src/modules/forum/entities/forum-like.entity.ts",
+      "table": "public.forum_likes",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ForumLike>",
+      "evidence": "src/modules/forum/forum.service.ts:853"
+    },
+    {
+      "consumer": "ForumService",
+      "file": "src/modules/forum/forum.service.ts",
+      "module": "forum",
+      "entity": "ForumPost",
+      "entityFile": "src/modules/forum/entities/forum-post.entity.ts",
+      "table": "public.forum_posts",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ForumPost>",
+      "evidence": "src/modules/forum/forum.service.ts:666"
+    },
+    {
+      "consumer": "GeographyService",
+      "file": "src/modules/geography/geography.service.ts",
+      "module": "geography",
+      "entity": "District",
+      "entityFile": "src/modules/geography/entities/district.entity.ts",
+      "table": "public.districts",
+      "operations": [
+        "read"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<District>",
+      "evidence": "src/modules/geography/geography.service.ts:411"
+    },
+    {
+      "consumer": "GeographyService",
+      "file": "src/modules/geography/geography.service.ts",
+      "module": "geography",
+      "entity": "Province",
+      "entityFile": "src/modules/geography/entities/province.entity.ts",
+      "table": "public.provinces",
+      "operations": [
+        "read"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<Province>",
+      "evidence": "src/modules/geography/geography.service.ts:320"
+    },
+    {
+      "consumer": "MarketPricesService",
+      "file": "src/modules/market-prices/market-prices.service.ts",
+      "module": "market-prices",
+      "entity": "MarketPrice",
+      "entityFile": "src/modules/market-prices/entities/market-price.entity.ts",
+      "table": "public.market_prices",
+      "operations": [],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<MarketPrice>",
+      "evidence": "src/modules/market-prices/market-prices.service.ts:416"
+    },
+    {
+      "consumer": "TypeOrmNotificationRepository",
+      "file": "src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts",
+      "module": "notifications",
+      "entity": "NotificationOrmEntity",
+      "entityFile": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "table": "public.notifications",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<NotificationOrmEntity>",
+      "evidence": "src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts:652"
+    },
+    {
+      "consumer": "TypeOrmProductRepository",
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "module": "products",
+      "entity": "Product",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "table": "public.products",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<Product>",
+      "evidence": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts:1893"
+    },
+    {
+      "consumer": "TypeOrmProductRepository",
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "module": "products",
+      "entity": "ProductCategory",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts",
+      "table": "public.product_categories",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ProductCategory>",
+      "evidence": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts:2188"
+    },
+    {
+      "consumer": "TypeOrmProductRepository",
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "module": "products",
+      "entity": "ProductCertification",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+      "table": "public.product_certifications",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ProductCertification>",
+      "evidence": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts:2077"
+    },
+    {
+      "consumer": "TypeOrmProductRepository",
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "module": "products",
+      "entity": "ProductImage",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+      "table": "public.product_images",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<ProductImage>",
+      "evidence": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts:1981"
+    },
+    {
+      "consumer": "TypeOrmProductRepository",
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "module": "products",
+      "entity": "Wishlist",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "table": "public.wishlists",
+      "operations": [
+        "delete",
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<Wishlist>",
+      "evidence": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts:2293"
+    },
+    {
+      "consumer": "ProfilesService",
+      "file": "src/modules/profiles/profiles.service.ts",
+      "module": "profiles",
+      "entity": "CooperativeProfile",
+      "entityFile": "src/database/entities/cooperative-profile.entity.ts",
+      "table": "public.cooperative_profiles",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<CooperativeProfile>",
+      "evidence": "src/modules/profiles/profiles.service.ts:1715"
+    },
+    {
+      "consumer": "ProfilesService",
+      "file": "src/modules/profiles/profiles.service.ts",
+      "module": "profiles",
+      "entity": "EnterpriseProfile",
+      "entityFile": "src/database/entities/enterprise-profile.entity.ts",
+      "table": "public.enterprise_profiles",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<EnterpriseProfile>",
+      "evidence": "src/modules/profiles/profiles.service.ts:1829"
+    },
+    {
+      "consumer": "ProfilesService",
+      "file": "src/modules/profiles/profiles.service.ts",
+      "module": "profiles",
+      "entity": "FarmerProfile",
+      "entityFile": "src/database/entities/farmer-profile.entity.ts",
+      "table": "public.farmer_profiles",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<FarmerProfile>",
+      "evidence": "src/modules/profiles/profiles.service.ts:1616"
+    },
+    {
+      "consumer": "ProfilesService",
+      "file": "src/modules/profiles/profiles.service.ts",
+      "module": "profiles",
+      "entity": "SupplierProfile",
+      "entityFile": "src/database/entities/supplier-profile.entity.ts",
+      "table": "public.supplier_profiles",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<SupplierProfile>",
+      "evidence": "src/modules/profiles/profiles.service.ts:1940"
+    },
+    {
+      "consumer": "TypeOrmReviewsRepository",
+      "file": "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts",
+      "module": "reviews",
+      "entity": "Product",
+      "entityFile": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "table": "public.products",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": true,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<Product>",
+      "evidence": "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts:853"
+    },
+    {
+      "consumer": "TypeOrmReviewsRepository",
+      "file": "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts",
+      "module": "reviews",
+      "entity": "Review",
+      "entityFile": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+      "table": "public.reviews",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<Review>",
+      "evidence": "src/modules/reviews/infrastructure/persistence/repositories/typeorm-reviews.repository.ts:771"
+    },
+    {
+      "consumer": "TypeOrmStoredFileRepository",
+      "file": "src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts",
+      "module": "storage",
+      "entity": "StoredFileEntity",
+      "entityFile": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts",
+      "table": "public.stored_files",
+      "operations": [
+        "query-builder",
+        "read",
+        "write"
+      ],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": true,
+      "returnedModel": "Repository<StoredFileEntity>",
+      "evidence": "src/modules/storage/infrastructure/persistence/typeorm-stored-file.repository.ts:481"
+    },
+    {
+      "consumer": "TraceabilityService",
+      "file": "src/modules/traceability/traceability.service.ts",
+      "module": "traceability",
+      "entity": "TraceabilityRecord",
+      "entityFile": "src/modules/traceability/entities/traceability-record.entity.ts",
+      "table": "public.traceability_records",
+      "operations": [],
+      "crossModule": false,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<TraceabilityRecord>",
+      "evidence": "src/modules/traceability/traceability.service.ts:360"
+    },
+    {
+      "consumer": "UsersService",
+      "file": "src/modules/users/users.service.ts",
+      "module": "users",
+      "entity": "User",
+      "entityFile": "src/database/entities/user.entity.ts",
+      "table": "public.users",
+      "operations": [
+        "read",
+        "write"
+      ],
+      "crossModule": null,
+      "transactionParticipation": "not-observed",
+      "rawQuery": false,
+      "returnedModel": "Repository<User>",
+      "evidence": "src/modules/users/users.service.ts:420"
+    }
+  ],
+  "technicalDataSourceConsumers": [
+    {
+      "file": "src/database/data-source.ts",
+      "classes": [],
+      "owner": "database-central"
+    },
+    {
+      "file": "src/database/dev-seed.service.ts",
+      "classes": [
+        "DevSeedService"
+      ],
+      "owner": "database-central"
+    },
+    {
+      "file": "src/database/seeds/seed.ts",
+      "classes": [],
+      "owner": "database-central"
+    },
+    {
+      "file": "src/modules/cooperatives/infrastructure/persistence/typeorm-cooperative-unit-of-work.ts",
+      "classes": [
+        "TypeOrmCooperativeUnitOfWork"
+      ],
+      "owner": "cooperatives"
+    },
+    {
+      "file": "src/modules/geography/seeds/province.seed.ts",
+      "classes": [],
+      "owner": "geography"
+    },
+    {
+      "file": "src/modules/products/infrastructure/database/seeds/product-category.seed.ts",
+      "classes": [],
+      "owner": "products"
+    },
+    {
+      "file": "src/modules/products/infrastructure/database/seeds/product.seed.ts",
+      "classes": [],
+      "owner": "products"
+    },
+    {
+      "file": "src/modules/products/infrastructure/repositories/typeorm-product.repository.ts",
+      "classes": [
+        "TypeOrmProductRepository"
+      ],
+      "owner": "products"
+    },
+    {
+      "file": "src/modules/users/infrastructure/database/seeds/user.seed.ts",
+      "classes": [],
+      "owner": "users"
+    },
+    {
+      "file": "src/modules/users/seeds/seller.seed.ts",
+      "classes": [],
+      "owner": "users"
+    },
+    {
+      "file": "src/scripts/persistence-migration-verification-data-source.ts",
+      "classes": [],
+      "owner": "application-root"
+    },
+    {
+      "file": "src/scripts/persistence-system-discovery.ts",
+      "classes": [],
+      "owner": "application-root"
+    },
+    {
+      "file": "src/scripts/storage-phase9-rollout.ts",
+      "classes": [],
+      "owner": "application-root"
+    },
+    {
+      "file": "src/scripts/verify-p3-phase-1-migration.ts",
+      "classes": [],
+      "owner": "application-root"
+    }
+  ],
+  "knownLimitation": "Port-based repositories are linked in module metadata and curated flow documentation"
+}

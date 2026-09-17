@@ -161,7 +161,10 @@ docker compose ps
 # 5. Cài dependencies
 npm install
 
-# 6. Start dev server
+# 6. Chạy Migration để tạo bảng trong DB (Rất quan trọng!)
+npm run migration:run
+
+# 7. Start dev server
 npm run start:dev
 ```
 
@@ -214,11 +217,11 @@ CORS_ORIGINS=http://localhost:3000
 
 # Database — khớp với docker-compose.yml
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433
 DB_NAME=agrilink_db
 DB_USER=agrilink
-DB_PASS=agrilink_dev_2025
-DB_SYNCHRONIZE=true       # true cho dev (tự tạo bảng), false cho production
+DB_PASS=your_local_password
+DB_SYNCHRONIZE=false      # Luôn tắt; schema được quản lý bằng migration
 DB_LOGGING=true           # Log SQL queries
 
 # JWT Access Token (ngắn hạn)
@@ -230,7 +233,17 @@ JWT_REFRESH_SECRET=your_refresh_secret_here
 JWT_REFRESH_EXPIRES_IN=7d
 ```
 
-> **Quan trọng**: `DB_SYNCHRONIZE=true` chỉ dùng cho development. Production phải dùng migrations.
+> **Quan trọng**: TypeORM synchronize phải luôn tắt. Mọi thay đổi schema phải
+> được áp dụng bằng migration đã review.
+
+Nếu `DATABASE_URL` tồn tại, Backend ưu tiên URL này thay cho các biến kết nối
+`DB_*`.
+
+| Environment | Database configuration |
+|---|---|
+| Local Windows + Docker | `DB_HOST=localhost`, `DB_PORT=5433` |
+| Backend in Docker Compose | `DB_HOST=<postgres service name>`, `DB_PORT=5432` |
+| Railway | `DATABASE_URL` |
 
 ---
 

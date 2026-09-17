@@ -1,0 +1,1913 @@
+{
+  "sourceCommit": "0e0af99c251190939bf4c3882a73ae2b97f8009d",
+  "evidenceClassification": "Observed from TypeORM decorators",
+  "entities": [
+    {
+      "entity": "AdCampaign",
+      "table": "public.ad_campaigns",
+      "file": "src/database/entities/ad-campaign.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "AdStatus",
+          "nullable": null,
+          "default": "AdStatus.PENDING_APPROVAL"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "AdStatus.PENDING_APPROVAL"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AdEvent",
+      "table": "public.ad_events",
+      "file": "src/database/entities/ad-event.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "event_type",
+          "type": null,
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AdPackage",
+      "table": "public.ad_packages",
+      "file": "src/database/entities/ad-package.entity.ts",
+      "enumColumns": [
+        {
+          "column": "type",
+          "enum": "AdType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_active",
+          "type": null,
+          "nullable": null,
+          "default": "true"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AuditLog",
+      "table": "public.audit_logs",
+      "file": "src/database/entities/audit-log.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "entity_type",
+          "type": null,
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Contract",
+      "table": "public.contracts",
+      "file": "src/database/entities/contract.entity.ts",
+      "enumColumns": [
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "ContractStatus",
+          "nullable": null,
+          "default": "ContractStatus.DRAFT"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "ContractStatus.DRAFT"
+        }
+      ],
+      "uniqueColumns": [
+        "contract_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Conversation",
+      "table": "public.conversations",
+      "file": "src/database/entities/conversation.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "CooperativeProfile",
+      "table": "public.cooperative_profiles",
+      "file": "src/database/entities/cooperative-profile.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "verified_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "business_license_number",
+        "tax_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Dispute",
+      "table": "public.disputes",
+      "file": "src/database/entities/dispute.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "DisputeStatus",
+          "nullable": null,
+          "default": "DisputeStatus.OPEN"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "DisputeStatus.OPEN"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "District",
+      "table": "public.districts",
+      "file": "src/database/entities/district.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "province",
+          "target": "Province",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "EnterpriseProfile",
+      "table": "public.enterprise_profiles",
+      "file": "src/database/entities/enterprise-profile.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "tax_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "FarmerProfile",
+      "table": "public.farmer_profiles",
+      "file": "src/database/entities/farmer-profile.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_kyc_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "verified_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "cccd_number"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "IncidentReport",
+      "table": "public.incident_reports",
+      "file": "src/database/entities/incident-report.entity.ts",
+      "enumColumns": [
+        {
+          "column": "incident_type",
+          "enum": "IncidentType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "incident_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": null,
+          "nullable": null,
+          "default": "open"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "LogisticsProfile",
+      "table": "public.logistics_profiles",
+      "file": "src/database/entities/logistics-profile.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "vehicle_types",
+          "type": "text",
+          "nullable": null,
+          "default": "[]"
+        },
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        }
+      ],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "MarketPrice",
+      "table": "public.market_prices",
+      "file": "src/database/entities/market-price.entity.ts",
+      "enumColumns": [
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Message",
+      "table": "public.messages",
+      "file": "src/database/entities/message.entity.ts",
+      "enumColumns": [
+        {
+          "column": "message_type",
+          "enum": "MessageType",
+          "nullable": null,
+          "default": "MessageType.TEXT"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "message_type",
+          "type": "enum",
+          "nullable": null,
+          "default": "MessageType.TEXT"
+        },
+        {
+          "column": "is_read",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Notification",
+      "table": "public.notifications",
+      "file": "src/database/entities/notification.entity.ts",
+      "enumColumns": [
+        {
+          "column": "type",
+          "enum": "NotifType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_read",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "read_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "OrderItem",
+      "table": "public.order_items",
+      "file": "src/database/entities/order-item.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "order",
+          "target": "Order",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "OrderStatusHistory",
+      "table": "public.order_status_history",
+      "file": "src/database/entities/order-status-history.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "OrderStatus",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Order",
+      "table": "public.orders",
+      "file": "src/database/entities/order.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "OrderStatus",
+          "nullable": null,
+          "default": "OrderStatus.PENDING"
+        },
+        {
+          "column": "payment_method",
+          "enum": "PaymentMethod",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "payment_status",
+          "enum": "PaymentStatus",
+          "nullable": null,
+          "default": "PaymentStatus.UNPAID"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "OrderStatus.PENDING"
+        },
+        {
+          "column": "payment_status",
+          "type": "enum",
+          "nullable": null,
+          "default": "PaymentStatus.UNPAID"
+        }
+      ],
+      "uniqueColumns": [
+        "order_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "OtpVerification",
+      "table": "public.otp_verifications",
+      "file": "src/database/entities/otp-verification.entity.ts",
+      "enumColumns": [
+        {
+          "column": "type",
+          "enum": "OtpType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "purpose",
+          "enum": "OtpPurpose",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Payment",
+      "table": "public.payments",
+      "file": "src/database/entities/payment.entity.ts",
+      "enumColumns": [
+        {
+          "column": "method",
+          "enum": "PaymentMethod",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "PaymentStatus",
+          "nullable": null,
+          "default": "PaymentStatus.UNPAID"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "PaymentStatus.UNPAID"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductCategory",
+      "table": "public.product_categories",
+      "file": "src/database/entities/product-category.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_active",
+          "type": null,
+          "nullable": null,
+          "default": "true"
+        }
+      ],
+      "uniqueColumns": [
+        "slug"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "parent",
+          "target": "ProductCategory",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductCertification",
+      "table": "public.product_certifications",
+      "file": "src/database/entities/product-certification.entity.ts",
+      "enumColumns": [
+        {
+          "column": "cert_type",
+          "enum": "CertType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "CertificationStatus",
+          "nullable": null,
+          "default": "CertificationStatus.PENDING"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "cert_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "CertificationStatus.PENDING"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "verified_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductImage",
+      "table": "public.product_images",
+      "file": "src/database/entities/product-image.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "product",
+          "target": "Product",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductWishlist",
+      "table": "public.product_wishlist",
+      "file": "src/database/entities/product-wishlist.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Product",
+      "table": "public.products",
+      "file": "src/database/entities/product.entity.ts",
+      "enumColumns": [
+        {
+          "column": "seller_type",
+          "enum": "SellerType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "farming_type",
+          "enum": "FarmingType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "ProductStatus",
+          "nullable": null,
+          "default": "ProductStatus.DRAFT"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "seller_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "farming_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "ProductStatus.DRAFT"
+        }
+      ],
+      "uniqueColumns": [
+        "sku"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "seller",
+          "target": "User",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Province",
+      "table": "public.provinces",
+      "file": "src/database/entities/province.entity.ts",
+      "enumColumns": [
+        {
+          "column": "region",
+          "enum": "Region",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "PurchaseRequest",
+      "table": "public.purchase_requests",
+      "file": "src/database/entities/purchase-request.entity.ts",
+      "enumColumns": [
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "farming_type",
+          "enum": "FarmingType",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "farming_type",
+          "type": "enum",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": null,
+          "nullable": null,
+          "default": "open"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "QualityCertificate",
+      "table": "public.quality_certificates",
+      "file": "src/database/entities/quality-certificate.entity.ts",
+      "enumColumns": [
+        {
+          "column": "cert_type",
+          "enum": "CertType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "cert_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": null,
+          "nullable": null,
+          "default": "active"
+        },
+        {
+          "column": "revoked_reason",
+          "type": "text",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "cert_number"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "RefreshToken",
+      "table": "public.refresh_tokens",
+      "file": "src/database/entities/refresh-token.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "revoked_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "token_hash"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ShipmentTrackingEvent",
+      "table": "public.shipment_tracking_events",
+      "file": "src/database/entities/shipment-tracking-event.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "ShipmentStatus",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Shipment",
+      "table": "public.shipments",
+      "file": "src/database/entities/shipment.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "ShipmentStatus",
+          "nullable": null,
+          "default": "ShipmentStatus.WAITING_PICKUP"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "ShipmentStatus.WAITING_PICKUP"
+        }
+      ],
+      "uniqueColumns": [
+        "order_id",
+        "tracking_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "SupplierProfile",
+      "table": "public.supplier_profiles",
+      "file": "src/database/entities/supplier-profile.entity.ts",
+      "enumColumns": [
+        {
+          "column": "supplier_type",
+          "enum": "SupplierType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "supplier_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "SystemConfig",
+      "table": "public.system_configs",
+      "file": "src/database/entities/system-config.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "TraceabilityRecord",
+      "table": "public.traceability_records",
+      "file": "src/database/entities/traceability-record.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "qr_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "UserAddress",
+      "table": "public.user_addresses",
+      "file": "src/database/entities/user-address.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "user",
+          "target": "User",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "User",
+      "table": "public.users",
+      "file": "src/database/entities/user.entity.ts",
+      "enumColumns": [
+        {
+          "column": "role",
+          "enum": "UserRole",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "UserStatus",
+          "nullable": null,
+          "default": "UserStatus.PENDING_VERIFICATION"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "UserStatus.PENDING_VERIFICATION"
+        },
+        {
+          "column": "is_phone_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "is_email_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        }
+      ],
+      "uniqueColumns": [
+        "phone",
+        "firebase_uid",
+        "email"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AuditLog",
+      "table": "public.audit_logs",
+      "file": "src/modules/admin/entities/audit-log.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "entity_type",
+          "type": null,
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "SystemConfig",
+      "table": "public.system_configs",
+      "file": "src/modules/admin/entities/system-config.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "key"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AdCampaign",
+      "table": "public.ad_campaigns",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-campaign.entity.ts",
+      "enumColumns": [
+        {
+          "column": "status",
+          "enum": "AdStatus",
+          "nullable": null,
+          "default": "AdStatus.PENDING_APPROVAL"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "AdStatus.PENDING_APPROVAL"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "package",
+          "target": "AdPackage",
+          "onDelete": "RESTRICT",
+          "cascade": null
+        },
+        {
+          "property": "events",
+          "target": "AdEvent",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AdEvent",
+      "table": "public.ad_events",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-event.entity.ts",
+      "enumColumns": [
+        {
+          "column": "eventType",
+          "enum": "AdEventType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "eventType",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "campaign",
+          "target": "AdCampaign",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "AdPackage",
+      "table": "public.ad_packages",
+      "file": "src/modules/ads/infrastructure/persistence/entities/ad-package.entity.ts",
+      "enumColumns": [
+        {
+          "column": "type",
+          "enum": "AdType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_active",
+          "type": null,
+          "nullable": null,
+          "default": "true"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "BulkListingContributionEntity",
+      "table": "public.bulk_listing_contributions",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing-contribution.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "BulkListingEntity",
+      "table": "public.bulk_listings",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/bulk-listing.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "CooperativeMemberEntity",
+      "table": "public.cooperative_members",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-member.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "status",
+          "type": "varchar",
+          "nullable": null,
+          "default": "pending"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "CooperativeProvinceReferenceEntity",
+      "table": "public.cooperative_province_references",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/cooperative-province-reference.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "HarvestScheduleEntity",
+      "table": "public.harvest_schedules",
+      "file": "src/modules/cooperatives/infrastructure/persistence/entities/harvest-schedule.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ForumComment",
+      "table": "public.forum_comments",
+      "file": "src/modules/forum/entities/forum-comment.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_hidden",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ForumLike",
+      "table": "public.forum_likes",
+      "file": "src/modules/forum/entities/forum-like.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [
+        "Unique(['postId', 'userId'])"
+      ],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ForumPost",
+      "table": "public.forum_posts",
+      "file": "src/modules/forum/entities/forum-post.entity.ts",
+      "enumColumns": [
+        {
+          "column": "category",
+          "enum": "ForumCategory",
+          "nullable": null,
+          "default": "ForumCategory.EXPERIENCE"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "is_hidden",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "District",
+      "table": "public.districts",
+      "file": "src/modules/geography/entities/district.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "province",
+          "target": "Province",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Province",
+      "table": "public.provinces",
+      "file": "src/modules/geography/entities/province.entity.ts",
+      "enumColumns": [
+        {
+          "column": "region",
+          "enum": "Region",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "name",
+        "code",
+        "slug"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "districts",
+          "target": "District",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "MarketPrice",
+      "table": "public.market_prices",
+      "file": "src/modules/market-prices/entities/market-price.entity.ts",
+      "enumColumns": [
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "NotificationOrmEntity",
+      "table": "public.notifications",
+      "file": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "enumColumns": [
+        {
+          "column": "type",
+          "enum": "NotifType",
+          "nullable": null,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_read",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "read_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductCategory",
+      "table": "public.product_categories",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-category.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_active",
+          "type": null,
+          "nullable": null,
+          "default": "true"
+        }
+      ],
+      "uniqueColumns": [
+        "slug"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "parent",
+          "target": "ProductCategory",
+          "onDelete": null,
+          "cascade": null
+        },
+        {
+          "property": "children",
+          "target": "ProductCategory",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductCertification",
+      "table": "public.product_certifications",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-certification.entity.ts",
+      "enumColumns": [
+        {
+          "column": "cert_type",
+          "enum": "CertType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "CertificationStatus",
+          "nullable": null,
+          "default": "CertificationStatus.PENDING"
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "cert_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "CertificationStatus.PENDING"
+        },
+        {
+          "column": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "verified_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "product",
+          "target": "Product",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "ProductImage",
+      "table": "public.product_images",
+      "file": "src/modules/products/infrastructure/persistence/entities/product-image.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "product",
+          "target": "Product",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Product",
+      "table": "public.products",
+      "file": "src/modules/products/infrastructure/persistence/entities/product.entity.ts",
+      "enumColumns": [
+        {
+          "column": "seller_type",
+          "enum": "SellerType",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "unit",
+          "enum": "ProductUnit",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "enum": "ProductStatus",
+          "nullable": null,
+          "default": "ProductStatus.DRAFT"
+        },
+        {
+          "column": "farming_type",
+          "enum": "FarmingType",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "seller_type",
+          "type": "enum",
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": "enum",
+          "nullable": null,
+          "default": "ProductStatus.DRAFT"
+        },
+        {
+          "column": "farming_type",
+          "type": "enum",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "sku"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "category",
+          "target": "ProductCategory",
+          "onDelete": null,
+          "cascade": null
+        },
+        {
+          "property": "images",
+          "target": "ProductImage",
+          "onDelete": null,
+          "cascade": "true"
+        },
+        {
+          "property": "certifications",
+          "target": "ProductCertification",
+          "onDelete": null,
+          "cascade": "true"
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Wishlist",
+      "table": "public.wishlists",
+      "file": "src/modules/products/infrastructure/persistence/entities/wishlist.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [],
+      "classConstraints": [
+        "Unique(['userId', 'productId'])"
+      ],
+      "relationDeleteBehavior": [
+        {
+          "property": "product",
+          "target": "Product",
+          "onDelete": "CASCADE",
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "CooperativeProfile",
+      "table": "public.cooperative_profiles",
+      "file": "src/modules/profiles/entities/cooperative-profile.entity.ts",
+      "enumColumns": [
+        {
+          "column": "region",
+          "enum": "Region",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "EnterpriseProfile",
+      "table": "public.enterprise_profiles",
+      "file": "src/modules/profiles/entities/enterprise-profile.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "FarmerProfile",
+      "table": "public.farmer_profiles",
+      "file": "src/modules/profiles/entities/farmer-profile.entity.ts",
+      "enumColumns": [
+        {
+          "column": "farmingType",
+          "enum": "FarmingType",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "region",
+          "enum": "Region",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "farmingType",
+          "type": "enum",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "is_verified",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "verified_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "SupplierProfile",
+      "table": "public.supplier_profiles",
+      "file": "src/modules/profiles/entities/supplier-profile.entity.ts",
+      "enumColumns": [
+        {
+          "column": "supplierType",
+          "enum": "SupplierType",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "stateColumns": [
+        {
+          "column": "supplierType",
+          "type": "enum",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "user_id"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "Review",
+      "table": "public.reviews",
+      "file": "src/modules/reviews/infrastructure/persistence/entities/review.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "is_verified_purchase",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "is_hidden",
+          "type": null,
+          "nullable": null,
+          "default": "false"
+        },
+        {
+          "column": "hidden_reason",
+          "type": "text",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "hidden_by",
+          "type": "uuid",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "column": "hidden_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [],
+      "classConstraints": [],
+      "relationDeleteBehavior": [
+        {
+          "property": "reviewer",
+          "target": "User",
+          "onDelete": null,
+          "cascade": null
+        },
+        {
+          "property": "product",
+          "target": "Product",
+          "onDelete": null,
+          "cascade": null
+        }
+      ],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "StoredFileEntity",
+      "table": "public.stored_files",
+      "file": "src/modules/storage/infrastructure/persistence/stored-file.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [
+        {
+          "column": "assetType",
+          "type": null,
+          "nullable": null,
+          "default": null
+        },
+        {
+          "column": "status",
+          "type": null,
+          "nullable": null,
+          "default": "PENDING"
+        },
+        {
+          "column": "resource_type",
+          "type": null,
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "uniqueColumns": [
+        "object_key"
+      ],
+      "classConstraints": [
+        "Index(['provider', 'objectKey'], { unique: true })",
+        "Index(['ownerId', 'status'])"
+      ],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    },
+    {
+      "entity": "TraceabilityRecord",
+      "table": "public.traceability_records",
+      "file": "src/modules/traceability/entities/traceability-record.entity.ts",
+      "enumColumns": [],
+      "stateColumns": [],
+      "uniqueColumns": [
+        "qr_code"
+      ],
+      "classConstraints": [],
+      "relationDeleteBehavior": [],
+      "softDeleteColumns": [],
+      "versionColumns": []
+    }
+  ]
+}

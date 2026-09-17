@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "sourceCommit": "a3bbe12995ee08fcb40a9c3cb3e982edd257a586",
+  "capturedAt": "2026-07-26",
+  "protectedDatabase": {
+    "name": "agrilink_db",
+    "access": "read-only",
+    "postgresVersion": "16.14",
+    "beforeNormalizedSchemaSha256": "cc9c1ec2cec9d1ad77402b061a2f71fbfa82389cf3c515364ec367a66028f9ba",
+    "afterNormalizedSchemaSha256": "cc9c1ec2cec9d1ad77402b061a2f71fbfa82389cf3c515364ec367a66028f9ba",
+    "schemaUnchanged": true,
+    "publicTableCount": 33,
+    "migrationLedgers": [],
+    "disposableDatabasesRemaining": 0
+  },
+  "tables": [
+    {
+      "physicalTable": "public.users",
+      "sourceEvidence": {
+        "writableMappings": [
+          "src/database/entities/user.entity.ts"
+        ],
+        "runtimeRegistered": true,
+        "cliRegistered": true,
+        "repositoryConsumers": [
+          "src/modules/users/users.service.ts",
+          "src/modules/admin/admin.service.ts"
+        ],
+        "forFeatureConsumers": [
+          "src/modules/users/users.module.ts",
+          "src/modules/admin/admin.route.ts",
+          "src/modules/reviews/reviews.module.ts"
+        ],
+        "apiConsumers": [
+          "AuthController",
+          "UsersController",
+          "AdminController",
+          "ReviewsController"
+        ]
+      },
+      "canonicalBaselineEvidence": {
+        "included": true,
+        "emailNullable": false,
+        "phoneNullable": true,
+        "uniqueColumns": [
+          "email",
+          "phone",
+          "firebase_uid"
+        ]
+      },
+      "localDatabaseEvidence": {
+        "exists": true,
+        "rowCount": 13,
+        "emailNullable": true,
+        "nullEmailRows": 2,
+        "duplicateEmailGroups": 0,
+        "duplicatePhoneGroups": 0,
+        "canonicalPhoneRows": 2,
+        "legacyDomesticPhoneRows": 11,
+        "otherPhoneRows": 0,
+        "nullEmailClassification": [
+          {
+            "subject": 1,
+            "role": "farmer",
+            "status": "active",
+            "phone": "canonical",
+            "firebaseUid": "present",
+            "passwordHash": "present",
+            "downstreamReferenceCount": 0,
+            "classification": "valid-legacy-firebase-and-phone-account"
+          },
+          {
+            "subject": 2,
+            "role": "farmer",
+            "status": "pending_verification",
+            "phone": "canonical",
+            "firebaseUid": "absent",
+            "passwordHash": "present",
+            "downstreamReferenceCount": 0,
+            "classification": "valid-legacy-phone-password-account"
+          }
+        ]
+      },
+      "inference": {
+        "owner": "users",
+        "decision": "consolidate-without-schema-change",
+        "identityReconciliation": "required-before-existing-environment-onboarding",
+        "phoneFirstRegistration": "deferred"
+      }
+    },
+    {
+      "physicalTable": "public.user_addresses",
+      "sourceEvidence": {
+        "writableMappings": [
+          "src/database/entities/user-address.entity.ts"
+        ],
+        "runtimeRegistered": false,
+        "cliRegistered": false,
+        "repositoryConsumers": [],
+        "forFeatureConsumers": [],
+        "apiConsumers": [],
+        "developmentSeedReference": "inactive-and-unregistered"
+      },
+      "canonicalBaselineEvidence": {
+        "included": false,
+        "group": "C"
+      },
+      "localDatabaseEvidence": {
+        "exists": false,
+        "rowCount": null,
+        "foreignKeys": [],
+        "indexes": []
+      },
+      "inference": {
+        "owner": "users",
+        "decision": "USER_ADDRESSES_DEFERRED",
+        "migration": "none"
+      }
+    },
+    {
+      "physicalTable": "public.refresh_tokens",
+      "sourceEvidence": {
+        "writableMappings": [
+          "src/database/entities/refresh-token.entity.ts"
+        ],
+        "runtimeRegistered": true,
+        "cliRegistered": true,
+        "repositoryConsumers": [
+          "src/modules/auth/infrastructure/adapters/jwt-token-generator.adapter.ts"
+        ],
+        "forFeatureConsumers": [
+          "src/modules/auth/auth.module.ts"
+        ],
+        "apiConsumers": [
+          "AuthController"
+        ]
+      },
+      "canonicalBaselineEvidence": {
+        "included": true,
+        "userIdNullable": true,
+        "tokenHashUnique": true,
+        "userDeleteRule": "CASCADE"
+      },
+      "localDatabaseEvidence": {
+        "exists": true,
+        "rowCount": 7,
+        "userIdNullable": true,
+        "tokenHashUnique": true,
+        "userDeleteRule": "CASCADE"
+      },
+      "inference": {
+        "owner": "auth",
+        "decision": "consolidate-with-scalar-user-id",
+        "migration": "none"
+      }
+    },
+    {
+      "physicalTable": "public.otp_verifications",
+      "sourceEvidence": {
+        "writableMappings": [
+          "src/database/entities/otp-verification.entity.ts"
+        ],
+        "runtimeRegistered": true,
+        "cliRegistered": true,
+        "repositoryConsumers": [
+          "src/modules/auth/infrastructure/adapters/nodemailer-otp-sender.adapter.ts"
+        ],
+        "forFeatureConsumers": [
+          "src/modules/auth/auth.module.ts"
+        ],
+        "apiConsumers": [
+          "AuthController"
+        ]
+      },
+      "canonicalBaselineEvidence": {
+        "included": true,
+        "userIdNullable": true,
+        "userDeleteRule": "NO ACTION",
+        "otpStorage": "plaintext"
+      },
+      "localDatabaseEvidence": {
+        "exists": true,
+        "rowCount": 1,
+        "userIdNullable": true,
+        "userDeleteRule": "NO ACTION"
+      },
+      "inference": {
+        "owner": "auth",
+        "decision": "consolidate-with-scalar-user-id",
+        "otpHashMigration": "deferred-security-debt",
+        "migration": "none"
+      }
+    }
+  ],
+  "migrationHistory": {
+    "legacyMigrationsModified": false,
+    "baselineV2Modified": false,
+    "localLedgerPresent": false,
+    "phase3PhysicalMigrationRequired": false
+  }
+}

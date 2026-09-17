@@ -25,7 +25,7 @@ export class MarketPricesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
-  @Roles(UserRole.admin, UserRole.state_agency, UserRole.government)
+  @Roles(UserRole.ADMIN, UserRole.STATE_AGENCY, UserRole.STATE_AGENCY)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '(Admin/State Agency) Submit a new market price entry' })
   @ApiResponse({ status: 201, description: 'Market price recorded' })

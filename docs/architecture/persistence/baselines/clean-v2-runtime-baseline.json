@@ -1,0 +1,35 @@
+{
+  "smoke": {
+    "authIdentity": true,
+    "userRead": true,
+    "profileRead": true,
+    "profileAdminPersistenceQueue": true,
+    "productList": true,
+    "productDetail": true,
+    "wishlistConcurrentDuplicate": true,
+    "reviewList": true,
+    "notificationList": true,
+    "ads": true,
+    "forum": true,
+    "adminConfigIncident": true,
+    "geography": true,
+    "storage": true,
+    "marketPricesExcluded": true,
+    "traceabilityExcluded": true
+  },
+  "queryCounts": {
+    "product-list": 2,
+    "product-detail": 5,
+    "profile-public-read": 1,
+    "admin-profile-persistence-queue": 4,
+    "review-list": 2,
+    "notification-list": 1,
+    "geography-province-list": 1,
+    "geography-district-list": 1,
+    "ads-package-list": 1,
+    "ads-banner-list": 1,
+    "system-config-list": 1,
+    "audit-log-list": 1
+  },
+  "knownLimitations": {}
+}

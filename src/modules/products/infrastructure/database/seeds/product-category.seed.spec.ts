@@ -1,0 +1,135 @@
+import {
+  SeedClassification,
+  SeedExecutionContext,
+} from "../../../../../database/seeds/framework/seed-contract";
+import { EMPTY_SEED_DEPENDENCY_OUTPUTS } from "../../../../../database/seeds/framework/seed-dependency-outputs";
+import {
+  CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+  ProductCategoryReferenceMutableData,
+  ProductCategoryReferenceSeedWriter,
+  ProductCategoryReferenceWriteData,
+  ProductsCategoryReferenceSeedGroup,
+  productCategoryReferenceSeedData,
+} from "./product-category.seed";
+
+const referenceContext: SeedExecutionContext = {
+  nodeEnv: "test",
+  databaseName: "agrilink_test_disposable",
+  classifications: [SeedClassification.REFERENCE],
+  dependencies: EMPTY_SEED_DEPENDENCY_OUTPUTS,
+};
+
+function createWriter(existingSlugs: readonly string[] = []): {
+  writer: ProductCategoryReferenceSeedWriter;
+  rows: Map<string, { id: string; data?: ProductCategoryReferenceWriteData }>;
+  creates: ProductCategoryReferenceWriteData[];
+  updates: ProductCategoryReferenceMutableData[];
+  finds: string[];
+} {
+  const rows = new Map<
+    string,
+    { id: string; data?: ProductCategoryReferenceWriteData }
+  >(existingSlugs.map((slug) => [slug, { id: `category-${slug}` }]));
+  const creates: ProductCategoryReferenceWriteData[] = [];
+  const updates: ProductCategoryReferenceMutableData[] = [];
+  const finds: string[] = [];
+  const writer: ProductCategoryReferenceSeedWriter = {
+    async findBySlug(slug) {
+      finds.push(slug);
+      return rows.get(slug) ?? null;
+    },
+    async create(data) {
+      creates.push(data);
+      const row = { id: `category-${data.slug}`, data };
+      rows.set(data.slug, row);
+      return row;
+    },
+    async update(id, data) {
+      updates.push(data);
+      const slug = id.replace("category-", "");
+      rows.set(slug, { id, data: { slug, ...data } });
+    },
+  };
+
+  return { writer, rows, creates, updates, finds };
+}
+
+describe("ProductsCategoryReferenceSeedGroup", () => {
+  it("declares Products-owned REFERENCE metadata without dependencies", () => {
+    const { writer } = createWriter();
+    const group = new ProductsCategoryReferenceSeedGroup(writer);
+
+    expect(group.metadata).toEqual(
+      expect.objectContaining({
+        id: "products.reference.categories",
+        owner: "products",
+        classification: SeedClassification.REFERENCE,
+        dependencies: [],
+      }),
+    );
+  });
+
+  it("keeps exactly 37 canonical rows with unique slugs", () => {
+    const slugs = productCategoryReferenceSeedData.map(({ slug }) => slug);
+
+    expect(productCategoryReferenceSeedData).toHaveLength(37);
+    expect(new Set(slugs).size).toBe(37);
+  });
+
+  it("reconciles parents deterministically before their children", async () => {
+    const state = createWriter();
+    const group = new ProductsCategoryReferenceSeedGroup(state.writer);
+
+    await group.execute(referenceContext);
+
+    const firstChild = productCategoryReferenceSeedData.find(
+      ({ parentSlug }) => parentSlug,
+    );
+    expect(firstChild).toBeDefined();
+    expect(state.finds.indexOf(firstChild!.parentSlug!)).toBeLessThan(
+      state.finds.indexOf(firstChild!.slug),
+    );
+    expect(state.rows.get(firstChild!.slug)?.data?.parentId).toBe(
+      `category-${firstChild!.parentSlug}`,
+    );
+  });
+
+  it("converges each slug independently without a whole-table guard", async () => {
+    const existingSlug = productCategoryReferenceSeedData[0].slug;
+    const state = createWriter([existingSlug]);
+    const group = new ProductsCategoryReferenceSeedGroup(state.writer);
+
+    const firstResult = await group.execute(referenceContext);
+
+    expect(state.finds).toHaveLength(37);
+    expect(state.updates).toHaveLength(1);
+    expect(state.updates[0]).not.toHaveProperty("slug");
+    expect(state.creates).toHaveLength(36);
+    expect(state.rows.size).toBe(37);
+    expect(firstResult.outputs).toEqual(
+      productCategoryReferenceSeedData.map(({ slug }) => ({
+        kind: CATEGORY_ID_BY_SLUG_OUTPUT_KIND,
+        key: slug,
+        value: `category-${slug}`,
+      })),
+    );
+
+    const secondResult = await group.execute(referenceContext);
+
+    expect(state.creates).toHaveLength(36);
+    expect(state.updates).toHaveLength(38);
+    expect(secondResult).toEqual(firstResult);
+  });
+
+  it("refuses execution without explicit REFERENCE selection", async () => {
+    const { writer } = createWriter();
+    const group = new ProductsCategoryReferenceSeedGroup(writer);
+
+    await expect(
+      group.execute({
+        ...referenceContext,
+        classifications: [SeedClassification.DEV],
+      }),
+    ).rejects.toThrow("requires explicit REFERENCE selection");
+  });
+});

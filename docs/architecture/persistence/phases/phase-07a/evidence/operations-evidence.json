@@ -1,0 +1,272 @@
+{
+  "audit": "persistence-phase-7a-operations",
+  "source": {
+    "roadmap": "docs/architecture/persistence/roadmap.md",
+    "baseline": "docs/architecture/persistence/discovery/baseline-inclusion-matrix.json",
+    "ownership": "docs/architecture/persistence/entity-ownership.json"
+  },
+  "inventory": [
+    {
+      "table": "logistics_profiles",
+      "currentEntity": "src/database/entities/logistics-profile.entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": false,
+      "cliRegistration": false,
+      "repositoryConsumers": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "controllerUseCaseConsumers": [],
+      "websocketProducer": [],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "canonicalBaselineV2": false,
+      "baselineReason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "protectedDatabase": {
+        "table": "logistics_profiles",
+        "exists": false,
+        "rows": 0
+      },
+      "currentOwner": "logistics",
+      "recommendedOwner": "logistics",
+      "ownershipStatus": "deferred",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "none",
+      "decision": "DORMANT_DEFER"
+    },
+    {
+      "table": "shipments",
+      "currentEntity": "src/database/entities/shipment.entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": false,
+      "cliRegistration": false,
+      "repositoryConsumers": [],
+      "controllerUseCaseConsumers": [],
+      "websocketProducer": [],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [],
+      "canonicalBaselineV2": false,
+      "baselineReason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "protectedDatabase": {
+        "table": "shipments",
+        "exists": false,
+        "rows": 0
+      },
+      "currentOwner": "logistics",
+      "recommendedOwner": "logistics",
+      "ownershipStatus": "deferred",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "none",
+      "decision": "DORMANT_DEFER"
+    },
+    {
+      "table": "shipment_tracking_events",
+      "currentEntity": "src/database/entities/shipment-tracking-event.entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": false,
+      "cliRegistration": false,
+      "repositoryConsumers": [],
+      "controllerUseCaseConsumers": [],
+      "websocketProducer": [],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [],
+      "canonicalBaselineV2": false,
+      "baselineReason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "protectedDatabase": {
+        "table": "shipment_tracking_events",
+        "exists": false,
+        "rows": 0
+      },
+      "currentOwner": "logistics",
+      "recommendedOwner": "logistics",
+      "ownershipStatus": "deferred",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "none",
+      "decision": "DORMANT_DEFER"
+    },
+    {
+      "table": "conversations",
+      "currentEntity": "src/database/entities/conversation.entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": false,
+      "cliRegistration": false,
+      "repositoryConsumers": [],
+      "controllerUseCaseConsumers": [],
+      "websocketProducer": [],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [],
+      "canonicalBaselineV2": false,
+      "baselineReason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "protectedDatabase": {
+        "table": "conversations",
+        "exists": false,
+        "rows": 0
+      },
+      "currentOwner": "messaging",
+      "recommendedOwner": "messaging",
+      "ownershipStatus": "deferred",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "none",
+      "decision": "DORMANT_DEFER"
+    },
+    {
+      "table": "messages",
+      "currentEntity": "src/database/entities/message.entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": false,
+      "cliRegistration": false,
+      "repositoryConsumers": [],
+      "controllerUseCaseConsumers": [],
+      "websocketProducer": [],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [],
+      "canonicalBaselineV2": false,
+      "baselineReason": "Only a central entity, relation target, or development-seed reference exists; the owner capability is not implemented.",
+      "protectedDatabase": {
+        "table": "messages",
+        "exists": false,
+        "rows": 0
+      },
+      "currentOwner": "messaging",
+      "recommendedOwner": "messaging",
+      "ownershipStatus": "deferred",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "none",
+      "decision": "DORMANT_DEFER"
+    },
+    {
+      "table": "notifications",
+      "currentEntity": "src/modules/notifications/infrastructure/persistence/notification.orm-entity.ts",
+      "decoratorStatus": "ENTITY_DECLARATION",
+      "runtimeRegistration": true,
+      "cliRegistration": true,
+      "repositoryConsumers": [
+        "src/database/dev-seed.service.ts",
+        "src/database/reconciliation/clean-v2-runtime-baseline.ts",
+        "src/modules/notifications/infrastructure/repositories/typeorm-notification.repository.ts"
+      ],
+      "controllerUseCaseConsumers": [
+        "src/modules/notifications/application/use-cases/count-unread-notifications.use-case.ts",
+        "src/modules/notifications/application/use-cases/list-notifications.use-case.ts",
+        "src/modules/notifications/application/use-cases/list-unread-notifications.use-case.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.ts",
+        "src/modules/notifications/application/use-cases/notification-pagination.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.ts",
+        "src/modules/notifications/presentation/controllers/notifications.controller.ts"
+      ],
+      "websocketProducer": [
+        "src/modules/notifications/application/ports/outbound/notification-realtime-publisher.port.ts",
+        "src/modules/notifications/application/use-cases/mark-all-notifications-read.use-case.ts",
+        "src/modules/notifications/application/use-cases/mark-notification-read.use-case.ts",
+        "src/modules/notifications/application/use-cases/publish-notification.use-case.ts",
+        "src/modules/notifications/presentation/gateways/notifications.gateway.ts"
+      ],
+      "websocketConsumer": [],
+      "schedulerConsumer": [],
+      "seedDependency": [
+        "src/database/dev-seed.service.ts"
+      ],
+      "canonicalBaselineV2": true,
+      "baselineReason": "A mounted production flow has an observed persistence consumer and a stable runtime mapping candidate.",
+      "protectedDatabase": {
+        "table": "notifications",
+        "exists": true,
+        "rows": 0
+      },
+      "currentOwner": "notifications",
+      "recommendedOwner": "notifications",
+      "ownershipStatus": "canonical",
+      "crossModuleInfrastructureImports": [],
+      "migrationEvidence": "canonical-baseline-v2",
+      "decision": "ACTIVE_BOUNDARY_ONLY"
+    }
+  ],
+  "protectedDatabase": {
+    "before": {
+      "database": "agrilink_db",
+      "readOnly": true,
+      "fingerprint": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+      "tableCount": 33,
+      "ledgers": [],
+      "tables": [
+        {
+          "table": "logistics_profiles",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "shipments",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "shipment_tracking_events",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "conversations",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "messages",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "notifications",
+          "exists": true,
+          "rows": 0
+        }
+      ]
+    },
+    "after": {
+      "database": "agrilink_db",
+      "readOnly": true,
+      "fingerprint": "2e8fee7ecf69c92a8ae7d8964d27be6a66957774758629fe1a289856bf5772e4",
+      "tableCount": 33,
+      "ledgers": [],
+      "tables": [
+        {
+          "table": "logistics_profiles",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "shipments",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "shipment_tracking_events",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "conversations",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "messages",
+          "exists": false,
+          "rows": 0
+        },
+        {
+          "table": "notifications",
+          "exists": true,
+          "rows": 0
+        }
+      ]
+    },
+    "unchanged": true
+  }
+}
