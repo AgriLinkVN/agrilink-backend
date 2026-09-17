@@ -23,6 +23,7 @@ describe("P8-09A canonical Cooperative Member schema migration", () => {
       "ExpandAdPackageReferenceIdentity1800000003000",
       "BackfillAndContractAdPackageReferenceIdentity1800000004000",
       "RestoreCanonicalCooperativeMemberSchema1800000005000",
+      "CreateMarketPriceSplitTablesV21800000006000",
     ]);
   });
 

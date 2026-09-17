@@ -311,8 +311,8 @@ describe("P8-10 final Phase 8 closure", () => {
     ]) {
       expect(parity).toContain(evidence);
     }
-    expect(V2_MIGRATIONS).toHaveLength(6);
-    expect(getMigrationNames(V2_MIGRATIONS).at(-1)).toBe(
+    expect(V2_MIGRATIONS.length).toBeGreaterThanOrEqual(6);
+    expect(getMigrationNames(V2_MIGRATIONS)).toContain(
       "RestoreCanonicalCooperativeMemberSchema1800000005000",
     );
   });

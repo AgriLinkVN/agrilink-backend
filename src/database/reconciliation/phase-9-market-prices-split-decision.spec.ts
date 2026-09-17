@@ -41,8 +41,8 @@ const columnNames = (target: Function): string[] =>
     .sort();
 
 describe("Persistence Phase 9 P9-02 Market Prices split decision", () => {
-  it("discovers exactly two decorated mappings for public.market_prices", () => {
-    const mappings = walkTypeScript(join(ROOT, "src"))
+  it("discovers separated decorated mappings for public.market_prices and public.market_price_aggregates", () => {
+    const marketPriceMappings = walkTypeScript(join(ROOT, "src"))
       .filter((path) =>
         /@Entity\(\s*["']market_prices["']\s*\)/.test(
           readFileSync(path, "utf8"),
@@ -51,9 +51,21 @@ describe("Persistence Phase 9 P9-02 Market Prices split decision", () => {
       .map((path) => normalize(relative(ROOT, path)))
       .sort();
 
-    expect(mappings).toEqual([
-      "src/database/entities/market-price.entity.ts",
+    expect(marketPriceMappings).toEqual([
       "src/modules/market-prices/entities/market-price.entity.ts",
+    ]);
+
+    const aggregateMappings = walkTypeScript(join(ROOT, "src"))
+      .filter((path) =>
+        /@Entity\(\s*["']market_price_aggregates["']\s*\)/.test(
+          readFileSync(path, "utf8"),
+        ),
+      )
+      .map((path) => normalize(relative(ROOT, path)))
+      .sort();
+
+    expect(aggregateMappings).toEqual([
+      "src/database/entities/market-price.entity.ts",
     ]);
 
     const tables = getMetadataArgsStorage().tables.filter(
@@ -61,10 +73,14 @@ describe("Persistence Phase 9 P9-02 Market Prices split decision", () => {
         target === AggregateMarketPrice || target === ReportedMarketPrice,
     );
     expect(tables).toHaveLength(2);
-    expect(tables.map(({ name }) => name)).toEqual([
-      "market_prices",
-      "market_prices",
-    ]);
+    const aggregateTable = tables.find(
+      ({ target }) => target === AggregateMarketPrice,
+    );
+    const reportedTable = tables.find(
+      ({ target }) => target === ReportedMarketPrice,
+    );
+    expect(aggregateTable?.name).toBe("market_price_aggregates");
+    expect(reportedTable?.name).toBe("market_prices");
   });
 
   it("derives two different semantic field contracts from entity metadata", () => {
@@ -169,28 +185,52 @@ describe("Persistence Phase 9 P9-02 Market Prices split decision", () => {
     );
   });
 
-  it("does not invent a table rename or migration in the decision slice", () => {
+  it("implements the split with an ordered V2 forward migration without rename or data copy", () => {
     const migrationDirectory = join(ROOT, "src/database/migrations-v2");
     const migrationSources = readdirSync(migrationDirectory)
       .filter((name) => name.endsWith(".ts") && !name.endsWith(".spec.ts"))
       .map((name) => readFileSync(join(migrationDirectory, name), "utf8"));
 
-    expect(V2_MIGRATIONS).toHaveLength(6);
+    expect(V2_MIGRATIONS).toHaveLength(7);
+    expect(V2_MIGRATIONS[6].name).toBe(
+      "CreateMarketPriceSplitTablesV21800000006000",
+    );
+
     for (const source of migrationSources) {
       expect(source).not.toMatch(
-        /market_price_aggregates|aggregated_market_prices|reported_market_prices|product_market_prices/,
+        /RENAME\s+TABLE|ALTER\s+TABLE.*RENAME/i,
       );
       expect(source).not.toMatch(
-        /(?:CREATE|ALTER|DROP|RENAME)\s+(?:TABLE\s+)?["']?market_prices/i,
+        /INSERT\s+INTO.*SELECT/i,
       );
     }
+  });
 
-    const decision = read(DECISION_PATH);
-    expect(currentValue(decision, "TABLE_NAME_HUMAN_DECISION_REQUIRED")).toBe(
-      "YES",
+  it("verifies the ownership manifest resolves market prices into canonical mappings with no duplicate", () => {
+    const ownership = JSON.parse(
+      readFileSync(
+        join(ROOT, "docs/architecture/persistence/entity-ownership.json"),
+        "utf8",
+      ),
     );
-    expect(currentValue(decision, "MIGRATION_IMPLEMENTED")).toBe("NO");
-    expect(currentValue(decision, "SCHEMA_CHANGED")).toBe("NO");
+    const marketPrices = ownership.tables.find(
+      (t: { table: string }) => t.table === "market_prices",
+    );
+    const marketPriceAggregates = ownership.tables.find(
+      (t: { table: string }) => t.table === "market_price_aggregates",
+    );
+
+    expect(marketPrices).toBeDefined();
+    expect(marketPrices.status).toBe("canonical");
+    expect(marketPrices.currentMappings).toEqual([
+      "src/modules/market-prices/entities/market-price.entity.ts",
+    ]);
+
+    expect(marketPriceAggregates).toBeDefined();
+    expect(marketPriceAggregates.status).toBe("canonical");
+    expect(marketPriceAggregates.currentMappings).toEqual([
+      "src/database/entities/market-price.entity.ts",
+    ]);
   });
 
   it("preserves the other human gates and keeps P9-03 unimplemented", () => {

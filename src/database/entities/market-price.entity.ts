@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { ProductUnit } from '../../common/enums';
 
-@Entity('market_prices')
+@Entity('market_price_aggregates')
 export class MarketPrice {
   @PrimaryGeneratedColumn('uuid')
   id: string;

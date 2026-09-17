@@ -17,6 +17,7 @@ import { CreateTraceabilityEventModelV21800000002000 } from "./migrations-v2/180
 import { ExpandAdPackageReferenceIdentity1800000003000 } from "./migrations-v2/1800000003000-ExpandAdPackageReferenceIdentity";
 import { BackfillAndContractAdPackageReferenceIdentity1800000004000 } from "./migrations-v2/1800000004000-BackfillAndContractAdPackageReferenceIdentity";
 import { RestoreCanonicalCooperativeMemberSchema1800000005000 } from "./migrations-v2/1800000005000-RestoreCanonicalCooperativeMemberSchema";
+import { CreateMarketPriceSplitTablesV21800000006000 } from "./migrations-v2/1800000006000-CreateMarketPriceSplitTablesV2";
 
 export type MigrationClass = new () => MigrationInterface;
 
@@ -41,6 +42,7 @@ export const V2_MIGRATIONS = Object.freeze([
   ExpandAdPackageReferenceIdentity1800000003000,
   BackfillAndContractAdPackageReferenceIdentity1800000004000,
   RestoreCanonicalCooperativeMemberSchema1800000005000,
+  CreateMarketPriceSplitTablesV21800000006000,
 ] as const satisfies readonly MigrationClass[]);
 
 export function getMigrationNames(
